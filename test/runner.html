@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head lang="en">
+  <meta charset="utf-8"/>
+  <title>Test Runner</title>
+  <link rel="stylesheet" type="text/css" href="../manual-deps/jasmine/jasmine.css">
+  <script src="../manual-deps/jasmine/jasmine.js"></script>
+  <script src="../manual-deps/jasmine/jasmine-html.js"></script>
+  <script>
+  var require = {
+    paths: {
+      "pytools": "../src/pytools"
+    }
+  }
+  </script>
+  <script src="../vendor/requirejs/require.js"></script>
+</head>
+<body>
+
+<script>
+  require(
+  [
+    'spec/builder-spec',
+    'spec/compiler-spec'
+  ],
+  function() {
+    jasmine.getEnv().addReporter(new jasmine.HtmlReporter());
+    jasmine.getEnv().execute();
+  });
+</script>
+
+</body>
+</html>
+

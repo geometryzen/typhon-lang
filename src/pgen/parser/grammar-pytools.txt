@@ -1,0 +1,133 @@
+# Grammar for DaVinci Python
+
+# Start symbols for the grammar:
+#       single_input is a single interactive statement;
+#       file_input is a module or sequence of commands read from an input file;
+#       eval_input is the input for the eval() and input() functions.
+# NB: compound_stmt in single_input is followed by extra NEWLINE!
+single_input: NEWLINE | simple_stmt | compound_stmt NEWLINE
+file_input: (NEWLINE | stmt)* ENDMARKER
+eval_input: testlist NEWLINE* ENDMARKER
+
+decorator: '@' dotted_name [ '(' [arglist] ')' ] NEWLINE
+decorators: decorator+
+decorated: decorators (classdef | funcdef)
+funcdef: 'def' NAME parameters ':' suite
+parameters: '(' [varargslist] ')'
+varargslist: ((fpdef ['=' IfExpr] ',')* ('*' NAME [',' '**' NAME] | '**' NAME) | fpdef ['=' IfExpr] (',' fpdef ['=' IfExpr])* [','])
+fpdef: NAME | '(' fplist ')'
+fplist: fpdef (',' fpdef)* [',']
+
+stmt: simple_stmt | compound_stmt
+simple_stmt: small_stmt (';' small_stmt)* [';'] NEWLINE
+
+small_stmt: (ExprStmt |
+             print_stmt  |
+             del_stmt |
+             pass_stmt |
+             flow_stmt |
+             import_stmt |
+             GlobalStmt |
+             NonLocalStmt |
+             exec_stmt |
+             assert_stmt)
+
+ExprStmt: testlist (augassign (YieldExpr|testlist) | ('=' (YieldExpr|testlist))*)
+
+augassign: ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '**=' | '//=')
+
+# For normal assignments, additional restrictions enforced by the interpreter
+print_stmt: 'print' ( [ IfExpr (',' IfExpr)* [','] ] | '>>' IfExpr [ (',' IfExpr)+ [','] ] )
+
+del_stmt: 'del' ExprList
+pass_stmt: 'pass'
+flow_stmt: break_stmt | continue_stmt | return_stmt | raise_stmt | yield_stmt
+break_stmt: 'break'
+continue_stmt: 'continue'
+return_stmt: 'return' [testlist]
+yield_stmt: YieldExpr
+raise_stmt: 'raise' [IfExpr [',' IfExpr [',' IfExpr]]]
+import_stmt: import_name | import_from
+import_name: 'import' dotted_as_names
+import_from: ('from' ('.'* dotted_name | '.'+) 'import' ('*' | '(' import_as_names ')' | import_as_names))
+import_as_name: NAME ['as' NAME]
+dotted_as_name: dotted_name ['as' NAME]
+import_as_names: import_as_name (',' import_as_name)* [',']
+dotted_as_names: dotted_as_name (',' dotted_as_name)*
+dotted_name: NAME ('.' NAME)*
+
+GlobalStmt: 'global' NAME (',' NAME)*
+NonLocalStmt: 'nonlocal' NAME (',' NAME)*
+
+exec_stmt: 'exec' ArithmeticExpr ['in' IfExpr [',' IfExpr]]
+
+assert_stmt: 'assert' IfExpr [',' IfExpr]
+
+compound_stmt: if_stmt | while_stmt | for_stmt | try_stmt | with_stmt | funcdef | classdef | decorated
+if_stmt: 'if' IfExpr ':' suite ('elif' IfExpr ':' suite)* ['else' ':' suite]
+while_stmt: 'while' IfExpr ':' suite ['else' ':' suite]
+for_stmt: 'for' ExprList 'in' testlist ':' suite ['else' ':' suite]
+try_stmt: ('try' ':' suite ((except_clause ':' suite)+ ['else' ':' suite] ['finally' ':' suite] | 'finally' ':' suite))
+with_stmt: 'with' IfExpr [ with_var ] ':' suite
+with_var: 'as' ArithmeticExpr
+
+except_clause: 'except' [IfExpr [('as' | ',') IfExpr]]
+suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT
+
+# Backward compatibility cruft to support:
+testlist_safe: old_test [(',' old_test)+ [',']]
+old_test: OrExpr | old_LambdaExpr
+old_LambdaExpr: 'lambda' [varargslist] ':' old_test
+
+IfExpr: OrExpr ['if' OrExpr 'else' IfExpr] | LambdaExpr
+OrExpr: AndExpr ('or' AndExpr)*
+AndExpr: NotExpr ('and' NotExpr)*
+NotExpr: 'not' NotExpr | ComparisonExpr
+
+ComparisonExpr: ArithmeticExpr (comp_op ArithmeticExpr)*
+comp_op: '<' | '>' | '==' | '>=' | '<=' | '<>' | '!=' | 'in' | 'not' 'in' | 'is' | 'is' 'not'
+
+ArithmeticExpr: GeometricExpr (('+'|'-') GeometricExpr)*
+GeometricExpr: ShiftExpr (('*'|'/'|'%'|'//') ShiftExpr)*
+ShiftExpr: BitwiseOrExpr (('<<' | '>>') BitwiseOrExpr)*
+BitwiseOrExpr: BitwiseXorExpr ('|' BitwiseXorExpr)*
+BitwiseXorExpr: BitwiseAndExpr ('^' BitwiseAndExpr)*
+BitwiseAndExpr: UnaryExpr ('&' UnaryExpr)*
+UnaryExpr: ('+'|'-'|'~') UnaryExpr | PowerExpr
+PowerExpr: AtomExpr trailer* ['**' UnaryExpr]
+
+AtomExpr: ('(' [YieldExpr|testlist_gexp] ')' |
+           '[' [listmaker] ']' |
+           '{' [dictmaker] '}' | '`' testlist1 '`' |
+           NAME | NUMBER | STRING+)
+
+listmaker: IfExpr ( list_for | (',' IfExpr)* [','] )
+testlist_gexp: IfExpr ( gen_for | (',' IfExpr)* [','] )
+LambdaExpr: 'lambda' [varargslist] ':' IfExpr
+trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
+subscriptlist: subscript (',' subscript)* [',']
+subscript: '.' '.' '.' | IfExpr | [IfExpr] ':' [IfExpr] [sliceop]
+sliceop: ':' [IfExpr]
+ExprList: ArithmeticExpr (',' ArithmeticExpr)* [',']
+testlist: IfExpr (',' IfExpr)* [',']
+dictmaker: IfExpr ':' IfExpr (',' IfExpr ':' IfExpr)* [',']
+
+classdef: 'class' NAME ['(' [testlist] ')'] ':' suite
+
+arglist: (argument ',')* (argument [','] |'*' IfExpr (',' argument)* [',' '**' IfExpr] |'**' IfExpr)
+argument: IfExpr [gen_for] | IfExpr '=' IfExpr  # Really [keyword '='] IfExpr
+
+list_iter: list_for | list_if
+list_for: 'for' ExprList 'in' testlist_safe [list_iter]
+list_if: 'if' old_test [list_iter]
+
+gen_iter: gen_for | gen_if
+gen_for: 'for' ExprList 'in' OrExpr [gen_iter]
+gen_if: 'if' old_test [gen_iter]
+
+testlist1: IfExpr (',' IfExpr)*
+
+# not used in grammar, but may appear in "node" passed from Parser to Compiler
+encoding_decl: NAME
+
+YieldExpr: 'yield' [testlist]

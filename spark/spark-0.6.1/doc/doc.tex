@@ -1,0 +1,505 @@
+\documentclass{article}
+
+% TTH stuff
+\def\href#1#2{\special{html:<a href="#1">}{#2}\special{html:</a>}}
+
+\title{SPARK Documentation for Release 0.6}
+\author{John Aycock \\ Computer Science \\ University of Victoria \\
+	\href{mailto:aycock@csc.uvic.ca}{\texttt{aycock@csc.uvic.ca}}}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+\maketitle
+
+This document is a random scattering of thoughts, derived from
+my own experience and from the valuable feedback I've gotten from:
+
+\begin{itemize}
+\item Jan Decaluwe
+\item Paul Dubois
+\item Mike Fletcher
+\item Darrell Gallion
+\item Nick Mathewson
+\item Gordon McMillan
+\item Amit J. Patel
+\item Tim Peters
+\item Dickon Reed
+\item Nicky Sandhu
+\item Richard White
+\end{itemize}
+
+The ``real'' documentation is still the IPC7 paper.  Please send
+me any suggestions you have about the framework, or things to add
+to this document!
+
+\emph{This is new in version 0.6.}
+
+(The module name has been changed to \code{spark.py}; new code should
+\code{import spark} instead of \code{import generic}.)
+
+\section{The \code{Token} Class}
+
+The version of \code{Token} that's supplied is as minimal as possible.  The
+only thing the framework assumes is a \code{\_\_cmp\_\_} method, so as long as
+you adhere to this you can expand the class or drop in your own.
+
+\code{GenericParser}'s default \code{error} method attempts to print out
+the offending token in a readable form, so you may find it useful to have
+a \code{\_\_str\_\_} or \code{\_\_repr\_\_} in your \code{Token} class too.
+
+\section{The \code{AST} Class}
+
+Like the \code{Token} class, the \code{AST} class is very minimal.  The
+framework assumes that each \code{AST} node will have a string-valued
+\code{type} attribute, and that the children of a node are obtainable
+using the \code{\_\_getitem\_\_} method.  Again, you can roll your own
+class with this type of interface too.
+
+I prefer $n$-ary trees for my ASTs rather than binary trees, so the
+example one in \code{examples/paper} is quite a bit different than my own.
+
+\section{The \code{GenericScanner} Class}
+
+\subsection{The \code{error} Method}
+
+If the input is not matched by some point by regular expressions you've
+supplied, then the \code{error} method will get called (in previous
+versions an assertion was raised instead).  This method gets passed
+the input string and the position within the string that the error
+occurred.
+
+\code{GenericScanner} provides a default implementation which prints out
+an error message and raises a \code{SystemExit} exception.
+
+I'm deliberating as to whether this should be a straight exception, or
+if I should modify the interface to permit some form of error recovery\ldots
+
+\subsection{Bugs/Limitations/Caveats}
+
+\begin{description}
+
+\item[Speed.]  I've addressed this in this latest release, thanks to
+	some code from Tim Peters.  However, \code{GenericScanner} is
+	ultimately only as good as Python's RE engine --- a peril of
+	code re-use.
+
+\item[Regular expressions.]  \code{GenericScanner} interprets regular
+	expressions with the \code{re.VERBOSE} option enabled.  This
+	means you have to escape the \code{\#} character if you want
+	to literally match it.
+
+\end{description}
+
+\section{The \code{GenericParser} Class}
+
+\subsection{Input Grammars}
+
+\code{GenericParser} should work with any Backus-Naur form (BNF) grammar,
+including grammars
+with empty right-hand sides and ambiguous grammars.
+There are apparently a few rather obscure cases where Earley's parsing algorithm
+fails, but they're not likely to crop up in any reasonable application.
+
+\subsection{The \code{typestring} Method}
+
+\emph{This is new in version 0.6.}
+
+\code{GenericParser} can often run faster if it knows the type of its
+tokens.  More specifically, if it knows a token's type as a string.  You
+can tell the parser this by supplying a \code{typestring} method, which is
+passed a token, and must either return that token's type as a string, or
+\code{None} if it's unable to (in the latter case, the parser will simply
+fall back on a less-efficient method of operation).
+
+For example, if a token's type is always stored in under the name \code{type},
+you might have the following code:
+
+\begin{verbatim}
+class MyParser(GenericParser):
+    ...
+    def typestring(self, token):
+        return token.type
+\end{verbatim}
+
+Note that \code{GenericParser} may or may not use \code{typestring}; your
+tokens must still be comparable objects, as before.  Supplying \code{typestring}
+is purely optional.
+
+\subsection{Bugs/Limitations/Caveats}
+
+\begin{description}
+
+\item[Speed.] You're using a very general parsing algorithm
+	implemented in Python; it's not going to be blazingly fast,
+	sorry.
+
+\item[Action code.]  The entire input has been recognized by
+	\code{GenericParser} before any of your action code is
+	executed.  This may restrict the types of things you do on-the-fly
+	in your parser actions.  It's one argument for building an AST
+	that you can traverse any way you want.
+
+\item[Watch your method names.]  I've been bitten by this a few times.
+	Python won't warn you if you inadventently redefine a method,
+	which I've done when cutting and pasting a bit too freely.  It's
+	a bugger to track down too.
+
+\end{description}
+
+\subsection{Ambiguity Resolution}
+
+Since the IPC7 paper, I had added some rudimentary ambiguity resolution code.
+It was undocumented, far from satisfactory, and it has been supplanted by
+the following interface.
+
+Ambiguities are not resolved until the parse tree is being traversed.  In
+other words, the input is already known to be syntactically correct; it's
+just a matter of deciding which parse tree to build when there are multiple
+choices.
+
+When an ambiguity is reached, a choice will need to be made between two
+or more rules.  These rules must reside in different \code{p\_} methods.
+The method names which correspond to the conflicting rules, minus the
+initial ``\code{p\_},'' are gathered together in a list.  This list is
+sorted by the length of the rules' right-hand side --- shorter rules appear
+earlier in the list --- and passed to the \code{resolve} method.  The
+\code{resolve} method must choose an element of the list and return its choice.
+
+\code{GenericParser} supplies a default implementation of \code{resolve}
+which always selects the rule with the shortest right-hand side (assuming
+the conflicting rules reside in different \code{p\_} methods, of course).
+This is enough to handle the ``dangling-else'' conflict.
+
+Now some examples.  The first one always picks the rule with the shortest
+right-hand side (this is the default as supplied):
+
+\begin{verbatim}
+class MyParser(GenericParser):
+    ...
+    def resolve(self, list):
+        return list[0]
+\end{verbatim}
+
+The second example always picks the rule with the longest
+right-hand side:
+
+\begin{verbatim}
+class MyParser(GenericParser):
+    ...
+    def resolve(self, list):
+        return list[-1]
+\end{verbatim}
+
+Here's one which exercises fine-grained control:
+
+\begin{verbatim}
+class MyParser(GenericParser):
+    ...
+    def p_if_stmt(self, args):
+        '''
+            stmt ::= IF expr THEN stmt
+        '''
+    def p_ifelse_stmt(self, args):
+        '''
+            stmt ::= IF expr THEN stmt ELSE stmt
+        '''
+    ...
+    def resolve(self, list):
+        choice = {
+            ('if_stmt', 'ifelse_stmt'): 'if_stmt',
+        }
+        return choice[tuple(list)]
+\end{verbatim}
+
+If you have an ambiguity, but aren't sure where, you may want to override
+the default \code{resolve} with one that simply prints out the list it's
+passed.  This allows you to find the guilty parties, and to ensure that there's
+no duplicates in the list.
+
+\section{The \code{GenericASTBuilder} Class}
+
+This class will construct syntax trees for you automatically (or at
+least with minimal intervention).  Instead of having your parser be a
+subclass of \code{GenericParser}, you make it a subclass of
+\code{GenericASTBuilder}.  \code{GenericASTBuilder} is a subclass of
+\code{GenericParser}, meaning the parsing interface is unchanged.
+
+The constructor for \code{GenericASTBuilder} takes an extra argument,
+which is the \emph{class} that you want AST nodes to be.
+
+It's actually simpler than it sounds.  The rest of this section gives
+a ``cookbook'' explanation.  The class of AST nodes is called ``AST''
+in the examples below.
+
+\subsection{Heterogeneous Parse Tree}
+
+Sometimes these are called ``concrete syntax trees.''  By heterogeneous
+I mean that the leaves of the tree are instances of tokens rather than
+instances of the AST class.  (See the \code{GenericASTTraversal} section
+for more on this.)
+
+\begin{verbatim}
+class AutoExprParser(GenericASTBuilder):
+    def __init__(self, AST, start='expr'):
+        GenericASTBuilder.__init__(self, AST, start)
+
+    def p_expr(self, args):
+        '''
+            expr ::= expr + term
+            expr ::= term
+            term ::= term * factor
+            term ::= factor
+            factor ::= number
+            factor ::= float
+        '''
+\end{verbatim}
+
+That's it.  The code that uses it would look like:
+
+\begin{verbatim}
+    parser = AutoExprParser(AST)
+    parseTree = parser.parse(tokens)
+\end{verbatim}
+
+Except for the extra class argument to the constructor, there's no
+changes.  In \code{AutoExprParser}, all the rules are lumped together
+since there's no further need for actions.
+
+The AST class must support the \code{\_\_setslice\_\_} and \code{\_\_len\_\_}
+operations in order to use \code{GenericASTBuilder}.
+
+\subsection{Homogeneous Parse Tree}
+
+To make a homogeneous parse tree, the leaves need to be changed from
+token instances into AST instances.  When \code{GenericASTBuilder}
+encounters a leaf, it calls \code{GenericASTBuilder.terminal}, so you
+simply need to supply your own version of it:
+
+\begin{verbatim}
+class AutoExprParser(GenericASTBuilder):
+    ...
+    def terminal(self, token):
+        return AST(token.type)
+\end{verbatim}
+
+In practice, you'll probably want to copy some attribute values from the
+token to the AST node too.
+
+\subsection{Any-geneous Abstract Syntax Tree}
+
+To use \code{GenericASTBuilder} for building an abstract syntax tree,
+there should be a fairly straightforward mapping between the parse tree
+and the AST you want.  Just like \code{GenericASTBuilder.terminal} was
+supplied in the last section, you'll now supply a
+\code{GenericASTBuilder.nonterminal} method.  The arguments to this method
+are the nonterminal it's trying to build a node for, and the node's children.
+
+For example, if I wanted to flatten the parse tree out a bit, I could
+skip allocating new nodes if there's only one child:
+
+\begin{verbatim}
+class AutoExprParser(GenericASTBuilder):
+    ...
+    def nonterminal(self, type, args):
+        if len(args) == 1:
+            return args[0]
+        return GenericASTBuilder.nonterminal(self, type, args)
+\end{verbatim}
+
+\code{args} is just a list, so you could also delete elements from it,
+or any other transformation you can imagine.
+
+\subsection{Bugs/Limitations/Caveats}
+
+\begin{description}
+
+\item[Ignorance.] Any parser actions you supply in your \code{p\_} functions are
+	silently ignored by \code{GenericASTBuilder} in the current version.
+	This may change in the future.
+
+\end{description}
+
+\section{The \code{GenericASTTraversal} Class}
+
+This was called the \code{ASTTraversal} class in the IPC7 paper.  For
+consistency, I've renamed it and placed it in \code{spark.py} along
+with the other generic classes.  For backward compatibility,
+\code{ASTTraversal} is still present in its old spot as a wrapper; new
+code should use \code{GenericASTTraversal}.
+
+I got a great suggestion about heterogeneous ASTs: use the already-present
+token instances as leaves of the AST.  I was all ready to add support
+into \code{GenericASTTraversal} so that it only traversed a node's children
+if the node had a \code{\_\_getitem\_\_} method present.  Then it
+suddenly occurred to me that \code{GenericASTTraversal} already supports
+heterogeneous ASTs: if you want to use tokens as leaves, just add a
+method to your token class:
+\begin{verbatim}
+class MyToken:
+    ...
+    def __getitem__(self, i):	raise IndexError
+    ...
+\end{verbatim}
+This way the interface to \code{GenericASTTraversal} is kept simple.
+
+If you want to prevent further traversal into a subtree during a
+preorder traversal, calling the \code{prune} method will do the trick.  I
+found I needed this when generating code from ASTs.
+
+\subsection{The \code{typestring} Method}
+
+\emph{This is new in version 0.6.}
+
+To decouple \code{GenericASTTraversal} from the node implementation,
+\code{GenericASTTraversal} now calls the \code{typestring} method to
+get the node's type as a string.  Like its counterpart in \code{GenericParser},
+it takes a node as an argument, and must return a string (it may not return
+\code{None}, unlike the one in \code{GenericParser}).
+
+The default implementation simply returns the node's \code{type} field; this
+behaviour is backwards-compatible.
+
+\section{The \code{GenericASTMatcher} Class}
+
+\code{GenericASTMatcher} is a class that is designed for generating code
+from ASTs.  You supply a set of patterns (in docstrings, of course) and
+actions; \code{GenericASTMatcher} will find a way to cover the AST with
+your patterns, then invoke the corresponding actions.  Actions are called
+in left-to-right, bottom-up order.
+
+For example:
+
+\begin{verbatim}
+class AutoInterpret(GenericASTMatcher):
+    def __init__(self, ast):
+        GenericASTMatcher.__init__(self, 'V', ast)
+
+    def p_n(self, tree):
+        '''
+            V ::= number
+        '''
+        tree.value = int(tree.attr)
+
+    def p_add(self, tree):
+        '''
+            V ::= expr ( V + V )
+        '''
+        tree.value = tree[0].value + tree[2].value
+
+    def p_multiply(self, tree):
+        '''
+            V ::= term ( V * V )
+        '''
+        tree.value = tree[0].value * tree[2].value
+
+    def p_addmul(self, tree):
+        '''
+            V ::= expr ( V + term ( V * V ) )
+        '''
+        tree.value = tree[0].value + tree[2][0].value * tree[2][2].value
+\end{verbatim}
+
+As in \code{GenericParser}, the methods you supply are prefixed with
+\code{p\_}, which in this context stands for ``pattern.''  The argument
+to the \code{p\_} methods is the AST node where the pattern is rooted.
+
+Patterns are just trees linearized into prefix
+form, which use parentheses to denote
+subtrees.  On the left-hand side is a symbol which the pattern is
+effectively ``rewritten'' to if the pattern is matched.  For example,
+the pattern \code{V~::=~term~(~V~*~V~)} would correspond to:
+
+\begin{verbatim}
+ term
+  /|\    => V
+ / | \
+V  *  V
+\end{verbatim}
+
+You'd use the above class as follows:
+
+\begin{verbatim}
+    interpreter = AutoInterpret(ast)
+    interpreter.match()
+    print ast.value
+\end{verbatim}
+
+You may optionally supply an AST to \code{match}.  This is so you can
+create one instance of your matcher class, then have it match different
+ASTs.  For instance, you could use a matcher for implementing a
+language's arithmetic expressions, and use a \code{GenericASTTraversal}
+for the rest.
+
+AST nodes must support \code{\_\_getitem\_\_} and \code{\_\_cmp\_\_} methods
+to use \code{GenericASTMatcher}.
+
+\subsection{Bugs/Limitations/Caveats}
+
+\begin{description}
+
+\item[Ambiguity.] If there's a conflict between two patterns, then
+	\code{GenericASTMatcher} will choose the longest one.  Ideally,
+	the entire matching engine will eventually be replaced by a more
+	sophisticated one that'll find an ``optimal'' covering.
+
+\item[Parentheses considered harmful.] You may end up with some strange
+	things happening if you have a terminal/nonterminal named ``(''
+	or ``)'' as they're delimiting the pattern's tree structure.
+
+\item[Patterns.] \code{GenericASTMatcher}'s engine will accept patterns
+	that are more general than those described above.  These restrictions
+	may be enforced in a later release, however.
+
+\end{description}
+
+\section{Inheritance and \code{Generic*} Classes}
+
+You can override \code{t\_} and \code{p\_} methods now in the expected fashion;
+in other words, defining \code{p\_foo} in a subclass hides \code{p\_foo} in
+its superclass.  (Previously duplicate method names were not removed when
+the \code{Generic*} classes did their reflection, giving strange results.)
+
+\section{Miscellaneous}
+
+\begin{description}
+
+\item[Memory leaks!]  Several of the \code{Generic*} classes keep references
+	to the various \code{t\_} and \code{p\_} methods.  Unfortunately this
+	results in a circular reference, as Darrell Gallion pointed out, which
+	Python's current garbage collector won't collect.
+
+	This will only be an issue if you create and destroy \code{Generic*}
+	classes repeatedly; simply using a single instance of
+	\code{GenericScanner} repeatedly will not consume extra memory.
+
+	I probably won't fix this, since full GC is likely coming soon
+	to a Python near you, and it won't affect many users.  If you
+	\emph{do} need to handle this problem, contact me and I can advise you
+	how to change the SPARK code.
+
+\item[How do I keep track of the line number?]  There's currently no
+	automatic way to do this.  What I do is to keep a line
+	number attribute, say \code{lineno}, for each token.  Then
+	in my \code{GenericScanner} subclass I'll have a method like:
+	\begin{verbatim}
+	def t_nl(self, s):
+	    r'\n'
+	    self.lineno = self.lineno + 1
+	\end{verbatim}
+	(I set \code{self.lineno} to 1 in my subclass' \code{tokenize} method.)
+
+\item[What about inherited attributes?]  For inherited attributes --- ones
+	that propagate from the root to the leaves of a tree --- I just set
+	variables in my subclass rather than pass them around explicitly.
+	You may want to avoid relying on this while parsing unless you
+	know exactly how and when your parsing actions are being invoked.
+
+\item[How do I distribute a project that uses SPARK?]  As far as I'm
+	concerned, you need only include \code{spark.py}.  I'd appreciate it
+	if you mentioned SPARK in your documentation and/or web pages.  And
+	if you send me the URL of your project's home page, I can add it
+	to the SPARK web page.
+\end{description}
+
+\end{document}

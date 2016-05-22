@@ -1,0 +1,65 @@
+CHANGES FROM 0.6 -> 0.6.1:
+
+	-  Bug fix in GenericParser (bug pointed out by Nick Mathewson).
+
+CHANGES FROM 0.5 -> 0.6:
+
+	-  Gordon McMillan and Richard White pointed out that the
+		reflection fix I put in in 0.5 broke the ordering guarantee;
+		this is now fixed.  (It should only affect people who're
+		subclassing scanners.)
+	-  Richard White found a longstanding bug relating to rules with
+		empty right-hand sides; basically, a syntax error could be
+		reported when there wasn't one.
+	-  Parser performance improvements.  You can supply a method named
+		typestring() in your parser class to extract a token's type
+		as a string -- GenericParser _may_ use this to make things
+		faster.  (This was spurred by discussions with Nick
+		Mathewson and Richard White.)
+	-  GenericASTTraversal now gets node's type via typestring(), which
+		can be overridden by subclasses.
+	-  Changed the name of generic.py to spark.py.  I don't envision
+		changing the class names at any point, however.
+
+CHANGES FROM 0.4 -> 0.5:
+
+	-  GenericScanner speedups, thanks to Tim Peters.
+	-  Reflection fix, thanks to Jan Decaluwe.  Duplicates are now
+		removed, so overloading a t_ or p_ method works the way
+		you'd expect it to.
+	-  GenericParser cleans up after itself properly.  This problem
+		only showed up if you re-parsed a token list.
+	-  An official ambiguity-resolution mechanism in GenericParser.
+	-  error() routine for GenericScanner -- no more mystery assertions!
+	-  Changed the name from, well, no name to SPARK.
+
+CHANGES FROM 0.3 -> 0.4:
+
+	-  Added GenericASTBuilder, which automagically constructs
+		concrete/abstract syntax trees.
+	-  Added GenericASTMatcher, which does tree pattern matching
+		for use in code generation or interpretation of ASTs.
+	-  A new example which demonstrates all these new features.
+	-  Fixed two minor bugs in GenericASTTraversal.
+
+CHANGES FROM 0.2 -> 0.3:
+
+	-  Grammar rules with empty right-hand sides work.  More
+		precisely, they've been tested -- it appears as though
+		they may have always worked with this implementation.
+	-  Another speedup in GenericParser, at least for some grammars.
+		A rule starting with a terminal symbol won't be predicted
+		if it doesn't match the next symbol -- not as good as using
+		FIRST sets, but it's pretty cheap computationally.
+	-  A scanner and parser for Python.
+
+CHANGES FROM 0.1 -> 0.2:
+
+	-  Some documentation!
+	-  Tiny speedup in GenericScanner; a somewhat more substantial
+		speedup in GenericParser.
+	-  ASTTraversal class renamed GenericASTTraversal, and moved
+		to generic.py for consistency.
+	-  GenericParser.error() gives a reasonable error message rather
+		than hitting an "assert 0".  You'll need a __str__ or
+		__repr__ in your token class to take advantage of it though.
