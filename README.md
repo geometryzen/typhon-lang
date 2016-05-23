@@ -56,16 +56,7 @@ The following process is used to generate a parser.
 
 These tables are used by the Parser class to 
 
-## AST Generation
-
-`pgen/ast/Python.asdl` is processed by `asdl_js.py` => `astnodes.js`
-
-`Python.asdl` appears to describe the syntax. 
-
-`src/pytools/astnodes.js`: The AST nodes, which are constructor functions (new).
-
 ### Scanning/Lexical Analysis (creates token stream)
-
 
 ### Parsing/Syntax Analysis (builds AST)
 

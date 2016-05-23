@@ -79,8 +79,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-ts');
     grunt.loadNpmTasks('grunt-tslint');
 
-    // Make task shortcuts
-    grunt.registerTask('default', [/*'tslint',*/ 'test', 'requirejs', 'uglify']);
+    grunt.registerTask('default', ['test'/*, 'tslint'*/, 'requirejs', 'uglify']);
     grunt.registerTask('test', ['connect:test', 'jasmine']);
 
 };
