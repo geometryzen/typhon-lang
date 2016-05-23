@@ -220,49 +220,49 @@ define(['pytools'], function(m) {
             var cst = pytools.parser.parse(fileName, 'def foo():\n pass');
             var ast = pytools.builder.astFromParse(cst, fileName);
             var dump = pytools.builder.astDump(ast);
-            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
+            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
         });
 
         it('def foo():\n return a', function() {
             var cst = pytools.parser.parse(fileName, 'def foo():\n return a');
             var ast = pytools.builder.astFromParse(cst, fileName);
             var dump = pytools.builder.astDump(ast);
-            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[Return(value=Name(id=a,ctx=Load()))],decorator_list=[])])');
+            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[ReturnStatement(value=Name(id=a,ctx=Load()))],decorator_list=[])])');
         });
 
         it('def foo(x):\n pass', function() {
             var cst = pytools.parser.parse(fileName, 'def foo(x):\n pass');
             var ast = pytools.builder.astFromParse(cst, fileName);
             var dump = pytools.builder.astDump(ast);
-            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=arguments(args=[Name(id=x,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
+            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
         });
 
         it('def foo(x, y):\n pass', function() {
             var cst = pytools.parser.parse(fileName, 'def foo(x, y):\n pass');
             var ast = pytools.builder.astFromParse(cst, fileName);
             var dump = pytools.builder.astDump(ast);
-            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=arguments(args=[Name(id=x,ctx=Param()),Name(id=y,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
+            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param()),Name(id=y,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
         });
 
         it('if a:\n pass', function() {
             var cst = pytools.parser.parse(fileName, 'if a:\n pass');
             var ast = pytools.builder.astFromParse(cst, fileName);
             var dump = pytools.builder.astDump(ast);
-            expect(dump).toBe('Module(body=[If(test=Name(id=a,ctx=Load()),body=[Pass()],orelse=[])])');
+            expect(dump).toBe('Module(body=[IfStatement(test=Name(id=a,ctx=Load()),body=[Pass()],orelse=[])])');
         });
 
         it('if a:\n pass\nelse:\n pass', function() {
             var cst = pytools.parser.parse(fileName, 'if a:\n pass\nelse:\n pass');
             var ast = pytools.builder.astFromParse(cst, fileName);
             var dump = pytools.builder.astDump(ast);
-            expect(dump).toBe('Module(body=[If(test=Name(id=a,ctx=Load()),body=[Pass()],orelse=[Pass()])])');
+            expect(dump).toBe('Module(body=[IfStatement(test=Name(id=a,ctx=Load()),body=[Pass()],orelse=[Pass()])])');
         });
 
         it('while a:\n pass', function() {
             var cst = pytools.parser.parse(fileName, 'while a:\n pass');
             var ast = pytools.builder.astFromParse(cst, fileName);
             var dump = pytools.builder.astDump(ast);
-            expect(dump).toBe('Module(body=[While(test=Name(id=a,ctx=Load()),body=[Pass()],orelse=[])])');
+            expect(dump).toBe('Module(body=[WhileStatement(test=Name(id=a,ctx=Load()),body=[Pass()],orelse=[])])');
         });
 
         it('ParseError', function() {

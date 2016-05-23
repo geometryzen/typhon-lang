@@ -2023,127 +2023,14 @@ define('pytools/asserts',["require", "exports"], function (require, exports) {
     exports.fail = fail;
 });
 
-// Copyright 2006 The Closure Library Authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 define('pytools/base',["require", "exports"], function (require, exports) {
     "use strict";
-    var COMPILED = false;
-    /**
-     * Base namespace for the Closure library.  Checks to see base is already
-     * defined in the current scope before assigning to prevent clobbering if
-     * base.js is loaded more than once.
-     *
-     * @const
-     */
-    var base = base || {};
-    /**
-     * Reference to the global context.  In most cases this will be 'window'.
-     */
-    base.global = this;
-    /**
-     * Builds an object structure for the provided namespace path, ensuring that
-     * names that already exist are not overwritten. For example:
-     * "a.b.c" -> a = {};a.b={};a.b.c={};
-     * Used by base.provide and base.exportSymbol.
-     * @param {string} name name of the object that this file defines.
-     * @param {*=} opt_object the object to expose at the end of the path.
-     * @param {Object=} opt_objectToExportTo The object to add the path to; default
-     *     is |base.global|.
-     * @private
-     */
-    base.exportPath_ = function (name, opt_object, opt_objectToExportTo) {
-        var parts = name.split('.');
-        var cur = opt_objectToExportTo || base.global;
-        // Internet Explorer exhibits strange behavior when throwing errors from
-        // methods externed in this manner.  See the testExportSymbolExceptions in
-        // base_test.html for an example.
-        if (!(parts[0] in cur) && cur.execScript) {
-            cur.execScript('var ' + parts[0]);
-        }
-        // Certain browsers cannot parse code in the form for((a in b); c;);
-        // This pattern is produced by the JSCompiler when it collapses the
-        // statement above into the conditional loop below. To prevent this from
-        // happening, use a for-loop and reserve the init logic as below.
-        // Parentheses added to eliminate strict JS warning in Firefox.
-        for (var part; parts.length && (part = parts.shift());) {
-            if (!parts.length && opt_object !== undefined) {
-                // last part and we have an object; use it
-                cur[part] = opt_object;
-            }
-            else if (cur[part]) {
-                cur = cur[part];
-            }
-            else {
-                cur = cur[part] = {};
-            }
-        }
-    };
-    base.DEBUG = true;
-    /**
-     * Returns an object based on its fully qualified external name.  If you are
-     * using a compilation pass that renames property names beware that using this
-     * function will not find renamed properties.
-     *
-     * @param {string} name The fully qualified name.
-     * @param {Object=} opt_obj The object within which to look; default is
-     *     |base.global|.
-     * @return {?} The value (object or primitive) or, if not found, null.
-     */
-    base.getObjectByName = function (name, opt_obj) {
-        var parts = name.split('.');
-        var cur = opt_obj || base.global;
-        for (var part; part = parts.shift();) {
-            if (base.isDefAndNotNull(cur[part])) {
-                cur = cur[part];
-            }
-            else {
-                return null;
-            }
-        }
-        return cur;
-    };
-    /**
-     * Globalizes a whole namespace, such as base or base.lang.
-     *
-     * @param {Object} obj The namespace to globalize.
-     * @param {Object=} opt_global The object to add the properties to.
-     * @deprecated Properties may be explicitly exported to the global scope, but
-     *     this should no longer be done in bulk.
-     */
-    base.globalize = function (obj, opt_global) {
-        var global = opt_global || base.global;
-        for (var x in obj) {
-            global[x] = obj[x];
-        }
-    };
     /**
      * Null function used for default values of callbacks, etc.
      * @return {void} Nothing.
      */
-    base.nullFunction = function () { };
-    /**
-     * The identity function. Returns its first argument.
-     *
-     * @param {*=} opt_returnValue The single value that will be returned.
-     * @param {...*} var_args Optional trailing arguments. These are ignored.
-     * @return {?} The first argument. We can't know the type -- just pass it along
-     *      without type.
-     * @deprecated Use base.functions.identity instead.
-     */
-    base.identityFunction = function (opt_returnValue, var_args) {
-        return opt_returnValue;
-    };
+    function nullFunction() { }
+    exports.nullFunction = nullFunction;
     /**
      * When defining a class Foo with an abstract method bar(), you can do:
      * Foo.prototype.bar = base.abstractMethod
@@ -2157,9 +2044,10 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      * @type {!Function}
      * @throws {Error} when invoked to indicate the method should be overridden.
      */
-    base.abstractMethod = function () {
+    function abstractMethod() {
         throw Error('unimplemented abstract method');
-    };
+    }
+    exports.abstractMethod = abstractMethod;
     // ==============================================================================
     // Language Enhancements
     // ==============================================================================
@@ -2169,9 +2057,9 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      * @param {*} value The value to get the type of.
      * @return {string} The name of the type.
      */
-    base.typeOf = function (value) {
+    function typeOf(value) {
         var s = typeof value;
-        if (s == 'object') {
+        if (s === 'object') {
             if (value) {
                 // Check these first, so we can avoid calling Object.prototype.toString if
                 // possible.
@@ -2192,7 +2080,7 @@ define('pytools/base',["require", "exports"], function (require, exports) {
                 // In Firefox 3.6, attempting to access iframe window objects' length
                 // property throws an NS_ERROR_FAILURE, so we need to special-case it
                 // here.
-                if (className == '[object Window]') {
+                if (className === '[object Window]') {
                     return 'object';
                 }
                 // We cannot always use constructor == Array or instanceof Array because
@@ -2213,13 +2101,13 @@ define('pytools/base',["require", "exports"], function (require, exports) {
                 //         "[object ", Result(1), and "]".
                 //      3. Return Result(2).
                 // and this behavior survives the destruction of the execution context.
-                if ((className == '[object Array]' ||
+                if ((className === '[object Array]' ||
                     // In IE all non value types are wrapped as objects across window
                     // boundaries (not iframe though) so we have to do object detection
                     // for this edge case.
-                    typeof value.length == 'number' &&
-                        typeof value.splice != 'undefined' &&
-                        typeof value.propertyIsEnumerable != 'undefined' &&
+                    typeof value.length === 'number' &&
+                        typeof value.splice !== 'undefined' &&
+                        typeof value.propertyIsEnumerable !== 'undefined' &&
                         !value.propertyIsEnumerable('splice'))) {
                     return 'array';
                 }
@@ -2236,9 +2124,9 @@ define('pytools/base',["require", "exports"], function (require, exports) {
                 // (it appears just as an object) so we cannot use just typeof val ==
                 // 'function'. However, if the object has a call property, it is a
                 // function.
-                if ((className == '[object Function]' ||
-                    typeof value.call != 'undefined' &&
-                        typeof value.propertyIsEnumerable != 'undefined' &&
+                if ((className === '[object Function]' ||
+                    typeof value.call !== 'undefined' &&
+                        typeof value.propertyIsEnumerable !== 'undefined' &&
                         !value.propertyIsEnumerable('call'))) {
                     return 'function';
                 }
@@ -2247,7 +2135,7 @@ define('pytools/base',["require", "exports"], function (require, exports) {
                 return 'null';
             }
         }
-        else if (s == 'function' && typeof value.call == 'undefined') {
+        else if (s === 'function' && typeof value.call === 'undefined') {
             // In Safari typeof nodeList returns 'function', and on Firefox typeof
             // behaves similarly for HTML{Applet,Embed,Object}, Elements and RegExps. We
             // would like to return object for those and we can detect an invalid
@@ -2255,7 +2143,8 @@ define('pytools/base',["require", "exports"], function (require, exports) {
             return 'object';
         }
         return s;
-    };
+    }
+    exports.typeOf = typeOf;
     /**
      * Returns true if the specified value is not undefined.
      * WARNING: Do not use this to test if an object has a property. Use the in
@@ -2268,31 +2157,32 @@ define('pytools/base',["require", "exports"], function (require, exports) {
         return val !== undefined;
     }
     exports.isDef = isDef;
-    ;
     /**
      * Returns true if the specified value is null.
      * @param {*} val Variable to test.
      * @return {boolean} Whether variable is null.
      */
-    base.isNull = function (val) {
+    function isNull(val) {
         return val === null;
-    };
+    }
+    exports.isNull = isNull;
     /**
      * Returns true if the specified value is defined and not null.
      * @param {*} val Variable to test.
      * @return {boolean} Whether variable is defined and not null.
      */
-    base.isDefAndNotNull = function (val) {
+    function isDefAndNotNull(val) {
         // Note that undefined == null.
         return val != null;
-    };
+    }
+    exports.isDefAndNotNull = isDefAndNotNull;
     /**
      * Returns true if the specified value is an array.
      * @param {*} val Variable to test.
      * @return {boolean} Whether variable is an array.
      */
     function isArray(val) {
-        return base.typeOf(val) == 'array';
+        return typeOf(val) === 'array';
     }
     exports.isArray = isArray;
     /**
@@ -2303,8 +2193,8 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      * @return {boolean} Whether variable is an array.
      */
     function isArrayLike(val) {
-        var type = base.typeOf(val);
-        return type == 'array' || type == 'object' && typeof val.length == 'number';
+        var type = typeOf(val);
+        return type === 'array' || type === 'object' && typeof val.length === 'number';
     }
     exports.isArrayLike = isArrayLike;
     /**
@@ -2313,9 +2203,10 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      * @param {*} val Variable to test.
      * @return {boolean} Whether variable is a like a Date.
      */
-    base.isDateLike = function (val) {
-        return base.isObject(val) && typeof val.getFullYear == 'function';
-    };
+    function isDateLike(val) {
+        return isObject(val) && typeof val.getFullYear === 'function';
+    }
+    exports.isDateLike = isDateLike;
     /**
      * Returns true if the specified value is a string.
      * @param {*} val Variable to test.
@@ -2330,9 +2221,10 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      * @param {*} val Variable to test.
      * @return {boolean} Whether variable is boolean.
      */
-    base.isBoolean = function (val) {
-        return typeof val == 'boolean';
-    };
+    function isBoolean(val) {
+        return typeof val === 'boolean';
+    }
+    exports.isBoolean = isBoolean;
     /**
      * Returns true if the specified value is a number.
      * @param {*} val Variable to test.
@@ -2342,122 +2234,28 @@ define('pytools/base',["require", "exports"], function (require, exports) {
         return typeof val === 'number';
     }
     exports.isNumber = isNumber;
-    ;
     /**
      * Returns true if the specified value is a function.
      * @param {*} val Variable to test.
      * @return {boolean} Whether variable is a function.
      */
-    base.isFunction = function (val) {
-        return base.typeOf(val) == 'function';
-    };
+    function isFunction(val) {
+        return typeOf(val) === 'function';
+    }
+    exports.isFunction = isFunction;
     /**
      * Returns true if the specified value is an object.  This includes arrays and
      * functions.
      * @param {*} val Variable to test.
      * @return {boolean} Whether variable is an object.
      */
-    base.isObject = function (val) {
+    function isObject(val) {
         var type = typeof val;
-        return type == 'object' && val != null || type == 'function';
+        return type === 'object' && val !== null || type === 'function';
         // return Object(val) === val also works, but is slower, especially if val is
         // not an object.
-    };
-    /**
-     * Gets a unique ID for an object. This mutates the object so that further calls
-     * with the same object as a parameter returns the same value. The unique ID is
-     * guaranteed to be unique across the current session amongst objects that are
-     * passed into {@code getUid}. There is no guarantee that the ID is unique or
-     * consistent across sessions. It is unsafe to generate unique ID for function
-     * prototypes.
-     *
-     * @param {Object} obj The object to get the unique ID for.
-     * @return {number} The unique ID for the object.
-     */
-    base.getUid = function (obj) {
-        // TODO(arv): Make the type stricter, do not accept null.
-        // In Opera window.hasOwnProperty exists but always returns false so we avoid
-        // using it. As a consequence the unique ID generated for BaseClass.prototype
-        // and SubClass.prototype will be the same.
-        return obj[base.UID_PROPERTY_] ||
-            (obj[base.UID_PROPERTY_] = ++base.uidCounter_);
-    };
-    /**
-     * Removes the unique ID from an object. This is useful if the object was
-     * previously mutated using {@code base.getUid} in which case the mutation is
-     * undone.
-     * @param {Object} obj The object to remove the unique ID field from.
-     */
-    base.removeUid = function (obj) {
-        // TODO(arv): Make the type stricter, do not accept null.
-        // In IE, DOM nodes are not instances of Object and throw an exception if we
-        // try to delete.  Instead we try to use removeAttribute.
-        if ('removeAttribute' in obj) {
-            obj.removeAttribute(base.UID_PROPERTY_);
-        }
-        /** @preserveTry */
-        try {
-            delete obj[base.UID_PROPERTY_];
-        }
-        catch (ex) {
-        }
-    };
-    /**
-     * Name for unique ID property. Initialized in a way to help avoid collisions
-     * with other closure JavaScript on the same page.
-     * @type {string}
-     * @private
-     */
-    base.UID_PROPERTY_ = 'closure_uid_' + ((Math.random() * 1e9) >>> 0);
-    /**
-     * Counter for UID.
-     * @type {number}
-     * @private
-     */
-    base.uidCounter_ = 0;
-    /**
-     * Adds a hash code field to an object. The hash code is unique for the
-     * given object.
-     * @param {Object} obj The object to get the hash code for.
-     * @return {number} The hash code for the object.
-     * @deprecated Use base.getUid instead.
-     */
-    base.getHashCode = base.getUid;
-    /**
-     * Removes the hash code field from an object.
-     * @param {Object} obj The object to remove the field from.
-     * @deprecated Use base.removeUid instead.
-     */
-    base.removeHashCode = base.removeUid;
-    /**
-     * Clones a value. The input may be an Object, Array, or basic type. Objects and
-     * arrays will be cloned recursively.
-     *
-     * WARNINGS:
-     * <code>base.cloneObject</code> does not detect reference loops. Objects that
-     * refer to themselves will cause infinite recursion.
-     *
-     * <code>base.cloneObject</code> is unaware of unique identifiers, and copies
-     * UIDs created by <code>getUid</code> into cloned results.
-     *
-     * @param {*} obj The value to clone.
-     * @return {*} A clone of the input value.
-     * @deprecated base.cloneObject is unsafe. Prefer the base.object methods.
-     */
-    base.cloneObject = function (obj) {
-        var type = base.typeOf(obj);
-        if (type == 'object' || type == 'array') {
-            if (obj.clone) {
-                return obj.clone();
-            }
-            var clone = type == 'array' ? [] : {};
-            for (var key in obj) {
-                clone[key] = base.cloneObject(obj[key]);
-            }
-            return clone;
-        }
-        return obj;
-    };
+    }
+    exports.isObject = isObject;
     /**
      * A native implementation of base.bind.
      * @param {Function} fn A function to partially apply.
@@ -2472,9 +2270,10 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      *     deprecated because some people have declared a pure-JS version.
      *     Only the pure-JS version is truly deprecated.
      */
-    base.bindNative_ = function (fn, selfObj, var_args) {
+    function bindNative_(fn, selfObj, var_args) {
         return (fn.call.apply(fn.bind, arguments));
-    };
+    }
+    exports.bindNative_ = bindNative_;
     /**
      * A pure-JS implementation of base.bind.
      * @param {Function} fn A function to partially apply.
@@ -2486,7 +2285,7 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      *     invoked as a method of.
      * @private
      */
-    base.bindJs_ = function (fn, selfObj, var_args) {
+    function bindJs_(fn, selfObj, var_args) {
         if (!fn) {
             throw new Error();
         }
@@ -2504,48 +2303,8 @@ define('pytools/base',["require", "exports"], function (require, exports) {
                 return fn.apply(selfObj, arguments);
             };
         }
-    };
-    /**
-     * Partially applies this function to a particular 'this object' and zero or
-     * more arguments. The result is a new function with some arguments of the first
-     * function pre-filled and the value of this 'pre-specified'.
-     *
-     * Remaining arguments specified at call-time are appended to the pre-specified
-     * ones.
-     *
-     * Also see: {@link #partial}.
-     *
-     * Usage:
-     * <pre>var barMethBound = bind(myFunction, myObj, 'arg1', 'arg2');
-     * barMethBound('arg3', 'arg4');</pre>
-     *
-     * @param {?function(this:T, ...)} fn A function to partially apply.
-     * @param {T} selfObj Specifies the object which this should point to when the
-     *     function is run.
-     * @param {...*} var_args Additional arguments that are partially applied to the
-     *     function.
-     * @return {!Function} A partially-applied form of the function bind() was
-     *     invoked as a method of.
-     * @template T
-     * @suppress {deprecated} See above.
-     */
-    base.bind = function (fn, selfObj, var_args) {
-        // TODO(nicksantos): narrow the type signature.
-        if (Function.prototype.bind &&
-            // NOTE(nicksantos): Somebody pulled base.js into the default Chrome
-            // extension environment. This means that for Chrome extensions, they get
-            // the implementation of Function.prototype.bind that calls base.bind
-            // instead of the native one. Even worse, we don't want to introduce a
-            // circular dependency between base.bind and Function.prototype.bind, so
-            // we have to hack this to make sure it works correctly.
-            Function.prototype.bind.toString().indexOf('native code') != -1) {
-            base.bind = base.bindNative_;
-        }
-        else {
-            base.bind = base.bindJs_;
-        }
-        return base.bind.apply(null, arguments);
-    };
+    }
+    exports.bindJs_ = bindJs_;
     /**
      * Like bind(), except that a 'this object' is not required. Useful when the
      * target function is already bound.
@@ -2559,7 +2318,7 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      * @return {!Function} A partially-applied form of the function bind() was
      *     invoked as a method of.
      */
-    base.partial = function (fn, var_args) {
+    function partial(fn, var_args) {
         var args = Array.prototype.slice.call(arguments, 1);
         return function () {
             // Prepend the bound arguments to the current arguments.
@@ -2567,7 +2326,8 @@ define('pytools/base',["require", "exports"], function (require, exports) {
             newArgs.unshift.apply(newArgs, args);
             return fn.apply(this, newArgs);
         };
-    };
+    }
+    exports.partial = partial;
     /**
      * Copies all the members of a source object to a target object. This method
      * does not work on all browsers for all objects that contain keys such as
@@ -2575,197 +2335,19 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      * @param {Object} target Target.
      * @param {Object} source Source.
      */
-    base.mixin = function (target, source) {
+    function mixin(target, source) {
         for (var x in source) {
-            target[x] = source[x];
+            if (source.hasOwnProperty(x)) {
+                target[x] = source[x];
+            }
         }
         // For IE7 or lower, the for-in-loop does not contain any properties that are
         // not enumerable on the prototype object (for example, isPrototypeOf from
         // Object.prototype) but also it will not include 'replace' on objects that
         // extend String and change 'replace' (not that it is common for anyone to
         // extend anything except Object).
-    };
-    /**
-     * @return {number} An integer value representing the number of milliseconds
-     *     between midnight, January 1, 1970 and the current time.
-     */
-    base.now = (base.TRUSTED_SITE && Date.now) || (function () {
-        // Unary plus operator converts its operand to a number which in the case of
-        // a date is done by calling getTime().
-        return +new Date();
-    });
-    /**
-     * Evals JavaScript in the global scope.  In IE this uses execScript, other
-     * browsers use base.global.eval. If base.global.eval does not evaluate in the
-     * global scope (for example, in Safari), appends a script tag instead.
-     * Throws an exception if neither execScript or eval is defined.
-     * @param {string} script JavaScript string.
-     */
-    base.globalEval = function (script) {
-        if (base.global.execScript) {
-            base.global.execScript(script, 'JavaScript');
-        }
-        else if (base.global.eval) {
-            // Test to see if eval works
-            if (base.evalWorksForGlobals_ == null) {
-                base.global.eval('var _et_ = 1;');
-                if (typeof base.global['_et_'] != 'undefined') {
-                    delete base.global['_et_'];
-                    base.evalWorksForGlobals_ = true;
-                }
-                else {
-                    base.evalWorksForGlobals_ = false;
-                }
-            }
-            if (base.evalWorksForGlobals_) {
-                base.global.eval(script);
-            }
-            else {
-                var doc = base.global.document;
-                var scriptElt = doc.createElement('script');
-                scriptElt.type = 'text/javascript';
-                scriptElt.defer = false;
-                // Note(user): can't use .innerHTML since "t('<test>')" will fail and
-                // .text doesn't work in Safari 2.  Therefore we append a text node.
-                scriptElt.appendChild(doc.createTextNode(script));
-                doc.body.appendChild(scriptElt);
-                doc.body.removeChild(scriptElt);
-            }
-        }
-        else {
-            throw Error('base.globalEval not available');
-        }
-    };
-    /**
-     * Indicates whether or not we can call 'eval' directly to eval code in the
-     * global scope. Set to a Boolean by the first call to base.globalEval (which
-     * empirically tests whether eval works for globals). @see base.globalEval
-     * @type {?boolean}
-     * @private
-     */
-    base.evalWorksForGlobals_ = null;
-    /**
-     * Optional map of CSS class names to obfuscated names used with
-     * base.getCssName().
-     * @type {Object|undefined}
-     * @private
-     * @see base.setCssNameMapping
-     */
-    base.cssNameMapping_;
-    /**
-     * Optional obfuscation style for CSS class names. Should be set to either
-     * 'BY_WHOLE' or 'BY_PART' if defined.
-     * @type {string|undefined}
-     * @private
-     * @see base.setCssNameMapping
-     */
-    base.cssNameMappingStyle_;
-    /**
-     * Handles strings that are intended to be used as CSS class names.
-     *
-     * This function works in tandem with @see base.setCssNameMapping.
-     *
-     * Without any mapping set, the arguments are simple joined with a hyphen and
-     * passed through unaltered.
-     *
-     * When there is a mapping, there are two possible styles in which these
-     * mappings are used. In the BY_PART style, each part (i.e. in between hyphens)
-     * of the passed in css name is rewritten according to the map. In the BY_WHOLE
-     * style, the full css name is looked up in the map directly. If a rewrite is
-     * not specified by the map, the compiler will output a warning.
-     *
-     * When the mapping is passed to the compiler, it will replace calls to
-     * base.getCssName with the strings from the mapping, e.g.
-     *     var x = base.getCssName('foo');
-     *     var y = base.getCssName(this.baseClass, 'active');
-     *  becomes:
-     *     var x= 'foo';
-     *     var y = this.baseClass + '-active';
-     *
-     * If one argument is passed it will be processed, if two are passed only the
-     * modifier will be processed, as it is assumed the first argument was generated
-     * as a result of calling base.getCssName.
-     *
-     * @param {string} className The class name.
-     * @param {string=} opt_modifier A modifier to be appended to the class name.
-     * @return {string} The class name or the concatenation of the class name and
-     *     the modifier.
-     */
-    base.getCssName = function (className, opt_modifier) {
-        var getMapping = function (cssName) {
-            return base.cssNameMapping_[cssName] || cssName;
-        };
-        var renameByParts = function (cssName) {
-            // Remap all the parts individually.
-            var parts = cssName.split('-');
-            var mapped = [];
-            for (var i = 0; i < parts.length; i++) {
-                mapped.push(getMapping(parts[i]));
-            }
-            return mapped.join('-');
-        };
-        var rename;
-        if (base.cssNameMapping_) {
-            rename = base.cssNameMappingStyle_ == 'BY_WHOLE' ?
-                getMapping : renameByParts;
-        }
-        else {
-            rename = function (a) {
-                return a;
-            };
-        }
-        if (opt_modifier) {
-            return className + '-' + rename(opt_modifier);
-        }
-        else {
-            return rename(className);
-        }
-    };
-    /**
-     * Sets the map to check when returning a value from base.getCssName(). Example:
-     * <pre>
-     * base.setCssNameMapping({
-     *   "base": "a",
-     *   "disabled": "b",
-     * });
-     *
-     * var x = base.getCssName('base');
-     * // The following evaluates to: "a a-b".
-     * base.getCssName('base') + ' ' + base.getCssName(x, 'disabled')
-     * </pre>
-     * When declared as a map of string literals to string literals, the JSCompiler
-     * will replace all calls to base.getCssName() using the supplied map if the
-     * --closure_pass flag is set.
-     *
-     * @param {!Object} mapping A map of strings to strings where keys are possible
-     *     arguments to base.getCssName() and values are the corresponding values
-     *     that should be returned.
-     * @param {string=} opt_style The style of css name mapping. There are two valid
-     *     options: 'BY_PART', and 'BY_WHOLE'.
-     * @see base.getCssName for a description.
-     */
-    base.setCssNameMapping = function (mapping, opt_style) {
-        base.cssNameMapping_ = mapping;
-        base.cssNameMappingStyle_ = opt_style;
-    };
-    /**
-     * To use CSS renaming in compiled mode, one of the input files should have a
-     * call to base.setCssNameMapping() with an object literal that the JSCompiler
-     * can extract and use to replace all calls to base.getCssName(). In uncompiled
-     * mode, JavaScript code should be loaded before this base.js file that declares
-     * a global variable, CLOSURE_CSS_NAME_MAPPING, which is used below. This is
-     * to ensure that the mapping is loaded before any calls to base.getCssName()
-     * are made in uncompiled mode.
-     *
-     * A hook for overriding the CSS name mapping.
-     * @type {Object|undefined}
-     */
-    base.global.CLOSURE_CSS_NAME_MAPPING;
-    if (!COMPILED && base.global.CLOSURE_CSS_NAME_MAPPING) {
-        // This does not call base.setCssNameMapping() because the JSCompiler
-        // requires that base.setCssNameMapping() be called with an object literal.
-        base.cssNameMapping_ = base.global.CLOSURE_CSS_NAME_MAPPING;
     }
+    exports.mixin = mixin;
     /**
      * Gets a localized message.
      *
@@ -2782,14 +2364,17 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      * @param {Object=} opt_values Map of place holder name to value.
      * @return {string} message with placeholders filled.
      */
-    base.getMsg = function (str, opt_values) {
+    function getMsg(str, opt_values) {
         var values = opt_values || {};
         for (var key in values) {
-            var value = ('' + values[key]).replace(/\$/g, '$$$$');
-            str = str.replace(new RegExp('\\{\\$' + key + '\\}', 'gi'), value);
+            if (values.hasOwnProperty(key)) {
+                var value = ('' + values[key]).replace(/\$/g, '$$$$');
+                str = str.replace(new RegExp('\\{\\$' + key + '\\}', 'gi'), value);
+            }
         }
         return str;
-    };
+    }
+    exports.getMsg = getMsg;
     /**
      * Gets a localized message. If the message does not have a translation, gives a
      * fallback message.
@@ -2805,33 +2390,10 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      * @param {string} b The fallback message.
      * @return {string} The best translated message.
      */
-    base.getMsgWithFallback = function (a, b) {
+    function getMsgWithFallback(a, b) {
         return a;
-    };
-    /**
-     * Exposes an unobfuscated global namespace path for the given object.
-     * Note that fields of the exported object *will* be obfuscated, unless they are
-     * exported in turn via this function or base.exportProperty.
-     *
-     * Also handy for making public items that are defined in anonymous closures.
-     *
-     * ex. base.exportSymbol('public.path.Foo', Foo);
-     *
-     * ex. base.exportSymbol('public.path.Foo.staticFunction', Foo.staticFunction);
-     *     public.path.Foo.staticFunction();
-     *
-     * ex. base.exportSymbol('public.path.Foo.prototype.myMethod',
-     *                       Foo.prototype.myMethod);
-     *     new public.path.Foo().myMethod();
-     *
-     * @param {string} publicPath Unobfuscated name to export.
-     * @param {*} object Object the name should point to.
-     * @param {Object=} opt_objectToExportTo The object to add the path to; default
-     *     is base.global.
-     */
-    base.exportSymbol = function (publicPath, object, opt_objectToExportTo) {
-        base.exportPath_(publicPath, object, opt_objectToExportTo);
-    };
+    }
+    exports.getMsgWithFallback = getMsgWithFallback;
     /**
      * Exports a property unobfuscated into the object's namespace.
      * ex. base.exportProperty(Foo, 'staticFunction', Foo.staticFunction);
@@ -2840,9 +2402,10 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      * @param {string} publicName Unobfuscated name to export.
      * @param {*} symbol Object the name should point to.
      */
-    base.exportProperty = function (object, publicName, symbol) {
+    function exportProperty(object, publicName, symbol) {
         object[publicName] = symbol;
-    };
+    }
+    exports.exportProperty = exportProperty;
     /**
      * Inherit the prototype methods from one constructor into another.
      *
@@ -2873,7 +2436,7 @@ define('pytools/base',["require", "exports"], function (require, exports) {
      * @param {Function} childCtor Child class.
      * @param {Function} parentCtor Parent class.
      */
-    base.inherits = function (childCtor, parentCtor) {
+    function inherits(childCtor, parentCtor) {
         /** @constructor */
         function tempCtor() { }
         ;
@@ -2882,79 +2445,89 @@ define('pytools/base',["require", "exports"], function (require, exports) {
         childCtor.prototype = new tempCtor();
         /** @override */
         childCtor.prototype.constructor = childCtor;
-    };
-    /**
-     * Call up to the superclass.
-     *
-     * If this is called from a constructor, then this calls the superclass
-     * contsructor with arguments 1-N.
-     *
-     * If this is called from a prototype method, then you must pass the name of the
-     * method as the second argument to this function. If you do not, you will get a
-     * runtime error. This calls the superclass' method with arguments 2-N.
-     *
-     * This function only works if you use base.inherits to express inheritance
-     * relationships between your classes.
-     *
-     * This function is a compiler primitive. At compile-time, the compiler will do
-     * macro expansion to remove a lot of the extra overhead that this function
-     * introduces. The compiler will also enforce a lot of the assumptions that this
-     * function makes, and treat it as a compiler error if you break them.
-     *
-     * @param {!Object} me Should always be "this".
-     * @param {*=} opt_methodName The method name if calling a super method.
-     * @param {...*} var_args The rest of the arguments.
-     * @return {*} The return value of the superclass method.
-     */
-    base.base = function (me, opt_methodName, var_args) {
-        var caller = arguments.callee.caller;
-        if (base.DEBUG) {
-            if (!caller) {
-                throw Error('arguments.caller not defined.  base.base() expects not ' +
-                    'to be running in strict mode. See ' +
-                    'http://www.ecma-international.org/ecma-262/5.1/#sec-C');
-            }
-        }
-        if (caller['superClass_']) {
-            // This is a constructor. Call the superclass constructor.
-            return caller['superClass_'].constructor.apply(me, Array.prototype.slice.call(arguments, 1));
-        }
-        var args = Array.prototype.slice.call(arguments, 2);
-        var foundCaller = false;
-        for (var ctor = me.constructor; ctor; ctor = ctor.superClass_ && ctor.superClass_.constructor) {
-            if (ctor.prototype[opt_methodName] === caller) {
-                foundCaller = true;
-            }
-            else if (foundCaller) {
-                return ctor.prototype[opt_methodName].apply(me, args);
-            }
-        }
-        // If we did not find the caller in the prototype chain, then one of two
-        // things happened:
-        // 1) The caller is an instance method.
-        // 2) This method was not called by the right caller.
-        if (me[opt_methodName] === caller) {
-            return me.constructor.prototype[opt_methodName].apply(me, args);
-        }
-        else {
-            throw Error('base.base called from a method of one name ' +
-                'to a method of a different name');
-        }
-    };
-    /**
-     * Allow for aliasing within scope functions.  This function exists for
-     * uncompiled code - in compiled code the calls will be inlined and the aliases
-     * applied.  In uncompiled code the function is simply run since the aliases as
-     * written are valid JavaScript.
-     * @param {function()} fn Function to call.  This function can contain aliases
-     *     to namespaces (e.g. "var dom = base.dom") or classes
-     *     (e.g. "var Timer = base.Timer").
-     */
-    base.scope = function (fn) {
-        fn.call(base.global);
-    };
+    }
+    exports.inherits = inherits;
 });
+/**
+ * Call up to the superclass.
+ *
+ * If this is called from a constructor, then this calls the superclass
+ * contsructor with arguments 1-N.
+ *
+ * If this is called from a prototype method, then you must pass the name of the
+ * method as the second argument to this function. If you do not, you will get a
+ * runtime error. This calls the superclass' method with arguments 2-N.
+ *
+ * This function only works if you use base.inherits to express inheritance
+ * relationships between your classes.
+ *
+ * This function is a compiler primitive. At compile-time, the compiler will do
+ * macro expansion to remove a lot of the extra overhead that this function
+ * introduces. The compiler will also enforce a lot of the assumptions that this
+ * function makes, and treat it as a compiler error if you break them.
+ *
+ * @param {!Object} me Should always be "this".
+ * @param {*=} opt_methodName The method name if calling a super method.
+ * @param {...*} var_args The rest of the arguments.
+ * @return {*} The return value of the superclass method.
+ */
+/*
+export function baseCall(me, opt_methodName, var_args) {
+    var caller = arguments.callee.caller;
 
+    if (base.DEBUG) {
+        if (!caller) {
+            throw Error('arguments.caller not defined.  base.base() expects not ' +
+                'to be running in strict mode. See ' +
+                'http://www.ecma-international.org/ecma-262/5.1/#sec-C');
+        }
+    }
+
+    if (caller['superClass_']) {
+        // This is a constructor. Call the superclass constructor.
+        return caller['superClass_'].constructor.apply(
+            me, Array.prototype.slice.call(arguments, 1));
+    }
+
+    var args = Array.prototype.slice.call(arguments, 2);
+    var foundCaller = false;
+    for (var ctor = me.constructor;
+        ctor; ctor = ctor.superClass_ && ctor.superClass_.constructor) {
+        if (ctor.prototype[opt_methodName] === caller) {
+            foundCaller = true;
+        } else if (foundCaller) {
+            return ctor.prototype[opt_methodName].apply(me, args);
+        }
+    }
+
+    // If we did not find the caller in the prototype chain, then one of two
+    // things happened:
+    // 1) The caller is an instance method.
+    // 2) This method was not called by the right caller.
+    if (me[opt_methodName] === caller) {
+        return me.constructor.prototype[opt_methodName].apply(me, args);
+    } else {
+        throw Error(
+            'base.base called from a method of one name ' +
+            'to a method of a different name');
+    }
+}
+*/
+/**
+ * Allow for aliasing within scope functions.  This function exists for
+ * uncompiled code - in compiled code the calls will be inlined and the aliases
+ * applied.  In uncompiled code the function is simply run since the aliases as
+ * written are valid JavaScript.
+ * @param {function()} fn Function to call.  This function can contain aliases
+ *     to namespaces (e.g. "var dom = base.dom") or classes
+ *     (e.g. "var Timer = base.Timer").
+ */
+/*
+export function scope(fn) {
+    fn.call(base.global);
+}
+*/
+;
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -2996,6 +2569,70 @@ define('pytools/TokenError',["require", "exports", './asserts', './base'], funct
 
 define('pytools/Tokenizer',["require", "exports", './asserts', './base', './TokenError', './Tokens'], function (require, exports, asserts_1, base_1, TokenError_1, Tokens_1) {
     "use strict";
+    /* we have to use string and ctor to be able to build patterns up. + on /.../
+        * does something strange. */
+    // const Whitespace = "[ \\f\\t]*";
+    var Comment_ = "#[^\\r\\n]*";
+    var Ident = "[a-zA-Z_]\\w*";
+    var Binnumber = '0[bB][01]*';
+    var Hexnumber = '0[xX][\\da-fA-F]*[lL]?';
+    var Octnumber = '0[oO]?[0-7]*[lL]?';
+    var Decnumber = '[1-9]\\d*[lL]?';
+    var Intnumber = group(Binnumber, Hexnumber, Octnumber, Decnumber);
+    var Exponent = "[eE][-+]?\\d+";
+    var Pointfloat = group("\\d+\\.\\d*", "\\.\\d+") + maybe(Exponent);
+    var Expfloat = '\\d+' + Exponent;
+    var Floatnumber = group(Pointfloat, Expfloat);
+    var Imagnumber = group("\\d+[jJ]", Floatnumber + "[jJ]");
+    var Number_ = group(Imagnumber, Floatnumber, Intnumber);
+    // tail end of ' string
+    var Single = "^[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
+    // tail end of " string
+    var Double_ = '^[^"\\\\]*(?:\\\\.[^"\\\\]*)*"';
+    // tail end of ''' string
+    var Single3 = "[^'\\\\]*(?:(?:\\\\.|'(?!''))[^'\\\\]*)*'''";
+    // tail end of """ string
+    var Double3 = '[^"\\\\]*(?:(?:\\\\.|"(?!""))[^"\\\\]*)*"""';
+    var Triple = group("[ubUB]?[rR]?'''", '[ubUB]?[rR]?"""');
+    // const String_ = group("[uU]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*'", '[uU]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*"');
+    // Because of leftmost-then-longest match semantics, be sure to put the
+    // longest operators first (e.g., if = came before ==, == would get
+    // recognized as two instances of =).
+    var Operator = group("\\*\\*=?", ">>=?", "<<=?", "<>", "!=", "//=?", "->", "[+\\-*/%&|^=<>]=?", "~");
+    var Bracket = '[\\][(){}]';
+    var Special = group('\\r?\\n', '[:;.,`@]');
+    var Funny = group(Operator, Bracket, Special);
+    var ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
+        group("'", '\\\\\\r?\\n'), '[uUbB]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*' +
+        group('"', '\\\\\\r?\\n'));
+    var PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
+    // Need to prefix with "^" as we only want to match what's next
+    var PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
+    // let pseudoprog;
+    // let single3prog;
+    // let double3prog;
+    // const endprogs = {};
+    var triple_quoted = {
+        "'''": true, '"""': true,
+        "r'''": true, 'r"""': true, "R'''": true, 'R"""': true,
+        "u'''": true, 'u"""': true, "U'''": true, 'U"""': true,
+        "b'''": true, 'b"""': true, "B'''": true, 'B"""': true,
+        "ur'''": true, 'ur"""': true, "Ur'''": true, 'Ur"""': true,
+        "uR'''": true, 'uR"""': true, "UR'''": true, 'UR"""': true,
+        "br'''": true, 'br"""': true, "Br'''": true, 'Br"""': true,
+        "bR'''": true, 'bR"""': true, "BR'''": true, 'BR"""': true
+    };
+    var single_quoted = {
+        "'": true, '"': true,
+        "r'": true, 'r"': true, "R'": true, 'R"': true,
+        "u'": true, 'u"': true, "U'": true, 'U"': true,
+        "b'": true, 'b"': true, "B'": true, 'B"': true,
+        "ur'": true, 'ur"': true, "Ur'": true, 'Ur"': true,
+        "uR'": true, 'uR"': true, "UR'": true, 'UR"': true,
+        "br'": true, 'br"': true, "Br'": true, 'Br"': true,
+        "bR'": true, 'bR"': true, "BR'": true, 'BR"': true
+    };
+    var tabsize = 8;
     /**
      * This is a port of tokenize.py by Ka-Ping Yee.
      *
@@ -3271,78 +2908,9 @@ define('pytools/Tokenizer',["require", "exports", './asserts', './base', './Toke
         return '(' + args.join('|') + ')';
     }
     /** @param {...*} x */
-    function any(x) { return group.apply(null, arguments) + "*"; }
+    // function any(x) { return group.apply(null, arguments) + "*"; }
     /** @param {...*} x */
     function maybe(x) { return group.apply(null, arguments) + "?"; }
-    /* we have to use string and ctor to be able to build patterns up. + on /.../
-        * does something strange. */
-    var Whitespace = "[ \\f\\t]*";
-    var Comment_ = "#[^\\r\\n]*";
-    var Ident = "[a-zA-Z_]\\w*";
-    var Binnumber = '0[bB][01]*';
-    var Hexnumber = '0[xX][\\da-fA-F]*[lL]?';
-    var Octnumber = '0[oO]?[0-7]*[lL]?';
-    var Decnumber = '[1-9]\\d*[lL]?';
-    var Intnumber = group(Binnumber, Hexnumber, Octnumber, Decnumber);
-    var Exponent = "[eE][-+]?\\d+";
-    var Pointfloat = group("\\d+\\.\\d*", "\\.\\d+") + maybe(Exponent);
-    var Expfloat = '\\d+' + Exponent;
-    var Floatnumber = group(Pointfloat, Expfloat);
-    var Imagnumber = group("\\d+[jJ]", Floatnumber + "[jJ]");
-    var Number_ = group(Imagnumber, Floatnumber, Intnumber);
-    // tail end of ' string
-    var Single = "^[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
-    // tail end of " string
-    var Double_ = '^[^"\\\\]*(?:\\\\.[^"\\\\]*)*"';
-    // tail end of ''' string
-    var Single3 = "[^'\\\\]*(?:(?:\\\\.|'(?!''))[^'\\\\]*)*'''";
-    // tail end of """ string
-    var Double3 = '[^"\\\\]*(?:(?:\\\\.|"(?!""))[^"\\\\]*)*"""';
-    var Triple = group("[ubUB]?[rR]?'''", '[ubUB]?[rR]?"""');
-    var String_ = group("[uU]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*'", '[uU]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*"');
-    // Because of leftmost-then-longest match semantics, be sure to put the
-    // longest operators first (e.g., if = came before ==, == would get
-    // recognized as two instances of =).
-    var Operator = group("\\*\\*=?", ">>=?", "<<=?", "<>", "!=", "//=?", "->", "[+\\-*/%&|^=<>]=?", "~");
-    var Bracket = '[\\][(){}]';
-    var Special = group('\\r?\\n', '[:;.,`@]');
-    var Funny = group(Operator, Bracket, Special);
-    var ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
-        group("'", '\\\\\\r?\\n'), '[uUbB]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*' +
-        group('"', '\\\\\\r?\\n'));
-    var PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
-    // Need to prefix with "^" as we only want to match what's next
-    var PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
-    var pseudoprog;
-    var single3prog;
-    var double3prog;
-    var endprogs = {};
-    var triple_quoted = {
-        "'''": true, '"""': true,
-        "r'''": true, 'r"""': true, "R'''": true, 'R"""': true,
-        "u'''": true, 'u"""': true, "U'''": true, 'U"""': true,
-        "b'''": true, 'b"""': true, "B'''": true, 'B"""': true,
-        "ur'''": true, 'ur"""': true, "Ur'''": true, 'Ur"""': true,
-        "uR'''": true, 'uR"""': true, "UR'''": true, 'UR"""': true,
-        "br'''": true, 'br"""': true, "Br'''": true, 'Br"""': true,
-        "bR'''": true, 'bR"""': true, "BR'''": true, 'BR"""': true
-    };
-    var single_quoted = {
-        "'": true, '"': true,
-        "r'": true, 'r"': true, "R'": true, 'R"': true,
-        "u'": true, 'u"': true, "U'": true, 'U"': true,
-        "b'": true, 'b"': true, "B'": true, 'B"': true,
-        "ur'": true, 'ur"': true, "Ur'": true, 'Ur"': true,
-        "uR'": true, 'uR"': true, "UR'": true, 'UR"': true,
-        "br'": true, 'br"': true, "Br'": true, 'Br"': true,
-        "bR'": true, 'bR"': true, "BR'": true, 'BR"': true
-    };
-    // hack to make closure keep those objects. not sure what a better way is.
-    (function () {
-        for (var k in triple_quoted) { }
-        for (var k in single_quoted) { }
-    }());
-    var tabsize = 8;
     function contains(a, obj) {
         var i = a.length;
         while (i--) {
@@ -3684,7 +3252,12 @@ define('pytools/parser',["require", "exports", './tables', './asserts', './base'
     exports.parseTreeDump = parseTreeDump;
 });
 
-define('pytools/astnodes',["require", "exports"], function (require, exports) {
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+define('pytools/types',["require", "exports"], function (require, exports) {
     "use strict";
     var Load = (function () {
         function Load() {
@@ -3878,18 +3451,58 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
         return IsNot;
     }());
     exports.IsNot = IsNot;
-    var In_ = (function () {
-        function In_() {
+    var In = (function () {
+        function In() {
         }
-        return In_;
+        return In;
     }());
-    exports.In_ = In_;
+    exports.In = In;
     var NotIn = (function () {
         function NotIn() {
         }
         return NotIn;
     }());
     exports.NotIn = NotIn;
+    var ASTSpan = (function () {
+        function ASTSpan() {
+            this.minChar = -1; // -1 = "undefined" or "compiler generated"
+            this.limChar = -1; // -1 = "undefined" or "compiler generated"   
+        }
+        return ASTSpan;
+    }());
+    exports.ASTSpan = ASTSpan;
+    var AST = (function (_super) {
+        __extends(AST, _super);
+        function AST() {
+            _super.apply(this, arguments);
+        }
+        return AST;
+    }(ASTSpan));
+    exports.AST = AST;
+    var ModuleElement = (function (_super) {
+        __extends(ModuleElement, _super);
+        function ModuleElement() {
+            _super.apply(this, arguments);
+        }
+        return ModuleElement;
+    }(AST));
+    exports.ModuleElement = ModuleElement;
+    var Statement = (function (_super) {
+        __extends(Statement, _super);
+        function Statement() {
+            _super.apply(this, arguments);
+        }
+        return Statement;
+    }(ModuleElement));
+    exports.Statement = Statement;
+    var IterationStatement = (function (_super) {
+        __extends(IterationStatement, _super);
+        function IterationStatement() {
+            _super.apply(this, arguments);
+        }
+        return IterationStatement;
+    }(Statement));
+    exports.IterationStatement = IterationStatement;
     var Module = (function () {
         function Module(body) {
             this.body = body;
@@ -3911,6 +3524,14 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
         return Expression;
     }());
     exports.Expression = Expression;
+    var UnaryExpression = (function (_super) {
+        __extends(UnaryExpression, _super);
+        function UnaryExpression() {
+            _super.apply(this, arguments);
+        }
+        return UnaryExpression;
+    }(Expression));
+    exports.UnaryExpression = UnaryExpression;
     var Suite = (function () {
         function Suite(body) {
             this.body = body;
@@ -3942,24 +3563,28 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
         return ClassDef;
     }());
     exports.ClassDef = ClassDef;
-    var Return_ = (function () {
-        function Return_(value, lineno, col_offset) {
+    var ReturnStatement = (function (_super) {
+        __extends(ReturnStatement, _super);
+        function ReturnStatement(value, lineno, col_offset) {
+            _super.call(this);
             this.value = value;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return Return_;
-    }());
-    exports.Return_ = Return_;
-    var Delete_ = (function () {
-        function Delete_(targets, lineno, col_offset) {
+        return ReturnStatement;
+    }(Statement));
+    exports.ReturnStatement = ReturnStatement;
+    var DeleteExpression = (function (_super) {
+        __extends(DeleteExpression, _super);
+        function DeleteExpression(targets, lineno, col_offset) {
+            _super.call(this, targets);
             this.targets = targets;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return Delete_;
-    }());
-    exports.Delete_ = Delete_;
+        return DeleteExpression;
+    }(UnaryExpression));
+    exports.DeleteExpression = DeleteExpression;
     var Assign = (function () {
         function Assign(targets, value, lineno, col_offset) {
             this.targets = targets;
@@ -3992,8 +3617,10 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
         return Print;
     }());
     exports.Print = Print;
-    var For_ = (function () {
-        function For_(target, iter, body, orelse, lineno, col_offset) {
+    var ForStatement = (function (_super) {
+        __extends(ForStatement, _super);
+        function ForStatement(target, iter, body, orelse, lineno, col_offset) {
+            _super.call(this);
             this.target = target;
             this.iter = iter;
             this.body = body;
@@ -4001,42 +3628,48 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return For_;
-    }());
-    exports.For_ = For_;
-    var While_ = (function () {
-        function While_(test, body, orelse, lineno, col_offset) {
+        return ForStatement;
+    }(IterationStatement));
+    exports.ForStatement = ForStatement;
+    var WhileStatement = (function (_super) {
+        __extends(WhileStatement, _super);
+        function WhileStatement(test, body, orelse, lineno, col_offset) {
+            _super.call(this);
             this.test = test;
             this.body = body;
             this.orelse = orelse;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return While_;
-    }());
-    exports.While_ = While_;
-    var If_ = (function () {
-        function If_(test, body, orelse, lineno, col_offset) {
+        return WhileStatement;
+    }(IterationStatement));
+    exports.WhileStatement = WhileStatement;
+    var IfStatement = (function (_super) {
+        __extends(IfStatement, _super);
+        function IfStatement(test, body, orelse, lineno, col_offset) {
+            _super.call(this);
             this.test = test;
             this.body = body;
             this.orelse = orelse;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return If_;
-    }());
-    exports.If_ = If_;
-    var With_ = (function () {
-        function With_(context_expr, optional_vars, body, lineno, col_offset) {
+        return IfStatement;
+    }(Statement));
+    exports.IfStatement = IfStatement;
+    var WithStatement = (function (_super) {
+        __extends(WithStatement, _super);
+        function WithStatement(context_expr, optional_vars, body, lineno, col_offset) {
+            _super.call(this);
             this.context_expr = context_expr;
             this.optional_vars = optional_vars;
             this.body = body;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return With_;
-    }());
-    exports.With_ = With_;
+        return WithStatement;
+    }(Statement));
+    exports.WithStatement = WithStatement;
     var Raise = (function () {
         function Raise(type, inst, tback, lineno, col_offset) {
             this.type = type;
@@ -4079,15 +3712,17 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
         return Assert;
     }());
     exports.Assert = Assert;
-    var Import_ = (function () {
-        function Import_(names, lineno, col_offset) {
+    var ImportStatement = (function (_super) {
+        __extends(ImportStatement, _super);
+        function ImportStatement(names, lineno, col_offset) {
+            _super.call(this);
             this.names = names;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return Import_;
-    }());
-    exports.Import_ = Import_;
+        return ImportStatement;
+    }(Statement));
+    exports.ImportStatement = ImportStatement;
     var ImportFrom = (function () {
         function ImportFrom(module, names, level, lineno, col_offset) {
             this.module = module;
@@ -4145,22 +3780,26 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
         return Pass;
     }());
     exports.Pass = Pass;
-    var Break_ = (function () {
-        function Break_(lineno, col_offset) {
+    var BreakStatement = (function (_super) {
+        __extends(BreakStatement, _super);
+        function BreakStatement(lineno, col_offset) {
+            _super.call(this);
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return Break_;
-    }());
-    exports.Break_ = Break_;
-    var Continue_ = (function () {
-        function Continue_(lineno, col_offset) {
+        return BreakStatement;
+    }(Statement));
+    exports.BreakStatement = BreakStatement;
+    var ContinueStatement = (function (_super) {
+        __extends(ContinueStatement, _super);
+        function ContinueStatement(lineno, col_offset) {
+            _super.call(this);
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return Continue_;
-    }());
-    exports.Continue_ = Continue_;
+        return ContinueStatement;
+    }(Statement));
+    exports.ContinueStatement = ContinueStatement;
     var BoolOp = (function () {
         function BoolOp(op, values, lineno, col_offset) {
             this.op = op;
@@ -4348,6 +3987,7 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
     exports.Tuple = Tuple;
     var Ellipsis = (function () {
         function Ellipsis() {
+            // Do nothing yet.
         }
         return Ellipsis;
     }());
@@ -4375,15 +4015,15 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
         return Index;
     }());
     exports.Index = Index;
-    var comprehension = (function () {
-        function comprehension(target, iter, ifs) {
+    var Comprehension = (function () {
+        function Comprehension(target, iter, ifs) {
             this.target = target;
             this.iter = iter;
             this.ifs = ifs;
         }
-        return comprehension;
+        return Comprehension;
     }());
-    exports.comprehension = comprehension;
+    exports.Comprehension = Comprehension;
     var ExceptHandler = (function () {
         function ExceptHandler(type, name, body, lineno, col_offset) {
             this.type = type;
@@ -4395,32 +4035,32 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
         return ExceptHandler;
     }());
     exports.ExceptHandler = ExceptHandler;
-    var arguments_ = (function () {
-        function arguments_(args, vararg, kwarg, defaults) {
+    var Arguments = (function () {
+        function Arguments(args, vararg, kwarg, defaults) {
             this.args = args;
             this.vararg = vararg;
             this.kwarg = kwarg;
             this.defaults = defaults;
         }
-        return arguments_;
+        return Arguments;
     }());
-    exports.arguments_ = arguments_;
-    var keyword = (function () {
-        function keyword(arg, value) {
+    exports.Arguments = Arguments;
+    var Keyword = (function () {
+        function Keyword(arg, value) {
             this.arg = arg;
             this.value = value;
         }
-        return keyword;
+        return Keyword;
     }());
-    exports.keyword = keyword;
-    var alias = (function () {
-        function alias(name, asname) {
+    exports.Keyword = Keyword;
+    var Alias = (function () {
+        function Alias(name, asname) {
             this.name = name;
             this.asname = asname;
         }
-        return alias;
+        return Alias;
     }());
-    exports.alias = alias;
+    exports.Alias = Alias;
     Module.prototype['_astname'] = 'Module';
     Module.prototype['_fields'] = [
         'body', function (n) { return n.body; }
@@ -4451,12 +4091,12 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
         'body', function (n) { return n.body; },
         'decorator_list', function (n) { return n.decorator_list; }
     ];
-    Return_.prototype['_astname'] = 'Return';
-    Return_.prototype['_fields'] = [
+    ReturnStatement.prototype['_astname'] = 'ReturnStatement';
+    ReturnStatement.prototype['_fields'] = [
         'value', function (n) { return n.value; }
     ];
-    Delete_.prototype['_astname'] = 'Delete';
-    Delete_.prototype['_fields'] = [
+    DeleteExpression.prototype['_astname'] = 'Delete';
+    DeleteExpression.prototype['_fields'] = [
         'targets', function (n) { return n.targets; }
     ];
     Assign.prototype['_astname'] = 'Assign';
@@ -4476,27 +4116,27 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
         'values', function (n) { return n.values; },
         'nl', function (n) { return n.nl; }
     ];
-    For_.prototype['_astname'] = 'For';
-    For_.prototype['_fields'] = [
+    ForStatement.prototype['_astname'] = 'ForStatement';
+    ForStatement.prototype['_fields'] = [
         'target', function (n) { return n.target; },
         'iter', function (n) { return n.iter; },
         'body', function (n) { return n.body; },
         'orelse', function (n) { return n.orelse; }
     ];
-    While_.prototype['_astname'] = 'While';
-    While_.prototype['_fields'] = [
+    WhileStatement.prototype['_astname'] = 'WhileStatement';
+    WhileStatement.prototype['_fields'] = [
         'test', function (n) { return n.test; },
         'body', function (n) { return n.body; },
         'orelse', function (n) { return n.orelse; }
     ];
-    If_.prototype['_astname'] = 'If';
-    If_.prototype['_fields'] = [
+    IfStatement.prototype['_astname'] = 'IfStatement';
+    IfStatement.prototype['_fields'] = [
         'test', function (n) { return n.test; },
         'body', function (n) { return n.body; },
         'orelse', function (n) { return n.orelse; }
     ];
-    With_.prototype['_astname'] = 'With';
-    With_.prototype['_fields'] = [
+    WithStatement.prototype['_astname'] = 'WithStatement';
+    WithStatement.prototype['_fields'] = [
         'context_expr', function (n) { return n.context_expr; },
         'optional_vars', function (n) { return n.optional_vars; },
         'body', function (n) { return n.body; }
@@ -4523,8 +4163,8 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
         'test', function (n) { return n.test; },
         'msg', function (n) { return n.msg; }
     ];
-    Import_.prototype['_astname'] = 'Import';
-    Import_.prototype['_fields'] = [
+    ImportStatement.prototype['_astname'] = 'Import';
+    ImportStatement.prototype['_fields'] = [
         'names', function (n) { return n.names; }
     ];
     ImportFrom.prototype['_astname'] = 'ImportFrom';
@@ -4553,10 +4193,10 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
     ];
     Pass.prototype['_astname'] = 'Pass';
     Pass.prototype['_fields'] = [];
-    Break_.prototype['_astname'] = 'Break';
-    Break_.prototype['_fields'] = [];
-    Continue_.prototype['_astname'] = 'Continue';
-    Continue_.prototype['_fields'] = [];
+    BreakStatement.prototype['_astname'] = 'BreakStatement';
+    BreakStatement.prototype['_fields'] = [];
+    ContinueStatement.prototype['_astname'] = 'ContinueStatement';
+    ContinueStatement.prototype['_fields'] = [];
     BoolOp.prototype['_astname'] = 'BoolOp';
     BoolOp.prototype['_fields'] = [
         'op', function (n) { return n.op; },
@@ -4732,12 +4372,12 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
     Is.prototype['_isenum'] = true;
     IsNot.prototype['_astname'] = 'IsNot';
     IsNot.prototype['_isenum'] = true;
-    In_.prototype['_astname'] = 'In';
-    In_.prototype['_isenum'] = true;
+    In.prototype['_astname'] = 'In';
+    In.prototype['_isenum'] = true;
     NotIn.prototype['_astname'] = 'NotIn';
     NotIn.prototype['_isenum'] = true;
-    comprehension.prototype['_astname'] = 'comprehension';
-    comprehension.prototype['_fields'] = [
+    Comprehension.prototype['_astname'] = 'Comprehension';
+    Comprehension.prototype['_fields'] = [
         'target', function (n) { return n.target; },
         'iter', function (n) { return n.iter; },
         'ifs', function (n) { return n.ifs; }
@@ -4748,20 +4388,20 @@ define('pytools/astnodes',["require", "exports"], function (require, exports) {
         'name', function (n) { return n.name; },
         'body', function (n) { return n.body; }
     ];
-    arguments_.prototype['_astname'] = 'arguments';
-    arguments_.prototype['_fields'] = [
+    Arguments.prototype['_astname'] = 'Arguments';
+    Arguments.prototype['_fields'] = [
         'args', function (n) { return n.args; },
         'vararg', function (n) { return n.vararg; },
         'kwarg', function (n) { return n.kwarg; },
         'defaults', function (n) { return n.defaults; }
     ];
-    keyword.prototype['_astname'] = 'keyword';
-    keyword.prototype['_fields'] = [
+    Keyword.prototype['_astname'] = 'Keyword';
+    Keyword.prototype['_fields'] = [
         'arg', function (n) { return n.arg; },
         'value', function (n) { return n.value; }
     ];
-    alias.prototype['_astname'] = 'alias';
-    alias.prototype['_fields'] = [
+    Alias.prototype['_astname'] = 'Alias';
+    Alias.prototype['_fields'] = [
         'name', function (n) { return n.name; },
         'asname', function (n) { return n.asname; }
     ];
@@ -4815,7 +4455,7 @@ define('pytools/numericLiteral',["require", "exports"], function (require, expor
     exports.longAST = longAST;
 });
 
-define('pytools/builder',["require", "exports", './asserts', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './base', './tables', './Tokens', './numericLiteral'], function (require, exports, asserts_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, astnodes_49, astnodes_50, astnodes_51, astnodes_52, astnodes_53, astnodes_54, astnodes_55, astnodes_56, astnodes_57, astnodes_58, astnodes_59, astnodes_60, astnodes_61, astnodes_62, astnodes_63, astnodes_64, astnodes_65, astnodes_66, astnodes_67, astnodes_68, astnodes_69, astnodes_70, astnodes_71, astnodes_72, astnodes_73, astnodes_74, astnodes_75, astnodes_76, astnodes_77, astnodes_78, astnodes_79, astnodes_80, astnodes_81, astnodes_82, astnodes_83, astnodes_84, astnodes_85, astnodes_86, base_1, tables_1, Tokens_1, numericLiteral_1) {
+define('pytools/builder',["require", "exports", './asserts', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './base', './tables', './Tokens', './numericLiteral'], function (require, exports, asserts_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, types_51, types_52, types_53, types_54, types_55, types_56, types_57, types_58, types_59, types_60, types_61, types_62, types_63, types_64, types_65, types_66, types_67, types_68, types_69, types_70, types_71, types_72, types_73, types_74, types_75, types_76, types_77, types_78, types_79, types_80, types_81, types_82, types_83, types_84, types_85, types_86, base_1, tables_1, Tokens_1, numericLiteral_1) {
     "use strict";
     //
     // This is pretty much a straight port of ast.c from CPython 2.6.5.
@@ -4925,65 +4565,65 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
      * per the asdl file.
      */
     function setContext(c, e, ctx, n) {
-        asserts_1.assert(ctx !== astnodes_10.AugStore && ctx !== astnodes_9.AugLoad);
+        asserts_1.assert(ctx !== types_10.AugStore && ctx !== types_9.AugLoad);
         var s = null;
         var exprName = null;
         switch (e.constructor) {
-            case astnodes_7.Attribute:
-            case astnodes_59.Name:
-                if (ctx === astnodes_74.Store)
+            case types_7.Attribute:
+            case types_59.Name:
+                if (ctx === types_74.Store)
                     forbiddenCheck(c, n, e.attr, n.lineno);
                 e.ctx = ctx;
                 break;
-            case astnodes_77.Subscript:
+            case types_77.Subscript:
                 e.ctx = ctx;
                 break;
-            case astnodes_50.List:
+            case types_50.List:
                 e.ctx = ctx;
                 s = e.elts;
                 break;
-            case astnodes_80.Tuple:
+            case types_80.Tuple:
                 if (e.elts.length === 0)
                     throw syntaxError("can't assign to ()", c.c_filename, n.lineno);
                 e.ctx = ctx;
                 s = e.elts;
                 break;
-            case astnodes_49.Lambda:
+            case types_49.Lambda:
                 exprName = "lambda";
                 break;
-            case astnodes_17.Call:
+            case types_17.Call:
                 exprName = "function call";
                 break;
-            case astnodes_15.BoolOp:
-            case astnodes_11.BinOp:
-            case astnodes_82.UnaryOp:
+            case types_15.BoolOp:
+            case types_11.BinOp:
+            case types_82.UnaryOp:
                 exprName = "operator";
                 break;
-            case astnodes_35.GeneratorExp:
+            case types_35.GeneratorExp:
                 exprName = "generator expression";
                 break;
-            case astnodes_86.Yield:
+            case types_86.Yield:
                 exprName = "yield expression";
                 break;
-            case astnodes_51.ListComp:
+            case types_51.ListComp:
                 exprName = "list comprehension";
                 break;
-            case astnodes_24.Dict:
-            case astnodes_64.Num:
-            case astnodes_75.Str:
+            case types_24.Dict:
+            case types_64.Num:
+            case types_75.Str:
                 exprName = "literal";
                 break;
-            case astnodes_19.Compare:
+            case types_19.Compare:
                 exprName = "comparison expression";
                 break;
-            case astnodes_41.IfExp:
+            case types_41.IfExp:
                 exprName = "conditional expression";
                 break;
             default:
                 asserts_1.fail("unhandled expression in assignment");
         }
         if (exprName) {
-            throw syntaxError("can't " + (ctx === astnodes_74.Store ? "assign to" : "delete") + " " + exprName, c.c_filename, n.lineno);
+            throw syntaxError("can't " + (ctx === types_74.Store ? "assign to" : "delete") + " " + exprName, c.c_filename, n.lineno);
         }
         if (s) {
             for (var i = 0; i < s.length; ++i) {
@@ -4993,18 +4633,18 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
     }
     var operatorMap = {};
     (function () {
-        operatorMap[TOK.T_VBAR] = astnodes_13.BitOr;
-        operatorMap[TOK.T_VBAR] = astnodes_13.BitOr;
-        operatorMap[TOK.T_CIRCUMFLEX] = astnodes_14.BitXor;
-        operatorMap[TOK.T_AMPER] = astnodes_12.BitAnd;
-        operatorMap[TOK.T_LEFTSHIFT] = astnodes_53.LShift;
-        operatorMap[TOK.T_RIGHTSHIFT] = astnodes_72.RShift;
-        operatorMap[TOK.T_PLUS] = astnodes_1.Add;
-        operatorMap[TOK.T_MINUS] = astnodes_76.Sub;
-        operatorMap[TOK.T_STAR] = astnodes_58.Mult;
-        operatorMap[TOK.T_SLASH] = astnodes_25.Div;
-        operatorMap[TOK.T_DOUBLESLASH] = astnodes_32.FloorDiv;
-        operatorMap[TOK.T_PERCENT] = astnodes_56.Mod;
+        operatorMap[TOK.T_VBAR] = types_13.BitOr;
+        operatorMap[TOK.T_VBAR] = types_13.BitOr;
+        operatorMap[TOK.T_CIRCUMFLEX] = types_14.BitXor;
+        operatorMap[TOK.T_AMPER] = types_12.BitAnd;
+        operatorMap[TOK.T_LEFTSHIFT] = types_53.LShift;
+        operatorMap[TOK.T_RIGHTSHIFT] = types_72.RShift;
+        operatorMap[TOK.T_PLUS] = types_1.Add;
+        operatorMap[TOK.T_MINUS] = types_76.Sub;
+        operatorMap[TOK.T_STAR] = types_58.Mult;
+        operatorMap[TOK.T_SLASH] = types_25.Div;
+        operatorMap[TOK.T_DOUBLESLASH] = types_32.FloorDiv;
+        operatorMap[TOK.T_PERCENT] = types_56.Mod;
     }());
     function getOperator(n) {
         asserts_1.assert(operatorMap[n.type] !== undefined);
@@ -5018,25 +4658,25 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         if (NCH(n) === 1) {
             n = CHILD(n, 0);
             switch (n.type) {
-                case TOK.T_LESS: return astnodes_54.Lt;
-                case TOK.T_GREATER: return astnodes_37.Gt;
-                case TOK.T_EQEQUAL: return astnodes_27.Eq;
-                case TOK.T_LESSEQUAL: return astnodes_55.LtE;
-                case TOK.T_GREATEREQUAL: return astnodes_38.GtE;
-                case TOK.T_NOTEQUAL: return astnodes_62.NotEq;
+                case TOK.T_LESS: return types_54.Lt;
+                case TOK.T_GREATER: return types_37.Gt;
+                case TOK.T_EQEQUAL: return types_27.Eq;
+                case TOK.T_LESSEQUAL: return types_55.LtE;
+                case TOK.T_GREATEREQUAL: return types_38.GtE;
+                case TOK.T_NOTEQUAL: return types_62.NotEq;
                 case TOK.T_NAME:
                     if (n.value === "in")
-                        return astnodes_45.In_;
+                        return types_45.In;
                     if (n.value === "is")
-                        return astnodes_47.Is;
+                        return types_47.Is;
             }
         }
         else if (NCH(n) === 2) {
             if (CHILD(n, 0).type === TOK.T_NAME) {
                 if (CHILD(n, 1).value === "in")
-                    return astnodes_63.NotIn;
+                    return types_63.NotIn;
                 if (CHILD(n, 0).value === "is")
-                    return astnodes_48.IsNot;
+                    return types_48.IsNot;
             }
         }
         asserts_1.fail("invalid comp_op");
@@ -5101,13 +4741,13 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         REQ(exc, SYM.except_clause);
         REQ(body, SYM.suite);
         if (NCH(exc) === 1)
-            return new astnodes_28.ExceptHandler(null, null, astForSuite(c, body), exc.lineno, exc.col_offset);
+            return new types_28.ExceptHandler(null, null, astForSuite(c, body), exc.lineno, exc.col_offset);
         else if (NCH(exc) === 2)
-            return new astnodes_28.ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.lineno, exc.col_offset);
+            return new types_28.ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.lineno, exc.col_offset);
         else if (NCH(exc) === 4) {
             var e = astForExpr(c, CHILD(exc, 3));
-            setContext(c, e, astnodes_74.Store, CHILD(exc, 3));
-            return new astnodes_28.ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.lineno, exc.col_offset);
+            setContext(c, e, types_74.Store, CHILD(exc, 3));
+            return new types_28.ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.lineno, exc.col_offset);
         }
         asserts_1.fail("wrong number of children for except clause");
     }
@@ -5143,7 +4783,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             var handlers = [];
             for (var i = 0; i < nexcept; ++i)
                 handlers[i] = astForExceptClause(c, CHILD(n, 3 + i * 3), CHILD(n, 5 + i * 3));
-            var exceptSt = new astnodes_78.TryExcept(body, handlers, orelse, n.lineno, n.col_offset);
+            var exceptSt = new types_78.TryExcept(body, handlers, orelse, n.lineno, n.col_offset);
             if (!finally_)
                 return exceptSt;
             /* if a 'finally' is present too, we nest the TryExcept within a
@@ -5151,17 +4791,17 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             body = [exceptSt];
         }
         asserts_1.assert(finally_ !== null);
-        return new astnodes_79.TryFinally(body, finally_, n.lineno, n.col_offset);
+        return new types_79.TryFinally(body, finally_, n.lineno, n.col_offset);
     }
     function astForDottedName(c, n) {
         REQ(n, SYM.dotted_name);
         var lineno = n.lineno;
         var col_offset = n.col_offset;
         var id = strobj(CHILD(n, 0).value);
-        var e = new astnodes_59.Name(id, astnodes_52.Load, lineno, col_offset);
+        var e = new types_59.Name(id, types_52.Load, lineno, col_offset);
         for (var i = 2; i < NCH(n); i += 2) {
             id = strobj(CHILD(n, i).value);
-            e = new astnodes_7.Attribute(e, id, astnodes_52.Load, lineno, col_offset);
+            e = new types_7.Attribute(e, id, types_52.Load, lineno, col_offset);
         }
         return e;
     }
@@ -5174,7 +4814,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         if (NCH(n) === 3)
             return nameExpr;
         else if (NCH(n) === 5)
-            return new astnodes_17.Call(nameExpr, [], [], null, null, n.lineno, n.col_offset);
+            return new types_17.Call(nameExpr, [], [], null, null, n.lineno, n.col_offset);
         else
             return astForCall(c, CHILD(n, 3), nameExpr);
     }
@@ -5211,10 +4851,10 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         var contextExpr = astForExpr(c, CHILD(n, 1));
         if (CHILD(n, 2).type === SYM.with_var) {
             var optionalVars = astForWithVar(c, CHILD(n, 2));
-            setContext(c, optionalVars, astnodes_74.Store, n);
+            setContext(c, optionalVars, types_74.Store, n);
             suiteIndex = 4;
         }
-        return new astnodes_85.With_(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
+        return new types_85.WithStatement(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
     }
     function astForExecStmt(c, n) {
         var globals = null, locals = null;
@@ -5227,7 +4867,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             globals = astForExpr(c, CHILD(n, 3));
         if (nchildren === 6)
             locals = astForExpr(c, CHILD(n, 5));
-        return new astnodes_29.Exec(expr1, globals, locals, n.lineno, n.col_offset);
+        return new types_29.Exec(expr1, globals, locals, n.lineno, n.col_offset);
     }
     function astForIfStmt(c, n) {
         /* if_stmt: 'if' test ':' suite ('elif' test ':' suite)*
@@ -5235,11 +4875,11 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         */
         REQ(n, SYM.if_stmt);
         if (NCH(n) === 4)
-            return new astnodes_40.If_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
+            return new types_40.IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
         var s = CHILD(n, 4).value;
         var decider = s.charAt(2); // elSe or elIf
         if (decider === 's') {
-            return new astnodes_40.If_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
+            return new types_40.IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
         }
         else if (decider === 'i') {
             var nElif = NCH(n) - 4;
@@ -5254,15 +4894,15 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             nElif /= 4;
             if (hasElse) {
                 orelse = [
-                    new astnodes_40.If_(astForExpr(c, CHILD(n, NCH(n) - 6)), astForSuite(c, CHILD(n, NCH(n) - 4)), astForSuite(c, CHILD(n, NCH(n) - 1)), CHILD(n, NCH(n) - 6).lineno, CHILD(n, NCH(n) - 6).col_offset)];
+                    new types_40.IfStatement(astForExpr(c, CHILD(n, NCH(n) - 6)), astForSuite(c, CHILD(n, NCH(n) - 4)), astForSuite(c, CHILD(n, NCH(n) - 1)), CHILD(n, NCH(n) - 6).lineno, CHILD(n, NCH(n) - 6).col_offset)];
                 nElif--;
             }
             for (var i = 0; i < nElif; ++i) {
                 var off = 5 + (nElif - i - 1) * 4;
                 orelse = [
-                    new astnodes_40.If_(astForExpr(c, CHILD(n, off)), astForSuite(c, CHILD(n, off + 2)), orelse, CHILD(n, off).lineno, CHILD(n, off).col_offset)];
+                    new types_40.IfStatement(astForExpr(c, CHILD(n, off)), astForSuite(c, CHILD(n, off + 2)), orelse, CHILD(n, off).lineno, CHILD(n, off).col_offset)];
             }
-            return new astnodes_40.If_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), orelse, n.lineno, n.col_offset);
+            return new types_40.IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), orelse, n.lineno, n.col_offset);
         }
         asserts_1.fail("unexpected token in 'if' statement");
     }
@@ -5279,7 +4919,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
     }
     function astForDelStmt(c, n) {
         REQ(n, SYM.del_stmt);
-        return new astnodes_23.Delete_(astForExprlist(c, CHILD(n, 1), astnodes_22.Del), n.lineno, n.col_offset);
+        return new types_23.DeleteExpression(astForExprlist(c, CHILD(n, 1), types_22.Del), n.lineno, n.col_offset);
     }
     function astForGlobalStmt(c, n) {
         REQ(n, SYM.GlobalStmt);
@@ -5287,7 +4927,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         for (var i = 1; i < NCH(n); i += 2) {
             s[(i - 1) / 2] = strobj(CHILD(n, i).value);
         }
-        return new astnodes_36.Global(s, n.lineno, n.col_offset);
+        return new types_36.Global(s, n.lineno, n.col_offset);
     }
     function astForNonLocalStmt(c, n) {
         REQ(n, SYM.NonLocalStmt);
@@ -5295,15 +4935,15 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         for (var i = 1; i < NCH(n); i += 2) {
             s[(i - 1) / 2] = strobj(CHILD(n, i).value);
         }
-        return new astnodes_60.NonLocal(s, n.lineno, n.col_offset);
+        return new types_60.NonLocal(s, n.lineno, n.col_offset);
     }
     function astForAssertStmt(c, n) {
         /* assert_stmt: 'assert' test [',' test] */
         REQ(n, SYM.assert_stmt);
         if (NCH(n) === 2)
-            return new astnodes_5.Assert(astForExpr(c, CHILD(n, 1)), null, n.lineno, n.col_offset);
+            return new types_5.Assert(astForExpr(c, CHILD(n, 1)), null, n.lineno, n.col_offset);
         else if (NCH(n) === 4)
-            return new astnodes_5.Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.lineno, n.col_offset);
+            return new types_5.Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.lineno, n.col_offset);
         asserts_1.fail("improper number of parts to assert stmt");
     }
     function aliasForImportName(c, n) {
@@ -5319,7 +4959,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                     var name_1 = strobj(CHILD(n, 0).value);
                     if (NCH(n) === 3)
                         str = CHILD(n, 2).value;
-                    return new astnodes_2.alias(name_1, str == null ? null : strobj(str));
+                    return new types_2.Alias(name_1, str == null ? null : strobj(str));
                 case SYM.dotted_as_name:
                     if (NCH(n) === 1) {
                         n = CHILD(n, 0);
@@ -5333,16 +4973,16 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                     }
                 case SYM.dotted_name:
                     if (NCH(n) === 1)
-                        return new astnodes_2.alias(strobj(CHILD(n, 0).value), null);
+                        return new types_2.Alias(strobj(CHILD(n, 0).value), null);
                     else {
                         // create a string of the form a.b.c
                         var str_1 = '';
                         for (var i = 0; i < NCH(n); i += 2)
                             str_1 += CHILD(n, i).value + ".";
-                        return new astnodes_2.alias(strobj(str_1.substr(0, str_1.length - 1)), null);
+                        return new types_2.Alias(strobj(str_1.substr(0, str_1.length - 1)), null);
                     }
                 case TOK.T_STAR:
-                    return new astnodes_2.alias(strobj("*"), null);
+                    return new types_2.Alias(strobj("*"), null);
                 default:
                     throw syntaxError("unexpected import name", c.c_filename, n.lineno);
             }
@@ -5359,7 +4999,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             var aliases = [];
             for (var i = 0; i < NCH(n); i += 2)
                 aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
-            return new astnodes_42.Import_(aliases, lineno, col_offset);
+            return new types_42.ImportStatement(aliases, lineno, col_offset);
         }
         else if (n.type === SYM.import_from) {
             var mod = null;
@@ -5404,7 +5044,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                 for (var i = 0; i < NCH(n); i += 2)
                     aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
             var modname = mod ? mod.name : "";
-            return new astnodes_43.ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
+            return new types_43.ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
         }
         throw syntaxError("unknown import statement", c.c_filename, n.lineno);
     }
@@ -5466,13 +5106,13 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         for (var i = 0; i < nfors; ++i) {
             REQ(ch, SYM.list_for);
             var forch = CHILD(ch, 1);
-            var t = astForExprlist(c, forch, astnodes_74.Store);
+            var t = astForExprlist(c, forch, types_74.Store);
             var expression = astForTestlist(c, CHILD(ch, 3));
             var lc;
             if (NCH(forch) === 1)
-                lc = new astnodes_20.comprehension(t[0], expression, []);
+                lc = new types_20.Comprehension(t[0], expression, []);
             else
-                lc = new astnodes_20.comprehension(new astnodes_80.Tuple(t, astnodes_74.Store, ch.lineno, ch.col_offset), expression, []);
+                lc = new types_20.Comprehension(new types_80.Tuple(t, types_74.Store, ch.lineno, ch.col_offset), expression, []);
             if (NCH(ch) === 5) {
                 ch = CHILD(ch, 4);
                 var nifs = countListIfs(c, ch);
@@ -5491,7 +5131,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             }
             listcomps[i] = lc;
         }
-        return new astnodes_51.ListComp(elt, listcomps, n.lineno, n.col_offset);
+        return new types_51.ListComp(elt, listcomps, n.lineno, n.col_offset);
     }
     function astForUnaryExpr(c, n) {
         if (CHILD(n, 0).type === TOK.T_MINUS && NCH(n) === 2) {
@@ -5512,9 +5152,9 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         }
         var expression = astForExpr(c, CHILD(n, 1));
         switch (CHILD(n, 0).type) {
-            case TOK.T_PLUS: return new astnodes_82.UnaryOp(astnodes_81.UAdd, expression, n.lineno, n.col_offset);
-            case TOK.T_MINUS: return new astnodes_82.UnaryOp(astnodes_83.USub, expression, n.lineno, n.col_offset);
-            case TOK.T_TILDE: return new astnodes_82.UnaryOp(astnodes_46.Invert, expression, n.lineno, n.col_offset);
+            case TOK.T_PLUS: return new types_82.UnaryOp(types_81.UAdd, expression, n.lineno, n.col_offset);
+            case TOK.T_MINUS: return new types_82.UnaryOp(types_83.USub, expression, n.lineno, n.col_offset);
+            case TOK.T_TILDE: return new types_82.UnaryOp(types_46.Invert, expression, n.lineno, n.col_offset);
         }
         asserts_1.fail("unhandled UnaryExpr");
     }
@@ -5524,13 +5164,13 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         if (NCH(n) === 9)
             seq = astForSuite(c, CHILD(n, 8));
         var nodeTarget = CHILD(n, 1);
-        var _target = astForExprlist(c, nodeTarget, astnodes_74.Store);
+        var _target = astForExprlist(c, nodeTarget, types_74.Store);
         var target;
         if (NCH(nodeTarget) === 1)
             target = _target[0];
         else
-            target = new astnodes_80.Tuple(_target, astnodes_74.Store, n.lineno, n.col_offset);
-        return new astnodes_33.For_(target, astForTestlist(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 5)), seq, n.lineno, n.col_offset);
+            target = new types_80.Tuple(_target, types_74.Store, n.lineno, n.col_offset);
+        return new types_33.ForStatement(target, astForTestlist(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 5)), seq, n.lineno, n.col_offset);
     }
     function astForCall(c, n, func) {
         /*
@@ -5577,9 +5217,9 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                     args[nargs++] = astForGenexp(c, ch);
                 else {
                     var e = astForExpr(c, CHILD(ch, 0));
-                    if (e.constructor === astnodes_49.Lambda)
+                    if (e.constructor === types_49.Lambda)
                         throw syntaxError("lambda cannot contain assignment", c.c_filename, n.lineno);
-                    else if (e.constructor !== astnodes_59.Name)
+                    else if (e.constructor !== types_59.Name)
                         throw syntaxError("keyword can't be an expression", c.c_filename, n.lineno);
                     var key = e.id;
                     forbiddenCheck(c, CHILD(ch, 0), key, n.lineno);
@@ -5588,7 +5228,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                         if (tmp === key)
                             throw syntaxError("keyword argument repeated", c.c_filename, n.lineno);
                     }
-                    keywords[nkeywords++] = new astnodes_39.keyword(key, astForExpr(c, CHILD(ch, 2)));
+                    keywords[nkeywords++] = new types_39.Keyword(key, astForExpr(c, CHILD(ch, 2)));
                 }
             }
             else if (ch.type === TOK.T_STAR)
@@ -5596,7 +5236,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             else if (ch.type === TOK.T_DOUBLESTAR)
                 kwarg = astForExpr(c, CHILD(n, ++i));
         }
-        return new astnodes_17.Call(func, args, keywords, vararg, kwarg, func.lineno, func.col_offset);
+        return new types_17.Call(func, args, keywords, vararg, kwarg, func.lineno, func.col_offset);
     }
     function astForTrailer(c, n, leftExpr) {
         /* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
@@ -5606,18 +5246,18 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         REQ(n, SYM.trailer);
         if (CHILD(n, 0).type === TOK.T_LPAR) {
             if (NCH(n) === 2)
-                return new astnodes_17.Call(leftExpr, [], [], null, null, n.lineno, n.col_offset);
+                return new types_17.Call(leftExpr, [], [], null, null, n.lineno, n.col_offset);
             else
                 return astForCall(c, CHILD(n, 1), leftExpr);
         }
         else if (CHILD(n, 0).type === TOK.T_DOT)
-            return new astnodes_7.Attribute(leftExpr, strobj(CHILD(n, 1).value), astnodes_52.Load, n.lineno, n.col_offset);
+            return new types_7.Attribute(leftExpr, strobj(CHILD(n, 1).value), types_52.Load, n.lineno, n.col_offset);
         else {
             REQ(CHILD(n, 0), TOK.T_LSQB);
             REQ(CHILD(n, 2), TOK.T_RSQB);
             n = CHILD(n, 1);
             if (NCH(n) === 1)
-                return new astnodes_77.Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), astnodes_52.Load, n.lineno, n.col_offset);
+                return new types_77.Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), types_52.Load, n.lineno, n.col_offset);
             else {
                 /* The grammar is ambiguous here. The ambiguity is resolved
                     by treating the sequence as a tuple literal if there are
@@ -5627,21 +5267,21 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                 var slices = [];
                 for (var j = 0; j < NCH(n); j += 2) {
                     var slc = astForSlice(c, CHILD(n, j));
-                    if (slc.constructor !== astnodes_44.Index)
+                    if (slc.constructor !== types_44.Index)
                         simple = false;
                     slices[j / 2] = slc;
                 }
                 if (!simple) {
-                    return new astnodes_77.Subscript(leftExpr, new astnodes_31.ExtSlice(slices), astnodes_52.Load, n.lineno, n.col_offset);
+                    return new types_77.Subscript(leftExpr, new types_31.ExtSlice(slices), types_52.Load, n.lineno, n.col_offset);
                 }
                 var elts = [];
                 for (var j = 0; j < slices.length; ++j) {
                     var slc_1 = slices[j];
-                    asserts_1.assert(slc_1.constructor === astnodes_44.Index && slc_1.value !== null && slc_1.value !== undefined);
+                    asserts_1.assert(slc_1.constructor === types_44.Index && slc_1.value !== null && slc_1.value !== undefined);
                     elts[j] = slc_1.value;
                 }
-                var e = new astnodes_80.Tuple(elts, astnodes_52.Load, n.lineno, n.col_offset);
-                return new astnodes_77.Subscript(leftExpr, new astnodes_44.Index(e), astnodes_52.Load, n.lineno, n.col_offset);
+                var e = new types_80.Tuple(elts, types_52.Load, n.lineno, n.col_offset);
+                return new types_77.Subscript(leftExpr, new types_44.Index(e), types_52.Load, n.lineno, n.col_offset);
             }
         }
     }
@@ -5650,24 +5290,24 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         REQ(n, SYM.flow_stmt);
         ch = CHILD(n, 0);
         switch (ch.type) {
-            case SYM.break_stmt: return new astnodes_16.Break_(n.lineno, n.col_offset);
-            case SYM.continue_stmt: return new astnodes_21.Continue_(n.lineno, n.col_offset);
+            case SYM.break_stmt: return new types_16.BreakStatement(n.lineno, n.col_offset);
+            case SYM.continue_stmt: return new types_21.ContinueStatement(n.lineno, n.col_offset);
             case SYM.yield_stmt:
-                return new astnodes_30.Expr(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
+                return new types_30.Expr(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
             case SYM.return_stmt:
                 if (NCH(ch) === 1)
-                    return new astnodes_71.Return_(null, n.lineno, n.col_offset);
+                    return new types_71.ReturnStatement(null, n.lineno, n.col_offset);
                 else
-                    return new astnodes_71.Return_(astForTestlist(c, CHILD(ch, 1)), n.lineno, n.col_offset);
+                    return new types_71.ReturnStatement(astForTestlist(c, CHILD(ch, 1)), n.lineno, n.col_offset);
             case SYM.raise_stmt:
                 if (NCH(ch) === 1)
-                    return new astnodes_70.Raise(null, null, null, n.lineno, n.col_offset);
+                    return new types_70.Raise(null, null, null, n.lineno, n.col_offset);
                 else if (NCH(ch) === 2)
-                    return new astnodes_70.Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.lineno, n.col_offset);
+                    return new types_70.Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.lineno, n.col_offset);
                 else if (NCH(ch) === 4)
-                    return new astnodes_70.Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), null, n.lineno, n.col_offset);
+                    return new types_70.Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), null, n.lineno, n.col_offset);
                 else if (NCH(ch) === 6)
-                    return new astnodes_70.Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), astForExpr(c, CHILD(ch, 5)), n.lineno, n.col_offset);
+                    return new types_70.Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), astForExpr(c, CHILD(ch, 5)), n.lineno, n.col_offset);
             default:
                 asserts_1.fail("unexpected flow_stmt");
         }
@@ -5683,7 +5323,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         var kwarg = null;
         if (n.type === SYM.parameters) {
             if (NCH(n) === 2)
-                return new astnodes_3.arguments_([], null, null, []);
+                return new types_3.Arguments([], null, null, []);
             n = CHILD(n, 1);
         }
         REQ(n, SYM.varargslist);
@@ -5734,7 +5374,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                         if (CHILD(ch, 0).type === TOK.T_NAME) {
                             forbiddenCheck(c, n, CHILD(ch, 0).value, n.lineno);
                             var id = strobj(CHILD(ch, 0).value);
-                            args[k++] = new astnodes_59.Name(id, astnodes_66.Param, ch.lineno, ch.col_offset);
+                            args[k++] = new types_59.Name(id, types_66.Param, ch.lineno, ch.col_offset);
                         }
                         i += 2;
                         if (parenthesized)
@@ -5756,7 +5396,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                     asserts_1.fail("unexpected node in varargslist");
             }
         }
-        return new astnodes_3.arguments_(args, vararg, kwarg, defaults);
+        return new types_3.Arguments(args, vararg, kwarg, defaults);
     }
     function astForFuncdef(c, n, decoratorSeq) {
         /* funcdef: 'def' NAME parameters ':' suite */
@@ -5765,7 +5405,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         forbiddenCheck(c, CHILD(n, 1), CHILD(n, 1).value, n.lineno);
         var args = astForArguments(c, CHILD(n, 2));
         var body = astForSuite(c, CHILD(n, 4));
-        return new astnodes_34.FunctionDef(name, args, body, decoratorSeq, n.lineno, n.col_offset);
+        return new types_34.FunctionDef(name, args, body, decoratorSeq, n.lineno, n.col_offset);
     }
     function astForClassBases(c, n) {
         asserts_1.assert(NCH(n) > 0);
@@ -5779,25 +5419,25 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         forbiddenCheck(c, n, CHILD(n, 1).value, n.lineno);
         var classname = strobj(CHILD(n, 1).value);
         if (NCH(n) === 4)
-            return new astnodes_18.ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.lineno, n.col_offset);
+            return new types_18.ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.lineno, n.col_offset);
         if (CHILD(n, 3).type === TOK.T_RPAR)
-            return new astnodes_18.ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.lineno, n.col_offset);
+            return new types_18.ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.lineno, n.col_offset);
         var bases = astForClassBases(c, CHILD(n, 3));
         var s = astForSuite(c, CHILD(n, 6));
-        return new astnodes_18.ClassDef(classname, bases, s, decoratorSeq, n.lineno, n.col_offset);
+        return new types_18.ClassDef(classname, bases, s, decoratorSeq, n.lineno, n.col_offset);
     }
     function astForLambdef(c, n) {
         var args;
         var expression;
         if (NCH(n) === 3) {
-            args = new astnodes_3.arguments_([], null, null, []);
+            args = new types_3.Arguments([], null, null, []);
             expression = astForExpr(c, CHILD(n, 2));
         }
         else {
             args = astForArguments(c, CHILD(n, 1));
             expression = astForExpr(c, CHILD(n, 3));
         }
-        return new astnodes_49.Lambda(args, expression, n.lineno, n.col_offset);
+        return new types_49.Lambda(args, expression, n.lineno, n.col_offset);
     }
     function astForGenexp(c, n) {
         /* testlist_gexp: test ( gen_for | (',' test)* [','] )
@@ -5854,13 +5494,13 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         for (var i = 0; i < nfors; ++i) {
             REQ(ch, SYM.gen_for);
             var forch = CHILD(ch, 1);
-            var t = astForExprlist(c, forch, astnodes_74.Store);
+            var t = astForExprlist(c, forch, types_74.Store);
             var expression = astForExpr(c, CHILD(ch, 3));
             var ge;
             if (NCH(forch) === 1)
-                ge = new astnodes_20.comprehension(t[0], expression, []);
+                ge = new types_20.Comprehension(t[0], expression, []);
             else
-                ge = new astnodes_20.comprehension(new astnodes_80.Tuple(t, astnodes_74.Store, ch.lineno, ch.col_offset), expression, []);
+                ge = new types_20.Comprehension(new types_80.Tuple(t, types_74.Store, ch.lineno, ch.col_offset), expression, []);
             if (NCH(ch) === 5) {
                 ch = CHILD(ch, 4);
                 var nifs = countGenIfs(c, ch);
@@ -5880,37 +5520,37 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             }
             genexps[i] = ge;
         }
-        return new astnodes_35.GeneratorExp(elt, genexps, n.lineno, n.col_offset);
+        return new types_35.GeneratorExp(elt, genexps, n.lineno, n.col_offset);
     }
     function astForWhileStmt(c, n) {
         /* while_stmt: 'while' test ':' suite ['else' ':' suite] */
         REQ(n, SYM.while_stmt);
         if (NCH(n) === 4)
-            return new astnodes_84.While_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
+            return new types_84.WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
         else if (NCH(n) === 7)
-            return new astnodes_84.While_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
+            return new types_84.WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
         asserts_1.fail("wrong number of tokens for 'while' stmt");
     }
     function astForAugassign(c, n) {
         REQ(n, SYM.augassign);
         n = CHILD(n, 0);
         switch (n.value.charAt(0)) {
-            case '+': return astnodes_1.Add;
-            case '-': return astnodes_76.Sub;
+            case '+': return types_1.Add;
+            case '-': return types_76.Sub;
             case '/':
                 if (n.value.charAt(1) === '/')
-                    return astnodes_32.FloorDiv;
-                return astnodes_25.Div;
-            case '%': return astnodes_56.Mod;
-            case '<': return astnodes_53.LShift;
-            case '>': return astnodes_72.RShift;
-            case '&': return astnodes_12.BitAnd;
-            case '^': return astnodes_14.BitXor;
-            case '|': return astnodes_13.BitOr;
+                    return types_32.FloorDiv;
+                return types_25.Div;
+            case '%': return types_56.Mod;
+            case '<': return types_53.LShift;
+            case '>': return types_72.RShift;
+            case '&': return types_12.BitAnd;
+            case '^': return types_14.BitXor;
+            case '|': return types_13.BitOr;
             case '*':
                 if (n.value.charAt(1) === '*')
-                    return astnodes_68.Pow;
-                return astnodes_58.Mult;
+                    return types_68.Pow;
+                return types_58.Mult;
             default: asserts_1.fail("invalid augassign");
         }
     }
@@ -5919,13 +5559,13 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             How should A op B op C by represented?
             BinOp(BinOp(A, op, B), op, C).
         */
-        var result = new astnodes_11.BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.lineno, n.col_offset);
+        var result = new types_11.BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.lineno, n.col_offset);
         var nops = (NCH(n) - 1) / 2;
         for (var i = 1; i < nops; ++i) {
             var nextOper = CHILD(n, i * 2 + 1);
             var newoperator = getOperator(nextOper);
             var tmp = astForExpr(c, CHILD(n, i * 2 + 2));
-            result = new astnodes_11.BinOp(result, newoperator, tmp, nextOper.lineno, nextOper.col_offset);
+            result = new types_11.BinOp(result, newoperator, tmp, nextOper.lineno, nextOper.col_offset);
         }
         return result;
     }
@@ -5947,37 +5587,37 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             return astForExpr(c, CHILD(n, 0));
         }
         else {
-            return new astnodes_80.Tuple(seqForTestlist(c, n), astnodes_52.Load, n.lineno, n.col_offset);
+            return new types_80.Tuple(seqForTestlist(c, n), types_52.Load, n.lineno, n.col_offset);
         }
     }
     function astForExprStmt(c, n) {
         REQ(n, SYM.ExprStmt);
         if (NCH(n) === 1)
-            return new astnodes_30.Expr(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
+            return new types_30.Expr(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
         else if (CHILD(n, 1).type === SYM.augassign) {
             var ch = CHILD(n, 0);
             var expr1 = astForTestlist(c, ch);
             switch (expr1.constructor) {
-                case astnodes_35.GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", c.c_filename, n.lineno);
-                case astnodes_86.Yield: throw syntaxError("augmented assignment to yield expression not possible", c.c_filename, n.lineno);
-                case astnodes_59.Name:
+                case types_35.GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", c.c_filename, n.lineno);
+                case types_86.Yield: throw syntaxError("augmented assignment to yield expression not possible", c.c_filename, n.lineno);
+                case types_59.Name:
                     var varName = expr1.id;
                     forbiddenCheck(c, ch, varName, n.lineno);
                     break;
-                case astnodes_7.Attribute:
-                case astnodes_77.Subscript:
+                case types_7.Attribute:
+                case types_77.Subscript:
                     break;
                 default:
                     throw syntaxError("illegal expression for augmented assignment", c.c_filename, n.lineno);
             }
-            setContext(c, expr1, astnodes_74.Store, ch);
+            setContext(c, expr1, types_74.Store, ch);
             ch = CHILD(n, 2);
             var expr2;
             if (ch.type === SYM.testlist)
                 expr2 = astForTestlist(c, ch);
             else
                 expr2 = astForExpr(c, ch);
-            return new astnodes_8.AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.lineno, n.col_offset);
+            return new types_8.AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.lineno, n.col_offset);
         }
         else {
             // normal assignment
@@ -5988,7 +5628,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                 if (ch.type === SYM.YieldExpr)
                     throw syntaxError("assignment to yield expression not possible", c.c_filename, n.lineno);
                 var e = astForTestlist(c, ch);
-                setContext(c, e, astnodes_74.Store, CHILD(n, i));
+                setContext(c, e, types_74.Store, CHILD(n, i));
                 targets[i / 2] = e;
             }
             var value = CHILD(n, NCH(n) - 1);
@@ -5997,12 +5637,12 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                 expression = astForTestlist(c, value);
             else
                 expression = astForExpr(c, value);
-            return new astnodes_6.Assign(targets, expression, n.lineno, n.col_offset);
+            return new types_6.Assign(targets, expression, n.lineno, n.col_offset);
         }
     }
     function astForIfexpr(c, n) {
         asserts_1.assert(NCH(n) === 5);
-        return new astnodes_41.IfExp(astForExpr(c, CHILD(n, 2)), astForExpr(c, CHILD(n, 0)), astForExpr(c, CHILD(n, 4)), n.lineno, n.col_offset);
+        return new types_41.IfExp(astForExpr(c, CHILD(n, 2)), astForExpr(c, CHILD(n, 0)), astForExpr(c, CHILD(n, 4)), n.lineno, n.col_offset);
     }
     // escape() was deprecated in JavaScript 1.5. Use encodeURI or encodeURIComponent instead.
     function escape(s) {
@@ -6194,9 +5834,9 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         var upper = null;
         var step = null;
         if (ch.type === TOK.T_DOT)
-            return new astnodes_26.Ellipsis();
+            return new types_26.Ellipsis();
         if (NCH(n) === 1 && ch.type === SYM.IfExpr)
-            return new astnodes_44.Index(astForExpr(c, ch));
+            return new types_44.Index(astForExpr(c, ch));
         if (ch.type === SYM.IfExpr)
             lower = astForExpr(c, ch);
         if (ch.type === TOK.T_COLON) {
@@ -6215,7 +5855,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         if (ch.type === SYM.sliceop) {
             if (NCH(ch) === 1) {
                 ch = CHILD(ch, 0);
-                step = new astnodes_59.Name(strobj("None"), astnodes_52.Load, ch.lineno, ch.col_offset);
+                step = new types_59.Name(strobj("None"), types_52.Load, ch.lineno, ch.col_offset);
             }
             else {
                 ch = CHILD(ch, 1);
@@ -6223,22 +5863,22 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                     step = astForExpr(c, ch);
             }
         }
-        return new astnodes_73.Slice(lower, upper, step);
+        return new types_73.Slice(lower, upper, step);
     }
     function astForAtomExpr(c, n) {
         var ch = CHILD(n, 0);
         switch (ch.type) {
             case TOK.T_NAME:
                 // All names start in Load context, but may be changed later
-                return new astnodes_59.Name(strobj(ch.value), astnodes_52.Load, n.lineno, n.col_offset);
+                return new types_59.Name(strobj(ch.value), types_52.Load, n.lineno, n.col_offset);
             case TOK.T_STRING:
-                return new astnodes_75.Str(parsestrplus(c, n), n.lineno, n.col_offset);
+                return new types_75.Str(parsestrplus(c, n), n.lineno, n.col_offset);
             case TOK.T_NUMBER:
-                return new astnodes_64.Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
+                return new types_64.Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
             case TOK.T_LPAR:
                 ch = CHILD(n, 1);
                 if (ch.type === TOK.T_RPAR)
-                    return new astnodes_80.Tuple([], astnodes_52.Load, n.lineno, n.col_offset);
+                    return new types_80.Tuple([], types_52.Load, n.lineno, n.col_offset);
                 if (ch.type === SYM.YieldExpr)
                     return astForExpr(c, ch);
                 if (NCH(ch) > 1 && CHILD(ch, 1).type === SYM.gen_for)
@@ -6247,10 +5887,10 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             case TOK.T_LSQB:
                 ch = CHILD(n, 1);
                 if (ch.type === TOK.T_RSQB)
-                    return new astnodes_50.List([], astnodes_52.Load, n.lineno, n.col_offset);
+                    return new types_50.List([], types_52.Load, n.lineno, n.col_offset);
                 REQ(ch, SYM.listmaker);
                 if (NCH(ch) === 1 || CHILD(ch, 1).type === TOK.T_COMMA)
-                    return new astnodes_50.List(seqForTestlist(c, ch), astnodes_52.Load, n.lineno, n.col_offset);
+                    return new types_50.List(seqForTestlist(c, ch), types_52.Load, n.lineno, n.col_offset);
                 else
                     return astForListcomp(c, ch);
             case TOK.T_LBRACE:
@@ -6263,7 +5903,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                     keys[i / 4] = astForExpr(c, CHILD(ch, i));
                     values[i / 4] = astForExpr(c, CHILD(ch, i + 2));
                 }
-                return new astnodes_24.Dict(keys, values, n.lineno, n.col_offset);
+                return new types_24.Dict(keys, values, n.lineno, n.col_offset);
             case TOK.T_BACKQUOTE:
                 throw syntaxError("backquote not supported, use repr()", c.c_filename, n.lineno);
             default:
@@ -6286,7 +5926,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         }
         if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr) {
             var f = astForExpr(c, CHILD(n, NCH(n) - 1));
-            e = new astnodes_11.BinOp(e, astnodes_68.Pow, f, n.lineno, n.col_offset);
+            e = new types_11.BinOp(e, types_68.Pow, f, n.lineno, n.col_offset);
         }
         return e;
     }
@@ -6310,16 +5950,16 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                     for (var i = 0; i < NCH(n); i += 2)
                         seq[i / 2] = astForExpr(c, CHILD(n, i));
                     if (CHILD(n, 1).value === "and")
-                        return new astnodes_15.BoolOp(astnodes_4.And, seq, n.lineno, n.col_offset);
+                        return new types_15.BoolOp(types_4.And, seq, n.lineno, n.col_offset);
                     asserts_1.assert(CHILD(n, 1).value === "or");
-                    return new astnodes_15.BoolOp(astnodes_65.Or, seq, n.lineno, n.col_offset);
+                    return new types_15.BoolOp(types_65.Or, seq, n.lineno, n.col_offset);
                 case SYM.NotExpr:
                     if (NCH(n) === 1) {
                         n = CHILD(n, 0);
                         continue LOOP;
                     }
                     else {
-                        return new astnodes_82.UnaryOp(astnodes_61.Not, astForExpr(c, CHILD(n, 1)), n.lineno, n.col_offset);
+                        return new types_82.UnaryOp(types_61.Not, astForExpr(c, CHILD(n, 1)), n.lineno, n.col_offset);
                     }
                 case SYM.ComparisonExpr:
                     if (NCH(n) === 1) {
@@ -6333,7 +5973,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                             ops[(i - 1) / 2] = astForCompOp(c, CHILD(n, i));
                             cmps[(i - 1) / 2] = astForExpr(c, CHILD(n, i + 1));
                         }
-                        return new astnodes_19.Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.lineno, n.col_offset);
+                        return new types_19.Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.lineno, n.col_offset);
                     }
                 case SYM.ArithmeticExpr:
                 case SYM.GeometricExpr:
@@ -6351,7 +5991,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                     if (NCH(n) === 2) {
                         exp = astForTestlist(c, CHILD(n, 1));
                     }
-                    return new astnodes_86.Yield(exp, n.lineno, n.col_offset);
+                    return new types_86.Yield(exp, n.lineno, n.col_offset);
                 case SYM.UnaryExpr:
                     if (NCH(n) === 1) {
                         n = CHILD(n, 0);
@@ -6379,7 +6019,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             seq[j] = astForExpr(c, CHILD(n, i));
         }
         var nl = (CHILD(n, NCH(n) - 1)).type === TOK.T_COMMA ? false : true;
-        return new astnodes_69.Print(dest, seq, nl, n.lineno, n.col_offset);
+        return new types_69.Print(dest, seq, nl, n.lineno, n.col_offset);
     }
     function astForStmt(c, n) {
         if (n.type === SYM.stmt) {
@@ -6397,7 +6037,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                 case SYM.ExprStmt: return astForExprStmt(c, n);
                 case SYM.print_stmt: return astForPrintStmt(c, n);
                 case SYM.del_stmt: return astForDelStmt(c, n);
-                case SYM.pass_stmt: return new astnodes_67.Pass(n.lineno, n.col_offset);
+                case SYM.pass_stmt: return new types_67.Pass(n.lineno, n.col_offset);
                 case SYM.flow_stmt: return astForFlowStmt(c, n);
                 case SYM.import_stmt: return astForImportStmt(c, n);
                 case SYM.GlobalStmt: return astForGlobalStmt(c, n);
@@ -6447,7 +6087,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                         }
                     }
                 }
-                return new astnodes_57.Module(stmts);
+                return new types_57.Module(stmts);
             case SYM.eval_input:
                 asserts_1.fail("todo;");
             case SYM.single_input:
@@ -6614,7 +6254,9 @@ define('pytools/dictUpdate',["require", "exports"], function (require, exports) 
     "use strict";
     function default_1(a, b) {
         for (var kb in b) {
-            a[kb] = b[kb];
+            if (b.hasOwnProperty(kb)) {
+                a[kb] = b[kb];
+            }
         }
     }
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -6715,7 +6357,7 @@ define('pytools/Symbol',["require", "exports", './SymbolConstants', './SymbolCon
         Symbol.prototype.is_local = function () {
             return !!(this.__flags & SymbolConstants_1.DEF_BOUND);
         };
-        Symbol.prototype.is_free = function () { return this.__scope == SymbolConstants_5.FREE; };
+        Symbol.prototype.is_free = function () { return this.__scope === SymbolConstants_5.FREE; };
         Symbol.prototype.is_imported = function () { return !!(this.__flags & SymbolConstants_2.DEF_IMPORT); };
         Symbol.prototype.is_assigned = function () { return !!(this.__flags & SymbolConstants_3.DEF_LOCAL); };
         Symbol.prototype.is_namespace = function () { return this.__namespaces && this.__namespaces.length > 0; };
@@ -6802,39 +6444,39 @@ define('pytools/SymbolTableScope',["require", "exports", './asserts', './Symbol'
             return ret;
         };
         SymbolTableScope.prototype.get_parameters = function () {
-            asserts_1.assert(this.get_type() == 'function', "get_parameters only valid for function scopes");
+            asserts_1.assert(this.get_type() === 'function', "get_parameters only valid for function scopes");
             if (!this._funcParams)
-                this._funcParams = this._identsMatching(function (x) { return x & SymbolConstants_1.DEF_PARAM; });
+                this._funcParams = this._identsMatching(function (x) { return !!(x & SymbolConstants_1.DEF_PARAM); });
             return this._funcParams;
         };
         SymbolTableScope.prototype.get_locals = function () {
-            asserts_1.assert(this.get_type() == 'function', "get_locals only valid for function scopes");
+            asserts_1.assert(this.get_type() === 'function', "get_locals only valid for function scopes");
             if (!this._funcLocals)
-                this._funcLocals = this._identsMatching(function (x) { return x & SymbolConstants_2.DEF_BOUND; });
+                this._funcLocals = this._identsMatching(function (x) { return !!(x & SymbolConstants_2.DEF_BOUND); });
             return this._funcLocals;
         };
         SymbolTableScope.prototype.get_globals = function () {
-            asserts_1.assert(this.get_type() == 'function', "get_globals only valid for function scopes");
+            asserts_1.assert(this.get_type() === 'function', "get_globals only valid for function scopes");
             if (!this._funcGlobals) {
                 this._funcGlobals = this._identsMatching(function (x) {
                     var masked = (x >> SymbolConstants_8.SCOPE_OFF) & SymbolConstants_7.SCOPE_MASK;
-                    return masked == SymbolConstants_6.GLOBAL_IMPLICIT || masked == SymbolConstants_5.GLOBAL_EXPLICIT;
+                    return masked === SymbolConstants_6.GLOBAL_IMPLICIT || masked === SymbolConstants_5.GLOBAL_EXPLICIT;
                 });
             }
             return this._funcGlobals;
         };
         SymbolTableScope.prototype.get_frees = function () {
-            asserts_1.assert(this.get_type() == 'function', "get_frees only valid for function scopes");
+            asserts_1.assert(this.get_type() === 'function', "get_frees only valid for function scopes");
             if (!this._funcFrees) {
                 this._funcFrees = this._identsMatching(function (x) {
                     var masked = (x >> SymbolConstants_8.SCOPE_OFF) & SymbolConstants_7.SCOPE_MASK;
-                    return masked == SymbolConstants_3.FREE;
+                    return masked === SymbolConstants_3.FREE;
                 });
             }
             return this._funcFrees;
         };
         SymbolTableScope.prototype.get_methods = function () {
-            asserts_1.assert(this.get_type() == 'class', "get_methods only valid for class scopes");
+            asserts_1.assert(this.get_type() === 'class', "get_methods only valid for class scopes");
             if (!this._classMethods) {
                 // todo; uniq?
                 var all = [];
@@ -6883,7 +6525,7 @@ define('pytools/syntaxError',["require", "exports", './asserts', './base'], func
     exports.default = default_1;
 });
 
-define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate', './mangleName', './SymbolTableScope', './syntaxError', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, dictUpdate_1, mangleName_1, SymbolTableScope_1, syntaxError_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7, SymbolConstants_8, SymbolConstants_9, SymbolConstants_10, SymbolConstants_11, SymbolConstants_12, SymbolConstants_13, SymbolConstants_14, SymbolConstants_15, SymbolConstants_16) {
+define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate', './mangleName', './SymbolTableScope', './syntaxError', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, dictUpdate_1, mangleName_1, SymbolTableScope_1, syntaxError_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7, SymbolConstants_8, SymbolConstants_9, SymbolConstants_10, SymbolConstants_11, SymbolConstants_12, SymbolConstants_13, SymbolConstants_14, SymbolConstants_15, SymbolConstants_16) {
     "use strict";
     var SymbolTable = (function () {
         /**
@@ -6891,187 +6533,6 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
          * @param {string} fileName
          */
         function SymbolTable(fileName) {
-            /**
-             * This is probably not correct for names. What are they?
-             * @param {Array.<Object>} names
-             * @param {number} lineno
-             */
-            this.visitAlias = function (names, lineno) {
-                /* Compute store_name, the name actually bound by the import
-                    operation.  It is diferent than a->name when a->name is a
-                    dotted package name (e.g. spam.eggs)
-                */
-                for (var i = 0; i < names.length; ++i) {
-                    var a = names[i];
-                    // DGH: The RHS used to be Python strings.
-                    var name = a.asname === null ? a.name : a.asname;
-                    var storename = name;
-                    var dot = name.indexOf('.');
-                    if (dot !== -1)
-                        storename = name.substr(0, dot);
-                    if (name !== "*") {
-                        this.addDef(storename, SymbolConstants_6.DEF_IMPORT, lineno);
-                    }
-                    else {
-                        if (this.cur.blockType !== SymbolConstants_14.ModuleBlock) {
-                            throw syntaxError_1.default("import * only allowed at module level", this.fileName);
-                        }
-                    }
-                }
-            };
-            /**
-             * @param {Object} e
-             */
-            this.visitGenexp = function (e) {
-                var outermost = e.generators[0];
-                // outermost is evaled in current scope
-                this.visitExpr(outermost.iter);
-                this.enterBlock("genexpr", SymbolConstants_10.FunctionBlock, e, e.lineno);
-                this.cur.generator = true;
-                this.addDef(".0", SymbolConstants_8.DEF_PARAM, e.lineno);
-                this.visitExpr(outermost.target);
-                this.SEQExpr(outermost.ifs);
-                this.visitComprehension(e.generators, 1);
-                this.visitExpr(e.elt);
-                this.exitBlock();
-            };
-            this.visitExcepthandlers = function (handlers) {
-                for (var i = 0, eh; eh = handlers[i]; ++i) {
-                    if (eh.type)
-                        this.visitExpr(eh.type);
-                    if (eh.name)
-                        this.visitExpr(eh.name);
-                    this.SEQStmt(eh.body);
-                }
-            };
-            /**
-             * @param {SymbolTableScope} ste The Symbol Table Scope.
-             */
-            this.analyzeBlock = function (ste, bound, free, global) {
-                var local = {};
-                var scope = {};
-                var newglobal = {};
-                var newbound = {};
-                var newfree = {};
-                if (ste.blockType === SymbolConstants_2.ClassBlock) {
-                    dictUpdate_1.default(newglobal, global);
-                    if (bound)
-                        dictUpdate_1.default(newbound, bound);
-                }
-                for (var name in ste.symFlags) {
-                    var flags = ste.symFlags[name];
-                    this.analyzeName(ste, scope, name, flags, bound, local, free, global);
-                }
-                if (ste.blockType !== SymbolConstants_2.ClassBlock) {
-                    if (ste.blockType === SymbolConstants_10.FunctionBlock)
-                        dictUpdate_1.default(newbound, local);
-                    if (bound)
-                        dictUpdate_1.default(newbound, bound);
-                    dictUpdate_1.default(newglobal, global);
-                }
-                var allfree = {};
-                var childlen = ste.children.length;
-                for (var i = 0; i < childlen; ++i) {
-                    var c = ste.children[i];
-                    this.analyzeChildBlock(c, newbound, newfree, newglobal, allfree);
-                    if (c.hasFree || c.childHasFree)
-                        ste.childHasFree = true;
-                }
-                dictUpdate_1.default(newfree, allfree);
-                if (ste.blockType === SymbolConstants_10.FunctionBlock)
-                    this.analyzeCells(scope, newfree);
-                this.updateSymbols(ste.symFlags, scope, bound, newfree, ste.blockType === SymbolConstants_2.ClassBlock);
-                dictUpdate_1.default(free, newfree);
-            };
-            this.analyzeChildBlock = function (entry, bound, free, global, childFree) {
-                var tempBound = {};
-                dictUpdate_1.default(tempBound, bound);
-                var tempFree = {};
-                dictUpdate_1.default(tempFree, free);
-                var tempGlobal = {};
-                dictUpdate_1.default(tempGlobal, global);
-                this.analyzeBlock(entry, tempBound, tempFree, tempGlobal);
-                dictUpdate_1.default(childFree, tempFree);
-            };
-            this.analyzeCells = function (scope, free) {
-                for (var name in scope) {
-                    var flags = scope[name];
-                    if (flags !== SymbolConstants_13.LOCAL)
-                        continue;
-                    if (free[name] === undefined)
-                        continue;
-                    scope[name] = SymbolConstants_1.CELL;
-                    delete free[name];
-                }
-            };
-            /**
-             * store scope info back into the st symbols dict. symbols is modified,
-             * others are not.
-             */
-            this.updateSymbols = function (symbols, scope, bound, free, classflag) {
-                for (var name in symbols) {
-                    var flags = symbols[name];
-                    var w = scope[name];
-                    flags |= w << SymbolConstants_16.SCOPE_OFF;
-                    symbols[name] = flags;
-                }
-                var freeValue = SymbolConstants_9.FREE << SymbolConstants_16.SCOPE_OFF;
-                for (var name in free) {
-                    var o = symbols[name];
-                    if (o !== undefined) {
-                        // it could be a free variable in a method of the class that has
-                        // the same name as a local or global in the class scope
-                        if (classflag && (o & (SymbolConstants_3.DEF_BOUND | SymbolConstants_5.DEF_GLOBAL))) {
-                            var i = o | SymbolConstants_4.DEF_FREE_CLASS;
-                            symbols[name] = i;
-                        }
-                        // else it's not free, probably a cell
-                        continue;
-                    }
-                    if (bound[name] === undefined)
-                        continue;
-                    symbols[name] = freeValue;
-                }
-            };
-            /**
-             * @param {Object} ste The Symbol Table Scope.
-             * @param {string} name
-             */
-            this.analyzeName = function (ste, dict, name, flags, bound, local, free, global) {
-                if (flags & SymbolConstants_5.DEF_GLOBAL) {
-                    if (flags & SymbolConstants_8.DEF_PARAM)
-                        throw syntaxError_1.default("name '" + name + "' is local and global", this.fileName, ste.lineno);
-                    dict[name] = SymbolConstants_11.GLOBAL_EXPLICIT;
-                    global[name] = null;
-                    if (bound && bound[name] !== undefined)
-                        delete bound[name];
-                    return;
-                }
-                if (flags & SymbolConstants_3.DEF_BOUND) {
-                    dict[name] = SymbolConstants_13.LOCAL;
-                    local[name] = null;
-                    delete global[name];
-                    return;
-                }
-                if (bound && bound[name] !== undefined) {
-                    dict[name] = SymbolConstants_9.FREE;
-                    ste.hasFree = true;
-                    free[name] = null;
-                }
-                else if (global && global[name] !== undefined) {
-                    dict[name] = SymbolConstants_12.GLOBAL_IMPLICIT;
-                }
-                else {
-                    if (ste.isNested)
-                        ste.hasFree = true;
-                    dict[name] = SymbolConstants_12.GLOBAL_IMPLICIT;
-                }
-            };
-            this.analyze = function () {
-                var free = {};
-                var global = {};
-                this.analyzeBlock(this.top, null, free, global);
-            };
             this.fileName = fileName;
             this.cur = null;
             this.top = null;
@@ -7133,8 +6594,8 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
         SymbolTable.prototype.visitParams = function (args, toplevel) {
             for (var i = 0; i < args.length; ++i) {
                 var arg = args[i];
-                if (arg.constructor === astnodes_31.Name) {
-                    asserts_1.assert(arg.ctx === astnodes_33.Param || (arg.ctx === astnodes_39.Store && !toplevel));
+                if (arg.constructor === types_31.Name) {
+                    asserts_1.assert(arg.ctx === types_33.Param || (arg.ctx === types_39.Store && !toplevel));
                     this.addDef(arg.id, SymbolConstants_8.DEF_PARAM, arg.lineno);
                 }
                 else {
@@ -7196,7 +6657,7 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
         };
         SymbolTable.prototype.visitSlice = function (s) {
             switch (s.constructor) {
-                case astnodes_38.Slice:
+                case types_38.Slice:
                     if (s.lower)
                         this.visitExpr(s.lower);
                     if (s.upper)
@@ -7204,14 +6665,14 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                     if (s.step)
                         this.visitExpr(s.step);
                     break;
-                case astnodes_17.ExtSlice:
+                case types_17.ExtSlice:
                     for (var i = 0; i < s.dims.length; ++i)
                         this.visitSlice(s.dims[i]);
                     break;
-                case astnodes_26.Index:
+                case types_26.Index:
                     this.visitExpr(s.value);
                     break;
-                case astnodes_14.Ellipsis:
+                case types_14.Ellipsis:
                     break;
             }
         };
@@ -7221,7 +6682,7 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
         SymbolTable.prototype.visitStmt = function (s) {
             asserts_1.assert(s !== undefined, "visitStmt called with undefined");
             switch (s.constructor) {
-                case astnodes_19.FunctionDef:
+                case types_19.FunctionDef:
                     this.addDef(s.name, SymbolConstants_7.DEF_LOCAL, s.lineno);
                     if (s.args.defaults)
                         this.SEQExpr(s.args.defaults);
@@ -7232,7 +6693,7 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                     this.SEQStmt(s.body);
                     this.exitBlock();
                     break;
-                case astnodes_9.ClassDef:
+                case types_9.ClassDef:
                     this.addDef(s.name, SymbolConstants_7.DEF_LOCAL, s.lineno);
                     this.SEQExpr(s.bases);
                     if (s.decorator_list)
@@ -7244,51 +6705,59 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                     this.curClass = tmp;
                     this.exitBlock();
                     break;
-                case astnodes_37.Return_:
-                    if (s.value) {
-                        this.visitExpr(s.value);
+                case types_37.ReturnStatement: {
+                    var rs = s;
+                    if (rs.value) {
+                        this.visitExpr(rs.value);
                         this.cur.returnsValue = true;
                         if (this.cur.generator) {
                             throw syntaxError_1.default("'return' with argument inside generator", this.fileName);
                         }
                     }
                     break;
-                case astnodes_12.Delete_:
+                }
+                case types_12.DeleteExpression:
                     this.SEQExpr(s.targets);
                     break;
-                case astnodes_2.Assign:
+                case types_2.Assign:
                     this.SEQExpr(s.targets);
                     this.visitExpr(s.value);
                     break;
-                case astnodes_4.AugAssign:
+                case types_4.AugAssign:
                     this.visitExpr(s.target);
                     this.visitExpr(s.value);
                     break;
-                case astnodes_35.Print:
+                case types_35.Print:
                     if (s.dest)
                         this.visitExpr(s.dest);
                     this.SEQExpr(s.values);
                     break;
-                case astnodes_18.For_:
-                    this.visitExpr(s.target);
-                    this.visitExpr(s.iter);
-                    this.SEQStmt(s.body);
-                    if (s.orelse)
-                        this.SEQStmt(s.orelse);
+                case types_18.ForStatement: {
+                    var fs = s;
+                    this.visitExpr(fs.target);
+                    this.visitExpr(fs.iter);
+                    this.SEQStmt(fs.body);
+                    if (fs.orelse)
+                        this.SEQStmt(fs.orelse);
                     break;
-                case astnodes_46.While_:
-                    this.visitExpr(s.test);
-                    this.SEQStmt(s.body);
-                    if (s.orelse)
-                        this.SEQStmt(s.orelse);
+                }
+                case types_46.WhileStatement: {
+                    var ws = s;
+                    this.visitExpr(ws.test);
+                    this.SEQStmt(ws.body);
+                    if (ws.orelse)
+                        this.SEQStmt(ws.orelse);
                     break;
-                case astnodes_22.If_:
-                    this.visitExpr(s.test);
-                    this.SEQStmt(s.body);
-                    if (s.orelse)
-                        this.SEQStmt(s.orelse);
+                }
+                case types_22.IfStatement: {
+                    var ifs = s;
+                    this.visitExpr(ifs.test);
+                    this.SEQStmt(ifs.body);
+                    if (ifs.orelse)
+                        this.SEQStmt(ifs.orelse);
                     break;
-                case astnodes_36.Raise:
+                }
+                case types_36.Raise:
                     if (s.type) {
                         this.visitExpr(s.type);
                         if (s.inst) {
@@ -7298,25 +6767,31 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                         }
                     }
                     break;
-                case astnodes_42.TryExcept:
+                case types_42.TryExcept:
                     this.SEQStmt(s.body);
                     this.SEQStmt(s.orelse);
                     this.visitExcepthandlers(s.handlers);
                     break;
-                case astnodes_43.TryFinally:
+                case types_43.TryFinally:
                     this.SEQStmt(s.body);
                     this.SEQStmt(s.finalbody);
                     break;
-                case astnodes_1.Assert:
+                case types_1.Assert:
                     this.visitExpr(s.test);
                     if (s.msg)
                         this.visitExpr(s.msg);
                     break;
-                case astnodes_24.Import_:
-                case astnodes_25.ImportFrom:
-                    this.visitAlias(s.names, s.lineno);
+                case types_24.ImportStatement: {
+                    var imps = s;
+                    this.visitAlias(imps.names, imps.lineno);
                     break;
-                case astnodes_15.Exec:
+                }
+                case types_25.ImportFrom: {
+                    var impFrom = s;
+                    this.visitAlias(impFrom.names, impFrom.lineno);
+                    break;
+                }
+                case types_15.Exec:
                     this.visitExpr(s.body);
                     if (s.globals) {
                         this.visitExpr(s.globals);
@@ -7324,7 +6799,7 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                             this.visitExpr(s.locals);
                     }
                     break;
-                case astnodes_21.Global:
+                case types_21.Global:
                     var nameslen = s.names.length;
                     for (var i = 0; i < nameslen; ++i) {
                         var name = mangleName_1.default(this.curClass, s.names[i]);
@@ -7341,23 +6816,25 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                         this.addDef(name, SymbolConstants_5.DEF_GLOBAL, s.lineno);
                     }
                     break;
-                case astnodes_16.Expr:
+                case types_16.Expr:
                     this.visitExpr(s.value);
                     break;
-                case astnodes_34.Pass:
-                case astnodes_7.Break_:
-                case astnodes_11.Continue_:
+                case types_34.Pass:
+                case types_7.BreakStatement:
+                case types_11.ContinueStatement:
                     // nothing
                     break;
-                case astnodes_47.With_:
-                    this.newTmpname(s.lineno);
-                    this.visitExpr(s.context_expr);
-                    if (s.optional_vars) {
-                        this.newTmpname(s.lineno);
-                        this.visitExpr(s.optional_vars);
+                case types_47.WithStatement: {
+                    var ws = s;
+                    this.newTmpname(ws.lineno);
+                    this.visitExpr(ws.context_expr);
+                    if (ws.optional_vars) {
+                        this.newTmpname(ws.lineno);
+                        this.visitExpr(ws.optional_vars);
                     }
-                    this.SEQStmt(s.body);
+                    this.SEQStmt(ws.body);
                     break;
+                }
                 default:
                     asserts_1.fail("Unhandled type " + s.constructor.name + " in visitStmt");
             }
@@ -7366,17 +6843,17 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
             asserts_1.assert(e !== undefined, "visitExpr called with undefined");
             // print("  e: ", e.constructor.name);
             switch (e.constructor) {
-                case astnodes_6.BoolOp:
+                case types_6.BoolOp:
                     this.SEQExpr(e.values);
                     break;
-                case astnodes_5.BinOp:
+                case types_5.BinOp:
                     this.visitExpr(e.left);
                     this.visitExpr(e.right);
                     break;
-                case astnodes_45.UnaryOp:
+                case types_45.UnaryOp:
                     this.visitExpr(e.operand);
                     break;
-                case astnodes_27.Lambda:
+                case types_27.Lambda:
                     this.addDef("lambda", SymbolConstants_7.DEF_LOCAL, e.lineno);
                     if (e.args.defaults)
                         this.SEQExpr(e.args.defaults);
@@ -7385,24 +6862,24 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                     this.visitExpr(e.body);
                     this.exitBlock();
                     break;
-                case astnodes_23.IfExp:
+                case types_23.IfExp:
                     this.visitExpr(e.test);
                     this.visitExpr(e.body);
                     this.visitExpr(e.orelse);
                     break;
-                case astnodes_13.Dict:
+                case types_13.Dict:
                     this.SEQExpr(e.keys);
                     this.SEQExpr(e.values);
                     break;
-                case astnodes_30.ListComp:
+                case types_30.ListComp:
                     this.newTmpname(e.lineno);
                     this.visitExpr(e.elt);
                     this.visitComprehension(e.generators, 0);
                     break;
-                case astnodes_20.GeneratorExp:
+                case types_20.GeneratorExp:
                     this.visitGenexp(e);
                     break;
-                case astnodes_48.Yield:
+                case types_48.Yield:
                     if (e.value)
                         this.visitExpr(e.value);
                     this.cur.generator = true;
@@ -7410,11 +6887,11 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                         throw syntaxError_1.default("'return' with argument inside generator", this.fileName);
                     }
                     break;
-                case astnodes_10.Compare:
+                case types_10.Compare:
                     this.visitExpr(e.left);
                     this.SEQExpr(e.comparators);
                     break;
-                case astnodes_8.Call:
+                case types_8.Call:
                     this.visitExpr(e.func);
                     this.SEQExpr(e.args);
                     for (var i = 0; i < e.keywords.length; ++i)
@@ -7426,21 +6903,21 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                     if (e.kwargs)
                         this.visitExpr(e.kwargs);
                     break;
-                case astnodes_32.Num:
-                case astnodes_40.Str:
+                case types_32.Num:
+                case types_40.Str:
                     break;
-                case astnodes_3.Attribute:
+                case types_3.Attribute:
                     this.visitExpr(e.value);
                     break;
-                case astnodes_41.Subscript:
+                case types_41.Subscript:
                     this.visitExpr(e.value);
                     this.visitSlice(e.slice);
                     break;
-                case astnodes_31.Name:
-                    this.addDef(e.id, e.ctx === astnodes_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.lineno);
+                case types_31.Name:
+                    this.addDef(e.id, e.ctx === types_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.lineno);
                     break;
-                case astnodes_29.List:
-                case astnodes_44.Tuple:
+                case types_29.List:
+                case types_44.Tuple:
                     this.SEQExpr(e.elts);
                     break;
                 default:
@@ -7455,6 +6932,195 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                 this.visitExpr(lc.iter);
                 this.SEQExpr(lc.ifs);
             }
+        };
+        /**
+         * This is probably not correct for names. What are they?
+         * @param {Array.<Object>} names
+         * @param {number} lineno
+         */
+        SymbolTable.prototype.visitAlias = function (names, lineno) {
+            /* Compute store_name, the name actually bound by the import
+                operation.  It is diferent than a->name when a->name is a
+                dotted package name (e.g. spam.eggs)
+            */
+            for (var i = 0; i < names.length; ++i) {
+                var a = names[i];
+                // DGH: The RHS used to be Python strings.
+                var name = a.asname === null ? a.name : a.asname;
+                var storename = name;
+                var dot = name.indexOf('.');
+                if (dot !== -1)
+                    storename = name.substr(0, dot);
+                if (name !== "*") {
+                    this.addDef(storename, SymbolConstants_6.DEF_IMPORT, lineno);
+                }
+                else {
+                    if (this.cur.blockType !== SymbolConstants_14.ModuleBlock) {
+                        throw syntaxError_1.default("import * only allowed at module level", this.fileName);
+                    }
+                }
+            }
+        };
+        /**
+         * @param {Object} e
+         */
+        SymbolTable.prototype.visitGenexp = function (e) {
+            var outermost = e.generators[0];
+            // outermost is evaled in current scope
+            this.visitExpr(outermost.iter);
+            this.enterBlock("genexpr", SymbolConstants_10.FunctionBlock, e, e.lineno);
+            this.cur.generator = true;
+            this.addDef(".0", SymbolConstants_8.DEF_PARAM, e.lineno);
+            this.visitExpr(outermost.target);
+            this.SEQExpr(outermost.ifs);
+            this.visitComprehension(e.generators, 1);
+            this.visitExpr(e.elt);
+            this.exitBlock();
+        };
+        SymbolTable.prototype.visitExcepthandlers = function (handlers) {
+            for (var i = 0, eh; eh = handlers[i]; ++i) {
+                if (eh.type)
+                    this.visitExpr(eh.type);
+                if (eh.name)
+                    this.visitExpr(eh.name);
+                this.SEQStmt(eh.body);
+            }
+        };
+        /**
+         * @param {SymbolTableScope} ste The Symbol Table Scope.
+         */
+        SymbolTable.prototype.analyzeBlock = function (ste, bound, free, global) {
+            var local = {};
+            var scope = {};
+            var newglobal = {};
+            var newbound = {};
+            var newfree = {};
+            if (ste.blockType === SymbolConstants_2.ClassBlock) {
+                dictUpdate_1.default(newglobal, global);
+                if (bound)
+                    dictUpdate_1.default(newbound, bound);
+            }
+            for (var name_1 in ste.symFlags) {
+                if (ste.symFlags.hasOwnProperty(name_1)) {
+                    var flags = ste.symFlags[name_1];
+                    this.analyzeName(ste, scope, name_1, flags, bound, local, free, global);
+                }
+            }
+            if (ste.blockType !== SymbolConstants_2.ClassBlock) {
+                if (ste.blockType === SymbolConstants_10.FunctionBlock)
+                    dictUpdate_1.default(newbound, local);
+                if (bound)
+                    dictUpdate_1.default(newbound, bound);
+                dictUpdate_1.default(newglobal, global);
+            }
+            var allfree = {};
+            var childlen = ste.children.length;
+            for (var i = 0; i < childlen; ++i) {
+                var c = ste.children[i];
+                this.analyzeChildBlock(c, newbound, newfree, newglobal, allfree);
+                if (c.hasFree || c.childHasFree)
+                    ste.childHasFree = true;
+            }
+            dictUpdate_1.default(newfree, allfree);
+            if (ste.blockType === SymbolConstants_10.FunctionBlock)
+                this.analyzeCells(scope, newfree);
+            this.updateSymbols(ste.symFlags, scope, bound, newfree, ste.blockType === SymbolConstants_2.ClassBlock);
+            dictUpdate_1.default(free, newfree);
+        };
+        SymbolTable.prototype.analyzeChildBlock = function (entry, bound, free, global, childFree) {
+            var tempBound = {};
+            dictUpdate_1.default(tempBound, bound);
+            var tempFree = {};
+            dictUpdate_1.default(tempFree, free);
+            var tempGlobal = {};
+            dictUpdate_1.default(tempGlobal, global);
+            this.analyzeBlock(entry, tempBound, tempFree, tempGlobal);
+            dictUpdate_1.default(childFree, tempFree);
+        };
+        SymbolTable.prototype.analyzeCells = function (scope, free) {
+            for (var name_2 in scope) {
+                if (scope.hasOwnProperty(name_2)) {
+                    var flags = scope[name_2];
+                    if (flags !== SymbolConstants_13.LOCAL)
+                        continue;
+                    if (free[name_2] === undefined)
+                        continue;
+                    scope[name_2] = SymbolConstants_1.CELL;
+                    delete free[name_2];
+                }
+            }
+        };
+        /**
+         * store scope info back into the st symbols dict. symbols is modified,
+         * others are not.
+         */
+        SymbolTable.prototype.updateSymbols = function (symbols, scope, bound, free, classflag) {
+            for (var name_3 in symbols) {
+                if (symbols.hasOwnProperty(name_3)) {
+                    var flags = symbols[name_3];
+                    var w = scope[name_3];
+                    flags |= w << SymbolConstants_16.SCOPE_OFF;
+                    symbols[name_3] = flags;
+                }
+            }
+            var freeValue = SymbolConstants_9.FREE << SymbolConstants_16.SCOPE_OFF;
+            for (var name_4 in free) {
+                if (free.hasOwnProperty(name_4)) {
+                    var o = symbols[name_4];
+                    if (o !== undefined) {
+                        // it could be a free variable in a method of the class that has
+                        // the same name as a local or global in the class scope
+                        if (classflag && (o & (SymbolConstants_3.DEF_BOUND | SymbolConstants_5.DEF_GLOBAL))) {
+                            var i = o | SymbolConstants_4.DEF_FREE_CLASS;
+                            symbols[name_4] = i;
+                        }
+                        // else it's not free, probably a cell
+                        continue;
+                    }
+                    if (bound[name_4] === undefined)
+                        continue;
+                    symbols[name_4] = freeValue;
+                }
+            }
+        };
+        /**
+         * @param {Object} ste The Symbol Table Scope.
+         * @param {string} name
+         */
+        SymbolTable.prototype.analyzeName = function (ste, dict, name, flags, bound, local, free, global) {
+            if (flags & SymbolConstants_5.DEF_GLOBAL) {
+                if (flags & SymbolConstants_8.DEF_PARAM)
+                    throw syntaxError_1.default("name '" + name + "' is local and global", this.fileName, ste.lineno);
+                dict[name] = SymbolConstants_11.GLOBAL_EXPLICIT;
+                global[name] = null;
+                if (bound && bound[name] !== undefined)
+                    delete bound[name];
+                return;
+            }
+            if (flags & SymbolConstants_3.DEF_BOUND) {
+                dict[name] = SymbolConstants_13.LOCAL;
+                local[name] = null;
+                delete global[name];
+                return;
+            }
+            if (bound && bound[name] !== undefined) {
+                dict[name] = SymbolConstants_9.FREE;
+                ste.hasFree = true;
+                free[name] = null;
+            }
+            else if (global && global[name] !== undefined) {
+                dict[name] = SymbolConstants_12.GLOBAL_IMPLICIT;
+            }
+            else {
+                if (ste.isNested)
+                    ste.hasFree = true;
+                dict[name] = SymbolConstants_12.GLOBAL_IMPLICIT;
+            }
+        };
+        SymbolTable.prototype.analyze = function () {
+            var free = {};
+            var global = {};
+            this.analyzeBlock(this.top, null, free, global);
         };
         return SymbolTable;
     }());
@@ -7592,7 +7258,7 @@ define('pytools/toStringLiteralJS',["require", "exports"], function (require, ex
     ;
 });
 
-define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './builder', './reservedNames', './reservedWords', './symtable', './toStringLiteralJS', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, astnodes_49, astnodes_50, astnodes_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
+define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './builder', './reservedNames', './reservedWords', './symtable', './toStringLiteralJS', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, types_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
     "use strict";
     var OP_FAST = 0;
     var OP_GLOBAL = 1;
@@ -7766,12 +7432,12 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
         };
         Compiler.prototype.ctupleorlist = function (e, data, tuporlist) {
             asserts_1.assert(tuporlist === 'tuple' || tuporlist === 'list');
-            if (e.ctx === astnodes_43.Store) {
+            if (e.ctx === types_43.Store) {
                 for (var i = 0; i < e.elts.length; ++i) {
                     this.vexpr(e.elts[i], "Sk.abstr.objectGetItem(" + data + "," + i + ")");
                 }
             }
-            else if (e.ctx === astnodes_33.Load) {
+            else if (e.ctx === types_33.Load) {
                 var items = [];
                 for (var i = 0; i < e.elts.length; ++i) {
                     items.push(this._gr('elem', this.vexpr(e.elts[i])));
@@ -7821,7 +7487,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             return tmpname;
         };
         Compiler.prototype.clistcomp = function (e) {
-            asserts_1.assert(e instanceof astnodes_32.ListComp);
+            asserts_1.assert(e instanceof types_32.ListComp);
             var tmp = this._gr("_compr", "new Sk.builtins['list']([])");
             return this.clistcompgen(tmp, e.generators, 0, e.elt);
         };
@@ -7877,7 +7543,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             }
         };
         Compiler.prototype.cslice = function (s) {
-            asserts_1.assert(s instanceof astnodes_42.Slice);
+            asserts_1.assert(s instanceof types_42.Slice);
             var low = s.lower ? this.vexpr(s.lower) : 'null';
             var high = s.upper ? this.vexpr(s.upper) : 'null';
             var step = s.step ? this.vexpr(s.step) : 'null';
@@ -7891,14 +7557,14 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                     // Already compiled, should only happen for augmented assignments
                     subs = s;
                     break;
-                case astnodes_29.Index:
+                case types_29.Index:
                     subs = this.vexpr(s.value);
                     break;
-                case astnodes_42.Slice:
+                case types_42.Slice:
                     subs = this.cslice(s);
                     break;
-                case astnodes_18.Ellipsis:
-                case astnodes_20.ExtSlice:
+                case types_18.Ellipsis:
+                case types_20.ExtSlice:
                     asserts_1.fail("todo;");
                     break;
                 default:
@@ -7911,19 +7577,19 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             return this.chandlesubscr(ctx, obj, subs, dataToStore);
         };
         Compiler.prototype.chandlesubscr = function (ctx, obj, subs, data) {
-            if (ctx === astnodes_33.Load || ctx === astnodes_6.AugLoad)
+            if (ctx === types_33.Load || ctx === types_6.AugLoad)
                 return this._gr('lsubscr', "Sk.abstr.objectGetItem(", obj, ",", subs, ")");
-            else if (ctx === astnodes_43.Store || ctx === astnodes_7.AugStore)
+            else if (ctx === types_43.Store || ctx === types_7.AugStore)
                 out("Sk.abstr.objectSetItem(", obj, ",", subs, ",", data, ");");
-            else if (ctx === astnodes_15.Del)
+            else if (ctx === types_15.Del)
                 out("Sk.abstr.objectDelItem(", obj, ",", subs, ");");
             else
                 asserts_1.fail("handlesubscr fail");
         };
         Compiler.prototype.cboolop = function (e) {
-            asserts_1.assert(e instanceof astnodes_9.BoolOp);
+            asserts_1.assert(e instanceof types_9.BoolOp);
             var jtype;
-            if (e.op === astnodes_1.And)
+            if (e.op === types_1.And)
                 jtype = this._jumpfalse;
             else
                 jtype = this._jumptrue;
@@ -7961,32 +7627,32 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             }
             // this.annotateSource(e);
             switch (e.constructor) {
-                case astnodes_9.BoolOp:
+                case types_9.BoolOp:
                     return this.cboolop(e);
-                case astnodes_8.BinOp:
+                case types_8.BinOp:
                     return this._gr('binop', "Sk.abstr.numberBinOp(", this.vexpr(e.left), ",", this.vexpr(e.right), ",'", e.op.prototype._astname, "')");
-                case astnodes_49.UnaryOp:
+                case types_49.UnaryOp:
                     return this._gr('unaryop', "Sk.abstr.numberUnaryOp(", this.vexpr(e.operand), ",'", e.op.prototype._astname, "')");
-                case astnodes_30.Lambda:
+                case types_30.Lambda:
                     return this.clambda(e);
-                case astnodes_26.IfExp:
+                case types_26.IfExp:
                     return this.cifexp(e);
-                case astnodes_17.Dict:
+                case types_17.Dict:
                     return this.cdict(e);
-                case astnodes_32.ListComp:
+                case types_32.ListComp:
                     return this.clistcomp(e);
-                case astnodes_23.GeneratorExp:
+                case types_23.GeneratorExp:
                     return this.cgenexp(e);
-                case astnodes_51.Yield:
+                case types_51.Yield:
                     return this.cyield(e);
-                case astnodes_13.Compare:
+                case types_13.Compare:
                     return this.ccompare(e);
-                case astnodes_11.Call:
+                case types_11.Call:
                     var result = this.ccall(e);
                     // After the function call, we've returned to this line
                     this.annotateSource(e);
                     return result;
-                case astnodes_36.Num:
+                case types_36.Num:
                     {
                         if (e.n.isFloat()) {
                             return 'Sk.builtin.numberToPy(' + e.n.value + ')';
@@ -7999,13 +7665,13 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                         }
                         asserts_1.fail("unhandled Num type");
                     }
-                case astnodes_44.Str:
+                case types_44.Str:
                     {
                         return this._gr('str', 'Sk.builtin.stringToPy(', toStringLiteralJS_1.default(e.s), ')');
                     }
-                case astnodes_4.Attribute:
+                case types_4.Attribute:
                     var val;
-                    if (e.ctx !== astnodes_7.AugStore)
+                    if (e.ctx !== types_7.AugStore)
                         val = this.vexpr(e.value);
                     var mangled = toStringLiteralJS_1.default(e.attr);
                     mangled = mangled.substring(1, mangled.length - 1);
@@ -8013,50 +7679,50 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                     mangled = fixReservedWords(mangled);
                     mangled = fixReservedNames(mangled);
                     switch (e.ctx) {
-                        case astnodes_6.AugLoad:
-                        case astnodes_33.Load:
+                        case types_6.AugLoad:
+                        case types_33.Load:
                             return this._gr("lattr", "Sk.abstr.gattr(", val, ",'", mangled, "')");
-                        case astnodes_7.AugStore:
+                        case types_7.AugStore:
                             out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
                             val = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
                             out("Sk.abstr.sattr(", val, ",'", mangled, "',", data, ");");
                             out("}");
                             break;
-                        case astnodes_43.Store:
+                        case types_43.Store:
                             out("Sk.abstr.sattr(", val, ",'", mangled, "',", data, ");");
                             break;
-                        case astnodes_15.Del:
+                        case types_15.Del:
                             asserts_1.fail("todo;");
                             break;
-                        case astnodes_37.Param:
+                        case types_37.Param:
                         default:
                             asserts_1.fail("invalid attribute expression");
                     }
                     break;
-                case astnodes_45.Subscript:
+                case types_45.Subscript:
                     switch (e.ctx) {
-                        case astnodes_6.AugLoad:
-                        case astnodes_33.Load:
-                        case astnodes_43.Store:
-                        case astnodes_15.Del:
+                        case types_6.AugLoad:
+                        case types_33.Load:
+                        case types_43.Store:
+                        case types_15.Del:
                             return this.vslice(e.slice, e.ctx, this.vexpr(e.value), data);
-                        case astnodes_7.AugStore: {
+                        case types_7.AugStore: {
                             out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
                             var val_1 = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
                             this.vslice(e.slice, e.ctx, val_1, data);
                             out("}");
                             break;
                         }
-                        case astnodes_37.Param:
+                        case types_37.Param:
                         default:
                             asserts_1.fail("invalid subscript expression");
                     }
                     break;
-                case astnodes_35.Name:
+                case types_35.Name:
                     return this.nameop(e.id, e.ctx, data);
-                case astnodes_31.List:
+                case types_31.List:
                     return this.ctupleorlist(e, data, 'list');
-                case astnodes_48.Tuple:
+                case types_48.Tuple:
                     return this.ctupleorlist(e, data, 'tuple');
                 default:
                     asserts_1.fail("unhandled case in vexpr");
@@ -8080,32 +7746,32 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             return ret;
         };
         Compiler.prototype.caugassign = function (s) {
-            asserts_1.assert(s instanceof astnodes_5.AugAssign);
+            asserts_1.assert(s instanceof types_5.AugAssign);
             var e = s.target;
             switch (e.constructor) {
-                case astnodes_4.Attribute: {
-                    var auge = new astnodes_4.Attribute(e.value, e.attr, astnodes_6.AugLoad, e.lineno, e.col_offset);
+                case types_4.Attribute: {
+                    var auge = new types_4.Attribute(e.value, e.attr, types_6.AugLoad, e.lineno, e.col_offset);
                     var aug = this.vexpr(auge);
                     var val = this.vexpr(s.value);
                     var res = this._gr('inplbinopattr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
-                    auge.ctx = astnodes_7.AugStore;
+                    auge.ctx = types_7.AugStore;
                     return this.vexpr(auge, res, e.value);
                 }
-                case astnodes_45.Subscript: {
+                case types_45.Subscript: {
                     // Only compile the subscript value once
                     var augsub = this.vslicesub(e.slice);
-                    var auge = new astnodes_45.Subscript(e.value, augsub, astnodes_6.AugLoad, e.lineno, e.col_offset);
+                    var auge = new types_45.Subscript(e.value, augsub, types_6.AugLoad, e.lineno, e.col_offset);
                     var aug = this.vexpr(auge);
                     var val = this.vexpr(s.value);
                     var res = this._gr('inplbinopsubscr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
-                    auge.ctx = astnodes_7.AugStore;
+                    auge.ctx = types_7.AugStore;
                     return this.vexpr(auge, res, e.value);
                 }
-                case astnodes_35.Name: {
-                    var to = this.nameop(e.id, astnodes_33.Load);
+                case types_35.Name: {
+                    var to = this.nameop(e.id, types_33.Load);
                     var val = this.vexpr(s.value);
                     var res = this._gr('inplbinop', "Sk.abstr.numberInplaceBinOp(", to, ",", val, ",'", s.op.prototype._astname, "')");
-                    return this.nameop(e.id, astnodes_43.Store, res);
+                    return this.nameop(e.id, types_43.Store, res);
                 }
                 default:
                     asserts_1.fail("unhandled case in augassign");
@@ -8116,15 +7782,15 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
          */
         Compiler.prototype.exprConstant = function (e) {
             switch (e.constructor) {
-                case astnodes_36.Num:
+                case types_36.Num:
                     asserts_1.fail("Trying to call the runtime for Num");
                     // return Sk.misceval.isTrue(e.n);
                     break;
-                case astnodes_44.Str:
+                case types_44.Str:
                     asserts_1.fail("Trying to call the runtime for Str");
                     // return Sk.misceval.isTrue(e.s);
                     break;
-                case astnodes_35.Name:
+                case types_35.Name:
                 // todo; do __debug__ test here if opt
                 default:
                     return -1;
@@ -8210,7 +7876,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             return ret;
         };
         Compiler.prototype.cif = function (s) {
-            asserts_1.assert(s instanceof astnodes_25.If_);
+            asserts_1.assert(s instanceof types_25.IfStatement);
             var constant = this.exprConstant(s.test);
             if (constant === 0) {
                 if (s.orelse)
@@ -8415,7 +8081,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                     src = src.substr(dotLoc + 1);
                 }
             }
-            return this.nameop(asname, astnodes_43.Store, cur);
+            return this.nameop(asname, types_43.Store, cur);
         };
         ;
         Compiler.prototype.cimport = function (s) {
@@ -8429,10 +8095,10 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                 else {
                     var lastDot = alias.name.indexOf('.');
                     if (lastDot !== -1) {
-                        this.nameop(alias.name.substr(0, lastDot), astnodes_43.Store, mod);
+                        this.nameop(alias.name.substr(0, lastDot), types_43.Store, mod);
                     }
                     else {
-                        this.nameop(alias.name, astnodes_43.Store, mod);
+                        this.nameop(alias.name, types_43.Store, mod);
                     }
                 }
             }
@@ -8457,7 +8123,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                 var storeName = alias.name;
                 if (alias.asname)
                     storeName = alias.asname;
-                this.nameop(storeName, astnodes_43.Store, got);
+                this.nameop(storeName, types_43.Store, got);
             }
         };
         ;
@@ -8550,7 +8216,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                 if (kwarg)
                     funcArgs.push("$kwa");
                 for (var i = 0; args && i < args.args.length; ++i)
-                    funcArgs.push(this.nameop(args.args[i].id, astnodes_37.Param));
+                    funcArgs.push(this.nameop(args.args[i].id, types_37.Param));
             }
             if (descendantOrSelfHasFree) {
                 funcArgs.push("$free");
@@ -8612,7 +8278,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                 // correlation in the ast)
                 var offset = args.args.length - defaults.length;
                 for (var i = 0; i < defaults.length; ++i) {
-                    var argname = this.nameop(args.args[i + offset].id, astnodes_37.Param);
+                    var argname = this.nameop(args.args[i + offset].id, types_37.Param);
                     this.u.varDeclsCode += "if(typeof " + argname + " === 'undefined')" + argname + "=" + scopename + ".$defaults[" + i + "];";
                 }
             }
@@ -8717,15 +8383,15 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             }
         };
         Compiler.prototype.cfunction = function (s) {
-            asserts_1.assert(s instanceof astnodes_22.FunctionDef);
+            asserts_1.assert(s instanceof types_22.FunctionDef);
             var funcorgen = this.buildcodeobj(s, s.name, s.decorator_list, s.args, function (scopename) {
                 this.vseqstmt(s.body);
                 out("return Sk.builtin.none.none$;"); // if we fall off the bottom, we want the ret to be None
             });
-            this.nameop(s.name, astnodes_43.Store, funcorgen);
+            this.nameop(s.name, types_43.Store, funcorgen);
         };
         Compiler.prototype.clambda = function (e) {
-            asserts_1.assert(e instanceof astnodes_30.Lambda);
+            asserts_1.assert(e instanceof types_30.Lambda);
             var func = this.buildcodeobj(e, "<lambda>", null, e.args, function (scopename) {
                 var val = this.vexpr(e.body);
                 out("return ", val, ";");
@@ -8803,7 +8469,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             return gener;
         };
         Compiler.prototype.cclass = function (s) {
-            asserts_1.assert(s instanceof astnodes_12.ClassDef);
+            asserts_1.assert(s instanceof types_12.ClassDef);
             // var decos = s.decorator_list;
             // decorators and bases need to be eval'd out here
             // this.vseqexpr(decos);
@@ -8826,7 +8492,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             this.exitScope();
             var wrapped = this._gr('built', 'Sk.misceval.buildClass($gbl,', scopename, ',', toStringLiteralJS_1.default(s.name), ',[', bases, '])');
             // store our new class under the right name
-            this.nameop(s.name, astnodes_43.Store, wrapped);
+            this.nameop(s.name, types_43.Store, wrapped);
         };
         Compiler.prototype.ccontinue = function (s) {
             if (this.u.continueBlocks.length === 0)
@@ -8842,13 +8508,13 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             this.u.linenoSet = false;
             this.annotateSource(s);
             switch (s.constructor) {
-                case astnodes_22.FunctionDef:
+                case types_22.FunctionDef:
                     this.cfunction(s);
                     break;
-                case astnodes_12.ClassDef:
+                case types_12.ClassDef:
                     this.cclass(s);
                     break;
-                case astnodes_41.Return_:
+                case types_41.ReturnStatement: {
                     if (this.u.ste.blockType !== SymbolConstants_6.FunctionBlock)
                         throw new SyntaxError("'return' outside function");
                     if (s.value)
@@ -8856,51 +8522,52 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                     else
                         out("return null;");
                     break;
-                case astnodes_16.Delete_:
+                }
+                case types_16.DeleteExpression:
                     this.vseqexpr(s.targets);
                     break;
-                case astnodes_3.Assign:
+                case types_3.Assign:
                     var n = s.targets.length;
                     var val = this.vexpr(s.value);
                     for (var i = 0; i < n; ++i)
                         this.vexpr(s.targets[i], val);
                     break;
-                case astnodes_5.AugAssign:
+                case types_5.AugAssign:
                     return this.caugassign(s);
-                case astnodes_39.Print:
+                case types_39.Print:
                     this.cprint(s);
                     break;
-                case astnodes_21.For_:
+                case types_21.ForStatement:
                     return this.cfor(s);
-                case astnodes_50.While_:
+                case types_50.WhileStatement:
                     return this.cwhile(s);
-                case astnodes_25.If_:
+                case types_25.IfStatement:
                     return this.cif(s);
-                case astnodes_40.Raise:
+                case types_40.Raise:
                     return this.craise(s);
-                case astnodes_46.TryExcept:
+                case types_46.TryExcept:
                     return this.ctryexcept(s);
-                case astnodes_47.TryFinally:
+                case types_47.TryFinally:
                     return this.ctryfinally(s);
-                case astnodes_2.Assert:
+                case types_2.Assert:
                     return this.cassert(s);
-                case astnodes_27.Import_:
+                case types_27.ImportStatement:
                     return this.cimport(s);
-                case astnodes_28.ImportFrom:
+                case types_28.ImportFrom:
                     return this.cfromimport(s);
-                case astnodes_24.Global:
+                case types_24.Global:
                     break;
-                case astnodes_19.Expr:
+                case types_19.Expr:
                     this.vexpr(s.value);
                     break;
-                case astnodes_38.Pass:
+                case types_38.Pass:
                     break;
-                case astnodes_10.Break_:
+                case types_10.BreakStatement:
                     if (this.u.breakBlocks.length === 0)
                         throw new SyntaxError("'break' outside loop");
                     this._jump(this.u.breakBlocks[this.u.breakBlocks.length - 1]);
                     break;
-                case astnodes_14.Continue_:
+                case types_14.ContinueStatement:
                     this.ccontinue(s);
                     break;
                 default:
@@ -8924,10 +8591,10 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
          * @param {string=} dataToStore
          */
         Compiler.prototype.nameop = function (name, ctx, dataToStore) {
-            if ((ctx === astnodes_43.Store || ctx === astnodes_7.AugStore || ctx === astnodes_15.Del) && name === "__debug__") {
+            if ((ctx === types_43.Store || ctx === types_7.AugStore || ctx === types_15.Del) && name === "__debug__") {
                 throw new SyntaxError("can not assign to __debug__");
             }
-            if ((ctx === astnodes_43.Store || ctx === astnodes_7.AugStore || ctx === astnodes_15.Del) && name === "None") {
+            if ((ctx === types_43.Store || ctx === types_7.AugStore || ctx === types_15.Del) && name === "None") {
                 throw new SyntaxError("can not assign to None");
             }
             if (name === "None")
@@ -8980,15 +8647,15 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             switch (optype) {
                 case OP_FAST:
                     switch (ctx) {
-                        case astnodes_33.Load:
-                        case astnodes_37.Param:
+                        case types_33.Load:
+                        case types_37.Param:
                             // Need to check that it is bound!
                             out("if (typeof ", mangled, " === 'undefined') { throw new Error('local variable \\\'", mangled, "\\\' referenced before assignment'); }\n");
                             return mangled;
-                        case astnodes_43.Store:
+                        case types_43.Store:
                             out(mangled, "=", dataToStore, ";");
                             break;
-                        case astnodes_15.Del:
+                        case types_15.Del:
                             out("delete ", mangled, ";");
                             break;
                         default:
@@ -8997,18 +8664,18 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                     break;
                 case OP_NAME:
                     switch (ctx) {
-                        case astnodes_33.Load:
+                        case types_33.Load:
                             var v = this.gensym('loadname');
                             // can't be || for loc.x = 0 or null
                             out("var ", v, "=(typeof ", mangled, " !== 'undefined') ? ", mangled, ":Sk.misceval.loadname('", mangledNoPre, "',$gbl);");
                             return v;
-                        case astnodes_43.Store:
+                        case types_43.Store:
                             out(mangled, "=", dataToStore, ";");
                             break;
-                        case astnodes_15.Del:
+                        case types_15.Del:
                             out("delete ", mangled, ";");
                             break;
-                        case astnodes_37.Param:
+                        case types_37.Param:
                             return mangled;
                         default:
                             asserts_1.fail("unhandled");
@@ -9016,12 +8683,12 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                     break;
                 case OP_GLOBAL:
                     switch (ctx) {
-                        case astnodes_33.Load:
+                        case types_33.Load:
                             return this._gr("loadgbl", "Sk.misceval.loadname('", mangledNoPre, "',$gbl)");
-                        case astnodes_43.Store:
+                        case types_43.Store:
                             out("$gbl.", mangledNoPre, "=", dataToStore, ';');
                             break;
-                        case astnodes_15.Del:
+                        case types_15.Del:
                             out("delete $gbl.", mangledNoPre);
                             break;
                         default:
@@ -9030,12 +8697,12 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                     break;
                 case OP_DEREF:
                     switch (ctx) {
-                        case astnodes_33.Load:
+                        case types_33.Load:
                             return dict + "." + mangledNoPre;
-                        case astnodes_43.Store:
+                        case types_43.Store:
                             out(dict, ".", mangledNoPre, "=", dataToStore, ";");
                             break;
-                        case astnodes_37.Param:
+                        case types_37.Param:
                             return mangledNoPre;
                         default:
                             asserts_1.fail("unhandled case in name op_deref");
@@ -9088,7 +8755,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             }
         };
         Compiler.prototype.cprint = function (s) {
-            asserts_1.assert(s instanceof astnodes_39.Print);
+            asserts_1.assert(s instanceof types_39.Print);
             var dest = 'null';
             if (s.dest) {
                 dest = this.vexpr(s.dest);
@@ -9113,7 +8780,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             this.u.switchCode = "try {while(true){try{switch($blk){";
             this.u.suffixCode = "}}catch(err){if ($exc.length>0) {$err=err;$blk=$exc.pop();continue;} else {throw err;}}}}catch(err){if (err instanceof Sk.builtin.SystemExit && !Sk.throwSystemExit) { Sk.misceval.print_(err.toString() + '\\n'); return $loc; } else { throw err; } } });";
             switch (mod.constructor) {
-                case astnodes_34.Module:
+                case types_34.Module:
                     this.cbody(mod.body);
                     out("return $loc;");
                     break;

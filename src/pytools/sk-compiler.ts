@@ -8,57 +8,57 @@ import SymbolTableScope from './SymbolTableScope';
 import {symbolTable} from './symtable';
 import toStringLiteralJS from './toStringLiteralJS';
 
-import {And} from './astnodes';
-import {Assert} from './astnodes';
-import {Assign} from './astnodes';
-import {Attribute} from './astnodes';
-import {AugAssign} from './astnodes';
-import {AugLoad} from './astnodes';
-import {AugStore} from './astnodes';
-import {BinOp} from './astnodes';
-import {BoolOp} from './astnodes';
-import {Break_} from './astnodes';
-import {Call} from './astnodes';
-import {ClassDef} from './astnodes';
-import {Compare} from './astnodes';
-import {Continue_} from './astnodes';
-import {Del} from './astnodes';
-import {Delete_} from './astnodes';
-import {Dict} from './astnodes';
-import {Ellipsis} from './astnodes';
-import {Expr} from './astnodes';
-import {ExtSlice} from './astnodes';
-import {For_} from './astnodes';
-import {FunctionDef} from './astnodes';
-import {GeneratorExp} from './astnodes';
-import {Global} from './astnodes';
-import {If_} from './astnodes';
-import {IfExp} from './astnodes';
-import {Import_} from './astnodes';
-import {ImportFrom} from './astnodes';
-import {Index} from './astnodes';
-import {Lambda} from './astnodes';
-import {List} from './astnodes';
-import {ListComp} from './astnodes';
-import {Load} from './astnodes';
-import {Module} from './astnodes';
-import {Name} from './astnodes';
-import {Num} from './astnodes';
-import {Param} from './astnodes';
-import {Pass} from './astnodes';
-import {Print} from './astnodes';
-import {Raise} from './astnodes';
-import {Return_} from './astnodes';
-import {Slice} from './astnodes';
-import {Store} from './astnodes';
-import {Str} from './astnodes';
-import {Subscript} from './astnodes';
-import {TryExcept} from './astnodes';
-import {TryFinally} from './astnodes';
-import {Tuple} from './astnodes';
-import {UnaryOp} from './astnodes';
-import {While_} from './astnodes';
-import {Yield} from './astnodes';
+import {And} from './types';
+import {Assert} from './types';
+import {Assign} from './types';
+import {Attribute} from './types';
+import {AugAssign} from './types';
+import {AugLoad} from './types';
+import {AugStore} from './types';
+import {BinOp} from './types';
+import {BoolOp} from './types';
+import {BreakStatement} from './types';
+import {Call} from './types';
+import {ClassDef} from './types';
+import {Compare} from './types';
+import {ContinueStatement} from './types';
+import {Del} from './types';
+import {DeleteExpression} from './types';
+import {Dict} from './types';
+import {Ellipsis} from './types';
+import {Expr} from './types';
+import {ExtSlice} from './types';
+import {ForStatement} from './types';
+import {FunctionDef} from './types';
+import {GeneratorExp} from './types';
+import {Global} from './types';
+import {IfStatement} from './types';
+import {IfExp} from './types';
+import {ImportStatement} from './types';
+import {ImportFrom} from './types';
+import {Index} from './types';
+import {Lambda} from './types';
+import {List} from './types';
+import {ListComp} from './types';
+import {Load} from './types';
+import {Module} from './types';
+import {Name} from './types';
+import {Num} from './types';
+import {Param} from './types';
+import {Pass} from './types';
+import {Print} from './types';
+import {Raise} from './types';
+import {ReturnStatement} from './types';
+import {Slice} from './types';
+import {Store} from './types';
+import {Str} from './types';
+import {Subscript} from './types';
+import {TryExcept} from './types';
+import {TryFinally} from './types';
+import {Tuple} from './types';
+import {UnaryOp} from './types';
+import {WhileStatement} from './types';
+import {Yield} from './types';
 
 import {LOCAL} from './SymbolConstants'
 import {GLOBAL_EXPLICIT} from './SymbolConstants'
@@ -793,8 +793,8 @@ class Compiler {
         return ret;
     }
 
-    cif(s: If_) {
-        assert(s instanceof If_);
+    cif(s: IfStatement) {
+        assert(s instanceof IfStatement);
         var constant = this.exprConstant(s.test);
         if (constant === 0) {
             if (s.orelse)
@@ -821,7 +821,7 @@ class Compiler {
 
     }
 
-    cwhile(s: While_) {
+    cwhile(s: WhileStatement) {
         var constant = this.exprConstant(s.test);
         if (constant === 0) {
             if (s.orelse)
@@ -859,7 +859,7 @@ class Compiler {
         }
     }
 
-    cfor(s: For_) {
+    cfor(s: ForStatement) {
         var start = this.newBlock('for start');
         var cleanup = this.newBlock('for cleanup');
         var end = this.newBlock('for end');
@@ -1041,7 +1041,7 @@ class Compiler {
         return this.nameop(asname, Store, cur);
     };
 
-    cimport(s: Import_) {
+    cimport(s: ImportStatement) {
         var n = s.names.length;
         for (var i = 0; i < n; ++i) {
             var alias = s.names[i];
@@ -1515,7 +1515,7 @@ class Compiler {
         this.nameop(s.name, Store, wrapped);
     }
 
-    ccontinue(s: Continue_) {
+    ccontinue(s: ContinueStatement) {
         if (this.u.continueBlocks.length === 0)
             throw new SyntaxError("'continue' outside loop");
         // todo; continue out of exception blocks
@@ -1538,16 +1538,17 @@ class Compiler {
             case ClassDef:
                 this.cclass(s);
                 break;
-            case Return_:
+            case ReturnStatement: {
                 if (this.u.ste.blockType !== FunctionBlock)
                     throw new SyntaxError("'return' outside function");
                 if (s.value)
-                    out("return ", this.vexpr((<Return_>s).value), ";");
+                    out("return ", this.vexpr((<ReturnStatement>s).value), ";");
                 else
                     out("return null;");
                 break;
-            case Delete_:
-                this.vseqexpr((<Delete_>s).targets);
+            }
+            case DeleteExpression:
+                this.vseqexpr((<DeleteExpression>s).targets);
                 break;
             case Assign:
                 var n = s.targets.length;
@@ -1560,11 +1561,11 @@ class Compiler {
             case Print:
                 this.cprint(s);
                 break;
-            case For_:
+            case ForStatement:
                 return this.cfor(s);
-            case While_:
+            case WhileStatement:
                 return this.cwhile(s);
-            case If_:
+            case IfStatement:
                 return this.cif(s);
             case Raise:
                 return this.craise(s);
@@ -1574,7 +1575,7 @@ class Compiler {
                 return this.ctryfinally(s);
             case Assert:
                 return this.cassert(s);
-            case Import_:
+            case ImportStatement:
                 return this.cimport(s);
             case ImportFrom:
                 return this.cfromimport(s);
@@ -1585,12 +1586,12 @@ class Compiler {
                 break;
             case Pass:
                 break;
-            case Break_:
+            case BreakStatement:
                 if (this.u.breakBlocks.length === 0)
                     throw new SyntaxError("'break' outside loop");
                 this._jump(this.u.breakBlocks[this.u.breakBlocks.length - 1]);
                 break;
-            case Continue_:
+            case ContinueStatement:
                 this.ccontinue(s);
                 break;
             default:

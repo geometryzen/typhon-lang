@@ -79,7 +79,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-ts');
     grunt.loadNpmTasks('grunt-tslint');
 
-    grunt.registerTask('default', ['test'/*, 'tslint'*/, 'requirejs', 'uglify']);
+    grunt.registerTask('default', ['test', 'tslint', 'requirejs', 'uglify']);
     grunt.registerTask('test', ['connect:test', 'jasmine']);
 
 };

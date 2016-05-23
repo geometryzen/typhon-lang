@@ -1,5 +1,69 @@
 define(["require", "exports", './asserts', './base', './TokenError', './Tokens'], function (require, exports, asserts_1, base_1, TokenError_1, Tokens_1) {
     "use strict";
+    /* we have to use string and ctor to be able to build patterns up. + on /.../
+        * does something strange. */
+    // const Whitespace = "[ \\f\\t]*";
+    var Comment_ = "#[^\\r\\n]*";
+    var Ident = "[a-zA-Z_]\\w*";
+    var Binnumber = '0[bB][01]*';
+    var Hexnumber = '0[xX][\\da-fA-F]*[lL]?';
+    var Octnumber = '0[oO]?[0-7]*[lL]?';
+    var Decnumber = '[1-9]\\d*[lL]?';
+    var Intnumber = group(Binnumber, Hexnumber, Octnumber, Decnumber);
+    var Exponent = "[eE][-+]?\\d+";
+    var Pointfloat = group("\\d+\\.\\d*", "\\.\\d+") + maybe(Exponent);
+    var Expfloat = '\\d+' + Exponent;
+    var Floatnumber = group(Pointfloat, Expfloat);
+    var Imagnumber = group("\\d+[jJ]", Floatnumber + "[jJ]");
+    var Number_ = group(Imagnumber, Floatnumber, Intnumber);
+    // tail end of ' string
+    var Single = "^[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
+    // tail end of " string
+    var Double_ = '^[^"\\\\]*(?:\\\\.[^"\\\\]*)*"';
+    // tail end of ''' string
+    var Single3 = "[^'\\\\]*(?:(?:\\\\.|'(?!''))[^'\\\\]*)*'''";
+    // tail end of """ string
+    var Double3 = '[^"\\\\]*(?:(?:\\\\.|"(?!""))[^"\\\\]*)*"""';
+    var Triple = group("[ubUB]?[rR]?'''", '[ubUB]?[rR]?"""');
+    // const String_ = group("[uU]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*'", '[uU]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*"');
+    // Because of leftmost-then-longest match semantics, be sure to put the
+    // longest operators first (e.g., if = came before ==, == would get
+    // recognized as two instances of =).
+    var Operator = group("\\*\\*=?", ">>=?", "<<=?", "<>", "!=", "//=?", "->", "[+\\-*/%&|^=<>]=?", "~");
+    var Bracket = '[\\][(){}]';
+    var Special = group('\\r?\\n', '[:;.,`@]');
+    var Funny = group(Operator, Bracket, Special);
+    var ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
+        group("'", '\\\\\\r?\\n'), '[uUbB]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*' +
+        group('"', '\\\\\\r?\\n'));
+    var PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
+    // Need to prefix with "^" as we only want to match what's next
+    var PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
+    // let pseudoprog;
+    // let single3prog;
+    // let double3prog;
+    // const endprogs = {};
+    var triple_quoted = {
+        "'''": true, '"""': true,
+        "r'''": true, 'r"""': true, "R'''": true, 'R"""': true,
+        "u'''": true, 'u"""': true, "U'''": true, 'U"""': true,
+        "b'''": true, 'b"""': true, "B'''": true, 'B"""': true,
+        "ur'''": true, 'ur"""': true, "Ur'''": true, 'Ur"""': true,
+        "uR'''": true, 'uR"""': true, "UR'''": true, 'UR"""': true,
+        "br'''": true, 'br"""': true, "Br'''": true, 'Br"""': true,
+        "bR'''": true, 'bR"""': true, "BR'''": true, 'BR"""': true
+    };
+    var single_quoted = {
+        "'": true, '"': true,
+        "r'": true, 'r"': true, "R'": true, 'R"': true,
+        "u'": true, 'u"': true, "U'": true, 'U"': true,
+        "b'": true, 'b"': true, "B'": true, 'B"': true,
+        "ur'": true, 'ur"': true, "Ur'": true, 'Ur"': true,
+        "uR'": true, 'uR"': true, "UR'": true, 'UR"': true,
+        "br'": true, 'br"': true, "Br'": true, 'Br"': true,
+        "bR'": true, 'bR"': true, "BR'": true, 'BR"': true
+    };
+    var tabsize = 8;
     /**
      * This is a port of tokenize.py by Ka-Ping Yee.
      *
@@ -275,78 +339,9 @@ define(["require", "exports", './asserts', './base', './TokenError', './Tokens']
         return '(' + args.join('|') + ')';
     }
     /** @param {...*} x */
-    function any(x) { return group.apply(null, arguments) + "*"; }
+    // function any(x) { return group.apply(null, arguments) + "*"; }
     /** @param {...*} x */
     function maybe(x) { return group.apply(null, arguments) + "?"; }
-    /* we have to use string and ctor to be able to build patterns up. + on /.../
-        * does something strange. */
-    var Whitespace = "[ \\f\\t]*";
-    var Comment_ = "#[^\\r\\n]*";
-    var Ident = "[a-zA-Z_]\\w*";
-    var Binnumber = '0[bB][01]*';
-    var Hexnumber = '0[xX][\\da-fA-F]*[lL]?';
-    var Octnumber = '0[oO]?[0-7]*[lL]?';
-    var Decnumber = '[1-9]\\d*[lL]?';
-    var Intnumber = group(Binnumber, Hexnumber, Octnumber, Decnumber);
-    var Exponent = "[eE][-+]?\\d+";
-    var Pointfloat = group("\\d+\\.\\d*", "\\.\\d+") + maybe(Exponent);
-    var Expfloat = '\\d+' + Exponent;
-    var Floatnumber = group(Pointfloat, Expfloat);
-    var Imagnumber = group("\\d+[jJ]", Floatnumber + "[jJ]");
-    var Number_ = group(Imagnumber, Floatnumber, Intnumber);
-    // tail end of ' string
-    var Single = "^[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
-    // tail end of " string
-    var Double_ = '^[^"\\\\]*(?:\\\\.[^"\\\\]*)*"';
-    // tail end of ''' string
-    var Single3 = "[^'\\\\]*(?:(?:\\\\.|'(?!''))[^'\\\\]*)*'''";
-    // tail end of """ string
-    var Double3 = '[^"\\\\]*(?:(?:\\\\.|"(?!""))[^"\\\\]*)*"""';
-    var Triple = group("[ubUB]?[rR]?'''", '[ubUB]?[rR]?"""');
-    var String_ = group("[uU]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*'", '[uU]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*"');
-    // Because of leftmost-then-longest match semantics, be sure to put the
-    // longest operators first (e.g., if = came before ==, == would get
-    // recognized as two instances of =).
-    var Operator = group("\\*\\*=?", ">>=?", "<<=?", "<>", "!=", "//=?", "->", "[+\\-*/%&|^=<>]=?", "~");
-    var Bracket = '[\\][(){}]';
-    var Special = group('\\r?\\n', '[:;.,`@]');
-    var Funny = group(Operator, Bracket, Special);
-    var ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
-        group("'", '\\\\\\r?\\n'), '[uUbB]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*' +
-        group('"', '\\\\\\r?\\n'));
-    var PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
-    // Need to prefix with "^" as we only want to match what's next
-    var PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
-    var pseudoprog;
-    var single3prog;
-    var double3prog;
-    var endprogs = {};
-    var triple_quoted = {
-        "'''": true, '"""': true,
-        "r'''": true, 'r"""': true, "R'''": true, 'R"""': true,
-        "u'''": true, 'u"""': true, "U'''": true, 'U"""': true,
-        "b'''": true, 'b"""': true, "B'''": true, 'B"""': true,
-        "ur'''": true, 'ur"""': true, "Ur'''": true, 'Ur"""': true,
-        "uR'''": true, 'uR"""': true, "UR'''": true, 'UR"""': true,
-        "br'''": true, 'br"""': true, "Br'''": true, 'Br"""': true,
-        "bR'''": true, 'bR"""': true, "BR'''": true, 'BR"""': true
-    };
-    var single_quoted = {
-        "'": true, '"': true,
-        "r'": true, 'r"': true, "R'": true, 'R"': true,
-        "u'": true, 'u"': true, "U'": true, 'U"': true,
-        "b'": true, 'b"': true, "B'": true, 'B"': true,
-        "ur'": true, 'ur"': true, "Ur'": true, 'Ur"': true,
-        "uR'": true, 'uR"': true, "UR'": true, 'UR"': true,
-        "br'": true, 'br"': true, "Br'": true, 'Br"': true,
-        "bR'": true, 'bR"': true, "BR'": true, 'BR"': true
-    };
-    // hack to make closure keep those objects. not sure what a better way is.
-    (function () {
-        for (var k in triple_quoted) { }
-        for (var k in single_quoted) { }
-    }());
-    var tabsize = 8;
     function contains(a, obj) {
         var i = a.length;
         while (i--) {

@@ -1,4 +1,4 @@
-define(["require", "exports", './asserts', './parser', './builder', './reservedNames', './reservedWords', './symtable', './toStringLiteralJS', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, astnodes_49, astnodes_50, astnodes_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
+define(["require", "exports", './asserts', './parser', './builder', './reservedNames', './reservedWords', './symtable', './toStringLiteralJS', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, types_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
     "use strict";
     var OP_FAST = 0;
     var OP_GLOBAL = 1;
@@ -172,12 +172,12 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
         };
         Compiler.prototype.ctupleorlist = function (e, data, tuporlist) {
             asserts_1.assert(tuporlist === 'tuple' || tuporlist === 'list');
-            if (e.ctx === astnodes_43.Store) {
+            if (e.ctx === types_43.Store) {
                 for (var i = 0; i < e.elts.length; ++i) {
                     this.vexpr(e.elts[i], "Sk.abstr.objectGetItem(" + data + "," + i + ")");
                 }
             }
-            else if (e.ctx === astnodes_33.Load) {
+            else if (e.ctx === types_33.Load) {
                 var items = [];
                 for (var i = 0; i < e.elts.length; ++i) {
                     items.push(this._gr('elem', this.vexpr(e.elts[i])));
@@ -227,7 +227,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             return tmpname;
         };
         Compiler.prototype.clistcomp = function (e) {
-            asserts_1.assert(e instanceof astnodes_32.ListComp);
+            asserts_1.assert(e instanceof types_32.ListComp);
             var tmp = this._gr("_compr", "new Sk.builtins['list']([])");
             return this.clistcompgen(tmp, e.generators, 0, e.elt);
         };
@@ -283,7 +283,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             }
         };
         Compiler.prototype.cslice = function (s) {
-            asserts_1.assert(s instanceof astnodes_42.Slice);
+            asserts_1.assert(s instanceof types_42.Slice);
             var low = s.lower ? this.vexpr(s.lower) : 'null';
             var high = s.upper ? this.vexpr(s.upper) : 'null';
             var step = s.step ? this.vexpr(s.step) : 'null';
@@ -297,14 +297,14 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                     // Already compiled, should only happen for augmented assignments
                     subs = s;
                     break;
-                case astnodes_29.Index:
+                case types_29.Index:
                     subs = this.vexpr(s.value);
                     break;
-                case astnodes_42.Slice:
+                case types_42.Slice:
                     subs = this.cslice(s);
                     break;
-                case astnodes_18.Ellipsis:
-                case astnodes_20.ExtSlice:
+                case types_18.Ellipsis:
+                case types_20.ExtSlice:
                     asserts_1.fail("todo;");
                     break;
                 default:
@@ -317,19 +317,19 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             return this.chandlesubscr(ctx, obj, subs, dataToStore);
         };
         Compiler.prototype.chandlesubscr = function (ctx, obj, subs, data) {
-            if (ctx === astnodes_33.Load || ctx === astnodes_6.AugLoad)
+            if (ctx === types_33.Load || ctx === types_6.AugLoad)
                 return this._gr('lsubscr', "Sk.abstr.objectGetItem(", obj, ",", subs, ")");
-            else if (ctx === astnodes_43.Store || ctx === astnodes_7.AugStore)
+            else if (ctx === types_43.Store || ctx === types_7.AugStore)
                 out("Sk.abstr.objectSetItem(", obj, ",", subs, ",", data, ");");
-            else if (ctx === astnodes_15.Del)
+            else if (ctx === types_15.Del)
                 out("Sk.abstr.objectDelItem(", obj, ",", subs, ");");
             else
                 asserts_1.fail("handlesubscr fail");
         };
         Compiler.prototype.cboolop = function (e) {
-            asserts_1.assert(e instanceof astnodes_9.BoolOp);
+            asserts_1.assert(e instanceof types_9.BoolOp);
             var jtype;
-            if (e.op === astnodes_1.And)
+            if (e.op === types_1.And)
                 jtype = this._jumpfalse;
             else
                 jtype = this._jumptrue;
@@ -367,32 +367,32 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             }
             // this.annotateSource(e);
             switch (e.constructor) {
-                case astnodes_9.BoolOp:
+                case types_9.BoolOp:
                     return this.cboolop(e);
-                case astnodes_8.BinOp:
+                case types_8.BinOp:
                     return this._gr('binop', "Sk.abstr.numberBinOp(", this.vexpr(e.left), ",", this.vexpr(e.right), ",'", e.op.prototype._astname, "')");
-                case astnodes_49.UnaryOp:
+                case types_49.UnaryOp:
                     return this._gr('unaryop', "Sk.abstr.numberUnaryOp(", this.vexpr(e.operand), ",'", e.op.prototype._astname, "')");
-                case astnodes_30.Lambda:
+                case types_30.Lambda:
                     return this.clambda(e);
-                case astnodes_26.IfExp:
+                case types_26.IfExp:
                     return this.cifexp(e);
-                case astnodes_17.Dict:
+                case types_17.Dict:
                     return this.cdict(e);
-                case astnodes_32.ListComp:
+                case types_32.ListComp:
                     return this.clistcomp(e);
-                case astnodes_23.GeneratorExp:
+                case types_23.GeneratorExp:
                     return this.cgenexp(e);
-                case astnodes_51.Yield:
+                case types_51.Yield:
                     return this.cyield(e);
-                case astnodes_13.Compare:
+                case types_13.Compare:
                     return this.ccompare(e);
-                case astnodes_11.Call:
+                case types_11.Call:
                     var result = this.ccall(e);
                     // After the function call, we've returned to this line
                     this.annotateSource(e);
                     return result;
-                case astnodes_36.Num:
+                case types_36.Num:
                     {
                         if (e.n.isFloat()) {
                             return 'Sk.builtin.numberToPy(' + e.n.value + ')';
@@ -405,13 +405,13 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                         }
                         asserts_1.fail("unhandled Num type");
                     }
-                case astnodes_44.Str:
+                case types_44.Str:
                     {
                         return this._gr('str', 'Sk.builtin.stringToPy(', toStringLiteralJS_1.default(e.s), ')');
                     }
-                case astnodes_4.Attribute:
+                case types_4.Attribute:
                     var val;
-                    if (e.ctx !== astnodes_7.AugStore)
+                    if (e.ctx !== types_7.AugStore)
                         val = this.vexpr(e.value);
                     var mangled = toStringLiteralJS_1.default(e.attr);
                     mangled = mangled.substring(1, mangled.length - 1);
@@ -419,50 +419,50 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                     mangled = fixReservedWords(mangled);
                     mangled = fixReservedNames(mangled);
                     switch (e.ctx) {
-                        case astnodes_6.AugLoad:
-                        case astnodes_33.Load:
+                        case types_6.AugLoad:
+                        case types_33.Load:
                             return this._gr("lattr", "Sk.abstr.gattr(", val, ",'", mangled, "')");
-                        case astnodes_7.AugStore:
+                        case types_7.AugStore:
                             out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
                             val = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
                             out("Sk.abstr.sattr(", val, ",'", mangled, "',", data, ");");
                             out("}");
                             break;
-                        case astnodes_43.Store:
+                        case types_43.Store:
                             out("Sk.abstr.sattr(", val, ",'", mangled, "',", data, ");");
                             break;
-                        case astnodes_15.Del:
+                        case types_15.Del:
                             asserts_1.fail("todo;");
                             break;
-                        case astnodes_37.Param:
+                        case types_37.Param:
                         default:
                             asserts_1.fail("invalid attribute expression");
                     }
                     break;
-                case astnodes_45.Subscript:
+                case types_45.Subscript:
                     switch (e.ctx) {
-                        case astnodes_6.AugLoad:
-                        case astnodes_33.Load:
-                        case astnodes_43.Store:
-                        case astnodes_15.Del:
+                        case types_6.AugLoad:
+                        case types_33.Load:
+                        case types_43.Store:
+                        case types_15.Del:
                             return this.vslice(e.slice, e.ctx, this.vexpr(e.value), data);
-                        case astnodes_7.AugStore: {
+                        case types_7.AugStore: {
                             out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
                             var val_1 = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
                             this.vslice(e.slice, e.ctx, val_1, data);
                             out("}");
                             break;
                         }
-                        case astnodes_37.Param:
+                        case types_37.Param:
                         default:
                             asserts_1.fail("invalid subscript expression");
                     }
                     break;
-                case astnodes_35.Name:
+                case types_35.Name:
                     return this.nameop(e.id, e.ctx, data);
-                case astnodes_31.List:
+                case types_31.List:
                     return this.ctupleorlist(e, data, 'list');
-                case astnodes_48.Tuple:
+                case types_48.Tuple:
                     return this.ctupleorlist(e, data, 'tuple');
                 default:
                     asserts_1.fail("unhandled case in vexpr");
@@ -486,32 +486,32 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             return ret;
         };
         Compiler.prototype.caugassign = function (s) {
-            asserts_1.assert(s instanceof astnodes_5.AugAssign);
+            asserts_1.assert(s instanceof types_5.AugAssign);
             var e = s.target;
             switch (e.constructor) {
-                case astnodes_4.Attribute: {
-                    var auge = new astnodes_4.Attribute(e.value, e.attr, astnodes_6.AugLoad, e.lineno, e.col_offset);
+                case types_4.Attribute: {
+                    var auge = new types_4.Attribute(e.value, e.attr, types_6.AugLoad, e.lineno, e.col_offset);
                     var aug = this.vexpr(auge);
                     var val = this.vexpr(s.value);
                     var res = this._gr('inplbinopattr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
-                    auge.ctx = astnodes_7.AugStore;
+                    auge.ctx = types_7.AugStore;
                     return this.vexpr(auge, res, e.value);
                 }
-                case astnodes_45.Subscript: {
+                case types_45.Subscript: {
                     // Only compile the subscript value once
                     var augsub = this.vslicesub(e.slice);
-                    var auge = new astnodes_45.Subscript(e.value, augsub, astnodes_6.AugLoad, e.lineno, e.col_offset);
+                    var auge = new types_45.Subscript(e.value, augsub, types_6.AugLoad, e.lineno, e.col_offset);
                     var aug = this.vexpr(auge);
                     var val = this.vexpr(s.value);
                     var res = this._gr('inplbinopsubscr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
-                    auge.ctx = astnodes_7.AugStore;
+                    auge.ctx = types_7.AugStore;
                     return this.vexpr(auge, res, e.value);
                 }
-                case astnodes_35.Name: {
-                    var to = this.nameop(e.id, astnodes_33.Load);
+                case types_35.Name: {
+                    var to = this.nameop(e.id, types_33.Load);
                     var val = this.vexpr(s.value);
                     var res = this._gr('inplbinop', "Sk.abstr.numberInplaceBinOp(", to, ",", val, ",'", s.op.prototype._astname, "')");
-                    return this.nameop(e.id, astnodes_43.Store, res);
+                    return this.nameop(e.id, types_43.Store, res);
                 }
                 default:
                     asserts_1.fail("unhandled case in augassign");
@@ -522,15 +522,15 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
          */
         Compiler.prototype.exprConstant = function (e) {
             switch (e.constructor) {
-                case astnodes_36.Num:
+                case types_36.Num:
                     asserts_1.fail("Trying to call the runtime for Num");
                     // return Sk.misceval.isTrue(e.n);
                     break;
-                case astnodes_44.Str:
+                case types_44.Str:
                     asserts_1.fail("Trying to call the runtime for Str");
                     // return Sk.misceval.isTrue(e.s);
                     break;
-                case astnodes_35.Name:
+                case types_35.Name:
                 // todo; do __debug__ test here if opt
                 default:
                     return -1;
@@ -616,7 +616,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             return ret;
         };
         Compiler.prototype.cif = function (s) {
-            asserts_1.assert(s instanceof astnodes_25.If_);
+            asserts_1.assert(s instanceof types_25.IfStatement);
             var constant = this.exprConstant(s.test);
             if (constant === 0) {
                 if (s.orelse)
@@ -821,7 +821,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                     src = src.substr(dotLoc + 1);
                 }
             }
-            return this.nameop(asname, astnodes_43.Store, cur);
+            return this.nameop(asname, types_43.Store, cur);
         };
         ;
         Compiler.prototype.cimport = function (s) {
@@ -835,10 +835,10 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                 else {
                     var lastDot = alias.name.indexOf('.');
                     if (lastDot !== -1) {
-                        this.nameop(alias.name.substr(0, lastDot), astnodes_43.Store, mod);
+                        this.nameop(alias.name.substr(0, lastDot), types_43.Store, mod);
                     }
                     else {
-                        this.nameop(alias.name, astnodes_43.Store, mod);
+                        this.nameop(alias.name, types_43.Store, mod);
                     }
                 }
             }
@@ -863,7 +863,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                 var storeName = alias.name;
                 if (alias.asname)
                     storeName = alias.asname;
-                this.nameop(storeName, astnodes_43.Store, got);
+                this.nameop(storeName, types_43.Store, got);
             }
         };
         ;
@@ -956,7 +956,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                 if (kwarg)
                     funcArgs.push("$kwa");
                 for (var i = 0; args && i < args.args.length; ++i)
-                    funcArgs.push(this.nameop(args.args[i].id, astnodes_37.Param));
+                    funcArgs.push(this.nameop(args.args[i].id, types_37.Param));
             }
             if (descendantOrSelfHasFree) {
                 funcArgs.push("$free");
@@ -1018,7 +1018,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                 // correlation in the ast)
                 var offset = args.args.length - defaults.length;
                 for (var i = 0; i < defaults.length; ++i) {
-                    var argname = this.nameop(args.args[i + offset].id, astnodes_37.Param);
+                    var argname = this.nameop(args.args[i + offset].id, types_37.Param);
                     this.u.varDeclsCode += "if(typeof " + argname + " === 'undefined')" + argname + "=" + scopename + ".$defaults[" + i + "];";
                 }
             }
@@ -1123,15 +1123,15 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             }
         };
         Compiler.prototype.cfunction = function (s) {
-            asserts_1.assert(s instanceof astnodes_22.FunctionDef);
+            asserts_1.assert(s instanceof types_22.FunctionDef);
             var funcorgen = this.buildcodeobj(s, s.name, s.decorator_list, s.args, function (scopename) {
                 this.vseqstmt(s.body);
                 out("return Sk.builtin.none.none$;"); // if we fall off the bottom, we want the ret to be None
             });
-            this.nameop(s.name, astnodes_43.Store, funcorgen);
+            this.nameop(s.name, types_43.Store, funcorgen);
         };
         Compiler.prototype.clambda = function (e) {
-            asserts_1.assert(e instanceof astnodes_30.Lambda);
+            asserts_1.assert(e instanceof types_30.Lambda);
             var func = this.buildcodeobj(e, "<lambda>", null, e.args, function (scopename) {
                 var val = this.vexpr(e.body);
                 out("return ", val, ";");
@@ -1209,7 +1209,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             return gener;
         };
         Compiler.prototype.cclass = function (s) {
-            asserts_1.assert(s instanceof astnodes_12.ClassDef);
+            asserts_1.assert(s instanceof types_12.ClassDef);
             // var decos = s.decorator_list;
             // decorators and bases need to be eval'd out here
             // this.vseqexpr(decos);
@@ -1232,7 +1232,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             this.exitScope();
             var wrapped = this._gr('built', 'Sk.misceval.buildClass($gbl,', scopename, ',', toStringLiteralJS_1.default(s.name), ',[', bases, '])');
             // store our new class under the right name
-            this.nameop(s.name, astnodes_43.Store, wrapped);
+            this.nameop(s.name, types_43.Store, wrapped);
         };
         Compiler.prototype.ccontinue = function (s) {
             if (this.u.continueBlocks.length === 0)
@@ -1248,13 +1248,13 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             this.u.linenoSet = false;
             this.annotateSource(s);
             switch (s.constructor) {
-                case astnodes_22.FunctionDef:
+                case types_22.FunctionDef:
                     this.cfunction(s);
                     break;
-                case astnodes_12.ClassDef:
+                case types_12.ClassDef:
                     this.cclass(s);
                     break;
-                case astnodes_41.Return_:
+                case types_41.ReturnStatement: {
                     if (this.u.ste.blockType !== SymbolConstants_6.FunctionBlock)
                         throw new SyntaxError("'return' outside function");
                     if (s.value)
@@ -1262,51 +1262,52 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                     else
                         out("return null;");
                     break;
-                case astnodes_16.Delete_:
+                }
+                case types_16.DeleteExpression:
                     this.vseqexpr(s.targets);
                     break;
-                case astnodes_3.Assign:
+                case types_3.Assign:
                     var n = s.targets.length;
                     var val = this.vexpr(s.value);
                     for (var i = 0; i < n; ++i)
                         this.vexpr(s.targets[i], val);
                     break;
-                case astnodes_5.AugAssign:
+                case types_5.AugAssign:
                     return this.caugassign(s);
-                case astnodes_39.Print:
+                case types_39.Print:
                     this.cprint(s);
                     break;
-                case astnodes_21.For_:
+                case types_21.ForStatement:
                     return this.cfor(s);
-                case astnodes_50.While_:
+                case types_50.WhileStatement:
                     return this.cwhile(s);
-                case astnodes_25.If_:
+                case types_25.IfStatement:
                     return this.cif(s);
-                case astnodes_40.Raise:
+                case types_40.Raise:
                     return this.craise(s);
-                case astnodes_46.TryExcept:
+                case types_46.TryExcept:
                     return this.ctryexcept(s);
-                case astnodes_47.TryFinally:
+                case types_47.TryFinally:
                     return this.ctryfinally(s);
-                case astnodes_2.Assert:
+                case types_2.Assert:
                     return this.cassert(s);
-                case astnodes_27.Import_:
+                case types_27.ImportStatement:
                     return this.cimport(s);
-                case astnodes_28.ImportFrom:
+                case types_28.ImportFrom:
                     return this.cfromimport(s);
-                case astnodes_24.Global:
+                case types_24.Global:
                     break;
-                case astnodes_19.Expr:
+                case types_19.Expr:
                     this.vexpr(s.value);
                     break;
-                case astnodes_38.Pass:
+                case types_38.Pass:
                     break;
-                case astnodes_10.Break_:
+                case types_10.BreakStatement:
                     if (this.u.breakBlocks.length === 0)
                         throw new SyntaxError("'break' outside loop");
                     this._jump(this.u.breakBlocks[this.u.breakBlocks.length - 1]);
                     break;
-                case astnodes_14.Continue_:
+                case types_14.ContinueStatement:
                     this.ccontinue(s);
                     break;
                 default:
@@ -1330,10 +1331,10 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
          * @param {string=} dataToStore
          */
         Compiler.prototype.nameop = function (name, ctx, dataToStore) {
-            if ((ctx === astnodes_43.Store || ctx === astnodes_7.AugStore || ctx === astnodes_15.Del) && name === "__debug__") {
+            if ((ctx === types_43.Store || ctx === types_7.AugStore || ctx === types_15.Del) && name === "__debug__") {
                 throw new SyntaxError("can not assign to __debug__");
             }
-            if ((ctx === astnodes_43.Store || ctx === astnodes_7.AugStore || ctx === astnodes_15.Del) && name === "None") {
+            if ((ctx === types_43.Store || ctx === types_7.AugStore || ctx === types_15.Del) && name === "None") {
                 throw new SyntaxError("can not assign to None");
             }
             if (name === "None")
@@ -1386,15 +1387,15 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             switch (optype) {
                 case OP_FAST:
                     switch (ctx) {
-                        case astnodes_33.Load:
-                        case astnodes_37.Param:
+                        case types_33.Load:
+                        case types_37.Param:
                             // Need to check that it is bound!
                             out("if (typeof ", mangled, " === 'undefined') { throw new Error('local variable \\\'", mangled, "\\\' referenced before assignment'); }\n");
                             return mangled;
-                        case astnodes_43.Store:
+                        case types_43.Store:
                             out(mangled, "=", dataToStore, ";");
                             break;
-                        case astnodes_15.Del:
+                        case types_15.Del:
                             out("delete ", mangled, ";");
                             break;
                         default:
@@ -1403,18 +1404,18 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                     break;
                 case OP_NAME:
                     switch (ctx) {
-                        case astnodes_33.Load:
+                        case types_33.Load:
                             var v = this.gensym('loadname');
                             // can't be || for loc.x = 0 or null
                             out("var ", v, "=(typeof ", mangled, " !== 'undefined') ? ", mangled, ":Sk.misceval.loadname('", mangledNoPre, "',$gbl);");
                             return v;
-                        case astnodes_43.Store:
+                        case types_43.Store:
                             out(mangled, "=", dataToStore, ";");
                             break;
-                        case astnodes_15.Del:
+                        case types_15.Del:
                             out("delete ", mangled, ";");
                             break;
-                        case astnodes_37.Param:
+                        case types_37.Param:
                             return mangled;
                         default:
                             asserts_1.fail("unhandled");
@@ -1422,12 +1423,12 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                     break;
                 case OP_GLOBAL:
                     switch (ctx) {
-                        case astnodes_33.Load:
+                        case types_33.Load:
                             return this._gr("loadgbl", "Sk.misceval.loadname('", mangledNoPre, "',$gbl)");
-                        case astnodes_43.Store:
+                        case types_43.Store:
                             out("$gbl.", mangledNoPre, "=", dataToStore, ';');
                             break;
-                        case astnodes_15.Del:
+                        case types_15.Del:
                             out("delete $gbl.", mangledNoPre);
                             break;
                         default:
@@ -1436,12 +1437,12 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                     break;
                 case OP_DEREF:
                     switch (ctx) {
-                        case astnodes_33.Load:
+                        case types_33.Load:
                             return dict + "." + mangledNoPre;
-                        case astnodes_43.Store:
+                        case types_43.Store:
                             out(dict, ".", mangledNoPre, "=", dataToStore, ";");
                             break;
-                        case astnodes_37.Param:
+                        case types_37.Param:
                             return mangledNoPre;
                         default:
                             asserts_1.fail("unhandled case in name op_deref");
@@ -1494,7 +1495,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             }
         };
         Compiler.prototype.cprint = function (s) {
-            asserts_1.assert(s instanceof astnodes_39.Print);
+            asserts_1.assert(s instanceof types_39.Print);
             var dest = 'null';
             if (s.dest) {
                 dest = this.vexpr(s.dest);
@@ -1519,7 +1520,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             this.u.switchCode = "try {while(true){try{switch($blk){";
             this.u.suffixCode = "}}catch(err){if ($exc.length>0) {$err=err;$blk=$exc.pop();continue;} else {throw err;}}}}catch(err){if (err instanceof Sk.builtin.SystemExit && !Sk.throwSystemExit) { Sk.misceval.print_(err.toString() + '\\n'); return $loc; } else { throw err; } } });";
             switch (mod.constructor) {
-                case astnodes_34.Module:
+                case types_34.Module:
                     this.cbody(mod.body);
                     out("return $loc;");
                     break;

@@ -46,7 +46,7 @@ export default class Symbol {
         return !!(this.__flags & DEF_BOUND);
     }
 
-    is_free(): boolean { return this.__scope == FREE; }
+    is_free(): boolean { return this.__scope === FREE; }
     is_imported(): boolean { return !!(this.__flags & DEF_IMPORT); }
     is_assigned(): boolean { return !!(this.__flags & DEF_LOCAL); }
     is_namespace(): boolean { return this.__namespaces && this.__namespaces.length > 0; }

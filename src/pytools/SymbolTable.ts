@@ -4,54 +4,54 @@ import mangleName from './mangleName';
 import SymbolTableScope from './SymbolTableScope';
 import syntaxError from './syntaxError';
 
-import {Assert} from './astnodes';
-import {Assign} from './astnodes';
-import {Attribute} from './astnodes';
-import {AugAssign} from './astnodes';
-import {BinOp} from './astnodes';
-import {BoolOp} from './astnodes';
-import {Break_} from './astnodes';
-import {Call} from './astnodes';
-import {ClassDef} from './astnodes';
-import {Compare} from './astnodes';
-import {Continue_} from './astnodes';
-import {Delete_} from './astnodes';
-import {Dict} from './astnodes';
-import {Ellipsis} from './astnodes';
-import {Exec} from './astnodes';
-import {Expr} from './astnodes';
-import {ExtSlice} from './astnodes';
-import {For_} from './astnodes';
-import {FunctionDef} from './astnodes';
-import {GeneratorExp} from './astnodes';
-import {Global} from './astnodes';
-import {If_} from './astnodes';
-import {IfExp} from './astnodes';
-import {Import_} from './astnodes';
-import {ImportFrom} from './astnodes';
-import {Index} from './astnodes';
-import {Lambda} from './astnodes';
-import {Load} from './astnodes';
-import {List} from './astnodes';
-import {ListComp} from './astnodes';
-import {Name} from './astnodes';
-import {Num} from './astnodes';
-import {Param} from './astnodes';
-import {Pass} from './astnodes';
-import {Print} from './astnodes';
-import {Raise} from './astnodes';
-import {Return_} from './astnodes';
-import {Slice} from './astnodes';
-import {Store} from './astnodes';
-import {Str} from './astnodes';
-import {Subscript} from './astnodes';
-import {TryExcept} from './astnodes';
-import {TryFinally} from './astnodes';
-import {Tuple} from './astnodes';
-import {UnaryOp} from './astnodes';
-import {While_} from './astnodes';
-import {With_} from './astnodes';
-import {Yield} from './astnodes';
+import {Assert} from './types';
+import {Assign} from './types';
+import {Attribute} from './types';
+import {AugAssign} from './types';
+import {BinOp} from './types';
+import {BoolOp} from './types';
+import {BreakStatement} from './types';
+import {Call} from './types';
+import {ClassDef} from './types';
+import {Compare} from './types';
+import {ContinueStatement} from './types';
+import {DeleteExpression} from './types';
+import {Dict} from './types';
+import {Ellipsis} from './types';
+import {Exec} from './types';
+import {Expr} from './types';
+import {ExtSlice} from './types';
+import {ForStatement} from './types';
+import {FunctionDef} from './types';
+import {GeneratorExp} from './types';
+import {Global} from './types';
+import {IfStatement} from './types';
+import {IfExp} from './types';
+import {ImportStatement} from './types';
+import {ImportFrom} from './types';
+import {Index} from './types';
+import {Lambda} from './types';
+import {Load} from './types';
+import {List} from './types';
+import {ListComp} from './types';
+import {Name} from './types';
+import {Num} from './types';
+import {Param} from './types';
+import {Pass} from './types';
+import {Print} from './types';
+import {Raise} from './types';
+import {ReturnStatement} from './types';
+import {Slice} from './types';
+import {Store} from './types';
+import {Str} from './types';
+import {Subscript} from './types';
+import {TryExcept} from './types';
+import {TryFinally} from './types';
+import {Tuple} from './types';
+import {UnaryOp} from './types';
+import {WhileStatement} from './types';
+import {WithStatement} from './types';
+import {Yield} from './types';
 
 import {CELL} from './SymbolConstants';
 import {ClassBlock} from './SymbolConstants';
@@ -257,17 +257,19 @@ export default class SymbolTable {
                 this.curClass = tmp;
                 this.exitBlock();
                 break;
-            case Return_:
-                if (s.value) {
-                    this.visitExpr(s.value);
+            case ReturnStatement: {
+                const rs: ReturnStatement = s;
+                if (rs.value) {
+                    this.visitExpr(rs.value);
                     this.cur.returnsValue = true;
                     if (this.cur.generator) {
                         throw syntaxError("'return' with argument inside generator", this.fileName);
                     }
                 }
                 break;
-            case Delete_:
-                this.SEQExpr(s.targets);
+            }
+            case DeleteExpression:
+                this.SEQExpr((<DeleteExpression>s).targets);
                 break;
             case Assign:
                 this.SEQExpr(s.targets);
@@ -281,23 +283,29 @@ export default class SymbolTable {
                 if (s.dest) this.visitExpr(s.dest);
                 this.SEQExpr(s.values);
                 break;
-            case For_:
-                this.visitExpr(s.target);
-                this.visitExpr(s.iter);
-                this.SEQStmt(s.body);
-                if (s.orelse) this.SEQStmt(s.orelse);
+            case ForStatement: {
+                const fs: ForStatement = s;
+                this.visitExpr(fs.target);
+                this.visitExpr(fs.iter);
+                this.SEQStmt(fs.body);
+                if (fs.orelse) this.SEQStmt(fs.orelse);
                 break;
-            case While_:
-                this.visitExpr(s.test);
-                this.SEQStmt(s.body);
-                if (s.orelse) this.SEQStmt(s.orelse);
+            }
+            case WhileStatement: {
+                const ws: WhileStatement = s;
+                this.visitExpr(ws.test);
+                this.SEQStmt(ws.body);
+                if (ws.orelse) this.SEQStmt(ws.orelse);
                 break;
-            case If_:
-                this.visitExpr(s.test);
-                this.SEQStmt(s.body);
-                if (s.orelse)
-                    this.SEQStmt(s.orelse);
+            }
+            case IfStatement: {
+                const ifs: IfStatement = s;
+                this.visitExpr(ifs.test);
+                this.SEQStmt(ifs.body);
+                if (ifs.orelse)
+                    this.SEQStmt(ifs.orelse);
                 break;
+            }
             case Raise:
                 if (s.type) {
                     this.visitExpr(s.type);
@@ -321,10 +329,16 @@ export default class SymbolTable {
                 this.visitExpr(s.test);
                 if (s.msg) this.visitExpr(s.msg);
                 break;
-            case Import_:
-            case ImportFrom:
-                this.visitAlias(s.names, s.lineno);
+            case ImportStatement: {
+                const imps: ImportStatement = s;
+                this.visitAlias(imps.names, imps.lineno);
                 break;
+            }
+            case ImportFrom: {
+                const impFrom: ImportFrom = s;
+                this.visitAlias(impFrom.names, impFrom.lineno);
+                break;
+            }
             case Exec:
                 this.visitExpr(s.body);
                 if (s.globals) {
@@ -354,20 +368,21 @@ export default class SymbolTable {
                 this.visitExpr(s.value);
                 break;
             case Pass:
-            case Break_:
-            case Continue_:
+            case BreakStatement:
+            case ContinueStatement:
                 // nothing
                 break;
-            case With_:
-                this.newTmpname(s.lineno);
-                this.visitExpr(s.context_expr);
-                if (s.optional_vars) {
-                    this.newTmpname(s.lineno);
-                    this.visitExpr(s.optional_vars);
+            case WithStatement: {
+                const ws: WithStatement = s;
+                this.newTmpname(ws.lineno);
+                this.visitExpr(ws.context_expr);
+                if (ws.optional_vars) {
+                    this.newTmpname(ws.lineno);
+                    this.visitExpr(ws.optional_vars);
                 }
-                this.SEQStmt(s.body);
+                this.SEQStmt(ws.body);
                 break;
-
+            }
             default:
                 fail("Unhandled type " + s.constructor.name + " in visitStmt");
         }
@@ -471,7 +486,7 @@ export default class SymbolTable {
      * @param {Array.<Object>} names
      * @param {number} lineno
      */
-    visitAlias = function(names, lineno) {
+    visitAlias(names, lineno) {
         /* Compute store_name, the name actually bound by the import
             operation.  It is diferent than a->name when a->name is a
             dotted package name (e.g. spam.eggs)
@@ -493,12 +508,12 @@ export default class SymbolTable {
                 }
             }
         }
-    };
+    }
 
     /**
      * @param {Object} e
      */
-    visitGenexp = function(e) {
+    visitGenexp(e) {
         var outermost = e.generators[0];
         // outermost is evaled in current scope
         this.visitExpr(outermost.iter);
@@ -510,22 +525,22 @@ export default class SymbolTable {
         this.visitComprehension(e.generators, 1);
         this.visitExpr(e.elt);
         this.exitBlock();
-    };
+    }
 
-    visitExcepthandlers = function(handlers) {
+    visitExcepthandlers(handlers) {
         for (var i = 0, eh; eh = handlers[i]; ++i) {
             if (eh.type) this.visitExpr(eh.type);
             if (eh.name) this.visitExpr(eh.name);
             this.SEQStmt(eh.body);
         }
-    };
+    }
 
     /**
      * @param {SymbolTableScope} ste The Symbol Table Scope.
      */
-    analyzeBlock = function(ste: SymbolTableScope, bound, free, global) {
+    analyzeBlock(ste: SymbolTableScope, bound, free, global) {
         var local = {};
-        var scope = {};
+        var scope: { [name: string]: number } = {};
         var newglobal = {};
         var newbound = {};
         var newfree = {};
@@ -536,9 +551,11 @@ export default class SymbolTable {
                 dictUpdate(newbound, bound);
         }
 
-        for (var name in ste.symFlags) {
-            var flags = ste.symFlags[name];
-            this.analyzeName(ste, scope, name, flags, bound, local, free, global);
+        for (let name in ste.symFlags) {
+            if (ste.symFlags.hasOwnProperty(name)) {
+                const flags = ste.symFlags[name];
+                this.analyzeName(ste, scope, name, flags, bound, local, free, global);
+            }
         }
 
         if (ste.blockType !== ClassBlock) {
@@ -563,9 +580,9 @@ export default class SymbolTable {
         this.updateSymbols(ste.symFlags, scope, bound, newfree, ste.blockType === ClassBlock);
 
         dictUpdate(free, newfree);
-    };
+    }
 
-    analyzeChildBlock = function(entry, bound, free, global, childFree) {
+    analyzeChildBlock(entry, bound, free, global, childFree) {
         var tempBound = {};
         dictUpdate(tempBound, bound);
         var tempFree = {};
@@ -575,53 +592,59 @@ export default class SymbolTable {
 
         this.analyzeBlock(entry, tempBound, tempFree, tempGlobal);
         dictUpdate(childFree, tempFree);
-    };
+    }
 
-    analyzeCells = function(scope, free) {
-        for (var name in scope) {
-            var flags = scope[name];
-            if (flags !== LOCAL) continue;
-            if (free[name] === undefined) continue;
-            scope[name] = CELL;
-            delete free[name];
+    analyzeCells(scope: { [name: string]: number }, free: { [name: string]: any }) {
+        for (let name in scope) {
+            if (scope.hasOwnProperty(name)) {
+                const flags = scope[name];
+                if (flags !== LOCAL) continue;
+                if (free[name] === undefined) continue;
+                scope[name] = CELL;
+                delete free[name];
+            }
         }
-    };
+    }
 
     /**
      * store scope info back into the st symbols dict. symbols is modified,
      * others are not.
      */
-    updateSymbols = function(symbols, scope, bound, free, classflag) {
-        for (var name in symbols) {
-            var flags = symbols[name];
-            var w = scope[name];
-            flags |= w << SCOPE_OFF;
-            symbols[name] = flags;
+    updateSymbols(symbols: { [name: string]: number }, scope: { [name: string]: number }, bound, free, classflag) {
+        for (let name in symbols) {
+            if (symbols.hasOwnProperty(name)) {
+                let flags = symbols[name];
+                const w = scope[name];
+                flags |= w << SCOPE_OFF;
+                symbols[name] = flags;
+            }
         }
 
-        var freeValue = FREE << SCOPE_OFF;
-        for (var name in free) {
-            var o = symbols[name];
-            if (o !== undefined) {
-                // it could be a free variable in a method of the class that has
-                // the same name as a local or global in the class scope
-                if (classflag && (o & (DEF_BOUND | DEF_GLOBAL))) {
-                    var i = o | DEF_FREE_CLASS;
-                    symbols[name] = i;
+        const freeValue = FREE << SCOPE_OFF;
+        for (let name in free) {
+            if (free.hasOwnProperty(name)) {
+                const o = symbols[name];
+                if (o !== undefined) {
+                    // it could be a free variable in a method of the class that has
+                    // the same name as a local or global in the class scope
+                    if (classflag && (o & (DEF_BOUND | DEF_GLOBAL))) {
+                        const i = o | DEF_FREE_CLASS;
+                        symbols[name] = i;
+                    }
+                    // else it's not free, probably a cell
+                    continue;
                 }
-                // else it's not free, probably a cell
-                continue;
+                if (bound[name] === undefined) continue;
+                symbols[name] = freeValue;
             }
-            if (bound[name] === undefined) continue;
-            symbols[name] = freeValue;
         }
-    };
+    }
 
     /**
      * @param {Object} ste The Symbol Table Scope.
      * @param {string} name
      */
-    analyzeName = function(ste, dict, name, flags, bound, local, free, global) {
+    analyzeName(ste, dict, name, flags, bound, local, free, global) {
         if (flags & DEF_GLOBAL) {
             if (flags & DEF_PARAM) throw syntaxError("name '" + name + "' is local and global", this.fileName, ste.lineno);
             dict[name] = GLOBAL_EXPLICIT;
@@ -649,12 +672,11 @@ export default class SymbolTable {
                 ste.hasFree = true;
             dict[name] = GLOBAL_IMPLICIT;
         }
-    };
+    }
 
-    analyze = function() {
+    analyze() {
         var free = {};
         var global = {};
         this.analyzeBlock(this.top, null, free, global);
-    };
-
+    }
 }

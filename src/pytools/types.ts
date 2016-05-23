@@ -34,8 +34,29 @@ export class Gt { }
 export class GtE { }
 export class Is { }
 export class IsNot { }
-export class In_ { }
+export class In { }
 export class NotIn { }
+
+export class ASTSpan {
+    public minChar: number = -1;  // -1 = "undefined" or "compiler generated"
+    public limChar: number = -1;  // -1 = "undefined" or "compiler generated"   
+}
+
+export class AST extends ASTSpan {
+
+}
+
+export class ModuleElement extends AST {
+
+}
+
+export class Statement extends ModuleElement {
+
+}
+
+export class IterationStatement extends Statement {
+    // statement: Statement;
+}
 
 export class Module {
     body;
@@ -51,11 +72,24 @@ export class Interactive {
     }
 }
 
-export class Expression {
+interface TextRange {
+    // pos: number;
+    // end: number;
+}
+
+interface Node extends TextRange {
+
+}
+
+export class Expression implements Node {
     body;
     constructor(body) {
         this.body = body;
     }
+}
+
+export class UnaryExpression extends Expression {
+
 }
 
 export class Suite {
@@ -99,22 +133,27 @@ export class ClassDef {
     }
 }
 
-export class Return_ {
+export class ReturnStatement extends Statement {
+    /**
+     * An expression, and probably should be optional.
+     */
     value
     lineno
     col_offset
     constructor(value, lineno, col_offset) {
+        super();
         this.value = value;
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
 }
 
-export class Delete_ {
-    targets
+export class DeleteExpression extends UnaryExpression {
+    targets: UnaryExpression;
     lineno
     col_offset
     constructor(targets, lineno, col_offset) {
+        super(targets);
         this.targets = targets;
         this.lineno = lineno;
         this.col_offset = col_offset;
@@ -164,7 +203,7 @@ export class Print {
     }
 }
 
-export class For_ {
+export class ForStatement extends IterationStatement {
     target
     iter
     body
@@ -172,6 +211,7 @@ export class For_ {
     lineno
     col_offset
     constructor(target, iter, body, orelse, lineno, col_offset) {
+        super();
         this.target = target;
         this.iter = iter;
         this.body = body;
@@ -181,13 +221,14 @@ export class For_ {
     }
 }
 
-export class While_ {
+export class WhileStatement extends IterationStatement {
     test
     body
     orelse
     lineno
     col_offset
     constructor(test, body, orelse, lineno, col_offset) {
+        super();
         this.test = test;
         this.body = body;
         this.orelse = orelse;
@@ -196,13 +237,14 @@ export class While_ {
     }
 }
 
-export class If_ {
-    test
-    body
-    orelse
+export class IfStatement extends Statement {
+    test: Expression;
+    body: Statement[];
+    orelse: Statement[];
     lineno
     col_offset
-    constructor(test, body, orelse, lineno, col_offset) {
+    constructor(test: Expression, body: Statement[], orelse: Statement[], lineno, col_offset) {
+        super();
         this.test = test;
         this.body = body;
         this.orelse = orelse;
@@ -211,13 +253,14 @@ export class If_ {
     }
 }
 
-export class With_ {
+export class WithStatement extends Statement {
     context_expr
     optional_vars
     body
     lineno
     col_offset
     constructor(context_expr, optional_vars, body, lineno, col_offset) {
+        super();
         this.context_expr = context_expr;
         this.optional_vars = optional_vars;
         this.body = body;
@@ -282,11 +325,12 @@ export class Assert {
     }
 }
 
-export class Import_ {
+export class ImportStatement extends Statement {
     names
     lineno
     col_offset
     constructor(names, lineno, col_offset) {
+        super();
         this.names = names;
         this.lineno = lineno;
         this.col_offset = col_offset;
@@ -365,19 +409,21 @@ export class Pass {
     }
 }
 
-export class Break_ {
+export class BreakStatement extends Statement {
     lineno
     col_offset
     constructor(lineno, col_offset) {
+        super();
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
 }
 
-export class Continue_ {
+export class ContinueStatement extends Statement {
     lineno
     col_offset
     constructor(lineno, col_offset) {
+        super();
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
@@ -629,6 +675,7 @@ export class Tuple {
 
 export class Ellipsis {
     constructor() {
+        // Do nothing yet.
     }
 }
 
@@ -657,7 +704,7 @@ export class Index {
     }
 }
 
-export class comprehension {
+export class Comprehension {
     target
     iter
     ifs
@@ -683,7 +730,7 @@ export class ExceptHandler {
     }
 }
 
-export class arguments_ {
+export class Arguments {
     args
     vararg
     kwarg
@@ -696,7 +743,7 @@ export class arguments_ {
     }
 }
 
-export class keyword {
+export class Keyword {
     arg
     value
     constructor(arg, value) {
@@ -705,10 +752,10 @@ export class keyword {
     }
 }
 
-export class alias {
-    name
-    asname
-    constructor(name, asname) {
+export class Alias {
+    name: string;
+    asname: string;
+    constructor(name: string, asname: string) {
         this.name = name;
         this.asname = asname;
     }
@@ -744,12 +791,12 @@ ClassDef.prototype['_fields'] = [
     'body', function(n) { return n.body; },
     'decorator_list', function(n) { return n.decorator_list; }
 ];
-Return_.prototype['_astname'] = 'Return';
-Return_.prototype['_fields'] = [
+ReturnStatement.prototype['_astname'] = 'ReturnStatement';
+ReturnStatement.prototype['_fields'] = [
     'value', function(n) { return n.value; }
 ];
-Delete_.prototype['_astname'] = 'Delete';
-Delete_.prototype['_fields'] = [
+DeleteExpression.prototype['_astname'] = 'Delete';
+DeleteExpression.prototype['_fields'] = [
     'targets', function(n) { return n.targets; }
 ];
 Assign.prototype['_astname'] = 'Assign';
@@ -769,27 +816,27 @@ Print.prototype['_fields'] = [
     'values', function(n) { return n.values; },
     'nl', function(n) { return n.nl; }
 ];
-For_.prototype['_astname'] = 'For';
-For_.prototype['_fields'] = [
+ForStatement.prototype['_astname'] = 'ForStatement';
+ForStatement.prototype['_fields'] = [
     'target', function(n) { return n.target; },
     'iter', function(n) { return n.iter; },
     'body', function(n) { return n.body; },
     'orelse', function(n) { return n.orelse; }
 ];
-While_.prototype['_astname'] = 'While';
-While_.prototype['_fields'] = [
+WhileStatement.prototype['_astname'] = 'WhileStatement';
+WhileStatement.prototype['_fields'] = [
     'test', function(n) { return n.test; },
     'body', function(n) { return n.body; },
     'orelse', function(n) { return n.orelse; }
 ];
-If_.prototype['_astname'] = 'If';
-If_.prototype['_fields'] = [
+IfStatement.prototype['_astname'] = 'IfStatement';
+IfStatement.prototype['_fields'] = [
     'test', function(n) { return n.test; },
     'body', function(n) { return n.body; },
     'orelse', function(n) { return n.orelse; }
 ];
-With_.prototype['_astname'] = 'With';
-With_.prototype['_fields'] = [
+WithStatement.prototype['_astname'] = 'WithStatement';
+WithStatement.prototype['_fields'] = [
     'context_expr', function(n) { return n.context_expr; },
     'optional_vars', function(n) { return n.optional_vars; },
     'body', function(n) { return n.body; }
@@ -816,8 +863,8 @@ Assert.prototype['_fields'] = [
     'test', function(n) { return n.test; },
     'msg', function(n) { return n.msg; }
 ];
-Import_.prototype['_astname'] = 'Import';
-Import_.prototype['_fields'] = [
+ImportStatement.prototype['_astname'] = 'Import';
+ImportStatement.prototype['_fields'] = [
     'names', function(n) { return n.names; }
 ];
 ImportFrom.prototype['_astname'] = 'ImportFrom';
@@ -847,11 +894,11 @@ Expr.prototype['_fields'] = [
 Pass.prototype['_astname'] = 'Pass';
 Pass.prototype['_fields'] = [
 ];
-Break_.prototype['_astname'] = 'Break';
-Break_.prototype['_fields'] = [
+BreakStatement.prototype['_astname'] = 'BreakStatement';
+BreakStatement.prototype['_fields'] = [
 ];
-Continue_.prototype['_astname'] = 'Continue';
-Continue_.prototype['_fields'] = [
+ContinueStatement.prototype['_astname'] = 'ContinueStatement';
+ContinueStatement.prototype['_fields'] = [
 ];
 BoolOp.prototype['_astname'] = 'BoolOp';
 BoolOp.prototype['_fields'] = [
@@ -1029,12 +1076,12 @@ Is.prototype['_astname'] = 'Is';
 Is.prototype['_isenum'] = true;
 IsNot.prototype['_astname'] = 'IsNot';
 IsNot.prototype['_isenum'] = true;
-In_.prototype['_astname'] = 'In';
-In_.prototype['_isenum'] = true;
+In.prototype['_astname'] = 'In';
+In.prototype['_isenum'] = true;
 NotIn.prototype['_astname'] = 'NotIn';
 NotIn.prototype['_isenum'] = true;
-comprehension.prototype['_astname'] = 'comprehension';
-comprehension.prototype['_fields'] = [
+Comprehension.prototype['_astname'] = 'Comprehension';
+Comprehension.prototype['_fields'] = [
     'target', function(n) { return n.target; },
     'iter', function(n) { return n.iter; },
     'ifs', function(n) { return n.ifs; }
@@ -1045,20 +1092,20 @@ ExceptHandler.prototype['_fields'] = [
     'name', function(n) { return n.name; },
     'body', function(n) { return n.body; }
 ];
-arguments_.prototype['_astname'] = 'arguments';
-arguments_.prototype['_fields'] = [
+Arguments.prototype['_astname'] = 'Arguments';
+Arguments.prototype['_fields'] = [
     'args', function(n) { return n.args; },
     'vararg', function(n) { return n.vararg; },
     'kwarg', function(n) { return n.kwarg; },
     'defaults', function(n) { return n.defaults; }
 ];
-keyword.prototype['_astname'] = 'keyword';
-keyword.prototype['_fields'] = [
+Keyword.prototype['_astname'] = 'Keyword';
+Keyword.prototype['_fields'] = [
     'arg', function(n) { return n.arg; },
     'value', function(n) { return n.value; }
 ];
-alias.prototype['_astname'] = 'alias';
-alias.prototype['_fields'] = [
+Alias.prototype['_astname'] = 'Alias';
+Alias.prototype['_fields'] = [
     'name', function(n) { return n.name; },
     'asname', function(n) { return n.asname; }
 ];

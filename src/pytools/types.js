@@ -1,3 +1,8 @@
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 define(["require", "exports"], function (require, exports) {
     "use strict";
     var Load = (function () {
@@ -192,18 +197,58 @@ define(["require", "exports"], function (require, exports) {
         return IsNot;
     }());
     exports.IsNot = IsNot;
-    var In_ = (function () {
-        function In_() {
+    var In = (function () {
+        function In() {
         }
-        return In_;
+        return In;
     }());
-    exports.In_ = In_;
+    exports.In = In;
     var NotIn = (function () {
         function NotIn() {
         }
         return NotIn;
     }());
     exports.NotIn = NotIn;
+    var ASTSpan = (function () {
+        function ASTSpan() {
+            this.minChar = -1; // -1 = "undefined" or "compiler generated"
+            this.limChar = -1; // -1 = "undefined" or "compiler generated"   
+        }
+        return ASTSpan;
+    }());
+    exports.ASTSpan = ASTSpan;
+    var AST = (function (_super) {
+        __extends(AST, _super);
+        function AST() {
+            _super.apply(this, arguments);
+        }
+        return AST;
+    }(ASTSpan));
+    exports.AST = AST;
+    var ModuleElement = (function (_super) {
+        __extends(ModuleElement, _super);
+        function ModuleElement() {
+            _super.apply(this, arguments);
+        }
+        return ModuleElement;
+    }(AST));
+    exports.ModuleElement = ModuleElement;
+    var Statement = (function (_super) {
+        __extends(Statement, _super);
+        function Statement() {
+            _super.apply(this, arguments);
+        }
+        return Statement;
+    }(ModuleElement));
+    exports.Statement = Statement;
+    var IterationStatement = (function (_super) {
+        __extends(IterationStatement, _super);
+        function IterationStatement() {
+            _super.apply(this, arguments);
+        }
+        return IterationStatement;
+    }(Statement));
+    exports.IterationStatement = IterationStatement;
     var Module = (function () {
         function Module(body) {
             this.body = body;
@@ -225,6 +270,14 @@ define(["require", "exports"], function (require, exports) {
         return Expression;
     }());
     exports.Expression = Expression;
+    var UnaryExpression = (function (_super) {
+        __extends(UnaryExpression, _super);
+        function UnaryExpression() {
+            _super.apply(this, arguments);
+        }
+        return UnaryExpression;
+    }(Expression));
+    exports.UnaryExpression = UnaryExpression;
     var Suite = (function () {
         function Suite(body) {
             this.body = body;
@@ -256,24 +309,28 @@ define(["require", "exports"], function (require, exports) {
         return ClassDef;
     }());
     exports.ClassDef = ClassDef;
-    var Return_ = (function () {
-        function Return_(value, lineno, col_offset) {
+    var ReturnStatement = (function (_super) {
+        __extends(ReturnStatement, _super);
+        function ReturnStatement(value, lineno, col_offset) {
+            _super.call(this);
             this.value = value;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return Return_;
-    }());
-    exports.Return_ = Return_;
-    var Delete_ = (function () {
-        function Delete_(targets, lineno, col_offset) {
+        return ReturnStatement;
+    }(Statement));
+    exports.ReturnStatement = ReturnStatement;
+    var DeleteExpression = (function (_super) {
+        __extends(DeleteExpression, _super);
+        function DeleteExpression(targets, lineno, col_offset) {
+            _super.call(this, targets);
             this.targets = targets;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return Delete_;
-    }());
-    exports.Delete_ = Delete_;
+        return DeleteExpression;
+    }(UnaryExpression));
+    exports.DeleteExpression = DeleteExpression;
     var Assign = (function () {
         function Assign(targets, value, lineno, col_offset) {
             this.targets = targets;
@@ -306,8 +363,10 @@ define(["require", "exports"], function (require, exports) {
         return Print;
     }());
     exports.Print = Print;
-    var For_ = (function () {
-        function For_(target, iter, body, orelse, lineno, col_offset) {
+    var ForStatement = (function (_super) {
+        __extends(ForStatement, _super);
+        function ForStatement(target, iter, body, orelse, lineno, col_offset) {
+            _super.call(this);
             this.target = target;
             this.iter = iter;
             this.body = body;
@@ -315,42 +374,48 @@ define(["require", "exports"], function (require, exports) {
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return For_;
-    }());
-    exports.For_ = For_;
-    var While_ = (function () {
-        function While_(test, body, orelse, lineno, col_offset) {
+        return ForStatement;
+    }(IterationStatement));
+    exports.ForStatement = ForStatement;
+    var WhileStatement = (function (_super) {
+        __extends(WhileStatement, _super);
+        function WhileStatement(test, body, orelse, lineno, col_offset) {
+            _super.call(this);
             this.test = test;
             this.body = body;
             this.orelse = orelse;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return While_;
-    }());
-    exports.While_ = While_;
-    var If_ = (function () {
-        function If_(test, body, orelse, lineno, col_offset) {
+        return WhileStatement;
+    }(IterationStatement));
+    exports.WhileStatement = WhileStatement;
+    var IfStatement = (function (_super) {
+        __extends(IfStatement, _super);
+        function IfStatement(test, body, orelse, lineno, col_offset) {
+            _super.call(this);
             this.test = test;
             this.body = body;
             this.orelse = orelse;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return If_;
-    }());
-    exports.If_ = If_;
-    var With_ = (function () {
-        function With_(context_expr, optional_vars, body, lineno, col_offset) {
+        return IfStatement;
+    }(Statement));
+    exports.IfStatement = IfStatement;
+    var WithStatement = (function (_super) {
+        __extends(WithStatement, _super);
+        function WithStatement(context_expr, optional_vars, body, lineno, col_offset) {
+            _super.call(this);
             this.context_expr = context_expr;
             this.optional_vars = optional_vars;
             this.body = body;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return With_;
-    }());
-    exports.With_ = With_;
+        return WithStatement;
+    }(Statement));
+    exports.WithStatement = WithStatement;
     var Raise = (function () {
         function Raise(type, inst, tback, lineno, col_offset) {
             this.type = type;
@@ -393,15 +458,17 @@ define(["require", "exports"], function (require, exports) {
         return Assert;
     }());
     exports.Assert = Assert;
-    var Import_ = (function () {
-        function Import_(names, lineno, col_offset) {
+    var ImportStatement = (function (_super) {
+        __extends(ImportStatement, _super);
+        function ImportStatement(names, lineno, col_offset) {
+            _super.call(this);
             this.names = names;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return Import_;
-    }());
-    exports.Import_ = Import_;
+        return ImportStatement;
+    }(Statement));
+    exports.ImportStatement = ImportStatement;
     var ImportFrom = (function () {
         function ImportFrom(module, names, level, lineno, col_offset) {
             this.module = module;
@@ -459,22 +526,26 @@ define(["require", "exports"], function (require, exports) {
         return Pass;
     }());
     exports.Pass = Pass;
-    var Break_ = (function () {
-        function Break_(lineno, col_offset) {
+    var BreakStatement = (function (_super) {
+        __extends(BreakStatement, _super);
+        function BreakStatement(lineno, col_offset) {
+            _super.call(this);
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return Break_;
-    }());
-    exports.Break_ = Break_;
-    var Continue_ = (function () {
-        function Continue_(lineno, col_offset) {
+        return BreakStatement;
+    }(Statement));
+    exports.BreakStatement = BreakStatement;
+    var ContinueStatement = (function (_super) {
+        __extends(ContinueStatement, _super);
+        function ContinueStatement(lineno, col_offset) {
+            _super.call(this);
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
-        return Continue_;
-    }());
-    exports.Continue_ = Continue_;
+        return ContinueStatement;
+    }(Statement));
+    exports.ContinueStatement = ContinueStatement;
     var BoolOp = (function () {
         function BoolOp(op, values, lineno, col_offset) {
             this.op = op;
@@ -662,6 +733,7 @@ define(["require", "exports"], function (require, exports) {
     exports.Tuple = Tuple;
     var Ellipsis = (function () {
         function Ellipsis() {
+            // Do nothing yet.
         }
         return Ellipsis;
     }());
@@ -689,15 +761,15 @@ define(["require", "exports"], function (require, exports) {
         return Index;
     }());
     exports.Index = Index;
-    var comprehension = (function () {
-        function comprehension(target, iter, ifs) {
+    var Comprehension = (function () {
+        function Comprehension(target, iter, ifs) {
             this.target = target;
             this.iter = iter;
             this.ifs = ifs;
         }
-        return comprehension;
+        return Comprehension;
     }());
-    exports.comprehension = comprehension;
+    exports.Comprehension = Comprehension;
     var ExceptHandler = (function () {
         function ExceptHandler(type, name, body, lineno, col_offset) {
             this.type = type;
@@ -709,32 +781,32 @@ define(["require", "exports"], function (require, exports) {
         return ExceptHandler;
     }());
     exports.ExceptHandler = ExceptHandler;
-    var arguments_ = (function () {
-        function arguments_(args, vararg, kwarg, defaults) {
+    var Arguments = (function () {
+        function Arguments(args, vararg, kwarg, defaults) {
             this.args = args;
             this.vararg = vararg;
             this.kwarg = kwarg;
             this.defaults = defaults;
         }
-        return arguments_;
+        return Arguments;
     }());
-    exports.arguments_ = arguments_;
-    var keyword = (function () {
-        function keyword(arg, value) {
+    exports.Arguments = Arguments;
+    var Keyword = (function () {
+        function Keyword(arg, value) {
             this.arg = arg;
             this.value = value;
         }
-        return keyword;
+        return Keyword;
     }());
-    exports.keyword = keyword;
-    var alias = (function () {
-        function alias(name, asname) {
+    exports.Keyword = Keyword;
+    var Alias = (function () {
+        function Alias(name, asname) {
             this.name = name;
             this.asname = asname;
         }
-        return alias;
+        return Alias;
     }());
-    exports.alias = alias;
+    exports.Alias = Alias;
     Module.prototype['_astname'] = 'Module';
     Module.prototype['_fields'] = [
         'body', function (n) { return n.body; }
@@ -765,12 +837,12 @@ define(["require", "exports"], function (require, exports) {
         'body', function (n) { return n.body; },
         'decorator_list', function (n) { return n.decorator_list; }
     ];
-    Return_.prototype['_astname'] = 'Return';
-    Return_.prototype['_fields'] = [
+    ReturnStatement.prototype['_astname'] = 'ReturnStatement';
+    ReturnStatement.prototype['_fields'] = [
         'value', function (n) { return n.value; }
     ];
-    Delete_.prototype['_astname'] = 'Delete';
-    Delete_.prototype['_fields'] = [
+    DeleteExpression.prototype['_astname'] = 'Delete';
+    DeleteExpression.prototype['_fields'] = [
         'targets', function (n) { return n.targets; }
     ];
     Assign.prototype['_astname'] = 'Assign';
@@ -790,27 +862,27 @@ define(["require", "exports"], function (require, exports) {
         'values', function (n) { return n.values; },
         'nl', function (n) { return n.nl; }
     ];
-    For_.prototype['_astname'] = 'For';
-    For_.prototype['_fields'] = [
+    ForStatement.prototype['_astname'] = 'ForStatement';
+    ForStatement.prototype['_fields'] = [
         'target', function (n) { return n.target; },
         'iter', function (n) { return n.iter; },
         'body', function (n) { return n.body; },
         'orelse', function (n) { return n.orelse; }
     ];
-    While_.prototype['_astname'] = 'While';
-    While_.prototype['_fields'] = [
+    WhileStatement.prototype['_astname'] = 'WhileStatement';
+    WhileStatement.prototype['_fields'] = [
         'test', function (n) { return n.test; },
         'body', function (n) { return n.body; },
         'orelse', function (n) { return n.orelse; }
     ];
-    If_.prototype['_astname'] = 'If';
-    If_.prototype['_fields'] = [
+    IfStatement.prototype['_astname'] = 'IfStatement';
+    IfStatement.prototype['_fields'] = [
         'test', function (n) { return n.test; },
         'body', function (n) { return n.body; },
         'orelse', function (n) { return n.orelse; }
     ];
-    With_.prototype['_astname'] = 'With';
-    With_.prototype['_fields'] = [
+    WithStatement.prototype['_astname'] = 'WithStatement';
+    WithStatement.prototype['_fields'] = [
         'context_expr', function (n) { return n.context_expr; },
         'optional_vars', function (n) { return n.optional_vars; },
         'body', function (n) { return n.body; }
@@ -837,8 +909,8 @@ define(["require", "exports"], function (require, exports) {
         'test', function (n) { return n.test; },
         'msg', function (n) { return n.msg; }
     ];
-    Import_.prototype['_astname'] = 'Import';
-    Import_.prototype['_fields'] = [
+    ImportStatement.prototype['_astname'] = 'Import';
+    ImportStatement.prototype['_fields'] = [
         'names', function (n) { return n.names; }
     ];
     ImportFrom.prototype['_astname'] = 'ImportFrom';
@@ -867,10 +939,10 @@ define(["require", "exports"], function (require, exports) {
     ];
     Pass.prototype['_astname'] = 'Pass';
     Pass.prototype['_fields'] = [];
-    Break_.prototype['_astname'] = 'Break';
-    Break_.prototype['_fields'] = [];
-    Continue_.prototype['_astname'] = 'Continue';
-    Continue_.prototype['_fields'] = [];
+    BreakStatement.prototype['_astname'] = 'BreakStatement';
+    BreakStatement.prototype['_fields'] = [];
+    ContinueStatement.prototype['_astname'] = 'ContinueStatement';
+    ContinueStatement.prototype['_fields'] = [];
     BoolOp.prototype['_astname'] = 'BoolOp';
     BoolOp.prototype['_fields'] = [
         'op', function (n) { return n.op; },
@@ -1046,12 +1118,12 @@ define(["require", "exports"], function (require, exports) {
     Is.prototype['_isenum'] = true;
     IsNot.prototype['_astname'] = 'IsNot';
     IsNot.prototype['_isenum'] = true;
-    In_.prototype['_astname'] = 'In';
-    In_.prototype['_isenum'] = true;
+    In.prototype['_astname'] = 'In';
+    In.prototype['_isenum'] = true;
     NotIn.prototype['_astname'] = 'NotIn';
     NotIn.prototype['_isenum'] = true;
-    comprehension.prototype['_astname'] = 'comprehension';
-    comprehension.prototype['_fields'] = [
+    Comprehension.prototype['_astname'] = 'Comprehension';
+    Comprehension.prototype['_fields'] = [
         'target', function (n) { return n.target; },
         'iter', function (n) { return n.iter; },
         'ifs', function (n) { return n.ifs; }
@@ -1062,20 +1134,20 @@ define(["require", "exports"], function (require, exports) {
         'name', function (n) { return n.name; },
         'body', function (n) { return n.body; }
     ];
-    arguments_.prototype['_astname'] = 'arguments';
-    arguments_.prototype['_fields'] = [
+    Arguments.prototype['_astname'] = 'Arguments';
+    Arguments.prototype['_fields'] = [
         'args', function (n) { return n.args; },
         'vararg', function (n) { return n.vararg; },
         'kwarg', function (n) { return n.kwarg; },
         'defaults', function (n) { return n.defaults; }
     ];
-    keyword.prototype['_astname'] = 'keyword';
-    keyword.prototype['_fields'] = [
+    Keyword.prototype['_astname'] = 'Keyword';
+    Keyword.prototype['_fields'] = [
         'arg', function (n) { return n.arg; },
         'value', function (n) { return n.value; }
     ];
-    alias.prototype['_astname'] = 'alias';
-    alias.prototype['_fields'] = [
+    Alias.prototype['_astname'] = 'Alias';
+    Alias.prototype['_fields'] = [
         'name', function (n) { return n.name; },
         'asname', function (n) { return n.asname; }
     ];

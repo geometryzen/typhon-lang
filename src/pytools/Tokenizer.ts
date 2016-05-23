@@ -3,6 +3,85 @@ import {isArray, isDef, isString} from './base';
 import TokenError from './TokenError';
 import Tokens from './Tokens';
 
+/* we have to use string and ctor to be able to build patterns up. + on /.../
+    * does something strange. */
+// const Whitespace = "[ \\f\\t]*";
+const Comment_ = "#[^\\r\\n]*";
+const Ident = "[a-zA-Z_]\\w*";
+
+const Binnumber = '0[bB][01]*';
+const Hexnumber = '0[xX][\\da-fA-F]*[lL]?';
+const Octnumber = '0[oO]?[0-7]*[lL]?';
+const Decnumber = '[1-9]\\d*[lL]?';
+const Intnumber = group(Binnumber, Hexnumber, Octnumber, Decnumber);
+
+const Exponent = "[eE][-+]?\\d+";
+const Pointfloat = group("\\d+\\.\\d*", "\\.\\d+") + maybe(Exponent);
+const Expfloat = '\\d+' + Exponent;
+const Floatnumber = group(Pointfloat, Expfloat);
+const Imagnumber = group("\\d+[jJ]", Floatnumber + "[jJ]");
+const Number_ = group(Imagnumber, Floatnumber, Intnumber);
+
+// tail end of ' string
+const Single = "^[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
+// tail end of " string
+const Double_ = '^[^"\\\\]*(?:\\\\.[^"\\\\]*)*"';
+// tail end of ''' string
+const Single3 = "[^'\\\\]*(?:(?:\\\\.|'(?!''))[^'\\\\]*)*'''";
+// tail end of """ string
+const Double3 = '[^"\\\\]*(?:(?:\\\\.|"(?!""))[^"\\\\]*)*"""';
+const Triple = group("[ubUB]?[rR]?'''", '[ubUB]?[rR]?"""');
+// const String_ = group("[uU]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*'", '[uU]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*"');
+
+// Because of leftmost-then-longest match semantics, be sure to put the
+// longest operators first (e.g., if = came before ==, == would get
+// recognized as two instances of =).
+const Operator = group("\\*\\*=?", ">>=?", "<<=?", "<>", "!=",
+                    "//=?", "->",
+                    "[+\\-*/%&|^=<>]=?",
+                    "~");
+
+const Bracket = '[\\][(){}]';
+const Special = group('\\r?\\n', '[:;.,`@]');
+const Funny  = group(Operator, Bracket, Special);
+
+const ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
+                group("'", '\\\\\\r?\\n'),
+                '[uUbB]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*' +
+                group('"', '\\\\\\r?\\n'));
+const PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
+// Need to prefix with "^" as we only want to match what's next
+const PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
+
+// let pseudoprog;
+// let single3prog;
+// let double3prog;
+// const endprogs = {};
+
+const triple_quoted = {
+"'''": true, '"""': true,
+"r'''": true, 'r"""': true, "R'''": true, 'R"""': true,
+"u'''": true, 'u"""': true, "U'''": true, 'U"""': true,
+"b'''": true, 'b"""': true, "B'''": true, 'B"""': true,
+"ur'''": true, 'ur"""': true, "Ur'''": true, 'Ur"""': true,
+"uR'''": true, 'uR"""': true, "UR'''": true, 'UR"""': true,
+"br'''": true, 'br"""': true, "Br'''": true, 'Br"""': true,
+"bR'''": true, 'bR"""': true, "BR'''": true, 'BR"""': true
+};
+
+const single_quoted = {
+"'": true, '"': true,
+"r'": true, 'r"': true, "R'": true, 'R"': true,
+"u'": true, 'u"': true, "U'": true, 'U"': true,
+"b'": true, 'b"': true, "B'": true, 'B"': true,
+"ur'": true, 'ur"': true, "Ur'": true, 'Ur"': true,
+"uR'": true, 'uR"': true, "UR'": true, 'UR"': true,
+"br'": true, 'br"': true, "Br'": true, 'Br"': true,
+"bR'": true, 'bR"': true, "BR'": true, 'BR"': true
+};
+
+const tabsize = 8;
+
 /**
  * This is a port of tokenize.py by Ka-Ping Yee.
  *
@@ -246,8 +325,7 @@ export default class Tokenizer {
                 }
                 else if (single_quoted.hasOwnProperty(initial) ||
                         single_quoted.hasOwnProperty(token.substring(0, 2)) ||
-                        single_quoted.hasOwnProperty(token.substring(0, 3)))
-                {
+                        single_quoted.hasOwnProperty(token.substring(0, 3))) {
                     if (token[token.length - 1] === '\n') {
                         this.strstart = [this.lnum, start];
                         this.endprog = endprogs[initial] || endprogs[token[1]] || endprogs[token[2]];
@@ -288,101 +366,14 @@ export default class Tokenizer {
 /** @param {...*} x */
 function group(x, arg1?: string, arg2?: string, arg3?: string, arg4?: string, arg5?: string, arg6?: string, arg7?: string, arg8?: string, arg9?: string) {
     var args = Array.prototype.slice.call(arguments);
-    return '(' + args.join('|') + ')'; 
+    return '(' + args.join('|') + ')';
 }
 
 /** @param {...*} x */
-function any(x) { return group.apply(null, arguments) + "*"; }
+// function any(x) { return group.apply(null, arguments) + "*"; }
 
 /** @param {...*} x */
 function maybe(x) { return group.apply(null, arguments) + "?"; }
-
-/* we have to use string and ctor to be able to build patterns up. + on /.../
-    * does something strange. */
-const Whitespace = "[ \\f\\t]*";
-const Comment_ = "#[^\\r\\n]*";
-const Ident = "[a-zA-Z_]\\w*";
-
-const Binnumber = '0[bB][01]*';
-const Hexnumber = '0[xX][\\da-fA-F]*[lL]?';
-const Octnumber = '0[oO]?[0-7]*[lL]?';
-const Decnumber = '[1-9]\\d*[lL]?';
-const Intnumber = group(Binnumber, Hexnumber, Octnumber, Decnumber);
-
-const Exponent = "[eE][-+]?\\d+";
-const Pointfloat = group("\\d+\\.\\d*", "\\.\\d+") + maybe(Exponent);
-const Expfloat = '\\d+' + Exponent;
-const Floatnumber = group(Pointfloat, Expfloat);
-const Imagnumber = group("\\d+[jJ]", Floatnumber + "[jJ]");
-const Number_ = group(Imagnumber, Floatnumber, Intnumber);
-
-// tail end of ' string
-const Single = "^[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
-// tail end of " string
-const Double_= '^[^"\\\\]*(?:\\\\.[^"\\\\]*)*"';
-// tail end of ''' string
-const Single3 = "[^'\\\\]*(?:(?:\\\\.|'(?!''))[^'\\\\]*)*'''";
-// tail end of """ string
-const Double3 = '[^"\\\\]*(?:(?:\\\\.|"(?!""))[^"\\\\]*)*"""';
-const Triple = group("[ubUB]?[rR]?'''", '[ubUB]?[rR]?"""');
-const String_ = group("[uU]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*'",
-        '[uU]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*"');
-
-// Because of leftmost-then-longest match semantics, be sure to put the
-// longest operators first (e.g., if = came before ==, == would get
-// recognized as two instances of =).
-const Operator = group("\\*\\*=?", ">>=?", "<<=?", "<>", "!=",
-                    "//=?", "->",
-                    "[+\\-*/%&|^=<>]=?",
-                    "~");
-
-const Bracket = '[\\][(){}]';
-const Special = group('\\r?\\n', '[:;.,`@]');
-const Funny  = group(Operator, Bracket, Special);
-
-const ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
-                group("'", '\\\\\\r?\\n'),
-                '[uUbB]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*' +
-                group('"', '\\\\\\r?\\n'));
-const PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
-// Need to prefix with "^" as we only want to match what's next
-const PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
-
-let pseudoprog;
-let single3prog;
-let double3prog;
-const endprogs = {};
-
-const triple_quoted = {
-"'''": true, '"""': true,
-"r'''": true, 'r"""': true, "R'''": true, 'R"""': true,
-"u'''": true, 'u"""': true, "U'''": true, 'U"""': true,
-"b'''": true, 'b"""': true, "B'''": true, 'B"""': true,
-"ur'''": true, 'ur"""': true, "Ur'''": true, 'Ur"""': true,
-"uR'''": true, 'uR"""': true, "UR'''": true, 'UR"""': true,
-"br'''": true, 'br"""': true, "Br'''": true, 'Br"""': true,
-"bR'''": true, 'bR"""': true, "BR'''": true, 'BR"""': true
-};
-
-const single_quoted = {
-"'": true, '"': true,
-"r'": true, 'r"': true, "R'": true, 'R"': true,
-"u'": true, 'u"': true, "U'": true, 'U"': true,
-"b'": true, 'b"': true, "B'": true, 'B"': true,
-"ur'": true, 'ur"': true, "Ur'": true, 'Ur"': true,
-"uR'": true, 'uR"': true, "UR'": true, 'UR"': true,
-"br'": true, 'br"': true, "Br'": true, 'Br"': true,
-"bR'": true, 'bR"': true, "BR'": true, 'BR"': true
-};
-
-// hack to make closure keep those objects. not sure what a better way is.
-(function() {
-    for (var k in triple_quoted) {/* */}
-    for (var k in single_quoted) {/* */}
-    }());
-
-
-const tabsize = 8;
 
 function contains(a, obj) {
     var i = a.length;

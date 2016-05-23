@@ -12,7 +12,7 @@ import {SCOPE_OFF} from './SymbolConstants';
 let astScopeCounter = 0;
 
 export default class SymbolTableScope {
-    symFlags;
+    symFlags: { [name: string]: number };
     private name
     private varnames
     children
@@ -28,10 +28,10 @@ export default class SymbolTableScope {
     private table
     private symbols
     private _classMethods;
-    private _funcParams
-    private _funcLocals
-    private _funcGlobals
-    private _funcFrees
+    private _funcParams: string[];
+    private _funcLocals: string[];
+    private _funcGlobals: string[];
+    private _funcFrees: string[];
     /**
      * @constructor
      * @param {Object} table
@@ -80,7 +80,7 @@ export default class SymbolTableScope {
     lookup(name: string) {
         var sym;
         if (!this.symbols.hasOwnProperty(name)) {
-            var flags = this.symFlags[name];
+            const flags = this.symFlags[name];
             var namespaces = this.__check_children(name);
             sym = this.symbols[name] = new Symbol(name, flags, namespaces);
         }
@@ -101,8 +101,8 @@ export default class SymbolTableScope {
         return ret;
     }
 
-    _identsMatching(f) {
-        var ret = [];
+    _identsMatching(f: (flags: number) => boolean): string[] {
+        const ret: string[] = [];
         for (var k in this.symFlags) {
             if (this.symFlags.hasOwnProperty(k)) {
                 if (f(this.symFlags[k]))
@@ -114,43 +114,43 @@ export default class SymbolTableScope {
     }
 
     get_parameters() {
-        assert(this.get_type() == 'function', "get_parameters only valid for function scopes");
+        assert(this.get_type() === 'function', "get_parameters only valid for function scopes");
         if (!this._funcParams)
-            this._funcParams = this._identsMatching(function(x) { return x & DEF_PARAM; });
+            this._funcParams = this._identsMatching(function(x) { return !!(x & DEF_PARAM); });
         return this._funcParams;
     }
 
     get_locals() {
-        assert(this.get_type() == 'function', "get_locals only valid for function scopes");
+        assert(this.get_type() === 'function', "get_locals only valid for function scopes");
         if (!this._funcLocals)
-            this._funcLocals = this._identsMatching(function(x) { return x & DEF_BOUND; });
+            this._funcLocals = this._identsMatching(function(x) { return !!(x & DEF_BOUND); });
         return this._funcLocals;
     }
 
     get_globals() {
-        assert(this.get_type() == 'function', "get_globals only valid for function scopes");
+        assert(this.get_type() === 'function', "get_globals only valid for function scopes");
         if (!this._funcGlobals) {
             this._funcGlobals = this._identsMatching(function(x) {
-                var masked = (x >> SCOPE_OFF) & SCOPE_MASK;
-                return masked == GLOBAL_IMPLICIT || masked == GLOBAL_EXPLICIT;
+                const masked = (x >> SCOPE_OFF) & SCOPE_MASK;
+                return masked === GLOBAL_IMPLICIT || masked === GLOBAL_EXPLICIT;
             });
         }
         return this._funcGlobals;
     }
 
     get_frees() {
-        assert(this.get_type() == 'function', "get_frees only valid for function scopes");
+        assert(this.get_type() === 'function', "get_frees only valid for function scopes");
         if (!this._funcFrees) {
             this._funcFrees = this._identsMatching(function(x) {
                 var masked = (x >> SCOPE_OFF) & SCOPE_MASK;
-                return masked == FREE;
+                return masked === FREE;
             });
         }
         return this._funcFrees;
     }
 
     get_methods() {
-        assert(this.get_type() == 'class', "get_methods only valid for class scopes");
+        assert(this.get_type() === 'class', "get_methods only valid for class scopes");
         if (!this._classMethods) {
             // todo; uniq?
             var all = [];

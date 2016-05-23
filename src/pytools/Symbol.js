@@ -27,7 +27,7 @@ define(["require", "exports", './SymbolConstants', './SymbolConstants', './Symbo
         Symbol.prototype.is_local = function () {
             return !!(this.__flags & SymbolConstants_1.DEF_BOUND);
         };
-        Symbol.prototype.is_free = function () { return this.__scope == SymbolConstants_5.FREE; };
+        Symbol.prototype.is_free = function () { return this.__scope === SymbolConstants_5.FREE; };
         Symbol.prototype.is_imported = function () { return !!(this.__flags & SymbolConstants_2.DEF_IMPORT); };
         Symbol.prototype.is_assigned = function () { return !!(this.__flags & SymbolConstants_3.DEF_LOCAL); };
         Symbol.prototype.is_namespace = function () { return this.__namespaces && this.__namespaces.length > 0; };

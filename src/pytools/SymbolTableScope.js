@@ -74,39 +74,39 @@ define(["require", "exports", './asserts', './Symbol', './SymbolConstants', './S
             return ret;
         };
         SymbolTableScope.prototype.get_parameters = function () {
-            asserts_1.assert(this.get_type() == 'function', "get_parameters only valid for function scopes");
+            asserts_1.assert(this.get_type() === 'function', "get_parameters only valid for function scopes");
             if (!this._funcParams)
-                this._funcParams = this._identsMatching(function (x) { return x & SymbolConstants_1.DEF_PARAM; });
+                this._funcParams = this._identsMatching(function (x) { return !!(x & SymbolConstants_1.DEF_PARAM); });
             return this._funcParams;
         };
         SymbolTableScope.prototype.get_locals = function () {
-            asserts_1.assert(this.get_type() == 'function', "get_locals only valid for function scopes");
+            asserts_1.assert(this.get_type() === 'function', "get_locals only valid for function scopes");
             if (!this._funcLocals)
-                this._funcLocals = this._identsMatching(function (x) { return x & SymbolConstants_2.DEF_BOUND; });
+                this._funcLocals = this._identsMatching(function (x) { return !!(x & SymbolConstants_2.DEF_BOUND); });
             return this._funcLocals;
         };
         SymbolTableScope.prototype.get_globals = function () {
-            asserts_1.assert(this.get_type() == 'function', "get_globals only valid for function scopes");
+            asserts_1.assert(this.get_type() === 'function', "get_globals only valid for function scopes");
             if (!this._funcGlobals) {
                 this._funcGlobals = this._identsMatching(function (x) {
                     var masked = (x >> SymbolConstants_8.SCOPE_OFF) & SymbolConstants_7.SCOPE_MASK;
-                    return masked == SymbolConstants_6.GLOBAL_IMPLICIT || masked == SymbolConstants_5.GLOBAL_EXPLICIT;
+                    return masked === SymbolConstants_6.GLOBAL_IMPLICIT || masked === SymbolConstants_5.GLOBAL_EXPLICIT;
                 });
             }
             return this._funcGlobals;
         };
         SymbolTableScope.prototype.get_frees = function () {
-            asserts_1.assert(this.get_type() == 'function', "get_frees only valid for function scopes");
+            asserts_1.assert(this.get_type() === 'function', "get_frees only valid for function scopes");
             if (!this._funcFrees) {
                 this._funcFrees = this._identsMatching(function (x) {
                     var masked = (x >> SymbolConstants_8.SCOPE_OFF) & SymbolConstants_7.SCOPE_MASK;
-                    return masked == SymbolConstants_3.FREE;
+                    return masked === SymbolConstants_3.FREE;
                 });
             }
             return this._funcFrees;
         };
         SymbolTableScope.prototype.get_methods = function () {
-            asserts_1.assert(this.get_type() == 'class', "get_methods only valid for class scopes");
+            asserts_1.assert(this.get_type() === 'class', "get_methods only valid for class scopes");
             if (!this._classMethods) {
                 // todo; uniq?
                 var all = [];

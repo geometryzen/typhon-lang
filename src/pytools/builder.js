@@ -1,4 +1,4 @@
-define(["require", "exports", './asserts', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './base', './tables', './Tokens', './numericLiteral'], function (require, exports, asserts_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, astnodes_49, astnodes_50, astnodes_51, astnodes_52, astnodes_53, astnodes_54, astnodes_55, astnodes_56, astnodes_57, astnodes_58, astnodes_59, astnodes_60, astnodes_61, astnodes_62, astnodes_63, astnodes_64, astnodes_65, astnodes_66, astnodes_67, astnodes_68, astnodes_69, astnodes_70, astnodes_71, astnodes_72, astnodes_73, astnodes_74, astnodes_75, astnodes_76, astnodes_77, astnodes_78, astnodes_79, astnodes_80, astnodes_81, astnodes_82, astnodes_83, astnodes_84, astnodes_85, astnodes_86, base_1, tables_1, Tokens_1, numericLiteral_1) {
+define(["require", "exports", './asserts', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './base', './tables', './Tokens', './numericLiteral'], function (require, exports, asserts_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, types_51, types_52, types_53, types_54, types_55, types_56, types_57, types_58, types_59, types_60, types_61, types_62, types_63, types_64, types_65, types_66, types_67, types_68, types_69, types_70, types_71, types_72, types_73, types_74, types_75, types_76, types_77, types_78, types_79, types_80, types_81, types_82, types_83, types_84, types_85, types_86, base_1, tables_1, Tokens_1, numericLiteral_1) {
     "use strict";
     //
     // This is pretty much a straight port of ast.c from CPython 2.6.5.
@@ -108,65 +108,65 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
      * per the asdl file.
      */
     function setContext(c, e, ctx, n) {
-        asserts_1.assert(ctx !== astnodes_10.AugStore && ctx !== astnodes_9.AugLoad);
+        asserts_1.assert(ctx !== types_10.AugStore && ctx !== types_9.AugLoad);
         var s = null;
         var exprName = null;
         switch (e.constructor) {
-            case astnodes_7.Attribute:
-            case astnodes_59.Name:
-                if (ctx === astnodes_74.Store)
+            case types_7.Attribute:
+            case types_59.Name:
+                if (ctx === types_74.Store)
                     forbiddenCheck(c, n, e.attr, n.lineno);
                 e.ctx = ctx;
                 break;
-            case astnodes_77.Subscript:
+            case types_77.Subscript:
                 e.ctx = ctx;
                 break;
-            case astnodes_50.List:
+            case types_50.List:
                 e.ctx = ctx;
                 s = e.elts;
                 break;
-            case astnodes_80.Tuple:
+            case types_80.Tuple:
                 if (e.elts.length === 0)
                     throw syntaxError("can't assign to ()", c.c_filename, n.lineno);
                 e.ctx = ctx;
                 s = e.elts;
                 break;
-            case astnodes_49.Lambda:
+            case types_49.Lambda:
                 exprName = "lambda";
                 break;
-            case astnodes_17.Call:
+            case types_17.Call:
                 exprName = "function call";
                 break;
-            case astnodes_15.BoolOp:
-            case astnodes_11.BinOp:
-            case astnodes_82.UnaryOp:
+            case types_15.BoolOp:
+            case types_11.BinOp:
+            case types_82.UnaryOp:
                 exprName = "operator";
                 break;
-            case astnodes_35.GeneratorExp:
+            case types_35.GeneratorExp:
                 exprName = "generator expression";
                 break;
-            case astnodes_86.Yield:
+            case types_86.Yield:
                 exprName = "yield expression";
                 break;
-            case astnodes_51.ListComp:
+            case types_51.ListComp:
                 exprName = "list comprehension";
                 break;
-            case astnodes_24.Dict:
-            case astnodes_64.Num:
-            case astnodes_75.Str:
+            case types_24.Dict:
+            case types_64.Num:
+            case types_75.Str:
                 exprName = "literal";
                 break;
-            case astnodes_19.Compare:
+            case types_19.Compare:
                 exprName = "comparison expression";
                 break;
-            case astnodes_41.IfExp:
+            case types_41.IfExp:
                 exprName = "conditional expression";
                 break;
             default:
                 asserts_1.fail("unhandled expression in assignment");
         }
         if (exprName) {
-            throw syntaxError("can't " + (ctx === astnodes_74.Store ? "assign to" : "delete") + " " + exprName, c.c_filename, n.lineno);
+            throw syntaxError("can't " + (ctx === types_74.Store ? "assign to" : "delete") + " " + exprName, c.c_filename, n.lineno);
         }
         if (s) {
             for (var i = 0; i < s.length; ++i) {
@@ -176,18 +176,18 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
     }
     var operatorMap = {};
     (function () {
-        operatorMap[TOK.T_VBAR] = astnodes_13.BitOr;
-        operatorMap[TOK.T_VBAR] = astnodes_13.BitOr;
-        operatorMap[TOK.T_CIRCUMFLEX] = astnodes_14.BitXor;
-        operatorMap[TOK.T_AMPER] = astnodes_12.BitAnd;
-        operatorMap[TOK.T_LEFTSHIFT] = astnodes_53.LShift;
-        operatorMap[TOK.T_RIGHTSHIFT] = astnodes_72.RShift;
-        operatorMap[TOK.T_PLUS] = astnodes_1.Add;
-        operatorMap[TOK.T_MINUS] = astnodes_76.Sub;
-        operatorMap[TOK.T_STAR] = astnodes_58.Mult;
-        operatorMap[TOK.T_SLASH] = astnodes_25.Div;
-        operatorMap[TOK.T_DOUBLESLASH] = astnodes_32.FloorDiv;
-        operatorMap[TOK.T_PERCENT] = astnodes_56.Mod;
+        operatorMap[TOK.T_VBAR] = types_13.BitOr;
+        operatorMap[TOK.T_VBAR] = types_13.BitOr;
+        operatorMap[TOK.T_CIRCUMFLEX] = types_14.BitXor;
+        operatorMap[TOK.T_AMPER] = types_12.BitAnd;
+        operatorMap[TOK.T_LEFTSHIFT] = types_53.LShift;
+        operatorMap[TOK.T_RIGHTSHIFT] = types_72.RShift;
+        operatorMap[TOK.T_PLUS] = types_1.Add;
+        operatorMap[TOK.T_MINUS] = types_76.Sub;
+        operatorMap[TOK.T_STAR] = types_58.Mult;
+        operatorMap[TOK.T_SLASH] = types_25.Div;
+        operatorMap[TOK.T_DOUBLESLASH] = types_32.FloorDiv;
+        operatorMap[TOK.T_PERCENT] = types_56.Mod;
     }());
     function getOperator(n) {
         asserts_1.assert(operatorMap[n.type] !== undefined);
@@ -201,25 +201,25 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         if (NCH(n) === 1) {
             n = CHILD(n, 0);
             switch (n.type) {
-                case TOK.T_LESS: return astnodes_54.Lt;
-                case TOK.T_GREATER: return astnodes_37.Gt;
-                case TOK.T_EQEQUAL: return astnodes_27.Eq;
-                case TOK.T_LESSEQUAL: return astnodes_55.LtE;
-                case TOK.T_GREATEREQUAL: return astnodes_38.GtE;
-                case TOK.T_NOTEQUAL: return astnodes_62.NotEq;
+                case TOK.T_LESS: return types_54.Lt;
+                case TOK.T_GREATER: return types_37.Gt;
+                case TOK.T_EQEQUAL: return types_27.Eq;
+                case TOK.T_LESSEQUAL: return types_55.LtE;
+                case TOK.T_GREATEREQUAL: return types_38.GtE;
+                case TOK.T_NOTEQUAL: return types_62.NotEq;
                 case TOK.T_NAME:
                     if (n.value === "in")
-                        return astnodes_45.In_;
+                        return types_45.In;
                     if (n.value === "is")
-                        return astnodes_47.Is;
+                        return types_47.Is;
             }
         }
         else if (NCH(n) === 2) {
             if (CHILD(n, 0).type === TOK.T_NAME) {
                 if (CHILD(n, 1).value === "in")
-                    return astnodes_63.NotIn;
+                    return types_63.NotIn;
                 if (CHILD(n, 0).value === "is")
-                    return astnodes_48.IsNot;
+                    return types_48.IsNot;
             }
         }
         asserts_1.fail("invalid comp_op");
@@ -284,13 +284,13 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         REQ(exc, SYM.except_clause);
         REQ(body, SYM.suite);
         if (NCH(exc) === 1)
-            return new astnodes_28.ExceptHandler(null, null, astForSuite(c, body), exc.lineno, exc.col_offset);
+            return new types_28.ExceptHandler(null, null, astForSuite(c, body), exc.lineno, exc.col_offset);
         else if (NCH(exc) === 2)
-            return new astnodes_28.ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.lineno, exc.col_offset);
+            return new types_28.ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.lineno, exc.col_offset);
         else if (NCH(exc) === 4) {
             var e = astForExpr(c, CHILD(exc, 3));
-            setContext(c, e, astnodes_74.Store, CHILD(exc, 3));
-            return new astnodes_28.ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.lineno, exc.col_offset);
+            setContext(c, e, types_74.Store, CHILD(exc, 3));
+            return new types_28.ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.lineno, exc.col_offset);
         }
         asserts_1.fail("wrong number of children for except clause");
     }
@@ -326,7 +326,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             var handlers = [];
             for (var i = 0; i < nexcept; ++i)
                 handlers[i] = astForExceptClause(c, CHILD(n, 3 + i * 3), CHILD(n, 5 + i * 3));
-            var exceptSt = new astnodes_78.TryExcept(body, handlers, orelse, n.lineno, n.col_offset);
+            var exceptSt = new types_78.TryExcept(body, handlers, orelse, n.lineno, n.col_offset);
             if (!finally_)
                 return exceptSt;
             /* if a 'finally' is present too, we nest the TryExcept within a
@@ -334,17 +334,17 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             body = [exceptSt];
         }
         asserts_1.assert(finally_ !== null);
-        return new astnodes_79.TryFinally(body, finally_, n.lineno, n.col_offset);
+        return new types_79.TryFinally(body, finally_, n.lineno, n.col_offset);
     }
     function astForDottedName(c, n) {
         REQ(n, SYM.dotted_name);
         var lineno = n.lineno;
         var col_offset = n.col_offset;
         var id = strobj(CHILD(n, 0).value);
-        var e = new astnodes_59.Name(id, astnodes_52.Load, lineno, col_offset);
+        var e = new types_59.Name(id, types_52.Load, lineno, col_offset);
         for (var i = 2; i < NCH(n); i += 2) {
             id = strobj(CHILD(n, i).value);
-            e = new astnodes_7.Attribute(e, id, astnodes_52.Load, lineno, col_offset);
+            e = new types_7.Attribute(e, id, types_52.Load, lineno, col_offset);
         }
         return e;
     }
@@ -357,7 +357,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         if (NCH(n) === 3)
             return nameExpr;
         else if (NCH(n) === 5)
-            return new astnodes_17.Call(nameExpr, [], [], null, null, n.lineno, n.col_offset);
+            return new types_17.Call(nameExpr, [], [], null, null, n.lineno, n.col_offset);
         else
             return astForCall(c, CHILD(n, 3), nameExpr);
     }
@@ -394,10 +394,10 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         var contextExpr = astForExpr(c, CHILD(n, 1));
         if (CHILD(n, 2).type === SYM.with_var) {
             var optionalVars = astForWithVar(c, CHILD(n, 2));
-            setContext(c, optionalVars, astnodes_74.Store, n);
+            setContext(c, optionalVars, types_74.Store, n);
             suiteIndex = 4;
         }
-        return new astnodes_85.With_(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
+        return new types_85.WithStatement(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
     }
     function astForExecStmt(c, n) {
         var globals = null, locals = null;
@@ -410,7 +410,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             globals = astForExpr(c, CHILD(n, 3));
         if (nchildren === 6)
             locals = astForExpr(c, CHILD(n, 5));
-        return new astnodes_29.Exec(expr1, globals, locals, n.lineno, n.col_offset);
+        return new types_29.Exec(expr1, globals, locals, n.lineno, n.col_offset);
     }
     function astForIfStmt(c, n) {
         /* if_stmt: 'if' test ':' suite ('elif' test ':' suite)*
@@ -418,11 +418,11 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         */
         REQ(n, SYM.if_stmt);
         if (NCH(n) === 4)
-            return new astnodes_40.If_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
+            return new types_40.IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
         var s = CHILD(n, 4).value;
         var decider = s.charAt(2); // elSe or elIf
         if (decider === 's') {
-            return new astnodes_40.If_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
+            return new types_40.IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
         }
         else if (decider === 'i') {
             var nElif = NCH(n) - 4;
@@ -437,15 +437,15 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             nElif /= 4;
             if (hasElse) {
                 orelse = [
-                    new astnodes_40.If_(astForExpr(c, CHILD(n, NCH(n) - 6)), astForSuite(c, CHILD(n, NCH(n) - 4)), astForSuite(c, CHILD(n, NCH(n) - 1)), CHILD(n, NCH(n) - 6).lineno, CHILD(n, NCH(n) - 6).col_offset)];
+                    new types_40.IfStatement(astForExpr(c, CHILD(n, NCH(n) - 6)), astForSuite(c, CHILD(n, NCH(n) - 4)), astForSuite(c, CHILD(n, NCH(n) - 1)), CHILD(n, NCH(n) - 6).lineno, CHILD(n, NCH(n) - 6).col_offset)];
                 nElif--;
             }
             for (var i = 0; i < nElif; ++i) {
                 var off = 5 + (nElif - i - 1) * 4;
                 orelse = [
-                    new astnodes_40.If_(astForExpr(c, CHILD(n, off)), astForSuite(c, CHILD(n, off + 2)), orelse, CHILD(n, off).lineno, CHILD(n, off).col_offset)];
+                    new types_40.IfStatement(astForExpr(c, CHILD(n, off)), astForSuite(c, CHILD(n, off + 2)), orelse, CHILD(n, off).lineno, CHILD(n, off).col_offset)];
             }
-            return new astnodes_40.If_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), orelse, n.lineno, n.col_offset);
+            return new types_40.IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), orelse, n.lineno, n.col_offset);
         }
         asserts_1.fail("unexpected token in 'if' statement");
     }
@@ -462,7 +462,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
     }
     function astForDelStmt(c, n) {
         REQ(n, SYM.del_stmt);
-        return new astnodes_23.Delete_(astForExprlist(c, CHILD(n, 1), astnodes_22.Del), n.lineno, n.col_offset);
+        return new types_23.DeleteExpression(astForExprlist(c, CHILD(n, 1), types_22.Del), n.lineno, n.col_offset);
     }
     function astForGlobalStmt(c, n) {
         REQ(n, SYM.GlobalStmt);
@@ -470,7 +470,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         for (var i = 1; i < NCH(n); i += 2) {
             s[(i - 1) / 2] = strobj(CHILD(n, i).value);
         }
-        return new astnodes_36.Global(s, n.lineno, n.col_offset);
+        return new types_36.Global(s, n.lineno, n.col_offset);
     }
     function astForNonLocalStmt(c, n) {
         REQ(n, SYM.NonLocalStmt);
@@ -478,15 +478,15 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         for (var i = 1; i < NCH(n); i += 2) {
             s[(i - 1) / 2] = strobj(CHILD(n, i).value);
         }
-        return new astnodes_60.NonLocal(s, n.lineno, n.col_offset);
+        return new types_60.NonLocal(s, n.lineno, n.col_offset);
     }
     function astForAssertStmt(c, n) {
         /* assert_stmt: 'assert' test [',' test] */
         REQ(n, SYM.assert_stmt);
         if (NCH(n) === 2)
-            return new astnodes_5.Assert(astForExpr(c, CHILD(n, 1)), null, n.lineno, n.col_offset);
+            return new types_5.Assert(astForExpr(c, CHILD(n, 1)), null, n.lineno, n.col_offset);
         else if (NCH(n) === 4)
-            return new astnodes_5.Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.lineno, n.col_offset);
+            return new types_5.Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.lineno, n.col_offset);
         asserts_1.fail("improper number of parts to assert stmt");
     }
     function aliasForImportName(c, n) {
@@ -502,7 +502,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                     var name_1 = strobj(CHILD(n, 0).value);
                     if (NCH(n) === 3)
                         str = CHILD(n, 2).value;
-                    return new astnodes_2.alias(name_1, str == null ? null : strobj(str));
+                    return new types_2.Alias(name_1, str == null ? null : strobj(str));
                 case SYM.dotted_as_name:
                     if (NCH(n) === 1) {
                         n = CHILD(n, 0);
@@ -516,16 +516,16 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                     }
                 case SYM.dotted_name:
                     if (NCH(n) === 1)
-                        return new astnodes_2.alias(strobj(CHILD(n, 0).value), null);
+                        return new types_2.Alias(strobj(CHILD(n, 0).value), null);
                     else {
                         // create a string of the form a.b.c
                         var str_1 = '';
                         for (var i = 0; i < NCH(n); i += 2)
                             str_1 += CHILD(n, i).value + ".";
-                        return new astnodes_2.alias(strobj(str_1.substr(0, str_1.length - 1)), null);
+                        return new types_2.Alias(strobj(str_1.substr(0, str_1.length - 1)), null);
                     }
                 case TOK.T_STAR:
-                    return new astnodes_2.alias(strobj("*"), null);
+                    return new types_2.Alias(strobj("*"), null);
                 default:
                     throw syntaxError("unexpected import name", c.c_filename, n.lineno);
             }
@@ -542,7 +542,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             var aliases = [];
             for (var i = 0; i < NCH(n); i += 2)
                 aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
-            return new astnodes_42.Import_(aliases, lineno, col_offset);
+            return new types_42.ImportStatement(aliases, lineno, col_offset);
         }
         else if (n.type === SYM.import_from) {
             var mod = null;
@@ -587,7 +587,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 for (var i = 0; i < NCH(n); i += 2)
                     aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
             var modname = mod ? mod.name : "";
-            return new astnodes_43.ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
+            return new types_43.ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
         }
         throw syntaxError("unknown import statement", c.c_filename, n.lineno);
     }
@@ -649,13 +649,13 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         for (var i = 0; i < nfors; ++i) {
             REQ(ch, SYM.list_for);
             var forch = CHILD(ch, 1);
-            var t = astForExprlist(c, forch, astnodes_74.Store);
+            var t = astForExprlist(c, forch, types_74.Store);
             var expression = astForTestlist(c, CHILD(ch, 3));
             var lc;
             if (NCH(forch) === 1)
-                lc = new astnodes_20.comprehension(t[0], expression, []);
+                lc = new types_20.Comprehension(t[0], expression, []);
             else
-                lc = new astnodes_20.comprehension(new astnodes_80.Tuple(t, astnodes_74.Store, ch.lineno, ch.col_offset), expression, []);
+                lc = new types_20.Comprehension(new types_80.Tuple(t, types_74.Store, ch.lineno, ch.col_offset), expression, []);
             if (NCH(ch) === 5) {
                 ch = CHILD(ch, 4);
                 var nifs = countListIfs(c, ch);
@@ -674,7 +674,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             }
             listcomps[i] = lc;
         }
-        return new astnodes_51.ListComp(elt, listcomps, n.lineno, n.col_offset);
+        return new types_51.ListComp(elt, listcomps, n.lineno, n.col_offset);
     }
     function astForUnaryExpr(c, n) {
         if (CHILD(n, 0).type === TOK.T_MINUS && NCH(n) === 2) {
@@ -695,9 +695,9 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         }
         var expression = astForExpr(c, CHILD(n, 1));
         switch (CHILD(n, 0).type) {
-            case TOK.T_PLUS: return new astnodes_82.UnaryOp(astnodes_81.UAdd, expression, n.lineno, n.col_offset);
-            case TOK.T_MINUS: return new astnodes_82.UnaryOp(astnodes_83.USub, expression, n.lineno, n.col_offset);
-            case TOK.T_TILDE: return new astnodes_82.UnaryOp(astnodes_46.Invert, expression, n.lineno, n.col_offset);
+            case TOK.T_PLUS: return new types_82.UnaryOp(types_81.UAdd, expression, n.lineno, n.col_offset);
+            case TOK.T_MINUS: return new types_82.UnaryOp(types_83.USub, expression, n.lineno, n.col_offset);
+            case TOK.T_TILDE: return new types_82.UnaryOp(types_46.Invert, expression, n.lineno, n.col_offset);
         }
         asserts_1.fail("unhandled UnaryExpr");
     }
@@ -707,13 +707,13 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         if (NCH(n) === 9)
             seq = astForSuite(c, CHILD(n, 8));
         var nodeTarget = CHILD(n, 1);
-        var _target = astForExprlist(c, nodeTarget, astnodes_74.Store);
+        var _target = astForExprlist(c, nodeTarget, types_74.Store);
         var target;
         if (NCH(nodeTarget) === 1)
             target = _target[0];
         else
-            target = new astnodes_80.Tuple(_target, astnodes_74.Store, n.lineno, n.col_offset);
-        return new astnodes_33.For_(target, astForTestlist(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 5)), seq, n.lineno, n.col_offset);
+            target = new types_80.Tuple(_target, types_74.Store, n.lineno, n.col_offset);
+        return new types_33.ForStatement(target, astForTestlist(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 5)), seq, n.lineno, n.col_offset);
     }
     function astForCall(c, n, func) {
         /*
@@ -760,9 +760,9 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                     args[nargs++] = astForGenexp(c, ch);
                 else {
                     var e = astForExpr(c, CHILD(ch, 0));
-                    if (e.constructor === astnodes_49.Lambda)
+                    if (e.constructor === types_49.Lambda)
                         throw syntaxError("lambda cannot contain assignment", c.c_filename, n.lineno);
-                    else if (e.constructor !== astnodes_59.Name)
+                    else if (e.constructor !== types_59.Name)
                         throw syntaxError("keyword can't be an expression", c.c_filename, n.lineno);
                     var key = e.id;
                     forbiddenCheck(c, CHILD(ch, 0), key, n.lineno);
@@ -771,7 +771,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                         if (tmp === key)
                             throw syntaxError("keyword argument repeated", c.c_filename, n.lineno);
                     }
-                    keywords[nkeywords++] = new astnodes_39.keyword(key, astForExpr(c, CHILD(ch, 2)));
+                    keywords[nkeywords++] = new types_39.Keyword(key, astForExpr(c, CHILD(ch, 2)));
                 }
             }
             else if (ch.type === TOK.T_STAR)
@@ -779,7 +779,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             else if (ch.type === TOK.T_DOUBLESTAR)
                 kwarg = astForExpr(c, CHILD(n, ++i));
         }
-        return new astnodes_17.Call(func, args, keywords, vararg, kwarg, func.lineno, func.col_offset);
+        return new types_17.Call(func, args, keywords, vararg, kwarg, func.lineno, func.col_offset);
     }
     function astForTrailer(c, n, leftExpr) {
         /* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
@@ -789,18 +789,18 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         REQ(n, SYM.trailer);
         if (CHILD(n, 0).type === TOK.T_LPAR) {
             if (NCH(n) === 2)
-                return new astnodes_17.Call(leftExpr, [], [], null, null, n.lineno, n.col_offset);
+                return new types_17.Call(leftExpr, [], [], null, null, n.lineno, n.col_offset);
             else
                 return astForCall(c, CHILD(n, 1), leftExpr);
         }
         else if (CHILD(n, 0).type === TOK.T_DOT)
-            return new astnodes_7.Attribute(leftExpr, strobj(CHILD(n, 1).value), astnodes_52.Load, n.lineno, n.col_offset);
+            return new types_7.Attribute(leftExpr, strobj(CHILD(n, 1).value), types_52.Load, n.lineno, n.col_offset);
         else {
             REQ(CHILD(n, 0), TOK.T_LSQB);
             REQ(CHILD(n, 2), TOK.T_RSQB);
             n = CHILD(n, 1);
             if (NCH(n) === 1)
-                return new astnodes_77.Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), astnodes_52.Load, n.lineno, n.col_offset);
+                return new types_77.Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), types_52.Load, n.lineno, n.col_offset);
             else {
                 /* The grammar is ambiguous here. The ambiguity is resolved
                     by treating the sequence as a tuple literal if there are
@@ -810,21 +810,21 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 var slices = [];
                 for (var j = 0; j < NCH(n); j += 2) {
                     var slc = astForSlice(c, CHILD(n, j));
-                    if (slc.constructor !== astnodes_44.Index)
+                    if (slc.constructor !== types_44.Index)
                         simple = false;
                     slices[j / 2] = slc;
                 }
                 if (!simple) {
-                    return new astnodes_77.Subscript(leftExpr, new astnodes_31.ExtSlice(slices), astnodes_52.Load, n.lineno, n.col_offset);
+                    return new types_77.Subscript(leftExpr, new types_31.ExtSlice(slices), types_52.Load, n.lineno, n.col_offset);
                 }
                 var elts = [];
                 for (var j = 0; j < slices.length; ++j) {
                     var slc_1 = slices[j];
-                    asserts_1.assert(slc_1.constructor === astnodes_44.Index && slc_1.value !== null && slc_1.value !== undefined);
+                    asserts_1.assert(slc_1.constructor === types_44.Index && slc_1.value !== null && slc_1.value !== undefined);
                     elts[j] = slc_1.value;
                 }
-                var e = new astnodes_80.Tuple(elts, astnodes_52.Load, n.lineno, n.col_offset);
-                return new astnodes_77.Subscript(leftExpr, new astnodes_44.Index(e), astnodes_52.Load, n.lineno, n.col_offset);
+                var e = new types_80.Tuple(elts, types_52.Load, n.lineno, n.col_offset);
+                return new types_77.Subscript(leftExpr, new types_44.Index(e), types_52.Load, n.lineno, n.col_offset);
             }
         }
     }
@@ -833,24 +833,24 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         REQ(n, SYM.flow_stmt);
         ch = CHILD(n, 0);
         switch (ch.type) {
-            case SYM.break_stmt: return new astnodes_16.Break_(n.lineno, n.col_offset);
-            case SYM.continue_stmt: return new astnodes_21.Continue_(n.lineno, n.col_offset);
+            case SYM.break_stmt: return new types_16.BreakStatement(n.lineno, n.col_offset);
+            case SYM.continue_stmt: return new types_21.ContinueStatement(n.lineno, n.col_offset);
             case SYM.yield_stmt:
-                return new astnodes_30.Expr(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
+                return new types_30.Expr(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
             case SYM.return_stmt:
                 if (NCH(ch) === 1)
-                    return new astnodes_71.Return_(null, n.lineno, n.col_offset);
+                    return new types_71.ReturnStatement(null, n.lineno, n.col_offset);
                 else
-                    return new astnodes_71.Return_(astForTestlist(c, CHILD(ch, 1)), n.lineno, n.col_offset);
+                    return new types_71.ReturnStatement(astForTestlist(c, CHILD(ch, 1)), n.lineno, n.col_offset);
             case SYM.raise_stmt:
                 if (NCH(ch) === 1)
-                    return new astnodes_70.Raise(null, null, null, n.lineno, n.col_offset);
+                    return new types_70.Raise(null, null, null, n.lineno, n.col_offset);
                 else if (NCH(ch) === 2)
-                    return new astnodes_70.Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.lineno, n.col_offset);
+                    return new types_70.Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.lineno, n.col_offset);
                 else if (NCH(ch) === 4)
-                    return new astnodes_70.Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), null, n.lineno, n.col_offset);
+                    return new types_70.Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), null, n.lineno, n.col_offset);
                 else if (NCH(ch) === 6)
-                    return new astnodes_70.Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), astForExpr(c, CHILD(ch, 5)), n.lineno, n.col_offset);
+                    return new types_70.Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), astForExpr(c, CHILD(ch, 5)), n.lineno, n.col_offset);
             default:
                 asserts_1.fail("unexpected flow_stmt");
         }
@@ -866,7 +866,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         var kwarg = null;
         if (n.type === SYM.parameters) {
             if (NCH(n) === 2)
-                return new astnodes_3.arguments_([], null, null, []);
+                return new types_3.Arguments([], null, null, []);
             n = CHILD(n, 1);
         }
         REQ(n, SYM.varargslist);
@@ -917,7 +917,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                         if (CHILD(ch, 0).type === TOK.T_NAME) {
                             forbiddenCheck(c, n, CHILD(ch, 0).value, n.lineno);
                             var id = strobj(CHILD(ch, 0).value);
-                            args[k++] = new astnodes_59.Name(id, astnodes_66.Param, ch.lineno, ch.col_offset);
+                            args[k++] = new types_59.Name(id, types_66.Param, ch.lineno, ch.col_offset);
                         }
                         i += 2;
                         if (parenthesized)
@@ -939,7 +939,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                     asserts_1.fail("unexpected node in varargslist");
             }
         }
-        return new astnodes_3.arguments_(args, vararg, kwarg, defaults);
+        return new types_3.Arguments(args, vararg, kwarg, defaults);
     }
     function astForFuncdef(c, n, decoratorSeq) {
         /* funcdef: 'def' NAME parameters ':' suite */
@@ -948,7 +948,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         forbiddenCheck(c, CHILD(n, 1), CHILD(n, 1).value, n.lineno);
         var args = astForArguments(c, CHILD(n, 2));
         var body = astForSuite(c, CHILD(n, 4));
-        return new astnodes_34.FunctionDef(name, args, body, decoratorSeq, n.lineno, n.col_offset);
+        return new types_34.FunctionDef(name, args, body, decoratorSeq, n.lineno, n.col_offset);
     }
     function astForClassBases(c, n) {
         asserts_1.assert(NCH(n) > 0);
@@ -962,25 +962,25 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         forbiddenCheck(c, n, CHILD(n, 1).value, n.lineno);
         var classname = strobj(CHILD(n, 1).value);
         if (NCH(n) === 4)
-            return new astnodes_18.ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.lineno, n.col_offset);
+            return new types_18.ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.lineno, n.col_offset);
         if (CHILD(n, 3).type === TOK.T_RPAR)
-            return new astnodes_18.ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.lineno, n.col_offset);
+            return new types_18.ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.lineno, n.col_offset);
         var bases = astForClassBases(c, CHILD(n, 3));
         var s = astForSuite(c, CHILD(n, 6));
-        return new astnodes_18.ClassDef(classname, bases, s, decoratorSeq, n.lineno, n.col_offset);
+        return new types_18.ClassDef(classname, bases, s, decoratorSeq, n.lineno, n.col_offset);
     }
     function astForLambdef(c, n) {
         var args;
         var expression;
         if (NCH(n) === 3) {
-            args = new astnodes_3.arguments_([], null, null, []);
+            args = new types_3.Arguments([], null, null, []);
             expression = astForExpr(c, CHILD(n, 2));
         }
         else {
             args = astForArguments(c, CHILD(n, 1));
             expression = astForExpr(c, CHILD(n, 3));
         }
-        return new astnodes_49.Lambda(args, expression, n.lineno, n.col_offset);
+        return new types_49.Lambda(args, expression, n.lineno, n.col_offset);
     }
     function astForGenexp(c, n) {
         /* testlist_gexp: test ( gen_for | (',' test)* [','] )
@@ -1037,13 +1037,13 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         for (var i = 0; i < nfors; ++i) {
             REQ(ch, SYM.gen_for);
             var forch = CHILD(ch, 1);
-            var t = astForExprlist(c, forch, astnodes_74.Store);
+            var t = astForExprlist(c, forch, types_74.Store);
             var expression = astForExpr(c, CHILD(ch, 3));
             var ge;
             if (NCH(forch) === 1)
-                ge = new astnodes_20.comprehension(t[0], expression, []);
+                ge = new types_20.Comprehension(t[0], expression, []);
             else
-                ge = new astnodes_20.comprehension(new astnodes_80.Tuple(t, astnodes_74.Store, ch.lineno, ch.col_offset), expression, []);
+                ge = new types_20.Comprehension(new types_80.Tuple(t, types_74.Store, ch.lineno, ch.col_offset), expression, []);
             if (NCH(ch) === 5) {
                 ch = CHILD(ch, 4);
                 var nifs = countGenIfs(c, ch);
@@ -1063,37 +1063,37 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             }
             genexps[i] = ge;
         }
-        return new astnodes_35.GeneratorExp(elt, genexps, n.lineno, n.col_offset);
+        return new types_35.GeneratorExp(elt, genexps, n.lineno, n.col_offset);
     }
     function astForWhileStmt(c, n) {
         /* while_stmt: 'while' test ':' suite ['else' ':' suite] */
         REQ(n, SYM.while_stmt);
         if (NCH(n) === 4)
-            return new astnodes_84.While_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
+            return new types_84.WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
         else if (NCH(n) === 7)
-            return new astnodes_84.While_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
+            return new types_84.WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
         asserts_1.fail("wrong number of tokens for 'while' stmt");
     }
     function astForAugassign(c, n) {
         REQ(n, SYM.augassign);
         n = CHILD(n, 0);
         switch (n.value.charAt(0)) {
-            case '+': return astnodes_1.Add;
-            case '-': return astnodes_76.Sub;
+            case '+': return types_1.Add;
+            case '-': return types_76.Sub;
             case '/':
                 if (n.value.charAt(1) === '/')
-                    return astnodes_32.FloorDiv;
-                return astnodes_25.Div;
-            case '%': return astnodes_56.Mod;
-            case '<': return astnodes_53.LShift;
-            case '>': return astnodes_72.RShift;
-            case '&': return astnodes_12.BitAnd;
-            case '^': return astnodes_14.BitXor;
-            case '|': return astnodes_13.BitOr;
+                    return types_32.FloorDiv;
+                return types_25.Div;
+            case '%': return types_56.Mod;
+            case '<': return types_53.LShift;
+            case '>': return types_72.RShift;
+            case '&': return types_12.BitAnd;
+            case '^': return types_14.BitXor;
+            case '|': return types_13.BitOr;
             case '*':
                 if (n.value.charAt(1) === '*')
-                    return astnodes_68.Pow;
-                return astnodes_58.Mult;
+                    return types_68.Pow;
+                return types_58.Mult;
             default: asserts_1.fail("invalid augassign");
         }
     }
@@ -1102,13 +1102,13 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             How should A op B op C by represented?
             BinOp(BinOp(A, op, B), op, C).
         */
-        var result = new astnodes_11.BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.lineno, n.col_offset);
+        var result = new types_11.BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.lineno, n.col_offset);
         var nops = (NCH(n) - 1) / 2;
         for (var i = 1; i < nops; ++i) {
             var nextOper = CHILD(n, i * 2 + 1);
             var newoperator = getOperator(nextOper);
             var tmp = astForExpr(c, CHILD(n, i * 2 + 2));
-            result = new astnodes_11.BinOp(result, newoperator, tmp, nextOper.lineno, nextOper.col_offset);
+            result = new types_11.BinOp(result, newoperator, tmp, nextOper.lineno, nextOper.col_offset);
         }
         return result;
     }
@@ -1130,37 +1130,37 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             return astForExpr(c, CHILD(n, 0));
         }
         else {
-            return new astnodes_80.Tuple(seqForTestlist(c, n), astnodes_52.Load, n.lineno, n.col_offset);
+            return new types_80.Tuple(seqForTestlist(c, n), types_52.Load, n.lineno, n.col_offset);
         }
     }
     function astForExprStmt(c, n) {
         REQ(n, SYM.ExprStmt);
         if (NCH(n) === 1)
-            return new astnodes_30.Expr(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
+            return new types_30.Expr(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
         else if (CHILD(n, 1).type === SYM.augassign) {
             var ch = CHILD(n, 0);
             var expr1 = astForTestlist(c, ch);
             switch (expr1.constructor) {
-                case astnodes_35.GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", c.c_filename, n.lineno);
-                case astnodes_86.Yield: throw syntaxError("augmented assignment to yield expression not possible", c.c_filename, n.lineno);
-                case astnodes_59.Name:
+                case types_35.GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", c.c_filename, n.lineno);
+                case types_86.Yield: throw syntaxError("augmented assignment to yield expression not possible", c.c_filename, n.lineno);
+                case types_59.Name:
                     var varName = expr1.id;
                     forbiddenCheck(c, ch, varName, n.lineno);
                     break;
-                case astnodes_7.Attribute:
-                case astnodes_77.Subscript:
+                case types_7.Attribute:
+                case types_77.Subscript:
                     break;
                 default:
                     throw syntaxError("illegal expression for augmented assignment", c.c_filename, n.lineno);
             }
-            setContext(c, expr1, astnodes_74.Store, ch);
+            setContext(c, expr1, types_74.Store, ch);
             ch = CHILD(n, 2);
             var expr2;
             if (ch.type === SYM.testlist)
                 expr2 = astForTestlist(c, ch);
             else
                 expr2 = astForExpr(c, ch);
-            return new astnodes_8.AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.lineno, n.col_offset);
+            return new types_8.AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.lineno, n.col_offset);
         }
         else {
             // normal assignment
@@ -1171,7 +1171,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 if (ch.type === SYM.YieldExpr)
                     throw syntaxError("assignment to yield expression not possible", c.c_filename, n.lineno);
                 var e = astForTestlist(c, ch);
-                setContext(c, e, astnodes_74.Store, CHILD(n, i));
+                setContext(c, e, types_74.Store, CHILD(n, i));
                 targets[i / 2] = e;
             }
             var value = CHILD(n, NCH(n) - 1);
@@ -1180,12 +1180,12 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 expression = astForTestlist(c, value);
             else
                 expression = astForExpr(c, value);
-            return new astnodes_6.Assign(targets, expression, n.lineno, n.col_offset);
+            return new types_6.Assign(targets, expression, n.lineno, n.col_offset);
         }
     }
     function astForIfexpr(c, n) {
         asserts_1.assert(NCH(n) === 5);
-        return new astnodes_41.IfExp(astForExpr(c, CHILD(n, 2)), astForExpr(c, CHILD(n, 0)), astForExpr(c, CHILD(n, 4)), n.lineno, n.col_offset);
+        return new types_41.IfExp(astForExpr(c, CHILD(n, 2)), astForExpr(c, CHILD(n, 0)), astForExpr(c, CHILD(n, 4)), n.lineno, n.col_offset);
     }
     // escape() was deprecated in JavaScript 1.5. Use encodeURI or encodeURIComponent instead.
     function escape(s) {
@@ -1377,9 +1377,9 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         var upper = null;
         var step = null;
         if (ch.type === TOK.T_DOT)
-            return new astnodes_26.Ellipsis();
+            return new types_26.Ellipsis();
         if (NCH(n) === 1 && ch.type === SYM.IfExpr)
-            return new astnodes_44.Index(astForExpr(c, ch));
+            return new types_44.Index(astForExpr(c, ch));
         if (ch.type === SYM.IfExpr)
             lower = astForExpr(c, ch);
         if (ch.type === TOK.T_COLON) {
@@ -1398,7 +1398,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         if (ch.type === SYM.sliceop) {
             if (NCH(ch) === 1) {
                 ch = CHILD(ch, 0);
-                step = new astnodes_59.Name(strobj("None"), astnodes_52.Load, ch.lineno, ch.col_offset);
+                step = new types_59.Name(strobj("None"), types_52.Load, ch.lineno, ch.col_offset);
             }
             else {
                 ch = CHILD(ch, 1);
@@ -1406,22 +1406,22 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                     step = astForExpr(c, ch);
             }
         }
-        return new astnodes_73.Slice(lower, upper, step);
+        return new types_73.Slice(lower, upper, step);
     }
     function astForAtomExpr(c, n) {
         var ch = CHILD(n, 0);
         switch (ch.type) {
             case TOK.T_NAME:
                 // All names start in Load context, but may be changed later
-                return new astnodes_59.Name(strobj(ch.value), astnodes_52.Load, n.lineno, n.col_offset);
+                return new types_59.Name(strobj(ch.value), types_52.Load, n.lineno, n.col_offset);
             case TOK.T_STRING:
-                return new astnodes_75.Str(parsestrplus(c, n), n.lineno, n.col_offset);
+                return new types_75.Str(parsestrplus(c, n), n.lineno, n.col_offset);
             case TOK.T_NUMBER:
-                return new astnodes_64.Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
+                return new types_64.Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
             case TOK.T_LPAR:
                 ch = CHILD(n, 1);
                 if (ch.type === TOK.T_RPAR)
-                    return new astnodes_80.Tuple([], astnodes_52.Load, n.lineno, n.col_offset);
+                    return new types_80.Tuple([], types_52.Load, n.lineno, n.col_offset);
                 if (ch.type === SYM.YieldExpr)
                     return astForExpr(c, ch);
                 if (NCH(ch) > 1 && CHILD(ch, 1).type === SYM.gen_for)
@@ -1430,10 +1430,10 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             case TOK.T_LSQB:
                 ch = CHILD(n, 1);
                 if (ch.type === TOK.T_RSQB)
-                    return new astnodes_50.List([], astnodes_52.Load, n.lineno, n.col_offset);
+                    return new types_50.List([], types_52.Load, n.lineno, n.col_offset);
                 REQ(ch, SYM.listmaker);
                 if (NCH(ch) === 1 || CHILD(ch, 1).type === TOK.T_COMMA)
-                    return new astnodes_50.List(seqForTestlist(c, ch), astnodes_52.Load, n.lineno, n.col_offset);
+                    return new types_50.List(seqForTestlist(c, ch), types_52.Load, n.lineno, n.col_offset);
                 else
                     return astForListcomp(c, ch);
             case TOK.T_LBRACE:
@@ -1446,7 +1446,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                     keys[i / 4] = astForExpr(c, CHILD(ch, i));
                     values[i / 4] = astForExpr(c, CHILD(ch, i + 2));
                 }
-                return new astnodes_24.Dict(keys, values, n.lineno, n.col_offset);
+                return new types_24.Dict(keys, values, n.lineno, n.col_offset);
             case TOK.T_BACKQUOTE:
                 throw syntaxError("backquote not supported, use repr()", c.c_filename, n.lineno);
             default:
@@ -1469,7 +1469,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         }
         if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr) {
             var f = astForExpr(c, CHILD(n, NCH(n) - 1));
-            e = new astnodes_11.BinOp(e, astnodes_68.Pow, f, n.lineno, n.col_offset);
+            e = new types_11.BinOp(e, types_68.Pow, f, n.lineno, n.col_offset);
         }
         return e;
     }
@@ -1493,16 +1493,16 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                     for (var i = 0; i < NCH(n); i += 2)
                         seq[i / 2] = astForExpr(c, CHILD(n, i));
                     if (CHILD(n, 1).value === "and")
-                        return new astnodes_15.BoolOp(astnodes_4.And, seq, n.lineno, n.col_offset);
+                        return new types_15.BoolOp(types_4.And, seq, n.lineno, n.col_offset);
                     asserts_1.assert(CHILD(n, 1).value === "or");
-                    return new astnodes_15.BoolOp(astnodes_65.Or, seq, n.lineno, n.col_offset);
+                    return new types_15.BoolOp(types_65.Or, seq, n.lineno, n.col_offset);
                 case SYM.NotExpr:
                     if (NCH(n) === 1) {
                         n = CHILD(n, 0);
                         continue LOOP;
                     }
                     else {
-                        return new astnodes_82.UnaryOp(astnodes_61.Not, astForExpr(c, CHILD(n, 1)), n.lineno, n.col_offset);
+                        return new types_82.UnaryOp(types_61.Not, astForExpr(c, CHILD(n, 1)), n.lineno, n.col_offset);
                     }
                 case SYM.ComparisonExpr:
                     if (NCH(n) === 1) {
@@ -1516,7 +1516,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                             ops[(i - 1) / 2] = astForCompOp(c, CHILD(n, i));
                             cmps[(i - 1) / 2] = astForExpr(c, CHILD(n, i + 1));
                         }
-                        return new astnodes_19.Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.lineno, n.col_offset);
+                        return new types_19.Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.lineno, n.col_offset);
                     }
                 case SYM.ArithmeticExpr:
                 case SYM.GeometricExpr:
@@ -1534,7 +1534,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                     if (NCH(n) === 2) {
                         exp = astForTestlist(c, CHILD(n, 1));
                     }
-                    return new astnodes_86.Yield(exp, n.lineno, n.col_offset);
+                    return new types_86.Yield(exp, n.lineno, n.col_offset);
                 case SYM.UnaryExpr:
                     if (NCH(n) === 1) {
                         n = CHILD(n, 0);
@@ -1562,7 +1562,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             seq[j] = astForExpr(c, CHILD(n, i));
         }
         var nl = (CHILD(n, NCH(n) - 1)).type === TOK.T_COMMA ? false : true;
-        return new astnodes_69.Print(dest, seq, nl, n.lineno, n.col_offset);
+        return new types_69.Print(dest, seq, nl, n.lineno, n.col_offset);
     }
     function astForStmt(c, n) {
         if (n.type === SYM.stmt) {
@@ -1580,7 +1580,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 case SYM.ExprStmt: return astForExprStmt(c, n);
                 case SYM.print_stmt: return astForPrintStmt(c, n);
                 case SYM.del_stmt: return astForDelStmt(c, n);
-                case SYM.pass_stmt: return new astnodes_67.Pass(n.lineno, n.col_offset);
+                case SYM.pass_stmt: return new types_67.Pass(n.lineno, n.col_offset);
                 case SYM.flow_stmt: return astForFlowStmt(c, n);
                 case SYM.import_stmt: return astForImportStmt(c, n);
                 case SYM.GlobalStmt: return astForGlobalStmt(c, n);
@@ -1630,7 +1630,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                         }
                     }
                 }
-                return new astnodes_57.Module(stmts);
+                return new types_57.Module(stmts);
             case SYM.eval_input:
                 asserts_1.fail("todo;");
             case SYM.single_input:

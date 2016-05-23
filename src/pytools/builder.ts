@@ -1,93 +1,93 @@
 import {assert, fail} from './asserts';
 
-import {Add} from './astnodes'
+import {Add} from './types';
 // TODO: Conventions
-import {alias} from './astnodes'
-import {arguments_} from './astnodes'
-import {And} from './astnodes'
-import {Assert} from './astnodes'
-import {Assign} from './astnodes'
-import {Attribute} from './astnodes'
-import {AugAssign} from './astnodes'
-import {AugLoad} from './astnodes'
-import {AugStore} from './astnodes'
-import {BinOp} from './astnodes'
-import {BitAnd} from './astnodes'
-import {BitOr} from './astnodes'
-import {BitXor} from './astnodes'
-import {BoolOp} from './astnodes'
-import {Break_} from './astnodes'
-import {Call} from './astnodes'
-import {ClassDef} from './astnodes'
-import {Compare} from './astnodes'
-import {comprehension} from './astnodes'
-import {Continue_} from './astnodes'
-import {Del} from './astnodes'
-import {Delete_} from './astnodes'
-import {Dict} from './astnodes'
-import {Div} from './astnodes'
-import {Ellipsis} from './astnodes'
-import {Eq} from './astnodes'
-import {ExceptHandler} from './astnodes'
-import {Exec} from './astnodes'
-import {Expr} from './astnodes'
-import {ExtSlice} from './astnodes'
-import {FloorDiv} from './astnodes'
-import {For_} from './astnodes'
-import {FunctionDef} from './astnodes'
-import {GeneratorExp} from './astnodes'
-import {Global} from './astnodes'
-import {Gt} from './astnodes'
-import {GtE} from './astnodes'
+import {Alias} from './types';
+import {Arguments} from './types';
+import {And} from './types';
+import {Assert} from './types';
+import {Assign} from './types';
+import {Attribute} from './types';
+import {AugAssign} from './types';
+import {AugLoad} from './types';
+import {AugStore} from './types';
+import {BinOp} from './types';
+import {BitAnd} from './types';
+import {BitOr} from './types';
+import {BitXor} from './types';
+import {BoolOp} from './types';
+import {BreakStatement} from './types';
+import {Call} from './types';
+import {ClassDef} from './types';
+import {Compare} from './types';
+import {Comprehension} from './types';
+import {ContinueStatement} from './types';
+import {Del} from './types';
+import {DeleteExpression} from './types';
+import {Dict} from './types';
+import {Div} from './types';
+import {Ellipsis} from './types';
+import {Eq} from './types';
+import {ExceptHandler} from './types';
+import {Exec} from './types';
+import {Expr} from './types';
+import {ExtSlice} from './types';
+import {FloorDiv} from './types';
+import {ForStatement} from './types';
+import {FunctionDef} from './types';
+import {GeneratorExp} from './types';
+import {Global} from './types';
+import {Gt} from './types';
+import {GtE} from './types';
 // FIXME: Convention
-import {keyword} from './astnodes'
-import {If_} from './astnodes'
-import {IfExp} from './astnodes'
-import {Import_} from './astnodes'
-import {ImportFrom} from './astnodes'
-import {Index} from './astnodes'
-import {In_} from './astnodes'
-import {Invert} from './astnodes'
-import {Is} from './astnodes'
-import {IsNot} from './astnodes'
-import {Lambda} from './astnodes'
-import {List} from './astnodes'
-import {ListComp} from './astnodes'
-import {Load} from './astnodes'
-import {LShift} from './astnodes'
-import {Lt} from './astnodes'
-import {LtE} from './astnodes'
-import {Mod} from './astnodes'
-import {Module} from './astnodes'
-import {Mult} from './astnodes'
-import {Name} from './astnodes'
-import {NonLocal} from './astnodes'
-import {Not} from './astnodes'
-import {NotEq} from './astnodes'
-import {NotIn} from './astnodes'
-import {Num} from './astnodes'
-import {Or} from './astnodes'
-import {Param} from './astnodes'
-import {Pass} from './astnodes'
-import {Pow} from './astnodes'
-import {Print} from './astnodes'
-import {Raise} from './astnodes'
-import {Return_} from './astnodes'
-import {RShift} from './astnodes'
-import {Slice} from './astnodes'
-import {Store} from './astnodes'
-import {Str} from './astnodes'
-import {Sub} from './astnodes'
-import {Subscript} from './astnodes'
-import {TryExcept} from './astnodes'
-import {TryFinally} from './astnodes'
-import {Tuple} from './astnodes'
-import {UAdd} from './astnodes'
-import {UnaryOp} from './astnodes'
-import {USub} from './astnodes'
-import {While_} from './astnodes'
-import {With_} from './astnodes'
-import {Yield} from './astnodes'
+import {Keyword} from './types';
+import {IfStatement} from './types';
+import {IfExp} from './types';
+import {ImportStatement} from './types';
+import {ImportFrom} from './types';
+import {Index} from './types';
+import {In} from './types';
+import {Invert} from './types';
+import {Is} from './types';
+import {IsNot} from './types';
+import {Lambda} from './types';
+import {List} from './types';
+import {ListComp} from './types';
+import {Load} from './types';
+import {LShift} from './types';
+import {Lt} from './types';
+import {LtE} from './types';
+import {Mod} from './types';
+import {Module} from './types';
+import {Mult} from './types';
+import {Name} from './types';
+import {NonLocal} from './types';
+import {Not} from './types';
+import {NotEq} from './types';
+import {NotIn} from './types';
+import {Num} from './types';
+import {Or} from './types';
+import {Param} from './types';
+import {Pass} from './types';
+import {Pow} from './types';
+import {Print} from './types';
+import {Raise} from './types';
+import {ReturnStatement} from './types';
+import {RShift} from './types';
+import {Slice} from './types';
+import {Store} from './types';
+import {Str} from './types';
+import {Sub} from './types';
+import {Subscript} from './types';
+import {TryExcept} from './types';
+import {TryFinally} from './types';
+import {Tuple} from './types';
+import {UAdd} from './types';
+import {UnaryOp} from './types';
+import {USub} from './types';
+import {WhileStatement} from './types';
+import {WithStatement} from './types';
+import {Yield} from './types';
 
 import {isArrayLike, isNumber, isString} from './base'
 import tables from './tables';
@@ -153,7 +153,7 @@ function REQ(n, type) {
     assert(n.type === type, "node wasn't expected type");
 }
 
-function strobj(s) {
+function strobj(s: string): string {
     assert(typeof s === "string", "expecting string, got " + (typeof s));
     // This previuosly constructed the runtime representation.
     // That may have had an string intern side effect?
@@ -313,7 +313,7 @@ function astForCompOp(c, n) {
             case TOK.T_GREATEREQUAL: return GtE;
             case TOK.T_NOTEQUAL: return NotEq;
             case TOK.T_NAME:
-                if (n.value === "in") return In_;
+                if (n.value === "in") return In;
                 if (n.value === "is") return Is;
         }
     }
@@ -341,7 +341,7 @@ function seqForTestlist(c, n) {
     return seq;
 }
 
-function astForSuite(c, n) {
+function astForSuite(c, n): any[] {
     /* suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT */
     REQ(n, SYM.suite);
     var seq = [];
@@ -516,7 +516,7 @@ function astForWithStmt(c, n) {
         setContext(c, optionalVars, Store, n);
         suiteIndex = 4;
     }
-    return new With_(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
+    return new WithStatement(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
 }
 
 function astForExecStmt(c, n) {
@@ -540,7 +540,7 @@ function astForIfStmt(c, n) {
     */
     REQ(n, SYM.if_stmt);
     if (NCH(n) === 4)
-        return new If_(
+        return new IfStatement(
                 astForExpr(c, CHILD(n, 1)),
                 astForSuite(c, CHILD(n, 3)),
                 [], n.lineno, n.col_offset);
@@ -548,7 +548,7 @@ function astForIfStmt(c, n) {
     var s = CHILD(n, 4).value;
     var decider = s.charAt(2); // elSe or elIf
     if (decider === 's') {
-        return new If_(
+        return new IfStatement(
                 astForExpr(c, CHILD(n, 1)),
                 astForSuite(c, CHILD(n, 3)),
                 astForSuite(c, CHILD(n, 6)),
@@ -568,7 +568,7 @@ function astForIfStmt(c, n) {
 
         if (hasElse) {
             orelse = [
-                new If_(
+                new IfStatement(
                     astForExpr(c, CHILD(n, NCH(n) - 6)),
                     astForSuite(c, CHILD(n, NCH(n) - 4)),
                     astForSuite(c, CHILD(n, NCH(n) - 1)),
@@ -580,14 +580,14 @@ function astForIfStmt(c, n) {
         for (var i = 0; i < nElif; ++i) {
             var off = 5 + (nElif - i - 1) * 4;
             orelse = [
-                new If_(
+                new IfStatement(
                     astForExpr(c, CHILD(n, off)),
                     astForSuite(c, CHILD(n, off + 2)),
                     orelse,
                     CHILD(n, off).lineno,
                     CHILD(n, off).col_offset)];
         }
-        return new If_(
+        return new IfStatement(
                 astForExpr(c, CHILD(n, 1)),
                 astForSuite(c, CHILD(n, 3)),
                 orelse, n.lineno, n.col_offset);
@@ -608,7 +608,7 @@ function astForExprlist(c, n, context) {
 
 function astForDelStmt(c, n) {
     REQ(n, SYM.del_stmt);
-    return new Delete_(astForExprlist(c, CHILD(n, 1), Del), n.lineno, n.col_offset);
+    return new DeleteExpression(astForExprlist(c, CHILD(n, 1), Del), n.lineno, n.col_offset);
 }
 
 function astForGlobalStmt(c, n) {
@@ -649,11 +649,11 @@ function aliasForImportName(c, n) {
     loop: while (true) {
         switch (n.type) {
             case SYM.import_as_name:
-                let str = null;
+                let str: string = null;
                 const name = strobj(CHILD(n, 0).value);
                 if (NCH(n) === 3)
                     str = CHILD(n, 2).value;
-                return new alias(name, str == null ? null : strobj(str));
+                return new Alias(name, str == null ? null : strobj(str));
             case SYM.dotted_as_name:
                 if (NCH(n) === 1) {
                     n = CHILD(n, 0);
@@ -667,23 +667,23 @@ function aliasForImportName(c, n) {
                 }
             case SYM.dotted_name:
                 if (NCH(n) === 1)
-                    return new alias(strobj(CHILD(n, 0).value), null);
+                    return new Alias(strobj(CHILD(n, 0).value), null);
                 else {
                     // create a string of the form a.b.c
                     let str = '';
                     for (var i = 0; i < NCH(n); i += 2)
                         str += CHILD(n, i).value + ".";
-                    return new alias(strobj(str.substr(0, str.length - 1)), null);
+                    return new Alias(strobj(str.substr(0, str.length - 1)), null);
                 }
             case TOK.T_STAR:
-                return new alias(strobj("*"), null);
+                return new Alias(strobj("*"), null);
             default:
                 throw syntaxError("unexpected import name", c.c_filename, n.lineno);
         }
     }
 }
 
-function astForImportStmt(c, n) {
+function astForImportStmt(c, n): ImportStatement | ImportFrom {
     REQ(n, SYM.import_stmt);
     var lineno = n.lineno;
     var col_offset = n.col_offset;
@@ -694,7 +694,7 @@ function astForImportStmt(c, n) {
         var aliases = [];
         for (var i = 0; i < NCH(n); i += 2)
             aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
-        return new Import_(aliases, lineno, col_offset);
+        return new ImportStatement(aliases, lineno, col_offset);
     }
     else if (n.type === SYM.import_from) {
         var mod = null;
@@ -810,9 +810,9 @@ function astForListcomp(c, n) {
         var expression = astForTestlist(c, CHILD(ch, 3));
         var lc;
         if (NCH(forch) === 1)
-            lc = new comprehension(t[0], expression, []);
+            lc = new Comprehension(t[0], expression, []);
         else
-            lc = new comprehension(new Tuple(t, Store, ch.lineno, ch.col_offset), expression, []);
+            lc = new Comprehension(new Tuple(t, Store, ch.lineno, ch.col_offset), expression, []);
 
         if (NCH(ch) === 5) {
             ch = CHILD(ch, 4);
@@ -863,7 +863,7 @@ function astForUnaryExpr(c, n) {
     fail("unhandled UnaryExpr");
 }
 
-function astForForStmt(c, n) {
+function astForForStmt(c, n): ForStatement {
     var seq = [];
     REQ(n, SYM.for_stmt);
     if (NCH(n) === 9)
@@ -876,7 +876,7 @@ function astForForStmt(c, n) {
     else
         target = new Tuple(_target, Store, n.lineno, n.col_offset);
 
-    return new For_(target,
+    return new ForStatement(target,
             astForTestlist(c, CHILD(n, 3)),
             astForSuite(c, CHILD(n, 5)),
             seq, n.lineno, n.col_offset);
@@ -930,7 +930,7 @@ function astForCall(c, n, func) {
                     var tmp = keywords[k].arg;
                     if (tmp === key) throw syntaxError("keyword argument repeated", c.c_filename, n.lineno);
                 }
-                keywords[nkeywords++] = new keyword(key, astForExpr(c, CHILD(ch, 2)));
+                keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
             }
         }
         else if (ch.type === TOK.T_STAR)
@@ -989,20 +989,20 @@ function astForTrailer(c, n, leftExpr): Attribute | Call | Subscript {
     }
 }
 
-function astForFlowStmt(c, n) {
+function astForFlowStmt(c, n): BreakStatement | Expr | Raise {
     var ch;
     REQ(n, SYM.flow_stmt);
     ch = CHILD(n, 0);
     switch (ch.type) {
-        case SYM.break_stmt: return new Break_(n.lineno, n.col_offset);
-        case SYM.continue_stmt: return new Continue_(n.lineno, n.col_offset);
+        case SYM.break_stmt: return new BreakStatement(n.lineno, n.col_offset);
+        case SYM.continue_stmt: return new ContinueStatement(n.lineno, n.col_offset);
         case SYM.yield_stmt:
             return new Expr(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
         case SYM.return_stmt:
             if (NCH(ch) === 1)
-                return new Return_(null, n.lineno, n.col_offset);
+                return new ReturnStatement(null, n.lineno, n.col_offset);
             else
-                return new Return_(astForTestlist(c, CHILD(ch, 1)), n.lineno, n.col_offset);
+                return new ReturnStatement(astForTestlist(c, CHILD(ch, 1)), n.lineno, n.col_offset);
         case SYM.raise_stmt:
             if (NCH(ch) === 1)
                 return new Raise(null, null, null, n.lineno, n.col_offset);
@@ -1035,7 +1035,7 @@ function astForArguments(c, n) {
     var kwarg = null;
     if (n.type === SYM.parameters) {
         if (NCH(n) === 2) // () as arglist
-            return new arguments_([], null, null, []);
+            return new Arguments([], null, null, []);
         n = CHILD(n, 1);
     }
     REQ(n, SYM.varargslist);
@@ -1110,7 +1110,7 @@ function astForArguments(c, n) {
                 fail("unexpected node in varargslist");
         }
     }
-    return new arguments_(args, vararg, kwarg, defaults);
+    return new Arguments(args, vararg, kwarg, defaults);
 }
 
 function astForFuncdef(c, n, decoratorSeq) {
@@ -1149,7 +1149,7 @@ function astForLambdef(c, n) {
     var args;
     var expression;
     if (NCH(n) === 3) {
-        args = new arguments_([], null, null, []);
+        args = new Arguments([], null, null, []);
         expression = astForExpr(c, CHILD(n, 2));
     }
     else {
@@ -1219,9 +1219,9 @@ function astForGenexp(c, n) {
         var expression = astForExpr(c, CHILD(ch, 3));
         var ge;
         if (NCH(forch) === 1)
-            ge = new comprehension(t[0], expression, []);
+            ge = new Comprehension(t[0], expression, []);
         else
-            ge = new comprehension(new Tuple(t, Store, ch.lineno, ch.col_offset), expression, []);
+            ge = new Comprehension(new Tuple(t, Store, ch.lineno, ch.col_offset), expression, []);
         if (NCH(ch) === 5) {
             ch = CHILD(ch, 4);
             var nifs = countGenIfs(c, ch);
@@ -1248,9 +1248,9 @@ function astForWhileStmt(c, n) {
     /* while_stmt: 'while' test ':' suite ['else' ':' suite] */
     REQ(n, SYM.while_stmt);
     if (NCH(n) === 4)
-        return new While_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
+        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
     else if (NCH(n) === 7)
-        return new While_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
+        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
     fail("wrong number of tokens for 'while' stmt");
 }
 
