@@ -8,7 +8,6 @@ import SymbolTableScope from './SymbolTableScope';
 import {symbolTable} from './symtable';
 import toStringLiteralJS from './toStringLiteralJS';
 
-import {Alias} from './types';
 import {And} from './types';
 import {Assert} from './types';
 import {Assign} from './types';
@@ -51,6 +50,7 @@ import {Print} from './types';
 import {Raise} from './types';
 import {ReturnStatement} from './types';
 import {Slice} from './types';
+import {Statement} from './types';
 import {Store} from './types';
 import {Str} from './types';
 import {Subscript} from './types';
@@ -228,23 +228,23 @@ class Compiler {
 
     annotateSource(ast) {
         if (this.source) {
-            var lineno = ast.lineno;
-            var col_offset = ast.col_offset;
-            out('\n//');
-            out('\n// line ', lineno, ':');
-            out('\n// ', this.getSourceLine(lineno));
+            // const lineno = ast.lineno;
+            const col_offset = ast.col_offset;
+            // out('\n//');
+            // out('\n// line ', lineno, ':');
+            // out('\n// ', this.getSourceLine(lineno));
 
             //
-            out('\n// ');
+            // out('\n// ');
             for (var i = 0; i < col_offset; ++i) {
                 out(" ");
             }
-            out("^");
+            // out("^");
 
-            out("\n//");
+            // out("\n//");
 
-            out('\nSk.currLineNo = ', lineno, ';Sk.currColNo = ', col_offset, ';');
-            out("\nSk.currFilename = '", this.fileName, "';\n\n");
+            // out('\nSk.currLineNo = ', lineno, ';Sk.currColNo = ', col_offset, ';');
+            // out("\nSk.currFilename = '", this.fileName, "';\n\n");
         }
     }
 
@@ -265,9 +265,9 @@ class Compiler {
      * @param {...*} rest
      */
     _gr(hint: string, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any, arg9?: any, argA?: any, argB?: any, argC?: any, argD?: any, argE?: any) {
-        var v = this.gensym(hint);
-        out("var ", v, "=");
-        for (var i = 1; i < arguments.length; ++i) {
+        const v = this.gensym(hint);
+        out("var ", v, " = ");
+        for (let i = 1; i < arguments.length; ++i) {
             out(arguments[i]);
         }
         out(";");
@@ -774,16 +774,16 @@ class Compiler {
     }
 
     outputAllUnits() {
-        var ret = '';
-        for (var j = 0; j < this.allUnits.length; ++j) {
-            var unit = this.allUnits[j];
+        let ret = '';
+        for (let j = 0; j < this.allUnits.length; ++j) {
+            const unit = this.allUnits[j];
             ret += unit.prefixCode;
             ret += this.outputLocals(unit);
             ret += unit.varDeclsCode;
             ret += unit.switchCode;
-            var blocks = unit.blocks;
-            for (var i = 0; i < blocks.length; ++i) {
-                ret += "case " + i + ": /* --- " + blocks[i]._name + " --- */";
+            const blocks = unit.blocks;
+            for (let i = 0; i < blocks.length; ++i) {
+                // ret += "case " + i + ": /* --- " + blocks[i]._name + " --- */";
                 ret += blocks[i].join('');
                 /*
                 ret += "throw new Sk.builtin.SystemError('internal error: unterminated block');";
@@ -1044,8 +1044,8 @@ class Compiler {
 
     cimport(s: ImportStatement) {
         const n = s.names.length;
-        for (let i = 0; i < n; ++i) {
-            const alias: Alias = s.names[i];
+        for (var i = 0; i < n; ++i) {
+            var alias = s.names[i];
             var mod = this._gr('module', 'Sk.builtin.__import__(', toStringLiteralJS(alias.name), ',$gbl,$loc,[])');
 
             if (alias.asname) {
@@ -1064,28 +1064,21 @@ class Compiler {
     };
 
     cfromimport(s: ImportFrom) {
-        var n = s.names.length;
-        var names: string[] = [];
+        const n = s.names.length;
+        const names: string[] = [];
         for (var i = 0; i < n; ++i) {
             names[i] = s.names[i].name;
         }
-        var namesString = names.map(function(name) { return toStringLiteralJS(name); }).join(', ');
-        var mod = this._gr('module', 'Sk.builtin.__import__(', toStringLiteralJS(s.module), ',$gbl,$loc,[', namesString, '])');
-        for (var i = 0; i < n; ++i) {
-            var alias = s.names[i];
+        // const namesString = names.map(function(name) { return toStringLiteralJS(name); }).join(', ');
+        for (let i = 0; i < n; ++i) {
+            const alias = s.names[i];
             if (i === 0 && alias.name === "*") {
                 assert(n === 1);
-                out("Sk.importStar(", mod, ",$loc, $gbl);");
+                out(`import * from ${toStringLiteralJS(s.module)};`);
                 return;
             }
-
-            var got = this._gr('item', 'Sk.abstr.gattr(', mod, ',', toStringLiteralJS(alias.name), ')');
-            var storeName = alias.name;
-            if (alias.asname)
-                storeName = alias.asname;
-            this.nameop(storeName, Store, got);
         }
-    };
+    }
 
     /**
      * builds a code object (js function) for various constructs. used by def,
@@ -1526,7 +1519,7 @@ class Compiler {
     /**
      * compiles a statement
      */
-    vstmt(s) {
+    vstmt(s: Statement) {
         this.u.lineno = s.lineno;
         this.u.linenoSet = false;
 
@@ -1534,16 +1527,17 @@ class Compiler {
 
         switch (s.constructor) {
             case FunctionDef:
-                this.cfunction(s);
+                this.cfunction(<FunctionDef>s);
                 break;
             case ClassDef:
-                this.cclass(s);
+                this.cclass(<ClassDef>s);
                 break;
             case ReturnStatement: {
+                const rs = <ReturnStatement>s;
                 if (this.u.ste.blockType !== FunctionBlock)
                     throw new SyntaxError("'return' outside function");
-                if (s.value)
-                    out("return ", this.vexpr((<ReturnStatement>s).value), ";");
+                if (rs.value)
+                    out("return ", this.vexpr(rs.value), ";");
                 else
                     out("return null;");
                 break;
@@ -1551,35 +1545,46 @@ class Compiler {
             case DeleteExpression:
                 this.vseqexpr((<DeleteExpression>s).targets);
                 break;
-            case Assign:
-                var n = s.targets.length;
-                var val = this.vexpr((<Assign>s).value);
+            case Assign: {
+                const assign = <Assign>s;
+                var n = assign.targets.length;
+                var val = this.vexpr(assign.value);
                 for (var i = 0; i < n; ++i)
-                    this.vexpr(s.targets[i], val);
+                    this.vexpr(assign.targets[i], val);
                 break;
-            case AugAssign:
-                return this.caugassign(s);
-            case Print:
-                this.cprint(s);
+            }
+            case AugAssign: {
+                return this.caugassign(<AugAssign>s);
+            }
+            case Print: {
+                this.cprint(<Print>s);
                 break;
-            case ForStatement:
-                return this.cfor(s);
-            case WhileStatement:
-                return this.cwhile(s);
-            case IfStatement:
-                return this.cif(s);
-            case Raise:
-                return this.craise(s);
-            case TryExcept:
-                return this.ctryexcept(s);
-            case TryFinally:
-                return this.ctryfinally(s);
-            case Assert:
-                return this.cassert(s);
+            }
+            case ForStatement: {
+                return this.cfor(<ForStatement>s);
+            }
+            case WhileStatement: {
+                return this.cwhile(<WhileStatement>s);
+            }
+            case IfStatement: {
+                return this.cif(<IfStatement>s);
+            }
+            case Raise: {
+                return this.craise(<Raise>s);
+            }
+            case TryExcept: {
+                return this.ctryexcept(<TryExcept>s);
+            }
+            case TryFinally: {
+                return this.ctryfinally(<TryFinally>s);
+            }
+            case Assert: {
+                return this.cassert(<Assert>s);
+            }
             case ImportStatement:
-                return this.cimport(s);
+                return this.cimport(<ImportStatement>s);
             case ImportFrom:
-                return this.cfromimport(s);
+                return this.cfromimport(<ImportFrom>s);
             case Global:
                 break;
             case Expr:
@@ -1593,7 +1598,7 @@ class Compiler {
                 this._jump(this.u.breakBlocks[this.u.breakBlocks.length - 1]);
                 break;
             case ContinueStatement:
-                this.ccontinue(s);
+                this.ccontinue(<ContinueStatement>s);
                 break;
             default:
                 fail("unhandled case in vstmt");
@@ -1788,8 +1793,11 @@ class Compiler {
         }
     }
 
-    cbody(stmts) {
-        for (var i = 0; i < stmts.length; ++i) {
+    /**
+     * 
+     */
+    cbody(stmts: Statement[]) {
+        for (let i = 0; i < stmts.length; ++i) {
             this.vstmt(stmts[i]);
         }
     }
@@ -1803,31 +1811,28 @@ class Compiler {
 
         var n = s.values.length;
         for (var i = 0; i < n; ++i) {
-            out("Sk.misceval.print_(Sk.ffi.remapToJs(new Sk.builtins.str(", this.vexpr(s.values[i]), ")));");
+            // out("Sk.misceval.print_(Sk.ffi.remapToJs(new Sk.builtins.str(", this.vexpr(s.values[i]), ")));");
         }
         if (s.nl) {
-            out("Sk.misceval.print_('\\n');");
+            // out("Sk.misceval.print_('\\n');");
         }
     }
 
-    cmod(mod) {
-        /**
-         * @const
-         * @type {string}
-         */
-        var modf = this.enterScope("<module>", mod, 0);
+    cmod(mod: Module) {
 
-        var entryBlock = this.newBlock('module entry');
-        this.u.prefixCode = "var " + modf + "=(function($modname){";
-        this.u.varDeclsCode = "var $blk=" + entryBlock + ",$exc=[],$gbl={},$loc=$gbl,$err;$gbl.__name__=$modname;Sk.globals=$gbl;";
+        const modf = this.enterScope("<module>", mod, 0);
 
-        this.u.switchCode = "try {while(true){try{switch($blk){";
-        this.u.suffixCode = "}}catch(err){if ($exc.length>0) {$err=err;$blk=$exc.pop();continue;} else {throw err;}}}}catch(err){if (err instanceof Sk.builtin.SystemExit && !Sk.throwSystemExit) { Sk.misceval.print_(err.toString() + '\\n'); return $loc; } else { throw err; } } });";
+        /* const entryBlock = */ this.newBlock('module entry');
+        // this.u.prefixCode = "var " + modf + "=(function($modname){";
+        // this.u.varDeclsCode = "var $blk=" + entryBlock + ",$exc=[],$gbl={},$loc=$gbl,$err;$gbl.__name__=$modname;Sk.globals=$gbl;";
+
+        // this.u.switchCode = "try {while(true){try{switch($blk){";
+        // this.u.suffixCode = "}}catch(err){if ($exc.length>0) {$err=err;$blk=$exc.pop();continue;} else {throw err;}}}}catch(err){if (err instanceof Sk.builtin.SystemExit && !Sk.throwSystemExit) { Sk.misceval.print_(err.toString() + '\\n'); return $loc; } else { throw err; } } });";
 
         switch (mod.constructor) {
             case Module:
                 this.cbody(mod.body);
-                out("return $loc;");
+                // out("return $loc;");
                 break;
             default:
                 fail("todo; unhandled case in compilerMod");

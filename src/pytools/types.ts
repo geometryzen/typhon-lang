@@ -51,7 +51,7 @@ export class ModuleElement extends AST {
 }
 
 export class Statement extends ModuleElement {
-
+    lineno: number;
 }
 
 export class IterationStatement extends Statement {
@@ -59,8 +59,8 @@ export class IterationStatement extends Statement {
 }
 
 export class Module {
-    body;
-    constructor(body) {
+    body: Statement[];
+    constructor(body: Statement[]) {
         this.body = body;
     }
 }
@@ -81,9 +81,10 @@ interface Node extends TextRange {
 
 }
 
-export class Expression implements Node {
+export class Expression extends Statement implements Node {
     body;
     constructor(body) {
+        super();
         this.body = body;
     }
 }
@@ -99,7 +100,7 @@ export class Suite {
     }
 }
 
-export class FunctionDef {
+export class FunctionDef extends Statement {
     name: string;
     args
     body
@@ -107,6 +108,7 @@ export class FunctionDef {
     lineno
     col_offset
     constructor(name: string, args, body, decorator_list, lineno, col_offset) {
+        super();
         this.name = name;
         this.args = args;
         this.body = body;
@@ -116,7 +118,7 @@ export class FunctionDef {
     }
 }
 
-export class ClassDef {
+export class ClassDef extends Statement {
     name: string;
     bases
     body
@@ -124,6 +126,7 @@ export class ClassDef {
     lineno
     col_offset
     constructor(name: string, bases, body, decorator_list, lineno, col_offset) {
+        super();
         this.name = name;
         this.bases = bases;
         this.body = body;
@@ -160,12 +163,13 @@ export class DeleteExpression extends UnaryExpression {
     }
 }
 
-export class Assign {
+export class Assign extends Statement {
     targets
     value
     lineno
     col_offset
     constructor(targets, value, lineno, col_offset) {
+        super();
         this.targets = targets;
         this.value = value;
         this.lineno = lineno;
@@ -173,13 +177,14 @@ export class Assign {
     }
 }
 
-export class AugAssign {
+export class AugAssign extends Statement {
     target
     op
     value
     lineno
     col_offset
     constructor(target, op, value, lineno, col_offset) {
+        super();
         this.target = target;
         this.op = op;
         this.value = value;
@@ -188,13 +193,14 @@ export class AugAssign {
     }
 }
 
-export class Print {
+export class Print extends Statement {
     dest
     values
     nl
     lineno
     col_offset
     constructor(dest, values, nl, lineno, col_offset) {
+        super();
         this.dest = dest;
         this.values = values;
         this.nl = nl;
@@ -269,13 +275,14 @@ export class WithStatement extends Statement {
     }
 }
 
-export class Raise {
+export class Raise extends Statement {
     type
     inst
     tback
     lineno
     col_offset
     constructor(type, inst, tback, lineno, col_offset) {
+        super();
         this.type = type;
         this.inst = inst;
         this.tback = tback;
@@ -284,13 +291,14 @@ export class Raise {
     }
 }
 
-export class TryExcept {
+export class TryExcept extends Statement {
     body
     handlers
     orelse
     lineno
     col_offset
     constructor(body, handlers, orelse, lineno, col_offset) {
+        super();
         this.body = body;
         this.handlers = handlers;
         this.orelse = orelse;
@@ -299,12 +307,13 @@ export class TryExcept {
     }
 }
 
-export class TryFinally {
+export class TryFinally extends Statement {
     body
     finalbody
     lineno
     col_offset
     constructor(body, finalbody, lineno, col_offset) {
+        super();
         this.body = body;
         this.finalbody = finalbody;
         this.lineno = lineno;
@@ -312,12 +321,13 @@ export class TryFinally {
     }
 }
 
-export class Assert {
+export class Assert extends Statement {
     test
     msg
     lineno
     col_offset
     constructor(test, msg, lineno, col_offset) {
+        super();
         this.test = test;
         this.msg = msg;
         this.lineno = lineno;
@@ -326,10 +336,10 @@ export class Assert {
 }
 
 export class ImportStatement extends Statement {
-    names
+    names: Alias[];
     lineno
     col_offset
-    constructor(names, lineno, col_offset) {
+    constructor(names: Alias[], lineno, col_offset) {
         super();
         this.names = names;
         this.lineno = lineno;
@@ -337,13 +347,14 @@ export class ImportStatement extends Statement {
     }
 }
 
-export class ImportFrom {
-    module
-    names
-    level
+export class ImportFrom extends Statement {
+    module: string;
+    names: Alias[];
+    private level;
     lineno
     col_offset
-    constructor(module, names, level, lineno, col_offset) {
+    constructor(module: string, names: Alias[], level, lineno, col_offset) {
+        super();
         this.module = module;
         this.names = names;
         this.level = level;
@@ -389,11 +400,12 @@ export class NonLocal {
     }
 }
 
-export class Expr {
+export class Expr extends Statement {
     value
     lineno
     col_offset
     constructor(value, lineno, col_offset) {
+        super();
         this.value = value;
         this.lineno = lineno;
         this.col_offset = col_offset;

@@ -263,12 +263,14 @@ define(["require", "exports"], function (require, exports) {
         return Interactive;
     }());
     exports.Interactive = Interactive;
-    var Expression = (function () {
+    var Expression = (function (_super) {
+        __extends(Expression, _super);
         function Expression(body) {
+            _super.call(this);
             this.body = body;
         }
         return Expression;
-    }());
+    }(Statement));
     exports.Expression = Expression;
     var UnaryExpression = (function (_super) {
         __extends(UnaryExpression, _super);
@@ -285,8 +287,10 @@ define(["require", "exports"], function (require, exports) {
         return Suite;
     }());
     exports.Suite = Suite;
-    var FunctionDef = (function () {
+    var FunctionDef = (function (_super) {
+        __extends(FunctionDef, _super);
         function FunctionDef(name, args, body, decorator_list, lineno, col_offset) {
+            _super.call(this);
             this.name = name;
             this.args = args;
             this.body = body;
@@ -295,10 +299,12 @@ define(["require", "exports"], function (require, exports) {
             this.col_offset = col_offset;
         }
         return FunctionDef;
-    }());
+    }(Statement));
     exports.FunctionDef = FunctionDef;
-    var ClassDef = (function () {
+    var ClassDef = (function (_super) {
+        __extends(ClassDef, _super);
         function ClassDef(name, bases, body, decorator_list, lineno, col_offset) {
+            _super.call(this);
             this.name = name;
             this.bases = bases;
             this.body = body;
@@ -307,7 +313,7 @@ define(["require", "exports"], function (require, exports) {
             this.col_offset = col_offset;
         }
         return ClassDef;
-    }());
+    }(Statement));
     exports.ClassDef = ClassDef;
     var ReturnStatement = (function (_super) {
         __extends(ReturnStatement, _super);
@@ -331,18 +337,22 @@ define(["require", "exports"], function (require, exports) {
         return DeleteExpression;
     }(UnaryExpression));
     exports.DeleteExpression = DeleteExpression;
-    var Assign = (function () {
+    var Assign = (function (_super) {
+        __extends(Assign, _super);
         function Assign(targets, value, lineno, col_offset) {
+            _super.call(this);
             this.targets = targets;
             this.value = value;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
         return Assign;
-    }());
+    }(Statement));
     exports.Assign = Assign;
-    var AugAssign = (function () {
+    var AugAssign = (function (_super) {
+        __extends(AugAssign, _super);
         function AugAssign(target, op, value, lineno, col_offset) {
+            _super.call(this);
             this.target = target;
             this.op = op;
             this.value = value;
@@ -350,10 +360,12 @@ define(["require", "exports"], function (require, exports) {
             this.col_offset = col_offset;
         }
         return AugAssign;
-    }());
+    }(Statement));
     exports.AugAssign = AugAssign;
-    var Print = (function () {
+    var Print = (function (_super) {
+        __extends(Print, _super);
         function Print(dest, values, nl, lineno, col_offset) {
+            _super.call(this);
             this.dest = dest;
             this.values = values;
             this.nl = nl;
@@ -361,7 +373,7 @@ define(["require", "exports"], function (require, exports) {
             this.col_offset = col_offset;
         }
         return Print;
-    }());
+    }(Statement));
     exports.Print = Print;
     var ForStatement = (function (_super) {
         __extends(ForStatement, _super);
@@ -416,8 +428,10 @@ define(["require", "exports"], function (require, exports) {
         return WithStatement;
     }(Statement));
     exports.WithStatement = WithStatement;
-    var Raise = (function () {
+    var Raise = (function (_super) {
+        __extends(Raise, _super);
         function Raise(type, inst, tback, lineno, col_offset) {
+            _super.call(this);
             this.type = type;
             this.inst = inst;
             this.tback = tback;
@@ -425,10 +439,12 @@ define(["require", "exports"], function (require, exports) {
             this.col_offset = col_offset;
         }
         return Raise;
-    }());
+    }(Statement));
     exports.Raise = Raise;
-    var TryExcept = (function () {
+    var TryExcept = (function (_super) {
+        __extends(TryExcept, _super);
         function TryExcept(body, handlers, orelse, lineno, col_offset) {
+            _super.call(this);
             this.body = body;
             this.handlers = handlers;
             this.orelse = orelse;
@@ -436,27 +452,31 @@ define(["require", "exports"], function (require, exports) {
             this.col_offset = col_offset;
         }
         return TryExcept;
-    }());
+    }(Statement));
     exports.TryExcept = TryExcept;
-    var TryFinally = (function () {
+    var TryFinally = (function (_super) {
+        __extends(TryFinally, _super);
         function TryFinally(body, finalbody, lineno, col_offset) {
+            _super.call(this);
             this.body = body;
             this.finalbody = finalbody;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
         return TryFinally;
-    }());
+    }(Statement));
     exports.TryFinally = TryFinally;
-    var Assert = (function () {
+    var Assert = (function (_super) {
+        __extends(Assert, _super);
         function Assert(test, msg, lineno, col_offset) {
+            _super.call(this);
             this.test = test;
             this.msg = msg;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
         return Assert;
-    }());
+    }(Statement));
     exports.Assert = Assert;
     var ImportStatement = (function (_super) {
         __extends(ImportStatement, _super);
@@ -469,8 +489,10 @@ define(["require", "exports"], function (require, exports) {
         return ImportStatement;
     }(Statement));
     exports.ImportStatement = ImportStatement;
-    var ImportFrom = (function () {
+    var ImportFrom = (function (_super) {
+        __extends(ImportFrom, _super);
         function ImportFrom(module, names, level, lineno, col_offset) {
+            _super.call(this);
             this.module = module;
             this.names = names;
             this.level = level;
@@ -478,7 +500,7 @@ define(["require", "exports"], function (require, exports) {
             this.col_offset = col_offset;
         }
         return ImportFrom;
-    }());
+    }(Statement));
     exports.ImportFrom = ImportFrom;
     var Exec = (function () {
         function Exec(body, globals, locals, lineno, col_offset) {
@@ -509,14 +531,16 @@ define(["require", "exports"], function (require, exports) {
         return NonLocal;
     }());
     exports.NonLocal = NonLocal;
-    var Expr = (function () {
+    var Expr = (function (_super) {
+        __extends(Expr, _super);
         function Expr(value, lineno, col_offset) {
+            _super.call(this);
             this.value = value;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
         return Expr;
-    }());
+    }(Statement));
     exports.Expr = Expr;
     var Pass = (function () {
         function Pass(lineno, col_offset) {
