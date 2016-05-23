@@ -301,9 +301,10 @@ export default class SymbolTable {
             case IfStatement: {
                 const ifs: IfStatement = s;
                 this.visitExpr(ifs.test);
-                this.SEQStmt(ifs.body);
-                if (ifs.orelse)
-                    this.SEQStmt(ifs.orelse);
+                this.SEQStmt(ifs.consequent);
+                if (ifs.alternate) {
+                    this.SEQStmt(ifs.alternate);
+                }
                 break;
             }
             case Raise:

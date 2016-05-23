@@ -798,11 +798,12 @@ class Compiler {
         assert(s instanceof IfStatement);
         var constant = this.exprConstant(s.test);
         if (constant === 0) {
-            if (s.orelse)
-                this.vseqstmt(s.orelse);
+            if (s.alternate) {
+                this.vseqstmt(s.alternate);
+            }
         }
         else if (constant === 1) {
-            this.vseqstmt(s.body);
+            this.vseqstmt(s.consequent);
         }
         else {
             var end = this.newBlock('end of if');
@@ -810,12 +811,13 @@ class Compiler {
 
             var test = this.vexpr(s.test);
             this._jumpfalse(test, next);
-            this.vseqstmt(s.body);
+            this.vseqstmt(s.consequent);
             this._jump(end);
 
             this.setBlock(next);
-            if (s.orelse)
-                this.vseqstmt(s.orelse);
+            if (s.alternate) {
+                this.vseqstmt(s.alternate);
+            }
             this._jump(end);
         }
         this.setBlock(end);

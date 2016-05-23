@@ -247,15 +247,15 @@ export class WhileStatement extends IterationStatement {
 
 export class IfStatement extends Statement {
     test: Expression;
-    body: Statement[];
-    orelse: Statement[];
+    consequent: Statement[];
+    alternate: Statement[];
     lineno;
     col_offset;
-    constructor(test: Expression, body: Statement[], orelse: Statement[], lineno, col_offset) {
+    constructor(test: Expression, consequent: Statement[], alternate: Statement[], lineno, col_offset) {
         super();
         this.test = test;
-        this.body = body;
-        this.orelse = orelse;
+        this.consequent = consequent;
+        this.alternate = alternate;
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
@@ -845,9 +845,9 @@ WhileStatement.prototype['_fields'] = [
 ];
 IfStatement.prototype['_astname'] = 'IfStatement';
 IfStatement.prototype['_fields'] = [
-    'test', function(n) { return n.test; },
-    'body', function(n) { return n.body; },
-    'orelse', function(n) { return n.orelse; }
+    'test', function(n: IfStatement) { return n.test; },
+    'consequent', function(n: IfStatement) { return n.consequent; },
+    'alternate', function(n: IfStatement) { return n.alternate; }
 ];
 WithStatement.prototype['_astname'] = 'WithStatement';
 WithStatement.prototype['_fields'] = [

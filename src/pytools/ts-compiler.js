@@ -7,6 +7,60 @@ define(["require", "exports", './asserts', './base', './parser', './builder', '.
     // const D_NAMES = 0;
     // const D_FREEVARS = 1;
     // const D_CELLVARS = 2;
+    var Precedence = {
+        Sequence: 0,
+        Yield: 1,
+        Await: 1,
+        Assignment: 1,
+        Conditional: 2,
+        ArrowFunction: 2,
+        LogicalOR: 3,
+        LogicalAND: 4,
+        BitwiseOR: 5,
+        BitwiseXOR: 6,
+        BitwiseAND: 7,
+        Equality: 8,
+        Relational: 9,
+        BitwiseSHIFT: 10,
+        Additive: 11,
+        Multiplicative: 12,
+        Unary: 13,
+        Postfix: 14,
+        Call: 15,
+        New: 16,
+        TaggedTemplate: 17,
+        Member: 18,
+        Primary: 19
+    };
+    // Flags
+    var F_ALLOW_IN = 1;
+    var F_ALLOW_CALL = 1 << 1;
+    var F_ALLOW_UNPARATH_NEW = 1 << 2;
+    // const F_FUNC_BODY = 1 << 3;
+    // const F_DIRECTIVE_CTX = 1 << 4;
+    var F_SEMICOLON_OPT = 1 << 5;
+    // Expression flag sets
+    // NOTE: Flag order:
+    // F_ALLOW_IN
+    // F_ALLOW_CALL
+    // F_ALLOW_UNPARATH_NEW
+    // const E_FTT = F_ALLOW_CALL | F_ALLOW_UNPARATH_NEW;
+    // const E_TTF = F_ALLOW_IN | F_ALLOW_CALL;
+    var E_TTT = F_ALLOW_IN | F_ALLOW_CALL | F_ALLOW_UNPARATH_NEW;
+    // const E_TFF = F_ALLOW_IN;
+    // const E_FFT = F_ALLOW_UNPARATH_NEW;
+    // const E_TFT = F_ALLOW_IN | F_ALLOW_UNPARATH_NEW;
+    // Statement flag sets
+    // NOTE: Flag order:
+    // F_ALLOW_IN
+    // F_FUNC_BODY
+    // F_DIRECTIVE_CTX
+    // F_SEMICOLON_OPT
+    var S_TFFF = F_ALLOW_IN;
+    // const S_TFFT = F_ALLOW_IN | F_SEMICOLON_OPT;
+    // const S_FFFF = 0x00;
+    // const S_TFTF = F_ALLOW_IN | F_DIRECTIVE_CTX;
+    // const S_TTFF = F_ALLOW_IN | F_FUNC_BODY;
     /**
      * The output function is scoped at the module level so that it is available without being a parameter.
      * @param {...*} x
@@ -16,6 +70,59 @@ define(["require", "exports", './asserts', './base', './parser', './builder', '.
      * We keep track of how many time gensym method on the Compiler is called because ... ?
      */
     var gensymCount = 0;
+    /**
+     *
+     */
+    var base;
+    /**
+     *
+     */
+    var indent;
+    /**
+     *
+     */
+    var space;
+    function updateDeeply(target, override) {
+        var key, val;
+        function isHashObject(target) {
+            return typeof target === 'object' && target instanceof Object && !(target instanceof RegExp);
+        }
+        for (key in override) {
+            if (override.hasOwnProperty(key)) {
+                val = override[key];
+                if (isHashObject(val)) {
+                    if (isHashObject(target[key])) {
+                        updateDeeply(target[key], val);
+                    }
+                    else {
+                        target[key] = updateDeeply({}, val);
+                    }
+                }
+                else {
+                    target[key] = val;
+                }
+            }
+        }
+        return target;
+    }
+    /**
+     * flatten an array to a string, where the array can contain
+     * either strings or nested arrays
+     */
+    function flattenToString(arr) {
+        var i, iz, elem, result = '';
+        for (i = 0, iz = arr.length; i < iz; ++i) {
+            elem = arr[i];
+            result += base_1.isArray(elem) ? flattenToString(elem) : elem;
+        }
+        return result;
+    }
+    function withIndent(fn) {
+        var previousBase = base;
+        base += indent;
+        fn(base);
+        base = previousBase;
+    }
     /**
      * FIXME: CompilerUnit is coupled to this module by the out variable.
      */
@@ -548,29 +655,45 @@ define(["require", "exports", './asserts', './base', './parser', './builder', '.
             }
             return ret;
         };
+        Compiler.prototype.generateExpression = function (expression, s, flags) {
+            return "";
+        };
+        Compiler.prototype.generateStatements = function (statement, s, flags) {
+            return "";
+        };
+        Compiler.prototype.maybeBlock = function (one, flags) {
+            return "";
+        };
+        Compiler.prototype.maybeBlockSuffix = function (one, two) {
+            return "";
+        };
         Compiler.prototype.ifStatement = function (stmt, flags) {
+            var _this = this;
             asserts_1.assert(stmt instanceof types_24.IfStatement);
             asserts_1.assert(base_1.isNumber(flags));
-            var constant = this.exprConstant(stmt.test);
-            var end;
-            if (constant === 0) {
-                if (stmt.orelse) {
-                    this.vseqstmt(stmt.orelse, flags);
-                }
+            var result;
+            var bodyFlags;
+            var semicolonOptional;
+            withIndent(function () {
+                result = [
+                    'if' + space + '(',
+                    _this.generateExpression(stmt.test, Precedence.Sequence, E_TTT),
+                    ')'
+                ];
+            });
+            semicolonOptional = !!(flags & F_SEMICOLON_OPT);
+            bodyFlags = S_TFFF;
+            if (semicolonOptional) {
+                bodyFlags |= F_SEMICOLON_OPT;
             }
-            else if (constant === 1) {
-                this.vseqstmt(stmt.body, flags);
+            if (stmt.alternate) {
+                result.push(this.maybeBlock(stmt.consequent, S_TFFF));
+                result = this.maybeBlockSuffix(stmt.consequent, result);
             }
             else {
-                end = this.newBlock('end of if');
-                var next = this.newBlock('next branch of if');
-                // const test = this.vexpr(stmt.test);
-                this.vseqstmt(stmt.body, flags);
-                this.setBlock(next);
-                if (stmt.orelse)
-                    this.vseqstmt(stmt.orelse, flags);
+                result.push(this.maybeBlock(stmt.consequent, bodyFlags));
             }
-            this.setBlock(end);
+            return result;
         };
         Compiler.prototype.cwhile = function (s, flags) {
             var constant = this.exprConstant(s.test);

@@ -404,11 +404,11 @@ define(["require", "exports"], function (require, exports) {
     exports.WhileStatement = WhileStatement;
     var IfStatement = (function (_super) {
         __extends(IfStatement, _super);
-        function IfStatement(test, body, orelse, lineno, col_offset) {
+        function IfStatement(test, consequent, alternate, lineno, col_offset) {
             _super.call(this);
             this.test = test;
-            this.body = body;
-            this.orelse = orelse;
+            this.consequent = consequent;
+            this.alternate = alternate;
             this.lineno = lineno;
             this.col_offset = col_offset;
         }
@@ -902,8 +902,8 @@ define(["require", "exports"], function (require, exports) {
     IfStatement.prototype['_astname'] = 'IfStatement';
     IfStatement.prototype['_fields'] = [
         'test', function (n) { return n.test; },
-        'body', function (n) { return n.body; },
-        'orelse', function (n) { return n.orelse; }
+        'consequent', function (n) { return n.consequent; },
+        'alternate', function (n) { return n.alternate; }
     ];
     WithStatement.prototype['_astname'] = 'WithStatement';
     WithStatement.prototype['_fields'] = [

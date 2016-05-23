@@ -619,22 +619,24 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             asserts_1.assert(s instanceof types_25.IfStatement);
             var constant = this.exprConstant(s.test);
             if (constant === 0) {
-                if (s.orelse)
-                    this.vseqstmt(s.orelse);
+                if (s.alternate) {
+                    this.vseqstmt(s.alternate);
+                }
             }
             else if (constant === 1) {
-                this.vseqstmt(s.body);
+                this.vseqstmt(s.consequent);
             }
             else {
                 var end = this.newBlock('end of if');
                 var next = this.newBlock('next branch of if');
                 var test = this.vexpr(s.test);
                 this._jumpfalse(test, next);
-                this.vseqstmt(s.body);
+                this.vseqstmt(s.consequent);
                 this._jump(end);
                 this.setBlock(next);
-                if (s.orelse)
-                    this.vseqstmt(s.orelse);
+                if (s.alternate) {
+                    this.vseqstmt(s.alternate);
+                }
                 this._jump(end);
             }
             this.setBlock(end);

@@ -225,9 +225,10 @@ define(["require", "exports", './asserts', './dictUpdate', './mangleName', './Sy
                 case types_22.IfStatement: {
                     var ifs = s;
                     this.visitExpr(ifs.test);
-                    this.SEQStmt(ifs.body);
-                    if (ifs.orelse)
-                        this.SEQStmt(ifs.orelse);
+                    this.SEQStmt(ifs.consequent);
+                    if (ifs.alternate) {
+                        this.SEQStmt(ifs.alternate);
+                    }
                     break;
                 }
                 case types_36.Raise:

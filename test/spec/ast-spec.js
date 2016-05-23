@@ -248,14 +248,14 @@ define(['pytools'], function(m) {
             var cst = pytools.parser.parse(fileName, 'if a:\n pass');
             var ast = pytools.builder.astFromParse(cst, fileName);
             var dump = pytools.builder.astDump(ast);
-            expect(dump).toBe('Module(body=[IfStatement(test=Name(id=a,ctx=Load()),body=[Pass()],orelse=[])])');
+            expect(dump).toBe('Module(body=[IfStatement(test=Name(id=a,ctx=Load()),consequent=[Pass()],alternate=[])])');
         });
 
         it('if a:\n pass\nelse:\n pass', function() {
             var cst = pytools.parser.parse(fileName, 'if a:\n pass\nelse:\n pass');
             var ast = pytools.builder.astFromParse(cst, fileName);
             var dump = pytools.builder.astDump(ast);
-            expect(dump).toBe('Module(body=[IfStatement(test=Name(id=a,ctx=Load()),body=[Pass()],orelse=[Pass()])])');
+            expect(dump).toBe('Module(body=[IfStatement(test=Name(id=a,ctx=Load()),consequent=[Pass()],alternate=[Pass()])])');
         });
 
         it('while a:\n pass', function() {

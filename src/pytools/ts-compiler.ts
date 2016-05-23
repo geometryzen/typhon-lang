@@ -1,5 +1,5 @@
 import {assert, fail} from './asserts';
-import {isNumber} from './base';
+import {isArray, isNumber} from './base';
 import {parse} from './parser';
 import {astFromParse} from './builder';
 import reservedNames from './reservedNames';
@@ -28,6 +28,7 @@ import {DeleteExpression} from './types';
 import {Dict} from './types';
 import {Ellipsis} from './types';
 import {Expr} from './types';
+import {Expression} from './types';
 import {ExtSlice} from './types';
 import {ForStatement} from './types';
 import {FunctionDef} from './types';
@@ -77,6 +78,64 @@ const OP_NAME = 3;
 // const D_FREEVARS = 1;
 // const D_CELLVARS = 2;
 
+const Precedence = {
+    Sequence: 0,
+    Yield: 1,
+    Await: 1,
+    Assignment: 1,
+    Conditional: 2,
+    ArrowFunction: 2,
+    LogicalOR: 3,
+    LogicalAND: 4,
+    BitwiseOR: 5,
+    BitwiseXOR: 6,
+    BitwiseAND: 7,
+    Equality: 8,
+    Relational: 9,
+    BitwiseSHIFT: 10,
+    Additive: 11,
+    Multiplicative: 12,
+    Unary: 13,
+    Postfix: 14,
+    Call: 15,
+    New: 16,
+    TaggedTemplate: 17,
+    Member: 18,
+    Primary: 19
+};
+
+// Flags
+const F_ALLOW_IN = 1;
+const F_ALLOW_CALL = 1 << 1;
+const F_ALLOW_UNPARATH_NEW = 1 << 2;
+// const F_FUNC_BODY = 1 << 3;
+// const F_DIRECTIVE_CTX = 1 << 4;
+const F_SEMICOLON_OPT = 1 << 5;
+
+// Expression flag sets
+// NOTE: Flag order:
+// F_ALLOW_IN
+// F_ALLOW_CALL
+// F_ALLOW_UNPARATH_NEW
+// const E_FTT = F_ALLOW_CALL | F_ALLOW_UNPARATH_NEW;
+// const E_TTF = F_ALLOW_IN | F_ALLOW_CALL;
+const E_TTT = F_ALLOW_IN | F_ALLOW_CALL | F_ALLOW_UNPARATH_NEW;
+// const E_TFF = F_ALLOW_IN;
+// const E_FFT = F_ALLOW_UNPARATH_NEW;
+// const E_TFT = F_ALLOW_IN | F_ALLOW_UNPARATH_NEW;
+
+// Statement flag sets
+// NOTE: Flag order:
+// F_ALLOW_IN
+// F_FUNC_BODY
+// F_DIRECTIVE_CTX
+// F_SEMICOLON_OPT
+const S_TFFF = F_ALLOW_IN;
+// const S_TFFT = F_ALLOW_IN | F_SEMICOLON_OPT;
+// const S_FFFF = 0x00;
+// const S_TFTF = F_ALLOW_IN | F_DIRECTIVE_CTX;
+// const S_TTFF = F_ALLOW_IN | F_FUNC_BODY;
+
 /**
  * The output function is scoped at the module level so that it is available without being a parameter.
  * @param {...*} x
@@ -87,6 +146,63 @@ let out;
  * We keep track of how many time gensym method on the Compiler is called because ... ?
  */
 let gensymCount = 0;
+
+/**
+ * 
+ */
+let base;
+/**
+ * 
+ */
+let indent;
+/**
+ * 
+ */
+let space;
+
+function updateDeeply(target, override) {
+    var key, val;
+
+    function isHashObject(target) {
+        return typeof target === 'object' && target instanceof Object && !(target instanceof RegExp);
+    }
+
+    for (key in override) {
+        if (override.hasOwnProperty(key)) {
+            val = override[key];
+            if (isHashObject(val)) {
+                if (isHashObject(target[key])) {
+                    updateDeeply(target[key], val);
+                } else {
+                    target[key] = updateDeeply({}, val);
+                }
+            } else {
+                target[key] = val;
+            }
+        }
+    }
+    return target;
+}
+
+/**
+ * flatten an array to a string, where the array can contain
+ * either strings or nested arrays
+ */
+function flattenToString(arr) {
+    var i, iz, elem, result = '';
+    for (i = 0, iz = arr.length; i < iz; ++i) {
+        elem = arr[i];
+        result += isArray(elem) ? flattenToString(elem) : elem;
+    }
+    return result;
+}
+
+function withIndent(fn: (base) => any) {
+    let previousBase = base;
+    base += indent;
+    fn(base);
+    base = previousBase;
+}
 
 /**
  * FIXME: CompilerUnit is coupled to this module by the out variable.
@@ -729,32 +845,54 @@ class Compiler {
         return ret;
     }
 
+    generateExpression(expression: Expression, s, flags?: number): string {
+        return "";
+    }
+
+    generateStatements(statement: Statement[], s, flags?: number): string {
+        return "";
+    }
+
+    maybeBlock(one, flags: number): string {
+        return "";
+    }
+
+    maybeBlockSuffix(one, two): string {
+        return "";
+    }
+
     ifStatement(stmt: IfStatement, flags: number) {
         assert(stmt instanceof IfStatement);
         assert(isNumber(flags));
-        const constant = this.exprConstant(stmt.test);
-        let end: number;
-        if (constant === 0) {
-            if (stmt.orelse) {
-                this.vseqstmt(stmt.orelse, flags);
+        let result;
+        let bodyFlags: number;
+        let semicolonOptional: boolean;
+        withIndent(() => {
+            result = [
+                'if' + space + '(',
+                this.generateExpression(stmt.test, Precedence.Sequence, E_TTT),
+                ')'
+            ];
+        });
+        semicolonOptional = !!(flags & F_SEMICOLON_OPT);
+        bodyFlags = S_TFFF;
+        if (semicolonOptional) {
+            bodyFlags |= F_SEMICOLON_OPT;
+        }
+        if (stmt.alternate) {
+            result.push(this.maybeBlock(stmt.consequent, S_TFFF));
+            result = this.maybeBlockSuffix(stmt.consequent, result);
+            /*
+            if (stmt.alternate.type === Syntax.IfStatement) {
+                result = join(result, ['else ', this.generateStatements(stmt.alternate, bodyFlags)]);
+            } else {
+                result = join(result, join('else', this.maybeBlock(stmt.alternate, bodyFlags)));
             }
+            */
+        } else {
+            result.push(this.maybeBlock(stmt.consequent, bodyFlags));
         }
-        else if (constant === 1) {
-            this.vseqstmt(stmt.body, flags);
-        }
-        else {
-            end = this.newBlock('end of if');
-            const next = this.newBlock('next branch of if');
-
-            // const test = this.vexpr(stmt.test);
-            this.vseqstmt(stmt.body, flags);
-
-            this.setBlock(next);
-            if (stmt.orelse)
-                this.vseqstmt(stmt.orelse, flags);
-        }
-        this.setBlock(end);
-
+        return result;
     }
 
     cwhile(s: WhileStatement, flags: number) {
