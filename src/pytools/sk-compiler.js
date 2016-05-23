@@ -1,14 +1,70 @@
-define(["require", "exports", './asserts', './parser', './builder', './symtable', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, parser_1, builder_1, symtable_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, astnodes_49, astnodes_50, astnodes_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
+define(["require", "exports", './asserts', './parser', './builder', './reservedNames', './reservedWords', './symtable', './toStringLiteralJS', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, astnodes_49, astnodes_50, astnodes_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
     "use strict";
-    /** @param {...*} x */
+    /**
+     * The output function is scoped at the module level so that it is available without being a parameter.
+     * @param {...*} x
+     */
     var out;
-    var gensymcount = 0;
+    /**
+     * We keep track of how many time gensym method on the Compiler is called because ... ?
+     */
+    var gensymCount = 0;
+    /**
+     * FIXME: CompilerUnit is coupled to this module by the out variable.
+     */
+    var CompilerUnit = (function () {
+        /**
+         * @constructor
+         *
+         * Stuff that changes on entry/exit of code blocks. must be saved and restored
+         * when returning to a block.
+         *
+         * Corresponds to the body of a module, class, or function.
+         */
+        function CompilerUnit() {
+            /**
+             * @type {?Object}
+             */
+            this.ste = null;
+            this.name = null;
+            this.private_ = null;
+            this.firstlineno = 0;
+            this.lineno = 0;
+            this.linenoSet = false;
+            this.localnames = [];
+            this.blocknum = 0;
+            this.blocks = [];
+            this.curblock = 0;
+            this.scopename = null;
+            this.prefixCode = '';
+            this.varDeclsCode = '';
+            this.switchCode = '';
+            this.suffixCode = '';
+            // stack of where to go on a break
+            this.breakBlocks = [];
+            // stack of where to go on a continue
+            this.continueBlocks = [];
+            this.exceptBlocks = [];
+            this.finallyBlocks = [];
+        }
+        CompilerUnit.prototype.activateScope = function () {
+            // The 'arguments' object cannot be referenced in an arrow function in ES3 and ES5.
+            // That's why we use a standard function expression.
+            var self = this;
+            out = function () {
+                var b = self.blocks[self.curblock];
+                for (var i = 0; i < arguments.length; ++i)
+                    b.push(arguments[i]);
+            };
+        };
+        return CompilerUnit;
+    }());
     var Compiler = (function () {
         /**
          * @constructor
-         * @param {string} fileName
-         * @param {Object} st
-         * @param {number} flags
+         * @param fileName {string}
+         * @param st {SymbolTable}
+         * @param flags {number}
          * @param {string=} sourceCodeForAnnotation used to add original source to listing if desired
          */
         function Compiler(fileName, st, flags, sourceCodeForAnnotation) {
@@ -61,7 +117,7 @@ define(["require", "exports", './asserts', './parser', './builder', './symtable'
         Compiler.prototype.gensym = function (hint) {
             hint = hint || '';
             hint = '$' + hint;
-            hint += gensymcount++;
+            hint += gensymCount++;
             return hint;
         };
         Compiler.prototype.niceName = function (roughName) {
@@ -344,13 +400,13 @@ define(["require", "exports", './asserts', './parser', './builder', './symtable'
                     }
                 case astnodes_44.Str:
                     {
-                        return this._gr('str', 'Sk.builtin.stringToPy(', toStringLiteralJS(e.s), ')');
+                        return this._gr('str', 'Sk.builtin.stringToPy(', toStringLiteralJS_1.default(e.s), ')');
                     }
                 case astnodes_4.Attribute:
                     var val;
                     if (e.ctx !== astnodes_7.AugStore)
                         val = this.vexpr(e.value);
-                    var mangled = toStringLiteralJS(e.attr);
+                    var mangled = toStringLiteralJS_1.default(e.attr);
                     mangled = mangled.substring(1, mangled.length - 1);
                     mangled = mangleName(this.u.private_, mangled);
                     mangled = fixReservedWords(mangled);
@@ -763,7 +819,7 @@ define(["require", "exports", './asserts', './parser', './builder', './symtable'
             var n = s.names.length;
             for (var i = 0; i < n; ++i) {
                 var alias = s.names[i];
-                var mod = this._gr('module', 'Sk.builtin.__import__(', toStringLiteralJS(alias.name), ',$gbl,$loc,[])');
+                var mod = this._gr('module', 'Sk.builtin.__import__(', toStringLiteralJS_1.default(alias.name), ',$gbl,$loc,[])');
                 if (alias.asname) {
                     this.cimportas(alias.name, alias.asname, mod);
                 }
@@ -785,8 +841,8 @@ define(["require", "exports", './asserts', './parser', './builder', './symtable'
             for (var i = 0; i < n; ++i) {
                 names[i] = s.names[i].name;
             }
-            var namesString = names.map(function (name) { return toStringLiteralJS(name); }).join(', ');
-            var mod = this._gr('module', 'Sk.builtin.__import__(', toStringLiteralJS(s.module), ',$gbl,$loc,[', namesString, '])');
+            var namesString = names.map(function (name) { return toStringLiteralJS_1.default(name); }).join(', ');
+            var mod = this._gr('module', 'Sk.builtin.__import__(', toStringLiteralJS_1.default(s.module), ',$gbl,$loc,[', namesString, '])');
             for (var i = 0; i < n; ++i) {
                 var alias = s.names[i];
                 if (i === 0 && alias.name === "*") {
@@ -794,7 +850,7 @@ define(["require", "exports", './asserts', './parser', './builder', './symtable'
                     out("Sk.importStar(", mod, ",$loc, $gbl);");
                     return;
                 }
-                var got = this._gr('item', 'Sk.abstr.gattr(', mod, ',', toStringLiteralJS(alias.name), ')');
+                var got = this._gr('item', 'Sk.abstr.gattr(', mod, ',', toStringLiteralJS_1.default(alias.name), ')');
                 var storeName = alias.name;
                 if (alias.asname)
                     storeName = alias.asname;
@@ -1165,7 +1221,7 @@ define(["require", "exports", './asserts', './parser', './builder', './symtable'
             // build class
             // apply decorators
             this.exitScope();
-            var wrapped = this._gr('built', 'Sk.misceval.buildClass($gbl,', scopename, ',', toStringLiteralJS(s.name), ',[', bases, '])');
+            var wrapped = this._gr('built', 'Sk.misceval.buildClass($gbl,', scopename, ',', toStringLiteralJS_1.default(s.name), ',[', bases, '])');
             // store our new class under the right name
             this.nameop(s.name, astnodes_43.Store, wrapped);
         };
@@ -1469,82 +1525,20 @@ define(["require", "exports", './asserts', './parser', './builder', './symtable'
         };
         return Compiler;
     }());
-    var CompilerUnit = (function () {
-        /**
-         * @constructor
-         *
-         * Stuff that changes on entry/exit of code blocks. must be saved and restored
-         * when returning to a block.
-         *
-         * Corresponds to the body of a module, class, or function.
-         */
-        function CompilerUnit() {
-            /**
-             * @type {?Object}
-             */
-            this.ste = null;
-            this.name = null;
-            this.private_ = null;
-            this.firstlineno = 0;
-            this.lineno = 0;
-            this.linenoSet = false;
-            this.localnames = [];
-            this.blocknum = 0;
-            this.blocks = [];
-            this.curblock = 0;
-            this.scopename = null;
-            this.prefixCode = '';
-            this.varDeclsCode = '';
-            this.switchCode = '';
-            this.suffixCode = '';
-            // stack of where to go on a break
-            this.breakBlocks = [];
-            // stack of where to go on a continue
-            this.continueBlocks = [];
-            this.exceptBlocks = [];
-            this.finallyBlocks = [];
+    /**
+     * Appends "_$rw$" to any word that is in the list of reserved words.
+     */
+    function fixReservedWords(word) {
+        if (reservedWords_1.default[word] !== true) {
+            return word;
         }
-        CompilerUnit.prototype.activateScope = function () {
-            var self = this;
-            out = function () {
-                var b = self.blocks[self.curblock];
-                for (var i = 0; i < arguments.length; ++i)
-                    b.push(arguments[i]);
-            };
-        };
-        return CompilerUnit;
-    }());
-    var reservedWords_ = { 'abstract': true, 'as': true, 'boolean': true,
-        'break': true, 'byte': true, 'case': true, 'catch': true, 'char': true,
-        'class': true, 'continue': true, 'const': true, 'debugger': true,
-        'default': true, 'delete': true, 'do': true, 'double': true, 'else': true,
-        'enum': true, 'export': true, 'extends': true, 'false': true,
-        'final': true, 'finally': true, 'float': true, 'for': true,
-        'function': true, 'goto': true, 'if': true, 'implements': true,
-        'import': true, 'in': true, 'instanceof': true, 'int': true,
-        'interface': true, 'is': true, 'long': true, 'namespace': true,
-        'native': true, 'new': true, 'null': true, 'package': true,
-        'private': true, 'protected': true, 'public': true, 'return': true,
-        'short': true, 'static': true, 'super': false, 'switch': true,
-        'synchronized': true, 'this': true, 'throw': true, 'throws': true,
-        'transient': true, 'true': true, 'try': true, 'typeof': true, 'use': true,
-        'var': true, 'void': true, 'volatile': true, 'while': true, 'with': true
-    };
-    function fixReservedWords(name) {
-        if (reservedWords_[name] !== true)
-            return name;
-        return name + "_$rw$";
+        return word + "_$rw$";
     }
-    var reservedNames_ = { '__defineGetter__': true, '__defineSetter__': true,
-        'apply': true, 'call': true, 'eval': true, 'hasOwnProperty': true,
-        'isPrototypeOf': true,
-        '__lookupGetter__': true, '__lookupSetter__': true,
-        '__noSuchMethod__': true, 'propertyIsEnumerable': true,
-        'toSource': true, 'toLocaleString': true, 'toString': true,
-        'unwatch': true, 'valueOf': true, 'watch': true, 'length': true
-    };
+    /**
+     * Appends "_$rn$" to any name that is in the list of reserved names.
+     */
     function fixReservedNames(name) {
-        if (reservedNames_[name])
+        if (reservedNames_1.default[name])
             return name + "_$rn$";
         return name;
     }
@@ -1569,36 +1563,6 @@ define(["require", "exports", './asserts', './parser', './builder', './symtable'
         strpriv.replace(/^_*/, '');
         return '_' + strpriv + name;
     }
-    var toStringLiteralJS = function (value) {
-        // single is preferred
-        var quote = "'";
-        if (value.indexOf("'") !== -1 && value.indexOf('"') === -1) {
-            quote = '"';
-        }
-        var len = value.length;
-        var ret = quote;
-        for (var i = 0; i < len; ++i) {
-            var c = value.charAt(i);
-            if (c === quote || c === '\\')
-                ret += '\\' + c;
-            else if (c === '\t')
-                ret += '\\t';
-            else if (c === '\n')
-                ret += '\\n';
-            else if (c === '\r')
-                ret += '\\r';
-            else if (c < ' ' || c >= 0x7f) {
-                var ashex = c.charCodeAt(0).toString(16);
-                if (ashex.length < 2)
-                    ashex = "0" + ashex;
-                ret += "\\x" + ashex;
-            }
-            else
-                ret += c;
-        }
-        ret += quote;
-        return ret;
-    };
     var OP_FAST = 0;
     var OP_GLOBAL = 1;
     var OP_DEREF = 2;
@@ -1612,20 +1576,18 @@ define(["require", "exports", './asserts', './parser', './builder', './symtable'
      *
      * @return {{funcname: string, code: string}}
      */
-    var compile = function (source, fileName) {
+    function compile(source, fileName) {
         var cst = parser_1.parse(fileName, source);
         var ast = builder_1.astFromParse(cst, fileName);
         var st = symtable_1.default.symbolTable(ast, fileName);
         var c = new Compiler(fileName, st, 0, source);
         return { 'funcname': c.cmod(ast), 'code': c.result.join('') };
-    };
-    var resetCompiler = function () {
-        gensymcount = 0;
-    };
-    var that = {
-        'compile': compile,
-        'resetCompiler': resetCompiler
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.default = that;
+    }
+    exports.compile = compile;
+    ;
+    function resetCompiler() {
+        gensymCount = 0;
+    }
+    exports.resetCompiler = resetCompiler;
+    ;
 });

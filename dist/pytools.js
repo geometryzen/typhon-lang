@@ -2008,6 +2008,9 @@ define('pytools/tables',["require", "exports", './Tokens'], function (require, e
 
 define('pytools/asserts',["require", "exports"], function (require, exports) {
     "use strict";
+    /**
+     * We're looking for something that is truthy, not just true.
+     */
     function assert(condition, message) {
         if (!condition) {
             throw new Error(message);
@@ -6517,6 +6520,147 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
     ;
 });
 
+define('pytools/reservedNames',["require", "exports"], function (require, exports) {
+    "use strict";
+    /**
+     * TODO: Reserved for whom?
+     */
+    var reservedNames = {
+        '__defineGetter__': true,
+        '__defineSetter__': true,
+        'apply': true,
+        'call': true,
+        'eval': true,
+        'hasOwnProperty': true,
+        'isPrototypeOf': true,
+        '__lookupGetter__': true,
+        '__lookupSetter__': true,
+        '__noSuchMethod__': true,
+        'propertyIsEnumerable': true,
+        'toSource': true,
+        'toLocaleString': true,
+        'toString': true,
+        'unwatch': true,
+        'valueOf': true,
+        'watch': true,
+        'length': true
+    };
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.default = reservedNames;
+});
+
+define('pytools/reservedWords',["require", "exports"], function (require, exports) {
+    "use strict";
+    /**
+     * TODO: Reserved for whom?
+     */
+    var reservedWords = {
+        'abstract': true,
+        'as': true,
+        'boolean': true,
+        'break': true,
+        'byte': true,
+        'case': true,
+        'catch': true,
+        'char': true,
+        'class': true,
+        'continue': true,
+        'const': true,
+        'debugger': true,
+        'default': true,
+        'delete': true,
+        'do': true,
+        'double': true,
+        'else': true,
+        'enum': true,
+        'export': true,
+        'extends': true,
+        'false': true,
+        'final': true,
+        'finally': true,
+        'float': true,
+        'for': true,
+        'function': true,
+        'goto': true,
+        'if': true,
+        'implements': true,
+        'import': true,
+        'in': true,
+        'instanceof': true,
+        'int': true,
+        'interface': true,
+        'is': true,
+        'long': true,
+        'namespace': true,
+        'native': true,
+        'new': true,
+        'null': true,
+        'package': true,
+        'private': true,
+        'protected': true,
+        'public': true,
+        'return': true,
+        'short': true,
+        'static': true,
+        'super': false,
+        'switch': true,
+        'synchronized': true,
+        'this': true,
+        'throw': true,
+        'throws': true,
+        'transient': true,
+        'true': true,
+        'try': true,
+        'typeof': true,
+        'use': true,
+        'var': true,
+        'void': true,
+        'volatile': true,
+        'while': true,
+        'with': true
+    };
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.default = reservedWords;
+});
+
+define('pytools/dictUpdate',["require", "exports"], function (require, exports) {
+    "use strict";
+    function default_1(a, b) {
+        for (var kb in b) {
+            a[kb] = b[kb];
+        }
+    }
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.default = default_1;
+});
+
+define('pytools/mangleName',["require", "exports"], function (require, exports) {
+    "use strict";
+    /**
+     * @param {string|null} priv
+     * @param {string} name
+     */
+    function default_1(priv, name) {
+        var strpriv = null;
+        if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_')
+            return name;
+        // don't mangle __id__
+        if (name.charAt(name.length - 1) === '_' && name.charAt(name.length - 2) === '_')
+            return name;
+        // don't mangle classes that are all _ (obscure much?)
+        strpriv = priv;
+        strpriv.replace(/_/g, '');
+        if (strpriv === '')
+            return name;
+        strpriv = priv;
+        strpriv.replace(/^_*/, '');
+        strpriv = '_' + strpriv + name;
+        return strpriv;
+    }
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.default = default_1;
+});
+
 /* Flags for def-use information */
 define('pytools/SymbolConstants',["require", "exports"], function (require, exports) {
     "use strict";
@@ -6728,14 +6872,14 @@ define('pytools/SymbolTableScope',["require", "exports", './asserts', './Symbol'
     exports.default = SymbolTableScope;
 });
 
-define('pytools/symtable',["require", "exports", './asserts', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './base', './SymbolTableScope', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, base_1, SymbolTableScope_1, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7, SymbolConstants_8, SymbolConstants_9, SymbolConstants_10, SymbolConstants_11, SymbolConstants_12, SymbolConstants_13, SymbolConstants_14, SymbolConstants_15, SymbolConstants_16) {
+define('pytools/syntaxError',["require", "exports", './asserts', './base'], function (require, exports, asserts_1, base_1) {
     "use strict";
     /**
      * @param {string} message
      * @param {string} fileName
      * @param {number=} lineNumber
      */
-    function syntaxError(message, fileName, lineNumber) {
+    function default_1(message, fileName, lineNumber) {
         asserts_1.assert(base_1.isString(message), "message must be a string");
         asserts_1.assert(base_1.isString(fileName), "fileName must be a string");
         if (base_1.isDef(lineNumber)) {
@@ -6748,27 +6892,12 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
         }
         return e;
     }
-    /**
-     * @param {string|null} priv
-     * @param {string} name
-     */
-    function mangleName(priv, name) {
-        var strpriv = null;
-        if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_')
-            return name;
-        // don't mangle __id__
-        if (name.charAt(name.length - 1) === '_' && name.charAt(name.length - 2) === '_')
-            return name;
-        // don't mangle classes that are all _ (obscure much?)
-        strpriv = priv;
-        strpriv.replace(/_/g, '');
-        if (strpriv === '')
-            return name;
-        strpriv = priv;
-        strpriv.replace(/^_*/, '');
-        strpriv = '_' + strpriv + name;
-        return strpriv;
-    }
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.default = default_1;
+});
+
+define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate', './mangleName', './SymbolTableScope', './syntaxError', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, dictUpdate_1, mangleName_1, SymbolTableScope_1, syntaxError_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7, SymbolConstants_8, SymbolConstants_9, SymbolConstants_10, SymbolConstants_11, SymbolConstants_12, SymbolConstants_13, SymbolConstants_14, SymbolConstants_15, SymbolConstants_16) {
+    "use strict";
     var SymbolTable = (function () {
         /**
          * @constructor
@@ -6820,7 +6949,7 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
                             this.visitExpr(e.value);
                         this.cur.generator = true;
                         if (this.cur.returnsValue) {
-                            throw syntaxError("'return' with argument inside generator", this.fileName);
+                            throw syntaxError_1.default("'return' with argument inside generator", this.fileName);
                         }
                         break;
                     case astnodes_10.Compare:
@@ -6892,7 +7021,7 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
                     }
                     else {
                         if (this.cur.blockType !== SymbolConstants_14.ModuleBlock) {
-                            throw syntaxError("import * only allowed at module level", this.fileName);
+                            throw syntaxError_1.default("import * only allowed at module level", this.fileName);
                         }
                     }
                 }
@@ -6932,9 +7061,9 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
                 var newbound = {};
                 var newfree = {};
                 if (ste.blockType == SymbolConstants_2.ClassBlock) {
-                    _dictUpdate(newglobal, global);
+                    dictUpdate_1.default(newglobal, global);
                     if (bound)
-                        _dictUpdate(newbound, bound);
+                        dictUpdate_1.default(newbound, bound);
                 }
                 for (var name in ste.symFlags) {
                     var flags = ste.symFlags[name];
@@ -6942,10 +7071,10 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
                 }
                 if (ste.blockType !== SymbolConstants_2.ClassBlock) {
                     if (ste.blockType === SymbolConstants_10.FunctionBlock)
-                        _dictUpdate(newbound, local);
+                        dictUpdate_1.default(newbound, local);
                     if (bound)
-                        _dictUpdate(newbound, bound);
-                    _dictUpdate(newglobal, global);
+                        dictUpdate_1.default(newbound, bound);
+                    dictUpdate_1.default(newglobal, global);
                 }
                 var allfree = {};
                 var childlen = ste.children.length;
@@ -6955,21 +7084,21 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
                     if (c.hasFree || c.childHasFree)
                         ste.childHasFree = true;
                 }
-                _dictUpdate(newfree, allfree);
+                dictUpdate_1.default(newfree, allfree);
                 if (ste.blockType === SymbolConstants_10.FunctionBlock)
                     this.analyzeCells(scope, newfree);
                 this.updateSymbols(ste.symFlags, scope, bound, newfree, ste.blockType === SymbolConstants_2.ClassBlock);
-                _dictUpdate(free, newfree);
+                dictUpdate_1.default(free, newfree);
             };
             this.analyzeChildBlock = function (entry, bound, free, global, childFree) {
                 var tempBound = {};
-                _dictUpdate(tempBound, bound);
+                dictUpdate_1.default(tempBound, bound);
                 var tempFree = {};
-                _dictUpdate(tempFree, free);
+                dictUpdate_1.default(tempFree, free);
                 var tempGlobal = {};
-                _dictUpdate(tempGlobal, global);
+                dictUpdate_1.default(tempGlobal, global);
                 this.analyzeBlock(entry, tempBound, tempFree, tempGlobal);
-                _dictUpdate(childFree, tempFree);
+                dictUpdate_1.default(childFree, tempFree);
             };
             this.analyzeCells = function (scope, free) {
                 for (var name in scope) {
@@ -7019,7 +7148,7 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
             this.analyzeName = function (ste, dict, name, flags, bound, local, free, global) {
                 if (flags & SymbolConstants_5.DEF_GLOBAL) {
                     if (flags & SymbolConstants_8.DEF_PARAM)
-                        throw syntaxError("name '" + name + "' is local and global", this.fileName, ste.lineno);
+                        throw syntaxError_1.default("name '" + name + "' is local and global", this.fileName, ste.lineno);
                     dict[name] = SymbolConstants_11.GLOBAL_EXPLICIT;
                     global[name] = null;
                     if (bound && bound[name] !== undefined)
@@ -7118,7 +7247,7 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
                 }
                 else {
                     // Tuple isn't supported
-                    throw syntaxError("invalid expression in parameter list", this.fileName);
+                    throw syntaxError_1.default("invalid expression in parameter list", this.fileName);
                 }
             }
         };
@@ -7147,12 +7276,12 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
          * @param {number} lineno
          */
         SymbolTable.prototype.addDef = function (name, flag, lineno) {
-            var mangled = mangleName(this.curClass, name);
+            var mangled = mangleName_1.default(this.curClass, name);
             //  mangled = fixReservedNames(mangled);
             var val = this.cur.symFlags[mangled];
             if (val !== undefined) {
                 if ((flag & SymbolConstants_8.DEF_PARAM) && (val & SymbolConstants_8.DEF_PARAM)) {
-                    throw syntaxError("duplicate argument '" + name + "' in function definition", this.fileName, lineno);
+                    throw syntaxError_1.default("duplicate argument '" + name + "' in function definition", this.fileName, lineno);
                 }
                 val |= flag;
             }
@@ -7226,7 +7355,7 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
                         this.visitExpr(s.value);
                         this.cur.returnsValue = true;
                         if (this.cur.generator) {
-                            throw syntaxError("'return' with argument inside generator", this.fileName);
+                            throw syntaxError_1.default("'return' with argument inside generator", this.fileName);
                         }
                     }
                     break;
@@ -7304,15 +7433,15 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
                 case astnodes_21.Global:
                     var nameslen = s.names.length;
                     for (var i = 0; i < nameslen; ++i) {
-                        var name = mangleName(this.curClass, s.names[i]);
+                        var name = mangleName_1.default(this.curClass, s.names[i]);
                         //              name = fixReservedNames(name);
                         var cur = this.cur.symFlags[name];
                         if (cur & (SymbolConstants_7.DEF_LOCAL | SymbolConstants_15.USE)) {
                             if (cur & SymbolConstants_7.DEF_LOCAL) {
-                                throw syntaxError("name '" + name + "' is assigned to before global declaration", this.fileName, s.lineno);
+                                throw syntaxError_1.default("name '" + name + "' is assigned to before global declaration", this.fileName, s.lineno);
                             }
                             else {
-                                throw syntaxError("name '" + name + "' is used prior to global declaration", this.fileName, s.lineno);
+                                throw syntaxError_1.default("name '" + name + "' is used prior to global declaration", this.fileName, s.lineno);
                             }
                         }
                         this.addDef(name, SymbolConstants_5.DEF_GLOBAL, s.lineno);
@@ -7341,18 +7470,19 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
         };
         return SymbolTable;
     }());
-    function _dictUpdate(a, b) {
-        for (var kb in b) {
-            a[kb] = b[kb];
-        }
-    }
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.default = SymbolTable;
+});
+
+define('pytools/symtable',["require", "exports", './SymbolTable', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, SymbolTable_1, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7) {
+    "use strict";
     /**
      * @param {Object} ast
      * @param {string} fileName
      */
     var symbolTable = function (ast, fileName) {
-        var ret = new SymbolTable(fileName);
-        ret.enterBlock("top", SymbolConstants_14.ModuleBlock, ast, 0);
+        var ret = new SymbolTable_1.default(fileName);
+        ret.enterBlock("top", SymbolConstants_7.ModuleBlock, ast, 0);
         ret.top = ret.cur;
         //print(Sk.astDump(ast));
         for (var i = 0; i < ast.body.length; ++i)
@@ -7423,30 +7553,125 @@ define('pytools/symtable',["require", "exports", './asserts', './astnodes', './a
     };
     var that = {
         symbolTable: symbolTable,
-        mangleName: mangleName,
-        LOCAL: SymbolConstants_13.LOCAL,
-        GLOBAL_EXPLICIT: SymbolConstants_11.GLOBAL_EXPLICIT,
-        GLOBAL_IMPLICIT: SymbolConstants_12.GLOBAL_IMPLICIT,
-        FREE: SymbolConstants_9.FREE,
+        LOCAL: SymbolConstants_6.LOCAL,
+        GLOBAL_EXPLICIT: SymbolConstants_4.GLOBAL_EXPLICIT,
+        GLOBAL_IMPLICIT: SymbolConstants_5.GLOBAL_IMPLICIT,
+        FREE: SymbolConstants_2.FREE,
         CELL: SymbolConstants_1.CELL,
-        FunctionBlock: SymbolConstants_10.FunctionBlock,
+        FunctionBlock: SymbolConstants_3.FunctionBlock,
         dumpSymbolTable: dumpSymbolTable
     };
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = that;
 });
 
-define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './builder', './symtable', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, parser_1, builder_1, symtable_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, astnodes_49, astnodes_50, astnodes_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
+define('pytools/toStringLiteralJS',["require", "exports"], function (require, exports) {
     "use strict";
-    /** @param {...*} x */
+    /**
+     * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
+     */
+    function default_1(value) {
+        // single is preferred
+        var quote = "'";
+        if (value.indexOf("'") !== -1 && value.indexOf('"') === -1) {
+            quote = '"';
+        }
+        var len = value.length;
+        var ret = quote;
+        for (var i = 0; i < len; ++i) {
+            var c = value.charAt(i);
+            if (c === quote || c === '\\')
+                ret += '\\' + c;
+            else if (c === '\t')
+                ret += '\\t';
+            else if (c === '\n')
+                ret += '\\n';
+            else if (c === '\r')
+                ret += '\\r';
+            else if (c < ' ' || c >= 0x7f) {
+                var ashex = c.charCodeAt(0).toString(16);
+                if (ashex.length < 2)
+                    ashex = "0" + ashex;
+                ret += "\\x" + ashex;
+            }
+            else
+                ret += c;
+        }
+        ret += quote;
+        return ret;
+    }
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.default = default_1;
+    ;
+});
+
+define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './builder', './reservedNames', './reservedWords', './symtable', './toStringLiteralJS', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, astnodes_49, astnodes_50, astnodes_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
+    "use strict";
+    /**
+     * The output function is scoped at the module level so that it is available without being a parameter.
+     * @param {...*} x
+     */
     var out;
-    var gensymcount = 0;
+    /**
+     * We keep track of how many time gensym method on the Compiler is called because ... ?
+     */
+    var gensymCount = 0;
+    /**
+     * FIXME: CompilerUnit is coupled to this module by the out variable.
+     */
+    var CompilerUnit = (function () {
+        /**
+         * @constructor
+         *
+         * Stuff that changes on entry/exit of code blocks. must be saved and restored
+         * when returning to a block.
+         *
+         * Corresponds to the body of a module, class, or function.
+         */
+        function CompilerUnit() {
+            /**
+             * @type {?Object}
+             */
+            this.ste = null;
+            this.name = null;
+            this.private_ = null;
+            this.firstlineno = 0;
+            this.lineno = 0;
+            this.linenoSet = false;
+            this.localnames = [];
+            this.blocknum = 0;
+            this.blocks = [];
+            this.curblock = 0;
+            this.scopename = null;
+            this.prefixCode = '';
+            this.varDeclsCode = '';
+            this.switchCode = '';
+            this.suffixCode = '';
+            // stack of where to go on a break
+            this.breakBlocks = [];
+            // stack of where to go on a continue
+            this.continueBlocks = [];
+            this.exceptBlocks = [];
+            this.finallyBlocks = [];
+        }
+        CompilerUnit.prototype.activateScope = function () {
+            // The 'arguments' object cannot be referenced in an arrow function in ES3 and ES5.
+            // That's why we use a standard function expression.
+            var self = this;
+            out = function () {
+                var b = self.blocks[self.curblock];
+                for (var i = 0; i < arguments.length; ++i)
+                    b.push(arguments[i]);
+            };
+        };
+        return CompilerUnit;
+    }());
     var Compiler = (function () {
         /**
          * @constructor
-         * @param {string} fileName
-         * @param {Object} st
-         * @param {number} flags
+         * @param fileName {string}
+         * @param st {SymbolTable}
+         * @param flags {number}
          * @param {string=} sourceCodeForAnnotation used to add original source to listing if desired
          */
         function Compiler(fileName, st, flags, sourceCodeForAnnotation) {
@@ -7499,7 +7724,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
         Compiler.prototype.gensym = function (hint) {
             hint = hint || '';
             hint = '$' + hint;
-            hint += gensymcount++;
+            hint += gensymCount++;
             return hint;
         };
         Compiler.prototype.niceName = function (roughName) {
@@ -7782,13 +8007,13 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                     }
                 case astnodes_44.Str:
                     {
-                        return this._gr('str', 'Sk.builtin.stringToPy(', toStringLiteralJS(e.s), ')');
+                        return this._gr('str', 'Sk.builtin.stringToPy(', toStringLiteralJS_1.default(e.s), ')');
                     }
                 case astnodes_4.Attribute:
                     var val;
                     if (e.ctx !== astnodes_7.AugStore)
                         val = this.vexpr(e.value);
-                    var mangled = toStringLiteralJS(e.attr);
+                    var mangled = toStringLiteralJS_1.default(e.attr);
                     mangled = mangled.substring(1, mangled.length - 1);
                     mangled = mangleName(this.u.private_, mangled);
                     mangled = fixReservedWords(mangled);
@@ -8201,7 +8426,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             var n = s.names.length;
             for (var i = 0; i < n; ++i) {
                 var alias = s.names[i];
-                var mod = this._gr('module', 'Sk.builtin.__import__(', toStringLiteralJS(alias.name), ',$gbl,$loc,[])');
+                var mod = this._gr('module', 'Sk.builtin.__import__(', toStringLiteralJS_1.default(alias.name), ',$gbl,$loc,[])');
                 if (alias.asname) {
                     this.cimportas(alias.name, alias.asname, mod);
                 }
@@ -8223,8 +8448,8 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             for (var i = 0; i < n; ++i) {
                 names[i] = s.names[i].name;
             }
-            var namesString = names.map(function (name) { return toStringLiteralJS(name); }).join(', ');
-            var mod = this._gr('module', 'Sk.builtin.__import__(', toStringLiteralJS(s.module), ',$gbl,$loc,[', namesString, '])');
+            var namesString = names.map(function (name) { return toStringLiteralJS_1.default(name); }).join(', ');
+            var mod = this._gr('module', 'Sk.builtin.__import__(', toStringLiteralJS_1.default(s.module), ',$gbl,$loc,[', namesString, '])');
             for (var i = 0; i < n; ++i) {
                 var alias = s.names[i];
                 if (i === 0 && alias.name === "*") {
@@ -8232,7 +8457,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                     out("Sk.importStar(", mod, ",$loc, $gbl);");
                     return;
                 }
-                var got = this._gr('item', 'Sk.abstr.gattr(', mod, ',', toStringLiteralJS(alias.name), ')');
+                var got = this._gr('item', 'Sk.abstr.gattr(', mod, ',', toStringLiteralJS_1.default(alias.name), ')');
                 var storeName = alias.name;
                 if (alias.asname)
                     storeName = alias.asname;
@@ -8603,7 +8828,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             // build class
             // apply decorators
             this.exitScope();
-            var wrapped = this._gr('built', 'Sk.misceval.buildClass($gbl,', scopename, ',', toStringLiteralJS(s.name), ',[', bases, '])');
+            var wrapped = this._gr('built', 'Sk.misceval.buildClass($gbl,', scopename, ',', toStringLiteralJS_1.default(s.name), ',[', bases, '])');
             // store our new class under the right name
             this.nameop(s.name, astnodes_43.Store, wrapped);
         };
@@ -8907,82 +9132,20 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
         };
         return Compiler;
     }());
-    var CompilerUnit = (function () {
-        /**
-         * @constructor
-         *
-         * Stuff that changes on entry/exit of code blocks. must be saved and restored
-         * when returning to a block.
-         *
-         * Corresponds to the body of a module, class, or function.
-         */
-        function CompilerUnit() {
-            /**
-             * @type {?Object}
-             */
-            this.ste = null;
-            this.name = null;
-            this.private_ = null;
-            this.firstlineno = 0;
-            this.lineno = 0;
-            this.linenoSet = false;
-            this.localnames = [];
-            this.blocknum = 0;
-            this.blocks = [];
-            this.curblock = 0;
-            this.scopename = null;
-            this.prefixCode = '';
-            this.varDeclsCode = '';
-            this.switchCode = '';
-            this.suffixCode = '';
-            // stack of where to go on a break
-            this.breakBlocks = [];
-            // stack of where to go on a continue
-            this.continueBlocks = [];
-            this.exceptBlocks = [];
-            this.finallyBlocks = [];
+    /**
+     * Appends "_$rw$" to any word that is in the list of reserved words.
+     */
+    function fixReservedWords(word) {
+        if (reservedWords_1.default[word] !== true) {
+            return word;
         }
-        CompilerUnit.prototype.activateScope = function () {
-            var self = this;
-            out = function () {
-                var b = self.blocks[self.curblock];
-                for (var i = 0; i < arguments.length; ++i)
-                    b.push(arguments[i]);
-            };
-        };
-        return CompilerUnit;
-    }());
-    var reservedWords_ = { 'abstract': true, 'as': true, 'boolean': true,
-        'break': true, 'byte': true, 'case': true, 'catch': true, 'char': true,
-        'class': true, 'continue': true, 'const': true, 'debugger': true,
-        'default': true, 'delete': true, 'do': true, 'double': true, 'else': true,
-        'enum': true, 'export': true, 'extends': true, 'false': true,
-        'final': true, 'finally': true, 'float': true, 'for': true,
-        'function': true, 'goto': true, 'if': true, 'implements': true,
-        'import': true, 'in': true, 'instanceof': true, 'int': true,
-        'interface': true, 'is': true, 'long': true, 'namespace': true,
-        'native': true, 'new': true, 'null': true, 'package': true,
-        'private': true, 'protected': true, 'public': true, 'return': true,
-        'short': true, 'static': true, 'super': false, 'switch': true,
-        'synchronized': true, 'this': true, 'throw': true, 'throws': true,
-        'transient': true, 'true': true, 'try': true, 'typeof': true, 'use': true,
-        'var': true, 'void': true, 'volatile': true, 'while': true, 'with': true
-    };
-    function fixReservedWords(name) {
-        if (reservedWords_[name] !== true)
-            return name;
-        return name + "_$rw$";
+        return word + "_$rw$";
     }
-    var reservedNames_ = { '__defineGetter__': true, '__defineSetter__': true,
-        'apply': true, 'call': true, 'eval': true, 'hasOwnProperty': true,
-        'isPrototypeOf': true,
-        '__lookupGetter__': true, '__lookupSetter__': true,
-        '__noSuchMethod__': true, 'propertyIsEnumerable': true,
-        'toSource': true, 'toLocaleString': true, 'toString': true,
-        'unwatch': true, 'valueOf': true, 'watch': true, 'length': true
-    };
+    /**
+     * Appends "_$rn$" to any name that is in the list of reserved names.
+     */
     function fixReservedNames(name) {
-        if (reservedNames_[name])
+        if (reservedNames_1.default[name])
             return name + "_$rn$";
         return name;
     }
@@ -9007,36 +9170,6 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
         strpriv.replace(/^_*/, '');
         return '_' + strpriv + name;
     }
-    var toStringLiteralJS = function (value) {
-        // single is preferred
-        var quote = "'";
-        if (value.indexOf("'") !== -1 && value.indexOf('"') === -1) {
-            quote = '"';
-        }
-        var len = value.length;
-        var ret = quote;
-        for (var i = 0; i < len; ++i) {
-            var c = value.charAt(i);
-            if (c === quote || c === '\\')
-                ret += '\\' + c;
-            else if (c === '\t')
-                ret += '\\t';
-            else if (c === '\n')
-                ret += '\\n';
-            else if (c === '\r')
-                ret += '\\r';
-            else if (c < ' ' || c >= 0x7f) {
-                var ashex = c.charCodeAt(0).toString(16);
-                if (ashex.length < 2)
-                    ashex = "0" + ashex;
-                ret += "\\x" + ashex;
-            }
-            else
-                ret += c;
-        }
-        ret += quote;
-        return ret;
-    };
     var OP_FAST = 0;
     var OP_GLOBAL = 1;
     var OP_DEREF = 2;
@@ -9050,54 +9183,28 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
      *
      * @return {{funcname: string, code: string}}
      */
-    var compile = function (source, fileName) {
+    function compile(source, fileName) {
         var cst = parser_1.parse(fileName, source);
         var ast = builder_1.astFromParse(cst, fileName);
         var st = symtable_1.default.symbolTable(ast, fileName);
         var c = new Compiler(fileName, st, 0, source);
         return { 'funcname': c.cmod(ast), 'code': c.result.join('') };
-    };
-    var resetCompiler = function () {
-        gensymcount = 0;
-    };
-    var that = {
-        'compile': compile,
-        'resetCompiler': resetCompiler
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.default = that;
+    }
+    exports.compile = compile;
+    ;
+    function resetCompiler() {
+        gensymCount = 0;
+    }
+    exports.resetCompiler = resetCompiler;
+    ;
 });
 
 define('pytools',["require", "exports", './pytools/parser', './pytools/builder', './pytools/sk-compiler'], function (require, exports, parser_1, builder_1, sk_compiler_1) {
     "use strict";
-    /**
-     * This file is referenced by the requireJS config.js and pulls in all the other files.
-     *
-     * We are using the Basic AMD Hybrid Format (John Hann).
-     */
-    /*
-    import core from './pytools/core';
-    // import base from './pytools/base';
-      var that = require('pytools/core');
-    
-      // that.base = require('pytools/base');
-    
-      //that.asserts = require('pytools/asserts');
-      that.tables = require('pytools/tables');
-      that.astnodes = require('pytools/astnodes');
-    
-      that.parser = require('pytools/parser');
-      that.builder = require('pytools/builder');
-      that.symtable = require('pytools/symtable');
-      that.tokenize = require('pytools/Tokenizer');
-      that.numericLiteral = require('pytools/numericLiteral');
-    
-      that.skCompiler = require('pytools/sk-compiler');
-    */
     var pytools = {
         parser: { parse: parser_1.parse, parseTreeDump: parser_1.parseTreeDump },
         builder: { astFromParse: builder_1.astFromParse, astDump: builder_1.astDump },
-        skCompiler: sk_compiler_1.default
+        skCompiler: { compile: sk_compiler_1.compile, resetCompiler: sk_compiler_1.resetCompiler }
     };
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = pytools;

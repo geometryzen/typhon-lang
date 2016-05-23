@@ -78,13 +78,13 @@ export class Suite {
 }
 
 export class FunctionDef {
-    name
+    name: string;
     args
     body
     decorator_list
     lineno
     col_offset
-    constructor(name, args, body, decorator_list, lineno, col_offset) {
+    constructor(name: string, args, body, decorator_list, lineno, col_offset) {
         this.name = name;
         this.args = args;
         this.body = body;
@@ -95,13 +95,13 @@ export class FunctionDef {
 }
 
 export class ClassDef {
-    name
+    name: string;
     bases
     body
     decorator_list
     lineno
     col_offset
-    constructor(name, bases, body, decorator_list, lineno, col_offset) {
+    constructor(name: string, bases, body, decorator_list, lineno, col_offset) {
         this.name = name;
         this.bases = bases;
         this.body = body;
