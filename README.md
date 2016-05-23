@@ -8,6 +8,8 @@ http://pages.cpsc.ucalgary.ca/~aycock/spark/
 
 ## Build
 
+### Installation
+
 ```
 npm install
 ```
@@ -20,9 +22,19 @@ bower install
 ./build.py help
 ```
 
+### Generate parser
+
 ```
 ./build.py gen
 ```
+
+### Compile TypeScript to JavaScript
+
+```
+tsc
+```
+
+### Jasmine Unit Test, Bundle, Uglify.
 
 ```
 grunt
