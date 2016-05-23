@@ -195,7 +195,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
     }
     function astForCompOp(c, n) {
         /* comp_op: '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'
-                   |'is' 'not'
+                    |'is' 'not'
         */
         REQ(n, SYM.comp_op);
         if (NCH(n) === 1) {
@@ -247,7 +247,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         if (CHILD(n, 0).type === SYM.simple_stmt) {
             n = CHILD(n, 0);
             /* simple_stmt always ends with an NEWLINE and may have a trailing
-             * SEMI. */
+                * SEMI. */
             var end = NCH(n) - 1;
             if (CHILD(n, end - 1).type === TOK.T_SEMI)
                 end -= 1;
@@ -304,8 +304,8 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             if (CHILD(n, nc - 3).value === "finally") {
                 if (nc >= 9 && CHILD(n, nc - 6).type === TOK.T_NAME) {
                     /* we can assume it's an "else",
-                       because nc >= 9 for try-else-finally and
-                       it would otherwise have a type of except_clause */
+                        because nc >= 9 for try-else-finally and
+                        it would otherwise have a type of except_clause */
                     orelse = astForSuite(c, CHILD(n, nc - 4));
                     nexcept--;
                 }
@@ -314,7 +314,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             }
             else {
                 /* we can assume it's an "else",
-                   otherwise it would have a type of except_clause */
+                    otherwise it would have a type of except_clause */
                 orelse = astForSuite(c, CHILD(n, nc - 1));
                 nexcept--;
             }
@@ -330,7 +330,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             if (!finally_)
                 return exceptSt;
             /* if a 'finally' is present too, we nest the TryExcept within a
-               TryFinally to emulate try ... except ... finally */
+                TryFinally to emulate try ... except ... finally */
             body = [exceptSt];
         }
         asserts_1.assert(finally_ !== null);
@@ -415,7 +415,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
     }
     function astForIfStmt(c, n) {
         /* if_stmt: 'if' test ':' suite ('elif' test ':' suite)*
-           ['else' ':' suite]
+            ['else' ':' suite]
         */
         REQ(n, SYM.if_stmt);
         if (NCH(n) === 4)
@@ -430,7 +430,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             var hasElse = false;
             var orelse = [];
             /* must reference the child nElif+1 since 'else' token is third, not
-             * fourth child from the end. */
+                * fourth child from the end. */
             if (CHILD(n, nElif + 1).type === TOK.T_NAME && CHILD(n, nElif + 1).value.charAt(2) === 's') {
                 hasElse = true;
                 nElif -= 3;
@@ -492,9 +492,9 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
     }
     function aliasForImportName(c, n) {
         /*
-          import_as_name: NAME ['as' NAME]
-          dotted_as_name: dotted_name ['as' NAME]
-          dotted_name: NAME ('.' NAME)*
+            import_as_name: NAME ['as' NAME]
+            dotted_as_name: dotted_name ['as' NAME]
+            dotted_name: NAME ('.' NAME)*
         */
         loop: while (true) {
             switch (n.type) {
@@ -718,9 +718,9 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
     }
     function astForCall(c, n, func) {
         /*
-          arglist: (argument ',')* (argument [',']| '*' test [',' '**' test]
-                   | '**' test)
-          argument: [test '='] test [gen_for]        # Really [keyword '='] test
+            arglist: (argument ',')* (argument [',']| '*' test [',' '**' test]
+                    | '**' test)
+            argument: [test '='] test [gen_for]        # Really [keyword '='] test
         */
         REQ(n, SYM.arglist);
         var nargs = 0;
@@ -784,9 +784,9 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
     }
     function astForTrailer(c, n, leftExpr) {
         /* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
-           subscriptlist: subscript (',' subscript)* [',']
-           subscript: '.' '.' '.' | test | [test] ':' [test] [sliceop]
-         */
+            subscriptlist: subscript (',' subscript)* [',']
+            subscript: '.' '.' '.' | test | [test] ':' [test] [sliceop]
+            */
         REQ(n, SYM.trailer);
         if (CHILD(n, 0).type === TOK.T_LPAR) {
             if (NCH(n) === 2)
@@ -804,8 +804,8 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 return new astnodes_77.Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), astnodes_52.Load, n.lineno, n.col_offset);
             else {
                 /* The grammar is ambiguous here. The ambiguity is resolved
-                   by treating the sequence as a tuple literal if there are
-                   no slice features.
+                    by treating the sequence as a tuple literal if there are
+                    no slice features.
                 */
                 var simple = true;
                 var slices = [];
@@ -859,7 +859,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
     }
     function astForArguments(c, n) {
         /* parameters: '(' [varargslist] ')'
-           varargslist: (fpdef ['=' test] ',')* ('*' NAME [',' '**' NAME]
+            varargslist: (fpdef ['=' test] ',')* ('*' NAME [',' '**' NAME]
                 | '**' NAME) | fpdef ['=' test] (',' fpdef ['=' test])* [',']
         */
         var ch;
@@ -874,7 +874,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         var args = [];
         var defaults = [];
         /* fpdef: NAME | '(' fplist ')'
-           fplist: fpdef (',' fpdef)* [',']
+            fplist: fpdef (',' fpdef)* [',']
         */
         var foundDefault = false;
         var i = 0;
@@ -894,7 +894,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                         }
                         else if (foundDefault) {
                             /* def f((x)=4): pass should raise an error.
-                               def f((x, (y))): pass will just incur the tuple unpacking warning. */
+                                def f((x, (y))): pass will just incur the tuple unpacking warning. */
                             if (parenthesized && !complexArgs)
                                 throw syntaxError("parenthesized arg with default", c.c_filename, n.lineno);
                             throw syntaxError("non-default argument follows default argument", c.c_filename, n.lineno);
@@ -908,7 +908,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                             else {
                                 /* def foo((x)): setup for checking NAME below. */
                                 /* Loop because there can be many parens and tuple
-                                   unpacking mixed in. */
+                                    unpacking mixed in. */
                                 parenthesized = true;
                                 ch = CHILD(ch, 0);
                                 asserts_1.assert(ch.type === SYM.fpdef);
@@ -985,7 +985,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
     }
     function astForGenexp(c, n) {
         /* testlist_gexp: test ( gen_for | (',' test)* [','] )
-           argument: [test '='] test [gen_for]       # Really [keyword '='] test */
+            argument: [test '='] test [gen_for]       # Really [keyword '='] test */
         asserts_1.assert(n.type === SYM.testlist_gexp || n.type === SYM.argument);
         asserts_1.assert(NCH(n) > 1);
         function countGenFors(c, n) {
@@ -1610,7 +1610,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             }
         }
     }
-    var astFromParse = function (n, filename) {
+    function astFromParse(n, filename) {
         var c = new Compiling("utf-8", filename);
         var stmts = [];
         var ch;
@@ -1642,8 +1642,10 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             default:
                 asserts_1.fail("todo;");
         }
-    };
-    var astDump = function (node) {
+    }
+    exports.astFromParse = astFromParse;
+    ;
+    function astDump(node) {
         var _format = function (node) {
             if (node === null) {
                 return "None";
@@ -1687,11 +1689,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             }
         };
         return _format(node);
-    };
-    var that = {
-        'astFromParse': astFromParse,
-        'astDump': astDump
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.default = that;
+    }
+    exports.astDump = astDump;
+    ;
 });

@@ -270,7 +270,7 @@ function makeParser(filename: string, style?: string) {
             return true;
         }
     });
-    return function(line) {
+    return function(line: string) {
         var ret = tokenizer.generateTokens(line);
         if (ret) {
             if (ret !== "done") {
@@ -282,7 +282,7 @@ function makeParser(filename: string, style?: string) {
     };
 }
 
-function parse(filename, input) {
+export function parse(filename: string, input: string) {
     var parseFunc = makeParser(filename);
     if (input.substr(input.length - 1, 1) !== "\n") input += "\n";
     var lines = input.split("\n");
@@ -293,7 +293,7 @@ function parse(filename, input) {
     return ret;
 }
 
-function parseTreeDump(n) {
+export function parseTreeDump(n) {
     var ret = "";
     if (n.type >= 256) // non-term
     {
@@ -307,10 +307,3 @@ function parseTreeDump(n) {
     }
     return ret;
 }
-
-const that =
-    {
-        'parse': parse,
-        'parseTreeDump': parseTreeDump
-    };
-export default that;

@@ -1,5 +1,5 @@
-import parser from './pytools/Parser';
-import builder from './pytools/builder';
+import {parse, parseTreeDump} from './pytools/parser';
+import {astFromParse, astDump} from './pytools/builder';
 import skCompiler from './pytools/sk-compiler';
 /**
  * This file is referenced by the requireJS config.js and pulls in all the other files.
@@ -17,7 +17,7 @@ import core from './pytools/core';
   that.tables = require('pytools/tables');
   that.astnodes = require('pytools/astnodes');
 
-  that.parser = require('pytools/Parser');
+  that.parser = require('pytools/parser');
   that.builder = require('pytools/builder');
   that.symtable = require('pytools/symtable');
   that.tokenize = require('pytools/Tokenizer');
@@ -25,9 +25,9 @@ import core from './pytools/core';
 
   that.skCompiler = require('pytools/sk-compiler');
 */
-const that = {
-    parser,
-    builder,
+const pytools = {
+    parser: { parse, parseTreeDump },
+    builder: { astFromParse, astDump },
     skCompiler
 }
-export default that;
+export default pytools;

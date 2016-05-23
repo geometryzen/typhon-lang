@@ -1,6 +1,6 @@
 import {assert, fail} from './asserts';
-import parser from './Parser';
-import builder from './builder';
+import {parse,parseTreeDump} from './parser';
+import {astFromParse, astDump} from './builder';
 import symtable from './symtable';
 
 import {And} from './astnodes';
@@ -2092,8 +2092,8 @@ class CompilerUnit {
      */
     var compile = function(source, fileName)
     {
-        var cst = parser.parse(fileName, source);
-        var ast = builder.astFromParse(cst, fileName);
+        var cst = parse(fileName, source);
+        var ast = astFromParse(cst, fileName);
         var st = symtable.symbolTable(ast, fileName);
         var c = new Compiler(fileName, st, 0, source);
         return {'funcname': c.cmod(ast), 'code': c.result.join('')};

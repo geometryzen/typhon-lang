@@ -1,4 +1,4 @@
-define(["require", "exports", './pytools/Parser', './pytools/builder', './pytools/sk-compiler'], function (require, exports, Parser_1, builder_1, sk_compiler_1) {
+define(["require", "exports", './pytools/parser', './pytools/builder', './pytools/sk-compiler'], function (require, exports, parser_1, builder_1, sk_compiler_1) {
     "use strict";
     /**
      * This file is referenced by the requireJS config.js and pulls in all the other files.
@@ -16,7 +16,7 @@ define(["require", "exports", './pytools/Parser', './pytools/builder', './pytool
       that.tables = require('pytools/tables');
       that.astnodes = require('pytools/astnodes');
     
-      that.parser = require('pytools/Parser');
+      that.parser = require('pytools/parser');
       that.builder = require('pytools/builder');
       that.symtable = require('pytools/symtable');
       that.tokenize = require('pytools/Tokenizer');
@@ -24,11 +24,11 @@ define(["require", "exports", './pytools/Parser', './pytools/builder', './pytool
     
       that.skCompiler = require('pytools/sk-compiler');
     */
-    var that = {
-        parser: Parser_1.default,
-        builder: builder_1.default,
+    var pytools = {
+        parser: { parse: parser_1.parse, parseTreeDump: parser_1.parseTreeDump },
+        builder: { astFromParse: builder_1.astFromParse, astDump: builder_1.astDump },
         skCompiler: sk_compiler_1.default
     };
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.default = that;
+    exports.default = pytools;
 });

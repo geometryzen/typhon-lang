@@ -261,6 +261,7 @@ define(["require", "exports", './tables', './asserts', './base', './Tokenizer', 
         }
         return ret;
     }
+    exports.parse = parse;
     function parseTreeDump(n) {
         var ret = "";
         if (n.type >= 256) {
@@ -274,10 +275,5 @@ define(["require", "exports", './tables', './asserts', './base', './Tokenizer', 
         }
         return ret;
     }
-    var that = {
-        'parse': parse,
-        'parseTreeDump': parseTreeDump
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.default = that;
+    exports.parseTreeDump = parseTreeDump;
 });
