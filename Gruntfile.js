@@ -48,6 +48,7 @@ module.exports = function(grunt) {
 
         tslint: {
             src: [
+                'src/estools/**/*.ts',
                 'src/pytools/**/*.ts',
                 'src/pytools.ts'
             ],
