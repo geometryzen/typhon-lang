@@ -89,7 +89,7 @@ import {WhileStatement} from './types';
 import {WithStatement} from './types';
 import {Yield} from './types';
 
-import {isArrayLike, isNumber, isString} from './base'
+import {isArrayLike, isNumber, isString} from './base';
 import tables from './tables';
 import Tokens from './Tokens';
 import {floatAST, intAST, longAST} from './numericLiteral';

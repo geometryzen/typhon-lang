@@ -1,3 +1,5 @@
+import INumericLiteral from './INumericLiteral';
+
 export class Load { }
 export class Store { }
 export class Del { }
@@ -94,7 +96,7 @@ export class UnaryExpression extends Expression {
 }
 
 export class Suite {
-    body
+    body;
     constructor(body) {
         this.body = body;
     }
@@ -102,11 +104,11 @@ export class Suite {
 
 export class FunctionDef extends Statement {
     name: string;
-    args
-    body
-    decorator_list
-    lineno
-    col_offset
+    args;
+    body;
+    decorator_list;
+    lineno;
+    col_offset;
     constructor(name: string, args, body, decorator_list, lineno, col_offset) {
         super();
         this.name = name;
@@ -120,11 +122,11 @@ export class FunctionDef extends Statement {
 
 export class ClassDef extends Statement {
     name: string;
-    bases
-    body
-    decorator_list
-    lineno
-    col_offset
+    bases;
+    body;
+    decorator_list;
+    lineno;
+    col_offset;
     constructor(name: string, bases, body, decorator_list, lineno, col_offset) {
         super();
         this.name = name;
@@ -140,9 +142,9 @@ export class ReturnStatement extends Statement {
     /**
      * An expression, and probably should be optional.
      */
-    value
-    lineno
-    col_offset
+    value;
+    lineno;
+    col_offset;
     constructor(value, lineno, col_offset) {
         super();
         this.value = value;
@@ -153,8 +155,8 @@ export class ReturnStatement extends Statement {
 
 export class DeleteExpression extends UnaryExpression {
     targets: UnaryExpression;
-    lineno
-    col_offset
+    lineno;
+    col_offset;
     constructor(targets, lineno, col_offset) {
         super(targets);
         this.targets = targets;
@@ -164,10 +166,10 @@ export class DeleteExpression extends UnaryExpression {
 }
 
 export class Assign extends Statement {
-    targets
-    value
-    lineno
-    col_offset
+    targets;
+    value;
+    lineno;
+    col_offset;
     constructor(targets, value, lineno, col_offset) {
         super();
         this.targets = targets;
@@ -178,11 +180,11 @@ export class Assign extends Statement {
 }
 
 export class AugAssign extends Statement {
-    target
-    op
-    value
-    lineno
-    col_offset
+    target;
+    op;
+    value;
+    lineno;
+    col_offset;
     constructor(target, op, value, lineno, col_offset) {
         super();
         this.target = target;
@@ -194,11 +196,11 @@ export class AugAssign extends Statement {
 }
 
 export class Print extends Statement {
-    dest
-    values
-    nl
-    lineno
-    col_offset
+    dest;
+    values;
+    nl;
+    lineno;
+    col_offset;
     constructor(dest, values, nl, lineno, col_offset) {
         super();
         this.dest = dest;
@@ -210,12 +212,12 @@ export class Print extends Statement {
 }
 
 export class ForStatement extends IterationStatement {
-    target
-    iter
-    body
-    orelse
-    lineno
-    col_offset
+    target;
+    iter;
+    body;
+    orelse;
+    lineno;
+    col_offset;
     constructor(target, iter, body, orelse, lineno, col_offset) {
         super();
         this.target = target;
@@ -228,11 +230,11 @@ export class ForStatement extends IterationStatement {
 }
 
 export class WhileStatement extends IterationStatement {
-    test
-    body
-    orelse
-    lineno
-    col_offset
+    test;
+    body;
+    orelse;
+    lineno;
+    col_offset;
     constructor(test, body, orelse, lineno, col_offset) {
         super();
         this.test = test;
@@ -247,8 +249,8 @@ export class IfStatement extends Statement {
     test: Expression;
     body: Statement[];
     orelse: Statement[];
-    lineno
-    col_offset
+    lineno;
+    col_offset;
     constructor(test: Expression, body: Statement[], orelse: Statement[], lineno, col_offset) {
         super();
         this.test = test;
@@ -260,11 +262,11 @@ export class IfStatement extends Statement {
 }
 
 export class WithStatement extends Statement {
-    context_expr
-    optional_vars
-    body
-    lineno
-    col_offset
+    context_expr;
+    optional_vars;
+    body;
+    lineno;
+    col_offset;
     constructor(context_expr, optional_vars, body, lineno, col_offset) {
         super();
         this.context_expr = context_expr;
@@ -276,11 +278,11 @@ export class WithStatement extends Statement {
 }
 
 export class Raise extends Statement {
-    type
-    inst
-    tback
-    lineno
-    col_offset
+    type;
+    inst;
+    tback;
+    lineno;
+    col_offset;
     constructor(type, inst, tback, lineno, col_offset) {
         super();
         this.type = type;
@@ -292,11 +294,11 @@ export class Raise extends Statement {
 }
 
 export class TryExcept extends Statement {
-    body
-    handlers
-    orelse
-    lineno
-    col_offset
+    body;
+    handlers;
+    orelse;
+    lineno;
+    col_offset;
     constructor(body, handlers, orelse, lineno, col_offset) {
         super();
         this.body = body;
@@ -308,10 +310,10 @@ export class TryExcept extends Statement {
 }
 
 export class TryFinally extends Statement {
-    body
-    finalbody
-    lineno
-    col_offset
+    body;
+    finalbody;
+    lineno;
+    col_offset;
     constructor(body, finalbody, lineno, col_offset) {
         super();
         this.body = body;
@@ -322,10 +324,10 @@ export class TryFinally extends Statement {
 }
 
 export class Assert extends Statement {
-    test
-    msg
-    lineno
-    col_offset
+    test;
+    msg;
+    lineno;
+    col_offset;
     constructor(test, msg, lineno, col_offset) {
         super();
         this.test = test;
@@ -337,8 +339,8 @@ export class Assert extends Statement {
 
 export class ImportStatement extends Statement {
     names: Alias[];
-    lineno
-    col_offset
+    lineno;
+    col_offset;
     constructor(names: Alias[], lineno, col_offset) {
         super();
         this.names = names;
@@ -351,8 +353,8 @@ export class ImportFrom extends Statement {
     module: string;
     names: Alias[];
     private level;
-    lineno
-    col_offset
+    lineno;
+    col_offset;
     constructor(module: string, names: Alias[], level, lineno, col_offset) {
         super();
         this.module = module;
@@ -364,11 +366,11 @@ export class ImportFrom extends Statement {
 }
 
 export class Exec {
-    body
-    globals
-    locals
-    lineno
-    col_offset
+    body;
+    globals;
+    locals;
+    lineno;
+    col_offset;
     constructor(body, globals, locals, lineno, col_offset) {
         this.body = body;
         this.globals = globals;
@@ -379,9 +381,9 @@ export class Exec {
 }
 
 export class Global {
-    names
-    lineno
-    col_offset
+    names;
+    lineno;
+    col_offset;
     constructor(names, lineno, col_offset) {
         this.names = names;
         this.lineno = lineno;
@@ -390,9 +392,9 @@ export class Global {
 }
 
 export class NonLocal {
-    names
-    lineno
-    col_offset
+    names;
+    lineno;
+    col_offset;
     constructor(names, lineno, col_offset) {
         this.names = names;
         this.lineno = lineno;
@@ -401,9 +403,9 @@ export class NonLocal {
 }
 
 export class Expr extends Statement {
-    value
-    lineno
-    col_offset
+    value;
+    lineno;
+    col_offset;
     constructor(value, lineno, col_offset) {
         super();
         this.value = value;
@@ -413,8 +415,8 @@ export class Expr extends Statement {
 }
 
 export class Pass {
-    lineno
-    col_offset
+    lineno;
+    col_offset;
     constructor(lineno, col_offset) {
         this.lineno = lineno;
         this.col_offset = col_offset;
@@ -422,8 +424,8 @@ export class Pass {
 }
 
 export class BreakStatement extends Statement {
-    lineno
-    col_offset
+    lineno;
+    col_offset;
     constructor(lineno, col_offset) {
         super();
         this.lineno = lineno;
@@ -432,8 +434,8 @@ export class BreakStatement extends Statement {
 }
 
 export class ContinueStatement extends Statement {
-    lineno
-    col_offset
+    lineno;
+    col_offset;
     constructor(lineno, col_offset) {
         super();
         this.lineno = lineno;
@@ -442,10 +444,10 @@ export class ContinueStatement extends Statement {
 }
 
 export class BoolOp {
-    op
-    values
-    lineno
-    col_offset
+    op;
+    values;
+    lineno;
+    col_offset;
     constructor(op, values, lineno, col_offset) {
         this.op = op;
         this.values = values;
@@ -455,11 +457,11 @@ export class BoolOp {
 }
 
 export class BinOp {
-    left
-    op
-    right
-    lineno
-    col_offset
+    left;
+    op;
+    right;
+    lineno;
+    col_offset;
     constructor(left, op, right, lineno, col_offset) {
         this.left = left;
         this.op = op;
@@ -470,10 +472,10 @@ export class BinOp {
 }
 
 export class UnaryOp {
-    op
-    operand
-    lineno
-    col_offset
+    op;
+    operand;
+    lineno;
+    col_offset;
     constructor(op, operand, lineno, col_offset) {
         this.op = op;
         this.operand = operand;
@@ -483,10 +485,10 @@ export class UnaryOp {
 }
 
 export class Lambda {
-    args
-    body
-    lineno
-    col_offset
+    args;
+    body;
+    lineno;
+    col_offset;
     constructor(args, body, lineno, col_offset) {
         this.args = args;
         this.body = body;
@@ -496,11 +498,11 @@ export class Lambda {
 }
 
 export class IfExp {
-    test
-    body
-    orelse
-    lineno
-    col_offset
+    test;
+    body;
+    orelse;
+    lineno;
+    col_offset;
     constructor(test, body, orelse, lineno, col_offset) {
         this.test = test;
         this.body = body;
@@ -511,10 +513,10 @@ export class IfExp {
 }
 
 export class Dict {
-    keys
-    values
-    lineno
-    col_offset
+    keys;
+    values;
+    lineno;
+    col_offset;
     constructor(keys, values, lineno, col_offset) {
         this.keys = keys;
         this.values = values;
@@ -524,10 +526,10 @@ export class Dict {
 }
 
 export class ListComp {
-    elt
-    generators
-    lineno
-    col_offset
+    elt;
+    generators;
+    lineno;
+    col_offset;
     constructor(elt, generators, lineno, col_offset) {
         this.elt = elt;
         this.generators = generators;
@@ -537,10 +539,10 @@ export class ListComp {
 }
 
 export class GeneratorExp {
-    elt
-    generators
-    lineno
-    col_offset
+    elt;
+    generators;
+    lineno;
+    col_offset;
     constructor(elt, generators, lineno, col_offset) {
         this.elt = elt;
         this.generators = generators;
@@ -550,9 +552,9 @@ export class GeneratorExp {
 }
 
 export class Yield {
-    value
-    lineno
-    col_offset
+    value;
+    lineno;
+    col_offset;
     constructor(value, lineno, col_offset) {
         this.value = value;
         this.lineno = lineno;
@@ -561,11 +563,11 @@ export class Yield {
 }
 
 export class Compare {
-    left
-    ops
-    comparators
-    lineno
-    col_offset
+    left;
+    ops;
+    comparators;
+    lineno;
+    col_offset;
     constructor(left, ops, comparators, lineno, col_offset) {
         this.left = left;
         this.ops = ops;
@@ -576,14 +578,14 @@ export class Compare {
 }
 
 export class Call {
-    func
-    args
-    keywords
-    starargs
-    kwargs
-    lineno
-    col_offset
-    constructor(func, args, keywords, starargs, kwargs, lineno, col_offset) {
+    func: Attribute | Name;
+    args;
+    keywords;
+    starargs;
+    kwargs;
+    lineno;
+    col_offset;
+    constructor(func: Attribute | Name, args, keywords, starargs, kwargs, lineno, col_offset) {
         this.func = func;
         this.args = args;
         this.keywords = keywords;
@@ -595,10 +597,10 @@ export class Call {
 }
 
 export class Num {
-    n
-    lineno
-    col_offset
-    constructor(n, lineno, col_offset) {
+    n: INumericLiteral;
+    lineno;
+    col_offset;
+    constructor(n: INumericLiteral, lineno, col_offset) {
         this.n = n;
         this.lineno = lineno;
         this.col_offset = col_offset;
@@ -606,10 +608,10 @@ export class Num {
 }
 
 export class Str {
-    s
-    lineno
-    col_offset
-    constructor(s, lineno, col_offset) {
+    s: string;
+    lineno;
+    col_offset;
+    constructor(s: string, lineno, col_offset) {
         this.s = s;
         this.lineno = lineno;
         this.col_offset = col_offset;
@@ -617,11 +619,11 @@ export class Str {
 }
 
 export class Attribute {
-    value
-    attr
-    ctx
-    lineno
-    col_offset
+    value;
+    attr;
+    ctx;
+    lineno;
+    col_offset;
     constructor(value, attr, ctx, lineno, col_offset) {
         this.value = value;
         this.attr = attr;
@@ -632,11 +634,11 @@ export class Attribute {
 }
 
 export class Subscript {
-    value
-    slice
-    ctx
-    lineno
-    col_offset
+    value;
+    slice;
+    ctx;
+    lineno;
+    col_offset;
     constructor(value, slice, ctx, lineno, col_offset) {
         this.value = value;
         this.slice = slice;
@@ -647,10 +649,10 @@ export class Subscript {
 }
 
 export class Name {
-    id
-    ctx
-    lineno
-    col_offset
+    id;
+    ctx;
+    lineno;
+    col_offset;
     constructor(id, ctx, lineno, col_offset) {
         this.id = id;
         this.ctx = ctx;
@@ -660,10 +662,10 @@ export class Name {
 }
 
 export class List {
-    elts
-    ctx
-    lineno
-    col_offset
+    elts;
+    ctx;
+    lineno;
+    col_offset;
     constructor(elts, ctx, lineno, col_offset) {
         this.elts = elts;
         this.ctx = ctx;
@@ -673,10 +675,10 @@ export class List {
 }
 
 export class Tuple {
-    elts
-    ctx
-    lineno
-    col_offset
+    elts;
+    ctx;
+    lineno;
+    col_offset;
     constructor(elts, ctx, lineno, col_offset) {
         this.elts = elts;
         this.ctx = ctx;
@@ -692,9 +694,9 @@ export class Ellipsis {
 }
 
 export class Slice {
-    lower
-    upper
-    step
+    lower;
+    upper;
+    step;
     constructor(lower, upper, step) {
         this.lower = lower;
         this.upper = upper;
@@ -703,23 +705,23 @@ export class Slice {
 }
 
 export class ExtSlice {
-    dims
+    dims;
     constructor(dims) {
         this.dims = dims;
     }
 }
 
 export class Index {
-    value
+    value;
     constructor(value) {
         this.value = value;
     }
 }
 
 export class Comprehension {
-    target
-    iter
-    ifs
+    target;
+    iter;
+    ifs;
     constructor(target, iter, ifs) {
         this.target = target;
         this.iter = iter;
@@ -728,11 +730,11 @@ export class Comprehension {
 }
 
 export class ExceptHandler {
-    type
-    name
-    body
-    lineno
-    col_offset
+    type;
+    name;
+    body;
+    lineno;
+    col_offset;
     constructor(type, name, body, lineno, col_offset) {
         this.type = type;
         this.name = name;
@@ -743,10 +745,10 @@ export class ExceptHandler {
 }
 
 export class Arguments {
-    args
-    vararg
-    kwarg
-    defaults
+    args;
+    vararg;
+    kwarg;
+    defaults;
     constructor(args, vararg, kwarg, defaults) {
         this.args = args;
         this.vararg = vararg;
@@ -756,8 +758,8 @@ export class Arguments {
 }
 
 export class Keyword {
-    arg
-    value
+    arg;
+    value;
     constructor(arg, value) {
         this.arg = arg;
         this.value = value;

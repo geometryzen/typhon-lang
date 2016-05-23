@@ -20,7 +20,6 @@ define(['pytools'], function(m) {
                 var result = pytools.skCompiler.compile('123', fileName);
                 expect(typeof result).toBe('object');
                 expect(typeof result.code).toBe('string');
-                expect(result.funcname).toBe('$scope0');
             });
 
         });

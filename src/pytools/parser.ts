@@ -27,11 +27,11 @@ function parseError(message: string, fileName: string, begin?: number[], end?: n
 }
 
 class Parser {
-    filename
-    grammar
-    stack
-    used_names
-    rootnode
+    filename;
+    grammar;
+    stack;
+    used_names;
+    rootnode;
     /**
      *
      * @constructor

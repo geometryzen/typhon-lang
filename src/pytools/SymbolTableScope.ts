@@ -13,20 +13,20 @@ let astScopeCounter = 0;
 
 export default class SymbolTableScope {
     symFlags: { [name: string]: number };
-    private name
-    private varnames
-    children
-    blockType
-    private isNested
+    private name;
+    private varnames;
+    children;
+    blockType;
+    private isNested;
     hasFree: boolean;
     childHasFree: boolean;
-    generator
-    private varargs
-    private varkeywords
-    private returnsValue
-    private lineno
-    private table
-    private symbols
+    generator;
+    private varargs;
+    private varkeywords;
+    private returnsValue;
+    private lineno;
+    private table;
+    private symbols;
     private _classMethods;
     private _funcParams: string[];
     private _funcLocals: string[];

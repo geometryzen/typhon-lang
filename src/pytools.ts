@@ -8,5 +8,5 @@ const pytools = {
     builder: { astFromParse, astDump },
     skCompiler: { compile: skCompile, resetCompiler: skReset },
     tsCompiler: { compile: tsCompile, resetCompiler: tsReset }
-}
+};
 export default pytools;

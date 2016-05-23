@@ -71,14 +71,14 @@ import {USE} from './SymbolConstants';
 import {SCOPE_OFF} from './SymbolConstants';
 
 export default class SymbolTable {
-    fileName
-    cur
-    top
-    stack
-    global
+    fileName;
+    cur;
+    top;
+    stack;
+    global;
     curClass: string;
     tmpname: number;
-    stss
+    stss;
     /**
      * @constructor
      * @param {string} fileName

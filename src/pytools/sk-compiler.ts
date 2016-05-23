@@ -61,12 +61,12 @@ import {UnaryOp} from './types';
 import {WhileStatement} from './types';
 import {Yield} from './types';
 
-import {LOCAL} from './SymbolConstants'
-import {GLOBAL_EXPLICIT} from './SymbolConstants'
-import {GLOBAL_IMPLICIT} from './SymbolConstants'
-import {FREE} from './SymbolConstants'
-import {CELL} from './SymbolConstants'
-import {FunctionBlock} from './SymbolConstants'
+import {LOCAL} from './SymbolConstants';
+import {GLOBAL_EXPLICIT} from './SymbolConstants';
+import {GLOBAL_IMPLICIT} from './SymbolConstants';
+import {FREE} from './SymbolConstants';
+import {CELL} from './SymbolConstants';
+import {FunctionBlock} from './SymbolConstants';
 
 const OP_FAST = 0;
 const OP_GLOBAL = 1;
@@ -494,7 +494,7 @@ class Compiler {
         var n = s.length;
         var retval;
         for (var i = 0; i < n; ++i) {
-            var expres = this.vexpr(s[i])
+            var expres = this.vexpr(s[i]);
             if (i === 0) {
                 retval = this._gr('boolopsucc', expres);
             }
@@ -665,7 +665,7 @@ class Compiler {
                 const val = this.vexpr(s.value);
                 const res = this._gr('inplbinopsubscr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
                 auge.ctx = AugStore;
-                return this.vexpr(auge, res, e.value)
+                return this.vexpr(auge, res, e.value);
             }
             case Name: {
                 const to = this.nameop(e.id, Load);
@@ -684,11 +684,11 @@ class Compiler {
     exprConstant(e) {
         switch (e.constructor) {
             case Num:
-                fail("Trying to call the runtime for Num")
+                fail("Trying to call the runtime for Num");
                 // return Sk.misceval.isTrue(e.n);
                 break;
             case Str:
-                fail("Trying to call the runtime for Str")
+                fail("Trying to call the runtime for Str");
                 // return Sk.misceval.isTrue(e.s);
                 break;
             case Name:

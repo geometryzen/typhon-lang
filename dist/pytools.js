@@ -8877,7 +8877,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
     ;
 });
 
-define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './builder', './reservedNames', './reservedWords', './symtable', './toStringLiteralJS', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, types_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
+define('pytools/ts-compiler',["require", "exports", './asserts', './base', './parser', './builder', './reservedNames', './reservedWords', './symtable', './toStringLiteralJS', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, base_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
     "use strict";
     var OP_FAST = 0;
     var OP_GLOBAL = 1;
@@ -9005,59 +9005,22 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
         Compiler.prototype.niceName = function (roughName) {
             return this.gensym(roughName.replace("<", "").replace(">", "").replace(" ", "_"));
         };
-        /**
-         * @method _gr
-         * @param {string} hint basename for gensym
-         * @param {...*} rest
-         */
-        Compiler.prototype._gr = function (hint, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, argA, argB, argC, argD, argE) {
-            var v = this.gensym(hint);
-            out("var ", v, " = ");
+        Compiler.prototype.emitArgs = function (arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, argA, argB, argC, argD, argE) {
             for (var i = 1; i < arguments.length; ++i) {
                 out(arguments[i]);
             }
-            out(";");
-            return v;
-        };
-        /**
-         * Function to test if an interrupt should occur if the program has been running for too long.
-         * This function is executed at every test/branch operation.
-         */
-        Compiler.prototype._interruptTest = function () {
-            out("if (typeof Sk.execStart === 'undefined') {Sk.execStart=new Date()}");
-            out("if (Sk.execLimit !== null && new Date() - Sk.execStart > Sk.execLimit) {throw new Sk.builtin.TimeLimitError(Sk.timeoutMsg())}");
-        };
-        Compiler.prototype._jumpfalse = function (test, block) {
-            var cond = this._gr('jfalse', "(", test, "===false||!Sk.misceval.isTrue(", test, "))");
-            this._interruptTest();
-            out("if(", cond, "){/*test failed */$blk=", block, ";continue;}");
-        };
-        Compiler.prototype._jumpundef = function (test, block) {
-            this._interruptTest();
-            out("if(typeof ", test, " === 'undefined'){$blk=", block, ";continue;}");
-        };
-        Compiler.prototype._jumptrue = function (test, block) {
-            var cond = this._gr('jtrue', "(", test, "===true||Sk.misceval.isTrue(", test, "))");
-            this._interruptTest();
-            out("if(", cond, "){/*test passed */$blk=", block, ";continue;}");
-        };
-        Compiler.prototype._jump = function (block) {
-            this._interruptTest();
-            out("$blk=", block, ";/* jump */continue;");
         };
         Compiler.prototype.ctupleorlist = function (e, data, tuporlist) {
             asserts_1.assert(tuporlist === 'tuple' || tuporlist === 'list');
-            if (e.ctx === types_43.Store) {
+            if (e.ctx === types_42.Store) {
                 for (var i = 0; i < e.elts.length; ++i) {
                     this.vexpr(e.elts[i], "Sk.abstr.objectGetItem(" + data + "," + i + ")");
                 }
             }
-            else if (e.ctx === types_33.Load) {
-                var items = [];
+            else if (e.ctx === types_32.Load) {
+                // const items = [];
                 for (var i = 0; i < e.elts.length; ++i) {
-                    items.push(this._gr('elem', this.vexpr(e.elts[i])));
                 }
-                return this._gr('load' + tuporlist, "new Sk.builtins['", tuporlist, "']([", items, "])");
             }
         };
         Compiler.prototype.cdict = function (e) {
@@ -9068,25 +9031,16 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                 items.push(this.vexpr(e.keys[i]));
                 items.push(v);
             }
-            return this._gr('loaddict', "new Sk.builtins['dict']([", items, "])");
         };
         Compiler.prototype.clistcompgen = function (tmpname, generators, genIndex, elt) {
             var start = this.newBlock('list gen start');
             var skip = this.newBlock('list gen skip');
             var anchor = this.newBlock('list gen anchor');
             var l = generators[genIndex];
-            var toiter = this.vexpr(l.iter);
-            var iter = this._gr("iter", "Sk.abstr.iter(", toiter, ")");
-            this._jump(start);
+            // const toiter = this.vexpr(l.iter);
             this.setBlock(start);
-            // load targets
-            var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
-            this._jumpundef(nexti, anchor); // todo; this should be handled by StopIteration
-            // var target = this.vexpr(l.target, nexti);
             var n = l.ifs.length;
             for (var i = 0; i < n; ++i) {
-                var ifres = this.vexpr(l.ifs[i]);
-                this._jumpfalse(ifres, start);
             }
             if (++genIndex < generators.length) {
                 this.clistcompgen(tmpname, generators, genIndex, elt);
@@ -9094,17 +9048,14 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             if (genIndex >= generators.length) {
                 var velt = this.vexpr(elt);
                 out(tmpname, ".v.push(", velt, ");");
-                this._jump(skip);
                 this.setBlock(skip);
             }
-            this._jump(start);
             this.setBlock(anchor);
             return tmpname;
         };
         Compiler.prototype.clistcomp = function (e) {
-            asserts_1.assert(e instanceof types_32.ListComp);
-            var tmp = this._gr("_compr", "new Sk.builtins['list']([])");
-            return this.clistcompgen(tmp, e.generators, 0, e.elt);
+            asserts_1.assert(e instanceof types_31.ListComp);
+            // return this.clistcompgen(tmp, e.generators, 0, e.elt);
         };
         Compiler.prototype.cyield = function (e) {
             if (this.u.ste.blockType !== SymbolConstants_6.FunctionBlock)
@@ -9123,17 +9074,11 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             var cur = this.vexpr(e.left);
             var n = e.ops.length;
             var done = this.newBlock("done");
-            var fres = this._gr('compareres', 'null');
             for (var i = 0; i < n; ++i) {
                 var rhs = this.vexpr(e.comparators[i]);
-                var res = this._gr('compare', "Sk.builtin.bool(Sk.misceval.richCompareBool(", cur, ",", rhs, ",'", e.ops[i].prototype._astname, "'))");
-                out(fres, '=', res, ';');
-                this._jumpfalse(res, done);
                 cur = rhs;
             }
-            this._jump(done);
             this.setBlock(done);
-            return fres;
         };
         Compiler.prototype.ccall = function (e) {
             var func = this.vexpr(e.func);
@@ -9144,25 +9089,25 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                     kwarray.push("'" + e.keywords[i].arg + "'");
                     kwarray.push(this.vexpr(e.keywords[i].value));
                 }
-                var keywords = "[" + kwarray.join(",") + "]";
+                // const keywords = "[" + kwarray.join(",") + "]";
                 var starargs = "undefined";
                 var kwargs = "undefined";
-                if (e.starargs)
+                if (e.starargs) {
                     starargs = this.vexpr(e.starargs);
-                if (e.kwargs)
+                }
+                if (e.kwargs) {
                     kwargs = this.vexpr(e.kwargs);
-                return this._gr('call', "Sk.misceval.call(", func, ",", kwargs, ",", starargs, ",", keywords, args.length > 0 ? "," : "", args, ")");
+                }
             }
             else {
-                return this._gr('call', "Sk.misceval.callsim(", func, args.length > 0 ? "," : "", args, ")");
+                this.emitArgs(func, "(", args, ")");
             }
         };
         Compiler.prototype.cslice = function (s) {
-            asserts_1.assert(s instanceof types_42.Slice);
-            var low = s.lower ? this.vexpr(s.lower) : 'null';
-            var high = s.upper ? this.vexpr(s.upper) : 'null';
-            var step = s.step ? this.vexpr(s.step) : 'null';
-            return this._gr('slice', "new Sk.builtins['slice'](", low, ",", high, ",", step, ")");
+            asserts_1.assert(s instanceof types_41.Slice);
+            // const low = s.lower ? this.vexpr(s.lower) : 'null';
+            // const high = s.upper ? this.vexpr(s.upper) : 'null';
+            // const step = s.step ? this.vexpr(s.step) : 'null';
         };
         Compiler.prototype.vslicesub = function (s) {
             var subs;
@@ -9172,14 +9117,14 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                     // Already compiled, should only happen for augmented assignments
                     subs = s;
                     break;
-                case types_29.Index:
+                case types_28.Index:
                     subs = this.vexpr(s.value);
                     break;
-                case types_42.Slice:
+                case types_41.Slice:
                     subs = this.cslice(s);
                     break;
-                case types_18.Ellipsis:
-                case types_20.ExtSlice:
+                case types_17.Ellipsis:
+                case types_19.ExtSlice:
                     asserts_1.fail("todo;");
                     break;
                 default:
@@ -9192,22 +9137,17 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             return this.chandlesubscr(ctx, obj, subs, dataToStore);
         };
         Compiler.prototype.chandlesubscr = function (ctx, obj, subs, data) {
-            if (ctx === types_33.Load || ctx === types_6.AugLoad)
-                return this._gr('lsubscr', "Sk.abstr.objectGetItem(", obj, ",", subs, ")");
-            else if (ctx === types_43.Store || ctx === types_7.AugStore)
+            if (ctx === types_32.Load || ctx === types_5.AugLoad) {
+            }
+            else if (ctx === types_42.Store || ctx === types_6.AugStore)
                 out("Sk.abstr.objectSetItem(", obj, ",", subs, ",", data, ");");
-            else if (ctx === types_15.Del)
+            else if (ctx === types_14.Del)
                 out("Sk.abstr.objectDelItem(", obj, ",", subs, ");");
             else
                 asserts_1.fail("handlesubscr fail");
         };
         Compiler.prototype.cboolop = function (e) {
-            asserts_1.assert(e instanceof types_9.BoolOp);
-            var jtype;
-            if (e.op === types_1.And)
-                jtype = this._jumpfalse;
-            else
-                jtype = this._jumptrue;
+            asserts_1.assert(e instanceof types_8.BoolOp);
             var end = this.newBlock('end of boolop');
             var s = e.values;
             var n = s.length;
@@ -9215,12 +9155,9 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             for (var i = 0; i < n; ++i) {
                 var expres = this.vexpr(s[i]);
                 if (i === 0) {
-                    retval = this._gr('boolopsucc', expres);
                 }
-                out(retval, "=", expres, ";");
-                jtype.call(this, expres, end);
+                out(retval, " = ", expres, ";");
             }
-            this._jump(end);
             this.setBlock(end);
             return retval;
         };
@@ -9242,51 +9179,51 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             }
             // this.annotateSource(e);
             switch (e.constructor) {
-                case types_9.BoolOp:
+                case types_8.BoolOp:
                     return this.cboolop(e);
-                case types_8.BinOp:
-                    return this._gr('binop', "Sk.abstr.numberBinOp(", this.vexpr(e.left), ",", this.vexpr(e.right), ",'", e.op.prototype._astname, "')");
-                case types_49.UnaryOp:
-                    return this._gr('unaryop', "Sk.abstr.numberUnaryOp(", this.vexpr(e.operand), ",'", e.op.prototype._astname, "')");
-                case types_30.Lambda:
+                case types_7.BinOp:
+                    return this.emitArgs('binop', "Sk.abstr.numberBinOp(", this.vexpr(e.left), ",", this.vexpr(e.right), ",'", e.op.prototype._astname, "')");
+                case types_48.UnaryOp:
+                    return this.emitArgs('unaryop', "Sk.abstr.numberUnaryOp(", this.vexpr(e.operand), ",'", e.op.prototype._astname, "')");
+                case types_29.Lambda:
                     return this.clambda(e);
-                case types_26.IfExp:
+                case types_25.IfExp:
                     return this.cifexp(e);
-                case types_17.Dict:
+                case types_16.Dict:
                     return this.cdict(e);
-                case types_32.ListComp:
+                case types_31.ListComp:
                     return this.clistcomp(e);
-                case types_23.GeneratorExp:
+                case types_22.GeneratorExp:
                     return this.cgenexp(e);
-                case types_51.Yield:
+                case types_50.Yield:
                     return this.cyield(e);
-                case types_13.Compare:
+                case types_12.Compare:
                     return this.ccompare(e);
-                case types_11.Call:
+                case types_10.Call:
                     var result = this.ccall(e);
                     // After the function call, we've returned to this line
                     this.annotateSource(e);
                     return result;
-                case types_36.Num:
-                    {
-                        if (e.n.isFloat()) {
-                            return 'Sk.builtin.numberToPy(' + e.n.value + ')';
-                        }
-                        else if (e.n.isInt()) {
-                            return "Sk.ffi.numberToIntPy(" + e.n.value + ")";
-                        }
-                        else if (e.n.isLong()) {
-                            return "Sk.ffi.longFromString('" + e.n.text + "', " + e.n.radix + ")";
-                        }
-                        asserts_1.fail("unhandled Num type");
+                case types_35.Num: {
+                    var num = e;
+                    if (num.n.isFloat()) {
+                        return num.n.value.toString();
                     }
-                case types_44.Str:
-                    {
-                        return this._gr('str', 'Sk.builtin.stringToPy(', toStringLiteralJS_1.default(e.s), ')');
+                    else if (num.n.isInt()) {
+                        return num.n.value.toString();
                     }
-                case types_4.Attribute:
+                    else if (e.n.isLong()) {
+                        return "longFromString('" + e.n.text + "', " + e.n.radix + ")";
+                    }
+                    asserts_1.fail("unhandled Num type");
+                }
+                case types_43.Str: {
+                    var str = e;
+                    return toStringLiteralJS_1.default(str.s);
+                }
+                case types_3.Attribute:
                     var val;
-                    if (e.ctx !== types_7.AugStore)
+                    if (e.ctx !== types_6.AugStore)
                         val = this.vexpr(e.value);
                     var mangled = toStringLiteralJS_1.default(e.attr);
                     mangled = mangled.substring(1, mangled.length - 1);
@@ -9294,50 +9231,50 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                     mangled = fixReservedWords(mangled);
                     mangled = fixReservedNames(mangled);
                     switch (e.ctx) {
-                        case types_6.AugLoad:
-                        case types_33.Load:
-                            return this._gr("lattr", "Sk.abstr.gattr(", val, ",'", mangled, "')");
-                        case types_7.AugStore:
+                        case types_5.AugLoad:
+                        case types_32.Load:
+                            return this.emitArgs("lattr", "Sk.abstr.gattr(", val, ",'", mangled, "')");
+                        case types_6.AugStore:
                             out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
                             val = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
                             out("Sk.abstr.sattr(", val, ",'", mangled, "',", data, ");");
                             out("}");
                             break;
-                        case types_43.Store:
+                        case types_42.Store:
                             out("Sk.abstr.sattr(", val, ",'", mangled, "',", data, ");");
                             break;
-                        case types_15.Del:
+                        case types_14.Del:
                             asserts_1.fail("todo;");
                             break;
-                        case types_37.Param:
+                        case types_36.Param:
                         default:
                             asserts_1.fail("invalid attribute expression");
                     }
                     break;
-                case types_45.Subscript:
+                case types_44.Subscript:
                     switch (e.ctx) {
-                        case types_6.AugLoad:
-                        case types_33.Load:
-                        case types_43.Store:
-                        case types_15.Del:
+                        case types_5.AugLoad:
+                        case types_32.Load:
+                        case types_42.Store:
+                        case types_14.Del:
                             return this.vslice(e.slice, e.ctx, this.vexpr(e.value), data);
-                        case types_7.AugStore: {
+                        case types_6.AugStore: {
                             out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
                             var val_1 = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
                             this.vslice(e.slice, e.ctx, val_1, data);
                             out("}");
                             break;
                         }
-                        case types_37.Param:
+                        case types_36.Param:
                         default:
                             asserts_1.fail("invalid subscript expression");
                     }
                     break;
-                case types_35.Name:
+                case types_34.Name:
                     return this.nameop(e.id, e.ctx, data);
-                case types_31.List:
+                case types_30.List:
                     return this.ctupleorlist(e, data, 'list');
-                case types_48.Tuple:
+                case types_47.Tuple:
                     return this.ctupleorlist(e, data, 'tuple');
                 default:
                     asserts_1.fail("unhandled case in vexpr");
@@ -9361,32 +9298,32 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             return ret;
         };
         Compiler.prototype.caugassign = function (s) {
-            asserts_1.assert(s instanceof types_5.AugAssign);
+            asserts_1.assert(s instanceof types_4.AugAssign);
             var e = s.target;
             switch (e.constructor) {
-                case types_4.Attribute: {
-                    var auge = new types_4.Attribute(e.value, e.attr, types_6.AugLoad, e.lineno, e.col_offset);
+                case types_3.Attribute: {
+                    var auge = new types_3.Attribute(e.value, e.attr, types_5.AugLoad, e.lineno, e.col_offset);
                     var aug = this.vexpr(auge);
                     var val = this.vexpr(s.value);
-                    var res = this._gr('inplbinopattr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
-                    auge.ctx = types_7.AugStore;
+                    var res = this.emitArgs('inplbinopattr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
+                    auge.ctx = types_6.AugStore;
                     return this.vexpr(auge, res, e.value);
                 }
-                case types_45.Subscript: {
+                case types_44.Subscript: {
                     // Only compile the subscript value once
                     var augsub = this.vslicesub(e.slice);
-                    var auge = new types_45.Subscript(e.value, augsub, types_6.AugLoad, e.lineno, e.col_offset);
+                    var auge = new types_44.Subscript(e.value, augsub, types_5.AugLoad, e.lineno, e.col_offset);
                     var aug = this.vexpr(auge);
                     var val = this.vexpr(s.value);
-                    var res = this._gr('inplbinopsubscr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
-                    auge.ctx = types_7.AugStore;
+                    var res = this.emitArgs('inplbinopsubscr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
+                    auge.ctx = types_6.AugStore;
                     return this.vexpr(auge, res, e.value);
                 }
-                case types_35.Name: {
-                    var to = this.nameop(e.id, types_33.Load);
+                case types_34.Name: {
+                    var to = this.nameop(e.id, types_32.Load);
                     var val = this.vexpr(s.value);
-                    var res = this._gr('inplbinop', "Sk.abstr.numberInplaceBinOp(", to, ",", val, ",'", s.op.prototype._astname, "')");
-                    return this.nameop(e.id, types_43.Store, res);
+                    var res = this.emitArgs('inplbinop', "Sk.abstr.numberInplaceBinOp(", to, ",", val, ",'", s.op.prototype._astname, "')");
+                    return this.nameop(e.id, types_42.Store, res);
                 }
                 default:
                     asserts_1.fail("unhandled case in augassign");
@@ -9397,15 +9334,15 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
          */
         Compiler.prototype.exprConstant = function (e) {
             switch (e.constructor) {
-                case types_36.Num:
+                case types_35.Num:
                     asserts_1.fail("Trying to call the runtime for Num");
                     // return Sk.misceval.isTrue(e.n);
                     break;
-                case types_44.Str:
+                case types_43.Str:
                     asserts_1.fail("Trying to call the runtime for Str");
                     // return Sk.misceval.isTrue(e.s);
                     break;
-                case types_35.Name:
+                case types_34.Name:
                 // todo; do __debug__ test here if opt
                 default:
                     return -1;
@@ -9490,61 +9427,56 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             }
             return ret;
         };
-        Compiler.prototype.cif = function (s) {
-            asserts_1.assert(s instanceof types_25.IfStatement);
-            var constant = this.exprConstant(s.test);
+        Compiler.prototype.ifStatement = function (stmt, flags) {
+            asserts_1.assert(stmt instanceof types_24.IfStatement);
+            asserts_1.assert(base_1.isNumber(flags));
+            var constant = this.exprConstant(stmt.test);
+            var end;
             if (constant === 0) {
-                if (s.orelse)
-                    this.vseqstmt(s.orelse);
+                if (stmt.orelse) {
+                    this.vseqstmt(stmt.orelse, flags);
+                }
             }
             else if (constant === 1) {
-                this.vseqstmt(s.body);
+                this.vseqstmt(stmt.body, flags);
             }
             else {
-                var end = this.newBlock('end of if');
+                end = this.newBlock('end of if');
                 var next = this.newBlock('next branch of if');
-                var test = this.vexpr(s.test);
-                this._jumpfalse(test, next);
-                this.vseqstmt(s.body);
-                this._jump(end);
+                // const test = this.vexpr(stmt.test);
+                this.vseqstmt(stmt.body, flags);
                 this.setBlock(next);
-                if (s.orelse)
-                    this.vseqstmt(s.orelse);
-                this._jump(end);
+                if (stmt.orelse)
+                    this.vseqstmt(stmt.orelse, flags);
             }
             this.setBlock(end);
         };
-        Compiler.prototype.cwhile = function (s) {
+        Compiler.prototype.cwhile = function (s, flags) {
             var constant = this.exprConstant(s.test);
             if (constant === 0) {
                 if (s.orelse)
-                    this.vseqstmt(s.orelse);
+                    this.vseqstmt(s.orelse, flags);
             }
             else {
                 var top = this.newBlock('while test');
-                this._jump(top);
                 this.setBlock(top);
                 var next = this.newBlock('after while');
                 var orelse = s.orelse.length > 0 ? this.newBlock('while orelse') : null;
                 var body = this.newBlock('while body');
-                this._jumpfalse(this.vexpr(s.test), orelse ? orelse : next);
-                this._jump(body);
                 this.pushBreakBlock(next);
                 this.pushContinueBlock(top);
                 this.setBlock(body);
-                this.vseqstmt(s.body);
-                this._jump(top);
+                this.vseqstmt(s.body, flags);
                 this.popContinueBlock();
                 this.popBreakBlock();
                 if (s.orelse.length > 0) {
                     this.setBlock(orelse);
-                    this.vseqstmt(s.orelse);
-                    this._jump(next);
+                    this.vseqstmt(s.orelse, flags);
                 }
                 this.setBlock(next);
             }
         };
-        Compiler.prototype.cfor = function (s) {
+        Compiler.prototype.cfor = function (s, flags) {
             var start = this.newBlock('for start');
             var cleanup = this.newBlock('for cleanup');
             var end = this.newBlock('for end');
@@ -9560,22 +9492,17 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                 out(iter, "=Sk.abstr.iter(", toiter, ");");
             }
             else
-                iter = this._gr("iter", "Sk.abstr.iter(", toiter, ")");
-            this._jump(start);
+                iter = this.emitArgs("iter", "Sk.abstr.iter(", toiter, ")");
             this.setBlock(start);
             // load targets
-            var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
-            this._jumpundef(nexti, cleanup); // todo; this should be handled by StopIteration
+            // var nexti = this.emitArgs('next', "Sk.abstr.iternext(", iter, ")");
             // var target = this.vexpr(s.target, nexti);
             // execute body
-            this.vseqstmt(s.body);
-            // jump to top of loop
-            this._jump(start);
+            this.vseqstmt(s.body, flags);
             this.setBlock(cleanup);
             this.popContinueBlock();
             this.popBreakBlock();
-            this.vseqstmt(s.orelse);
-            this._jump(end);
+            this.vseqstmt(s.orelse, flags);
             this.setBlock(end);
         };
         Compiler.prototype.craise = function (s) {
@@ -9609,7 +9536,7 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                 }
             }
         };
-        Compiler.prototype.ctryexcept = function (s) {
+        Compiler.prototype.ctryexcept = function (s, flags) {
             var n = s.handlers.length;
             // Create a block for each except clause
             var handlers = [];
@@ -9620,9 +9547,8 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             var orelse = this.newBlock("orelse");
             var end = this.newBlock("end");
             this.setupExcept(handlers[0]);
-            this.vseqstmt(s.body);
+            this.vseqstmt(s.body, flags);
             this.endExcept();
-            this._jump(orelse);
             for (var i = 0; i < n; ++i) {
                 this.setBlock(handlers[i]);
                 var handler = s.handlers[i];
@@ -9630,45 +9556,33 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                     throw new SyntaxError("default 'except:' must be last");
                 }
                 if (handler.type) {
-                    // should jump to next handler if err not isinstance of handler.type
-                    var handlertype = this.vexpr(handler.type);
-                    var next = (i === n - 1) ? unhandled : handlers[i + 1];
-                    // this check is not right, should use isinstance, but exception objects
-                    // are not yet proper Python objects
-                    var check = this._gr('instance', "$err instanceof ", handlertype);
-                    this._jumpfalse(check, next);
                 }
                 if (handler.name) {
                     this.vexpr(handler.name, "$err");
                 }
                 // Need to execute finally before leaving body if an exception is raised
-                this.vseqstmt(handler.body);
-                // Should jump to finally, but finally is not implemented yet
-                this._jump(end);
+                this.vseqstmt(handler.body, flags);
             }
             // If no except clause catches exception, throw it again
             this.setBlock(unhandled);
             // Should execute finally first
             out("throw $err;");
             this.setBlock(orelse);
-            this.vseqstmt(s.orelse);
-            // Should jump to finally, but finally is not implemented yet
-            this._jump(end);
+            this.vseqstmt(s.orelse, flags);
             this.setBlock(end);
         };
-        Compiler.prototype.ctryfinally = function (s) {
+        Compiler.prototype.ctryfinally = function (s, flags) {
             out("/*todo; tryfinally*/");
             // everything but the finally?
-            this.ctryexcept(s.body[0]);
+            this.ctryexcept(s.body[0], flags);
         };
         Compiler.prototype.cassert = function (s) {
             /* todo; warnings method
             if (s.test instanceof Tuple && s.test.elts.length > 0)
                 Sk.warn("assertion is always true, perhaps remove parentheses?");
             */
-            var test = this.vexpr(s.test);
+            // var test = this.vexpr(s.test);
             var end = this.newBlock("end");
-            this._jumptrue(test, end);
             // todo; exception handling
             // maybe replace with fail?? or just an alert?
             out("throw new Sk.builtin.AssertionError(", s.msg ? this.vexpr(s.msg) : "", ");");
@@ -9692,28 +9606,28 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                 while (dotLoc !== -1) {
                     dotLoc = src.indexOf(".");
                     var attr = dotLoc !== -1 ? src.substr(0, dotLoc) : src;
-                    cur = this._gr('lattr', "Sk.abstr.gattr(", cur, ",'", attr, "')");
+                    cur = this.emitArgs('lattr', "Sk.abstr.gattr(", cur, ",'", attr, "')");
                     src = src.substr(dotLoc + 1);
                 }
             }
-            return this.nameop(asname, types_43.Store, cur);
+            return this.nameop(asname, types_42.Store, cur);
         };
         ;
         Compiler.prototype.cimport = function (s) {
             var n = s.names.length;
             for (var i = 0; i < n; ++i) {
                 var alias = s.names[i];
-                var mod = this._gr('module', 'Sk.builtin.__import__(', toStringLiteralJS_1.default(alias.name), ',$gbl,$loc,[])');
+                var mod = this.emitArgs('module', 'Sk.builtin.__import__(', toStringLiteralJS_1.default(alias.name), ',$gbl,$loc,[])');
                 if (alias.asname) {
                     this.cimportas(alias.name, alias.asname, mod);
                 }
                 else {
                     var lastDot = alias.name.indexOf('.');
                     if (lastDot !== -1) {
-                        this.nameop(alias.name.substr(0, lastDot), types_43.Store, mod);
+                        this.nameop(alias.name.substr(0, lastDot), types_42.Store, mod);
                     }
                     else {
-                        this.nameop(alias.name, types_43.Store, mod);
+                        this.nameop(alias.name, types_42.Store, mod);
                     }
                 }
             }
@@ -9824,7 +9738,7 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                 if (kwarg)
                     funcArgs.push("$kwa");
                 for (var i = 0; args && i < args.args.length; ++i)
-                    funcArgs.push(this.nameop(args.args[i].id, types_37.Param));
+                    funcArgs.push(this.nameop(args.args[i].id, types_36.Param));
             }
             if (descendantOrSelfHasFree) {
                 funcArgs.push("$free");
@@ -9862,7 +9776,7 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             for (var i = 0; args && i < args.args.length; ++i) {
                 var id = args.args[i].id;
                 if (this.isCell(id)) {
-                    this.u.varDeclsCode += "$cell." + id + "=" + id + ";";
+                    this.u.varDeclsCode += "$cell." + id + " = " + id + ";";
                 }
             }
             //
@@ -9886,8 +9800,8 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                 // correlation in the ast)
                 var offset = args.args.length - defaults.length;
                 for (var i = 0; i < defaults.length; ++i) {
-                    var argname = this.nameop(args.args[i + offset].id, types_37.Param);
-                    this.u.varDeclsCode += "if(typeof " + argname + " === 'undefined')" + argname + "=" + scopename + ".$defaults[" + i + "];";
+                    var argname = this.nameop(args.args[i + offset].id, types_36.Param);
+                    this.u.varDeclsCode += "if(typeof " + argname + " === 'undefined')" + argname + " = " + scopename + ".$defaults[" + i + "];";
                 }
             }
             //
@@ -9981,25 +9895,25 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                 // Keyword and variable arguments are not currently supported in generators.
                 // The call to pyCheckArgs assumes they can't be true.
                 if (args && args.args.length > 0) {
-                    return this._gr("gener", "new Sk.builtins['function']((function(){var $origargs=Array.prototype.slice.call(arguments);Sk.builtin.pyCheckArgs(\"", coname, "\",arguments,", args.args.length - defaults.length, ",", args.args.length, ");return new Sk.builtins['generator'](", scopename, ",$gbl,$origargs", frees, ");}))");
+                    return this.emitArgs("gener", "new Sk.builtins['function']((function(){var $origargs=Array.prototype.slice.call(arguments);Sk.builtin.pyCheckArgs(\"", coname, "\",arguments,", args.args.length - defaults.length, ",", args.args.length, ");return new Sk.builtins['generator'](", scopename, ",$gbl,$origargs", frees, ");}))");
                 }
                 else {
-                    return this._gr("gener", "new Sk.builtins['function']((function(){Sk.builtin.pyCheckArgs(\"", coname, "\",arguments,0,0);return new Sk.builtins['generator'](", scopename, ",$gbl,[]", frees, ");}))");
+                    return this.emitArgs("gener", "new Sk.builtins['function']((function(){Sk.builtin.pyCheckArgs(\"", coname, "\",arguments,0,0);return new Sk.builtins['generator'](", scopename, ",$gbl,[]", frees, ");}))");
                 }
             else {
-                return this._gr("funcobj", "new Sk.builtins['function'](", scopename, ",$gbl", frees, ")");
+                return this.emitArgs("funcobj", "new Sk.builtins['function'](", scopename, ",$gbl", frees, ")");
             }
         };
         Compiler.prototype.cfunction = function (s) {
-            asserts_1.assert(s instanceof types_22.FunctionDef);
+            asserts_1.assert(s instanceof types_21.FunctionDef);
             var funcorgen = this.buildcodeobj(s, s.name, s.decorator_list, s.args, function (scopename) {
                 this.vseqstmt(s.body);
                 out("return Sk.builtin.none.none$;"); // if we fall off the bottom, we want the ret to be None
             });
-            this.nameop(s.name, types_43.Store, funcorgen);
+            this.nameop(s.name, types_42.Store, funcorgen);
         };
         Compiler.prototype.clambda = function (e) {
-            asserts_1.assert(e instanceof types_30.Lambda);
+            asserts_1.assert(e instanceof types_29.Lambda);
             var func = this.buildcodeobj(e, "<lambda>", null, e.args, function (scopename) {
                 var val = this.vexpr(e.body);
                 out("return ", val, ";");
@@ -10009,14 +9923,11 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
         Compiler.prototype.cifexp = function (e) {
             var next = this.newBlock('next of ifexp');
             var end = this.newBlock('end of ifexp');
-            var ret = this._gr('res', 'null');
-            var test = this.vexpr(e.test);
-            this._jumpfalse(test, next);
+            var ret = this.emitArgs('res', 'null');
+            // var test = this.vexpr(e.test);
             out(ret, '=', this.vexpr(e.body), ';');
-            this._jump(end);
             this.setBlock(next);
             out(ret, '=', this.vexpr(e.orelse), ';');
-            this._jump(end);
             this.setBlock(end);
             return ret;
         };
@@ -10036,18 +9947,14 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             else {
                 var toiter = this.vexpr(ge.iter);
                 iter = "$loc." + this.gensym("iter");
-                out(iter, "=", "Sk.abstr.iter(", toiter, ");");
+                out(iter, " = ", "Sk.abstr.iter(", toiter, ");");
             }
-            this._jump(start);
             this.setBlock(start);
             // load targets
-            var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
-            this._jumpundef(nexti, end); // todo; this should be handled by StopIteration
+            // var nexti = this.emitArgs('next', "Sk.abstr.iternext(", iter, ")");
             // var target = this.vexpr(ge.target, nexti);
             var n = ge.ifs.length;
             for (var i = 0; i < n; ++i) {
-                var ifres = this.vexpr(ge.ifs[i]);
-                this._jumpfalse(ifres, start);
             }
             if (++genIndex < generators.length) {
                 this.cgenexpgen(generators, genIndex, elt);
@@ -10057,7 +9964,6 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                 out("return [", skip, "/*resume*/,", velt, "/*ret*/];");
                 this.setBlock(skip);
             }
-            this._jump(start);
             this.setBlock(end);
             if (genIndex === 1)
                 out("return null;");
@@ -10070,14 +9976,14 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             // but the code builder builds a wrapper that makes generators for normal
             // function generators, so we just do it outside (even just new'ing it
             // inline would be fine).
-            var gener = this._gr("gener", "Sk.misceval.callsim(", gen, ");");
+            var gener = this.emitArgs("gener", "Sk.misceval.callsim(", gen, ");");
             // stuff the outermost iterator into the generator after evaluating it
             // outside of the function. it's retrieved by the fixed name above.
             out(gener, ".gi$locals.$iter0=Sk.abstr.iter(", this.vexpr(e.generators[0].iter), ");");
             return gener;
         };
-        Compiler.prototype.cclass = function (s) {
-            asserts_1.assert(s instanceof types_12.ClassDef);
+        Compiler.prototype.cclass = function (s, flags) {
+            asserts_1.assert(s instanceof types_11.ClassDef);
             // var decos = s.decorator_list;
             // decorators and bases need to be eval'd out here
             // this.vseqexpr(decos);
@@ -10093,36 +9999,34 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             this.u.switchCode += "var $blk=" + entryBlock + ",$exc=[];while(true){switch($blk){";
             this.u.suffixCode = "}break;}}).apply(null,$rest);});";
             this.u.private_ = s.name;
-            this.cbody(s.body);
+            this.cbody(s.body, flags);
             out("break;");
             // build class
             // apply decorators
             this.exitScope();
-            var wrapped = this._gr('built', 'Sk.misceval.buildClass($gbl,', scopename, ',', toStringLiteralJS_1.default(s.name), ',[', bases, '])');
+            var wrapped = this.emitArgs('built', 'Sk.misceval.buildClass($gbl,', scopename, ',', toStringLiteralJS_1.default(s.name), ',[', bases, '])');
             // store our new class under the right name
-            this.nameop(s.name, types_43.Store, wrapped);
+            this.nameop(s.name, types_42.Store, wrapped);
         };
         Compiler.prototype.ccontinue = function (s) {
             if (this.u.continueBlocks.length === 0)
                 throw new SyntaxError("'continue' outside loop");
-            // todo; continue out of exception blocks
-            this._jump(this.u.continueBlocks[this.u.continueBlocks.length - 1]);
         };
         /**
          * compiles a statement
          */
-        Compiler.prototype.vstmt = function (s) {
+        Compiler.prototype.vstmt = function (s, flags) {
             this.u.lineno = s.lineno;
             this.u.linenoSet = false;
             this.annotateSource(s);
             switch (s.constructor) {
-                case types_22.FunctionDef:
+                case types_21.FunctionDef:
                     this.cfunction(s);
                     break;
-                case types_12.ClassDef:
-                    this.cclass(s);
+                case types_11.ClassDef:
+                    this.cclass(s, flags);
                     break;
-                case types_41.ReturnStatement: {
+                case types_40.ReturnStatement: {
                     var rs = s;
                     if (this.u.ste.blockType !== SymbolConstants_6.FunctionBlock)
                         throw new SyntaxError("'return' outside function");
@@ -10132,10 +10036,10 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                         out("return null;");
                     break;
                 }
-                case types_16.DeleteExpression:
+                case types_15.DeleteExpression:
                     this.vseqexpr(s.targets);
                     break;
-                case types_3.Assign: {
+                case types_2.Assign: {
                     var assign = s;
                     var n = assign.targets.length;
                     var val = this.vexpr(assign.value);
@@ -10143,60 +10047,59 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                         this.vexpr(assign.targets[i], val);
                     break;
                 }
-                case types_5.AugAssign: {
+                case types_4.AugAssign: {
                     return this.caugassign(s);
                 }
-                case types_39.Print: {
+                case types_38.Print: {
                     this.cprint(s);
                     break;
                 }
-                case types_21.ForStatement: {
-                    return this.cfor(s);
+                case types_20.ForStatement: {
+                    return this.cfor(s, flags);
                 }
-                case types_50.WhileStatement: {
-                    return this.cwhile(s);
+                case types_49.WhileStatement: {
+                    return this.cwhile(s, flags);
                 }
-                case types_25.IfStatement: {
-                    return this.cif(s);
+                case types_24.IfStatement: {
+                    return this.ifStatement(s, flags);
                 }
-                case types_40.Raise: {
+                case types_39.Raise: {
                     return this.craise(s);
                 }
-                case types_46.TryExcept: {
-                    return this.ctryexcept(s);
+                case types_45.TryExcept: {
+                    return this.ctryexcept(s, flags);
                 }
-                case types_47.TryFinally: {
-                    return this.ctryfinally(s);
+                case types_46.TryFinally: {
+                    return this.ctryfinally(s, flags);
                 }
-                case types_2.Assert: {
+                case types_1.Assert: {
                     return this.cassert(s);
                 }
-                case types_27.ImportStatement:
+                case types_26.ImportStatement:
                     return this.cimport(s);
-                case types_28.ImportFrom:
+                case types_27.ImportFrom:
                     return this.cfromimport(s);
-                case types_24.Global:
+                case types_23.Global:
                     break;
-                case types_19.Expr:
+                case types_18.Expr:
                     this.vexpr(s.value);
                     break;
-                case types_38.Pass:
+                case types_37.Pass:
                     break;
-                case types_10.BreakStatement:
+                case types_9.BreakStatement:
                     if (this.u.breakBlocks.length === 0)
                         throw new SyntaxError("'break' outside loop");
-                    this._jump(this.u.breakBlocks[this.u.breakBlocks.length - 1]);
                     break;
-                case types_14.ContinueStatement:
+                case types_13.ContinueStatement:
                     this.ccontinue(s);
                     break;
                 default:
                     asserts_1.fail("unhandled case in vstmt");
             }
         };
-        Compiler.prototype.vseqstmt = function (stmts) {
+        Compiler.prototype.vseqstmt = function (stmts, flags) {
             for (var i = 0; i < stmts.length; ++i)
-                this.vstmt(stmts[i]);
+                this.vstmt(stmts[i], flags);
         };
         Compiler.prototype.isCell = function (name) {
             var mangled = mangleName(this.u.private_, name);
@@ -10211,10 +10114,10 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
          * @param {string=} dataToStore
          */
         Compiler.prototype.nameop = function (name, ctx, dataToStore) {
-            if ((ctx === types_43.Store || ctx === types_7.AugStore || ctx === types_15.Del) && name === "__debug__") {
+            if ((ctx === types_42.Store || ctx === types_6.AugStore || ctx === types_14.Del) && name === "__debug__") {
                 throw new SyntaxError("can not assign to __debug__");
             }
-            if ((ctx === types_43.Store || ctx === types_7.AugStore || ctx === types_15.Del) && name === "None") {
+            if ((ctx === types_42.Store || ctx === types_6.AugStore || ctx === types_14.Del) && name === "None") {
                 throw new SyntaxError("can not assign to None");
             }
             if (name === "None")
@@ -10260,22 +10163,22 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             // in generator or at module scope, we need to store to $loc, rather that
             // to actual JS stack variables.
             var mangledNoPre = mangled;
-            if (this.u.ste.generator || this.u.ste.blockType !== SymbolConstants_6.FunctionBlock)
-                mangled = "$loc." + mangled;
+            if (this.u.ste.generator || this.u.ste.blockType !== SymbolConstants_6.FunctionBlock) {
+            }
             else if (optype === OP_FAST || optype === OP_NAME)
                 this.u.localnames.push(mangled);
             switch (optype) {
                 case OP_FAST:
                     switch (ctx) {
-                        case types_33.Load:
-                        case types_37.Param:
+                        case types_32.Load:
+                        case types_36.Param:
                             // Need to check that it is bound!
                             out("if (typeof ", mangled, " === 'undefined') { throw new Error('local variable \\\'", mangled, "\\\' referenced before assignment'); }\n");
                             return mangled;
-                        case types_43.Store:
-                            out(mangled, "=", dataToStore, ";");
+                        case types_42.Store:
+                            out(mangled, " = ", dataToStore, ";");
                             break;
-                        case types_15.Del:
+                        case types_14.Del:
                             out("delete ", mangled, ";");
                             break;
                         default:
@@ -10284,18 +10187,16 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                     break;
                 case OP_NAME:
                     switch (ctx) {
-                        case types_33.Load:
-                            var v = this.gensym('loadname');
-                            // can't be || for loc.x = 0 or null
-                            out("var ", v, "=(typeof ", mangled, " !== 'undefined') ? ", mangled, ":Sk.misceval.loadname('", mangledNoPre, "',$gbl);");
-                            return v;
-                        case types_43.Store:
-                            out(mangled, "=", dataToStore, ";");
+                        case types_32.Load:
+                            out(mangledNoPre);
                             break;
-                        case types_15.Del:
+                        case types_42.Store:
+                            out(mangled, " = ", dataToStore, ";");
+                            break;
+                        case types_14.Del:
                             out("delete ", mangled, ";");
                             break;
-                        case types_37.Param:
+                        case types_36.Param:
                             return mangled;
                         default:
                             asserts_1.fail("unhandled");
@@ -10303,12 +10204,12 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                     break;
                 case OP_GLOBAL:
                     switch (ctx) {
-                        case types_33.Load:
-                            return this._gr("loadgbl", "Sk.misceval.loadname('", mangledNoPre, "',$gbl)");
-                        case types_43.Store:
-                            out("$gbl.", mangledNoPre, "=", dataToStore, ';');
+                        case types_32.Load:
+                            return mangledNoPre;
+                        case types_42.Store:
+                            out("$gbl.", mangledNoPre, " = ", dataToStore, ';');
                             break;
-                        case types_15.Del:
+                        case types_14.Del:
                             out("delete $gbl.", mangledNoPre);
                             break;
                         default:
@@ -10317,12 +10218,12 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
                     break;
                 case OP_DEREF:
                     switch (ctx) {
-                        case types_33.Load:
+                        case types_32.Load:
                             return dict + "." + mangledNoPre;
-                        case types_43.Store:
-                            out(dict, ".", mangledNoPre, "=", dataToStore, ";");
+                        case types_42.Store:
+                            out(dict, ".", mangledNoPre, " = ", dataToStore, ";");
                             break;
-                        case types_37.Param:
+                        case types_36.Param:
                             return mangledNoPre;
                         default:
                             asserts_1.fail("unhandled case in name op_deref");
@@ -10372,13 +10273,13 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
         /**
          *
          */
-        Compiler.prototype.cbody = function (stmts) {
+        Compiler.prototype.cbody = function (stmts, flags) {
             for (var i = 0; i < stmts.length; ++i) {
-                this.vstmt(stmts[i]);
+                this.vstmt(stmts[i], flags);
             }
         };
         Compiler.prototype.cprint = function (s) {
-            asserts_1.assert(s instanceof types_39.Print);
+            asserts_1.assert(s instanceof types_38.Print);
             var dest = 'null';
             if (s.dest) {
                 dest = this.vexpr(s.dest);
@@ -10389,7 +10290,7 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             if (s.nl) {
             }
         };
-        Compiler.prototype.cmod = function (mod) {
+        Compiler.prototype.cmod = function (mod, flags) {
             var modf = this.enterScope("<module>", mod, 0);
             /* const entryBlock = */ this.newBlock('module entry');
             // this.u.prefixCode = "var " + modf + "=(function($modname){";
@@ -10397,9 +10298,8 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
             // this.u.switchCode = "try {while(true){try{switch($blk){";
             // this.u.suffixCode = "}}catch(err){if ($exc.length>0) {$err=err;$blk=$exc.pop();continue;} else {throw err;}}}}catch(err){if (err instanceof Sk.builtin.SystemExit && !Sk.throwSystemExit) { Sk.misceval.print_(err.toString() + '\\n'); return $loc; } else { throw err; } } });";
             switch (mod.constructor) {
-                case types_34.Module:
-                    this.cbody(mod.body);
-                    // out("return $loc;");
+                case types_33.Module:
+                    this.cbody(mod.body, flags);
                     break;
                 default:
                     asserts_1.fail("todo; unhandled case in compilerMod");
@@ -10459,7 +10359,12 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './parser', './
         var ast = builder_1.astFromParse(cst, fileName);
         var st = symtable_1.symbolTable(ast, fileName);
         var c = new Compiler(fileName, st, 0, source);
-        return { 'funcname': c.cmod(ast), 'code': c.result.join('') };
+        /**
+         * flags are used to confition the code generation.
+         */
+        var flags = 0;
+        // TODO: Get rif of the funcname
+        return { funcname: c.cmod(ast, flags), code: c.result.join('') };
     }
     exports.compile = compile;
     ;
