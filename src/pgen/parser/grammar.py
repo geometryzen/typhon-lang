@@ -115,7 +115,7 @@ class Grammar(object):
     def genjs(self):
         from pprint import pformat
         return (
-                "var ParseTables = {\n" +
+                "const ParseTables = {\n" +
                 "sym:\n" +
                 pformat(self.symbol2number).replace("'","") + # NOTE don't quote LHS, closure compiler won't rename through strings as props
                 ",\n" +

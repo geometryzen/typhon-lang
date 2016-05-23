@@ -1,23 +1,13 @@
-define([], function()
-{
-  function assert(condition, message)
-  {
-    if (!condition)
-    {
-      throw new Error(message);
+define(["require", "exports"], function (require, exports) {
+    "use strict";
+    function assert(condition, message) {
+        if (!condition) {
+            throw new Error(message);
+        }
     }
-  }
-
-  function fail(message)
-  {
-    assert(false, message);
-  }
-
-  var that =
-  {
-    assert: assert,
-    fail: fail
-  };
-
-  return that;
+    exports.assert = assert;
+    function fail(message) {
+        assert(false, message);
+    }
+    exports.fail = fail;
 });

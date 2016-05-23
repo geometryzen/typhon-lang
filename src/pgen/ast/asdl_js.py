@@ -112,8 +112,7 @@ class TypeDefVisitor(EmitVisitor):
     def simple_sum(self, sum, name, depth):
         for i in range(len(sum.types)):
             type = sum.types[i]
-            self.emit("function %s() {}" % type.name, depth)
-            self.emit("that.%s = %s;" % (type.name, type.name), depth)
+            self.emit("export class %s {}" % type.name, depth)
         self.emit("", depth)
 
     def visitProduct(self, product, name, depth):
@@ -229,8 +228,8 @@ class FunctionVisitor(PrototypeVisitor):
         def emit(s, depth=0, reflow=1):
             self.emit(s, depth, reflow)
         argstr = ", ".join(["%s" % (aname) for atype, aname, opt in args + attrs])
-        emit("function %s(%s)" % (name, argstr))
-        emit("{")
+        emit("export class %s {" % (name))
+        emit("constructor(%s) {" % (argstr), 1)
         for argtype, argname, opt in args:
             pass
             # XXX hack alert: false is allowed for a bool
@@ -241,9 +240,8 @@ class FunctionVisitor(PrototypeVisitor):
             self.emit_body_union(name, args, attrs)
         else:
             self.emit_body_struct(name, args, attrs)
-        emit("return this;", 1)
+        emit("}", 1)
         emit("}")
-        emit("that.%s = %s;" % (name, name))
         emit("")
 
 
@@ -365,11 +363,6 @@ def main(asdlfile, outputfile):
     f = open(outputfile, "wb")
 
     f.write(auto_gen_msg)
-    if amd:
-        f.write("\n"*1)
-        f.write("define([], function() {\n")
-        f.write("  var that = {\n")
-        f.write("  };\n")
 
     f.write("\n"*1)
     f.write("// ----------------------\n")
@@ -386,10 +379,6 @@ def main(asdlfile, outputfile):
     f.write("\n"*1)
     v = ChainOfVisitors(FunctionVisitor(f), FieldNamesVisitor(f))
     v.visit(mod)
-
-    if amd:
-        f.write("  return that;\n");
-        f.write("});")
 
     # Files should always end with a newline
     f.write("\n"*1)

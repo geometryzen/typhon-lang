@@ -1,5 +1,100 @@
-define(["require", "exports", './asserts', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './base', './tables', './Tokens', './numericLiteral'], function (require, exports, asserts_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, astnodes_49, astnodes_50, astnodes_51, astnodes_52, astnodes_53, astnodes_54, astnodes_55, astnodes_56, astnodes_57, astnodes_58, astnodes_59, astnodes_60, astnodes_61, astnodes_62, astnodes_63, astnodes_64, astnodes_65, astnodes_66, astnodes_67, astnodes_68, astnodes_69, astnodes_70, astnodes_71, astnodes_72, astnodes_73, astnodes_74, astnodes_75, astnodes_76, astnodes_77, astnodes_78, astnodes_79, astnodes_80, astnodes_81, astnodes_82, astnodes_83, astnodes_84, astnodes_85, astnodes_86, base_1, tables_1, Tokens_1, numericLiteral_1) {
-    "use strict";
+import {assert, fail} from './asserts';
+
+import {Add} from './astnodes'
+// TODO: Conventions
+import {alias} from './astnodes'
+import {arguments_} from './astnodes'
+import {And} from './astnodes'
+import {Assert} from './astnodes'
+import {Assign} from './astnodes'
+import {Attribute} from './astnodes'
+import {AugAssign} from './astnodes'
+import {AugLoad} from './astnodes'
+import {AugStore} from './astnodes'
+import {BinOp} from './astnodes'
+import {BitAnd} from './astnodes'
+import {BitOr} from './astnodes'
+import {BitXor} from './astnodes'
+import {BoolOp} from './astnodes'
+import {Break_} from './astnodes'
+import {Call} from './astnodes'
+import {ClassDef} from './astnodes'
+import {Compare} from './astnodes'
+import {comprehension} from './astnodes'
+import {Continue_} from './astnodes'
+import {Del} from './astnodes'
+import {Delete_} from './astnodes'
+import {Dict} from './astnodes'
+import {Div} from './astnodes'
+import {Ellipsis} from './astnodes'
+import {Eq} from './astnodes'
+import {ExceptHandler} from './astnodes'
+import {Exec} from './astnodes'
+import {Expr} from './astnodes'
+import {ExtSlice} from './astnodes'
+import {FloorDiv} from './astnodes'
+import {For_} from './astnodes'
+import {FunctionDef} from './astnodes'
+import {GeneratorExp} from './astnodes'
+import {Global} from './astnodes'
+import {Gt} from './astnodes'
+import {GtE} from './astnodes'
+// FIXME: Convention
+import {keyword} from './astnodes'
+import {If_} from './astnodes'
+import {IfExp} from './astnodes'
+import {Import_} from './astnodes'
+import {ImportFrom} from './astnodes'
+import {Index} from './astnodes'
+import {In_} from './astnodes'
+import {Invert} from './astnodes'
+import {Is} from './astnodes'
+import {IsNot} from './astnodes'
+import {Lambda} from './astnodes'
+import {List} from './astnodes'
+import {ListComp} from './astnodes'
+import {Load} from './astnodes'
+import {LShift} from './astnodes'
+import {Lt} from './astnodes'
+import {LtE} from './astnodes'
+import {Mod} from './astnodes'
+import {Module} from './astnodes'
+import {Mult} from './astnodes'
+import {Name} from './astnodes'
+import {NonLocal} from './astnodes'
+import {Not} from './astnodes'
+import {NotEq} from './astnodes'
+import {NotIn} from './astnodes'
+import {Num} from './astnodes'
+import {Or} from './astnodes'
+import {Param} from './astnodes'
+import {Pass} from './astnodes'
+import {Pow} from './astnodes'
+import {Print} from './astnodes'
+import {Raise} from './astnodes'
+import {Return_} from './astnodes'
+import {RShift} from './astnodes'
+import {Slice} from './astnodes'
+import {Store} from './astnodes'
+import {Str} from './astnodes'
+import {Sub} from './astnodes'
+import {Subscript} from './astnodes'
+import {TryExcept} from './astnodes'
+import {TryFinally} from './astnodes'
+import {Tuple} from './astnodes'
+import {UAdd} from './astnodes'
+import {UnaryOp} from './astnodes'
+import {USub} from './astnodes'
+import {While_} from './astnodes'
+import {With_} from './astnodes'
+import {Yield} from './astnodes'
+
+import {isArrayLike, isNumber, isString} from './base'
+import tables from './tables';
+import Tokens from './Tokens';
+import {floatAST, intAST, longAST} from './numericLiteral';
+import INumericLiteral from './INumericLiteral';
+
     //
     // This is pretty much a straight port of ast.c from CPython 2.6.5.
     //
@@ -9,59 +104,73 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
     // This way, we can use a dump from the ast module on any arbitrary python
     // code and know that we're the same up to ast level, at least.
     //
-    var ParseTables = tables_1.default.ParseTables;
+    var ParseTables = tables.ParseTables;
     var SYM = ParseTables.sym;
-    var TOK = Tokens_1.default;
+    var TOK = Tokens;
+
     /**
      * @const
      * @type {number}
      */
     var LONG_THRESHOLD = Math.pow(2, 53);
+
     /**
      * @param {string} message
      * @param {string} fileName
      * @param {number} lineNumber
      */
-    function syntaxError(message, fileName, lineNumber) {
-        asserts_1.assert(base_1.isString(message), "message must be a string");
-        asserts_1.assert(base_1.isString(fileName), "fileName must be a string");
-        asserts_1.assert(base_1.isNumber(lineNumber), "lineNumber must be a number");
-        var e = new SyntaxError(message /*, fileName*/);
+    function syntaxError(message, fileName, lineNumber)
+    {
+        assert(isString(message), "message must be a string");
+        assert(isString(fileName), "fileName must be a string");
+        assert(isNumber(lineNumber), "lineNumber must be a number");
+        var e = new SyntaxError(message/*, fileName*/);
         e['fileName'] = fileName;
         e['lineNumber'] = lineNumber;
         return e;
     }
+
     /** @constructor */
-    function Compiling(encoding, filename) {
+    function Compiling(encoding, filename)
+    {
         this.c_encoding = encoding;
         this.c_filename = filename;
     }
+
     /**
      * @return {number}
      */
-    function NCH(n) {
-        asserts_1.assert(n !== undefined);
-        if (n.children === null)
-            return 0;
-        return n.children.length;
+    function NCH(n)
+    {
+        assert(n !== undefined);
+        if (n.children === null) return 0; return n.children.length;
     }
-    function CHILD(n, i) {
-        asserts_1.assert(n !== undefined);
-        asserts_1.assert(i !== undefined);
+
+    function CHILD(n, i)
+    {
+        assert(n !== undefined);
+        assert(i !== undefined);
         return n.children[i];
     }
-    function REQ(n, type) {
-        asserts_1.assert(n.type === type, "node wasn't expected type");
+
+    function REQ(n, type)
+    {
+        assert(n.type === type, "node wasn't expected type");
     }
-    function strobj(s) {
-        asserts_1.assert(typeof s === "string", "expecting string, got " + (typeof s));
+
+    function strobj(s)
+    {
+        assert(typeof s === "string", "expecting string, got " + (typeof s));
         // This previuosly constructed the runtime representation.
         // That may have had an string intern side effect?
         return s;
     }
+
     /** @return {number} */
-    function numStmts(n) {
-        switch (n.type) {
+    function numStmts(n)
+    {
+        switch (n.type)
+        {
             case SYM.single_input:
                 if (CHILD(n, 0).type === TOK.T_NEWLINE)
                     return 0;
@@ -69,7 +178,8 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                     return numStmts(CHILD(n, 0));
             case SYM.file_input:
                 var cnt = 0;
-                for (var i = 0; i < NCH(n); ++i) {
+                for (var i = 0; i < NCH(n); ++i)
+                {
                     var ch = CHILD(n, i);
                     if (ch.type === SYM.stmt)
                         cnt += numStmts(ch);
@@ -84,191 +194,215 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             case SYM.suite:
                 if (NCH(n) === 1)
                     return numStmts(CHILD(n, 0));
-                else {
-                    var cnt = 0;
-                    for (var i = 2; i < NCH(n) - 1; ++i)
-                        cnt += numStmts(CHILD(n, i));
-                    return cnt;
+                else
+                {
+                     var cnt = 0;
+                     for (var i = 2; i < NCH(n) - 1; ++i)
+                         cnt += numStmts(CHILD(n, i));
+                     return cnt;
                 }
             default:
-                asserts_1.fail("Non-statement found");
+                fail("Non-statement found");
         }
         return 0;
     }
-    function forbiddenCheck(c, n, x, lineno) {
-        if (x === "None")
-            throw syntaxError("assignment to None", c.c_filename, lineno);
-        if (x === "True" || x === "False")
-            throw syntaxError("assignment to True or False is forbidden", c.c_filename, lineno);
+
+    function forbiddenCheck(c, n, x, lineno)
+    {
+        if (x === "None") throw syntaxError("assignment to None", c.c_filename, lineno);
+        if (x === "True" || x === "False") throw syntaxError("assignment to True or False is forbidden", c.c_filename, lineno);
     }
+
     /**
      * Set the context ctx for e, recursively traversing e.
      *
      * Only sets context for expr kinds that can appear in assignment context as
      * per the asdl file.
      */
-    function setContext(c, e, ctx, n) {
-        asserts_1.assert(ctx !== astnodes_10.AugStore && ctx !== astnodes_9.AugLoad);
+    function setContext(c, e, ctx, n)
+    {
+        assert(ctx !== AugStore && ctx !== AugLoad);
         var s = null;
         var exprName = null;
-        switch (e.constructor) {
-            case astnodes_7.Attribute:
-            case astnodes_59.Name:
-                if (ctx === astnodes_74.Store)
-                    forbiddenCheck(c, n, e.attr, n.lineno);
+
+        switch (e.constructor)
+        {
+            case Attribute:
+            case Name:
+                if (ctx === Store) forbiddenCheck(c, n, e.attr, n.lineno);
                 e.ctx = ctx;
                 break;
-            case astnodes_77.Subscript:
+            case Subscript:
                 e.ctx = ctx;
                 break;
-            case astnodes_50.List:
+            case List:
                 e.ctx = ctx;
                 s = e.elts;
                 break;
-            case astnodes_80.Tuple:
+            case Tuple:
                 if (e.elts.length === 0)
                     throw syntaxError("can't assign to ()", c.c_filename, n.lineno);
                 e.ctx = ctx;
                 s = e.elts;
                 break;
-            case astnodes_49.Lambda:
+            case Lambda:
                 exprName = "lambda";
                 break;
-            case astnodes_17.Call:
+            case Call:
                 exprName = "function call";
                 break;
-            case astnodes_15.BoolOp:
-            case astnodes_11.BinOp:
-            case astnodes_82.UnaryOp:
+            case BoolOp:
+            case BinOp:
+            case UnaryOp:
                 exprName = "operator";
                 break;
-            case astnodes_35.GeneratorExp:
+            case GeneratorExp:
                 exprName = "generator expression";
                 break;
-            case astnodes_86.Yield:
+            case Yield:
                 exprName = "yield expression";
                 break;
-            case astnodes_51.ListComp:
+            case ListComp:
                 exprName = "list comprehension";
                 break;
-            case astnodes_24.Dict:
-            case astnodes_64.Num:
-            case astnodes_75.Str:
+            case Dict:
+            case Num:
+            case Str:
                 exprName = "literal";
                 break;
-            case astnodes_19.Compare:
+            case Compare:
                 exprName = "comparison expression";
                 break;
-            case astnodes_41.IfExp:
+            case IfExp:
                 exprName = "conditional expression";
                 break;
             default:
-                asserts_1.fail("unhandled expression in assignment");
+                fail("unhandled expression in assignment");
         }
-        if (exprName) {
-            throw syntaxError("can't " + (ctx === astnodes_74.Store ? "assign to" : "delete") + " " + exprName, c.c_filename, n.lineno);
+        if (exprName)
+        {
+            throw syntaxError("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, c.c_filename, n.lineno);
         }
-        if (s) {
-            for (var i = 0; i < s.length; ++i) {
+
+        if (s)
+        {
+            for (var i = 0; i < s.length; ++i)
+            {
                 setContext(c, s[i], ctx, n);
             }
         }
     }
+
     var operatorMap = {};
-    (function () {
-        operatorMap[TOK.T_VBAR] = astnodes_13.BitOr;
-        operatorMap[TOK.T_VBAR] = astnodes_13.BitOr;
-        operatorMap[TOK.T_CIRCUMFLEX] = astnodes_14.BitXor;
-        operatorMap[TOK.T_AMPER] = astnodes_12.BitAnd;
-        operatorMap[TOK.T_LEFTSHIFT] = astnodes_53.LShift;
-        operatorMap[TOK.T_RIGHTSHIFT] = astnodes_72.RShift;
-        operatorMap[TOK.T_PLUS] = astnodes_1.Add;
-        operatorMap[TOK.T_MINUS] = astnodes_76.Sub;
-        operatorMap[TOK.T_STAR] = astnodes_58.Mult;
-        operatorMap[TOK.T_SLASH] = astnodes_25.Div;
-        operatorMap[TOK.T_DOUBLESLASH] = astnodes_32.FloorDiv;
-        operatorMap[TOK.T_PERCENT] = astnodes_56.Mod;
+    (function() {
+        operatorMap[TOK.T_VBAR] = BitOr;
+        operatorMap[TOK.T_VBAR] = BitOr;
+        operatorMap[TOK.T_CIRCUMFLEX] = BitXor;
+        operatorMap[TOK.T_AMPER] = BitAnd;
+        operatorMap[TOK.T_LEFTSHIFT] = LShift;
+        operatorMap[TOK.T_RIGHTSHIFT] = RShift;
+        operatorMap[TOK.T_PLUS] = Add;
+        operatorMap[TOK.T_MINUS] = Sub;
+        operatorMap[TOK.T_STAR] = Mult;
+        operatorMap[TOK.T_SLASH] = Div;
+        operatorMap[TOK.T_DOUBLESLASH] = FloorDiv;
+        operatorMap[TOK.T_PERCENT] = Mod;
     }());
-    function getOperator(n) {
-        asserts_1.assert(operatorMap[n.type] !== undefined);
+    function getOperator(n)
+    {
+        assert(operatorMap[n.type] !== undefined);
         return operatorMap[n.type];
     }
-    function astForCompOp(c, n) {
+
+    function astForCompOp(c, n)
+    {
         /* comp_op: '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'
                    |'is' 'not'
         */
         REQ(n, SYM.comp_op);
-        if (NCH(n) === 1) {
+        if (NCH(n) === 1)
+        {
             n = CHILD(n, 0);
-            switch (n.type) {
-                case TOK.T_LESS: return astnodes_54.Lt;
-                case TOK.T_GREATER: return astnodes_37.Gt;
-                case TOK.T_EQEQUAL: return astnodes_27.Eq;
-                case TOK.T_LESSEQUAL: return astnodes_55.LtE;
-                case TOK.T_GREATEREQUAL: return astnodes_38.GtE;
-                case TOK.T_NOTEQUAL: return astnodes_62.NotEq;
+            switch (n.type)
+            {
+                case TOK.T_LESS: return Lt;
+                case TOK.T_GREATER: return Gt;
+                case TOK.T_EQEQUAL: return Eq;
+                case TOK.T_LESSEQUAL: return LtE;
+                case TOK.T_GREATEREQUAL: return GtE;
+                case TOK.T_NOTEQUAL: return NotEq;
                 case TOK.T_NAME:
-                    if (n.value === "in")
-                        return astnodes_45.In_;
-                    if (n.value === "is")
-                        return astnodes_47.Is;
+                    if (n.value === "in") return In_;
+                    if (n.value === "is") return Is;
             }
         }
-        else if (NCH(n) === 2) {
-            if (CHILD(n, 0).type === TOK.T_NAME) {
-                if (CHILD(n, 1).value === "in")
-                    return astnodes_63.NotIn;
-                if (CHILD(n, 0).value === "is")
-                    return astnodes_48.IsNot;
+        else if (NCH(n) === 2)
+        {
+            if (CHILD(n, 0).type === TOK.T_NAME)
+            {
+                if (CHILD(n, 1).value === "in") return NotIn;
+                if (CHILD(n, 0).value === "is") return IsNot;
             }
         }
-        asserts_1.fail("invalid comp_op");
+        fail("invalid comp_op");
     }
-    function seqForTestlist(c, n) {
+
+    function seqForTestlist(c, n)
+    {
         /* testlist: test (',' test)* [','] */
-        asserts_1.assert(n.type === SYM.testlist ||
-            n.type === SYM.listmaker ||
-            n.type === SYM.testlist_gexp ||
-            n.type === SYM.testlist_safe ||
-            n.type === SYM.testlist1);
+        assert(n.type === SYM.testlist ||
+                n.type === SYM.listmaker ||
+                n.type === SYM.testlist_gexp ||
+                n.type === SYM.testlist_safe ||
+                n.type === SYM.testlist1);
         var seq = [];
-        for (var i = 0; i < NCH(n); i += 2) {
-            asserts_1.assert(CHILD(n, i).type === SYM.IfExpr || CHILD(n, i).type === SYM.old_test);
+        for (var i = 0; i < NCH(n); i += 2)
+        {
+            assert(CHILD(n, i).type === SYM.IfExpr || CHILD(n, i).type === SYM.old_test);
             seq[i / 2] = astForExpr(c, CHILD(n, i));
         }
         return seq;
     }
-    function astForSuite(c, n) {
+
+    function astForSuite(c, n)
+    {
         /* suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT */
         REQ(n, SYM.suite);
         var seq = [];
         var pos = 0;
         var ch;
-        if (CHILD(n, 0).type === SYM.simple_stmt) {
+        if (CHILD(n, 0).type === SYM.simple_stmt)
+        {
             n = CHILD(n, 0);
             /* simple_stmt always ends with an NEWLINE and may have a trailing
              * SEMI. */
             var end = NCH(n) - 1;
             if (CHILD(n, end - 1).type === TOK.T_SEMI)
                 end -= 1;
-            for (var i = 0; i < end; i += 2)
+            for (var i = 0; i < end; i += 2) // by 2 to skip ;
                 seq[pos++] = astForStmt(c, CHILD(n, i));
         }
-        else {
-            for (var i = 2; i < NCH(n) - 1; ++i) {
+        else
+        {
+            for (var i = 2; i < NCH(n) - 1; ++i)
+            {
                 ch = CHILD(n, i);
                 REQ(ch, SYM.stmt);
                 var num = numStmts(ch);
-                if (num === 1) {
+                if (num === 1)
+                {
                     // small_stmt or compound_stmt w/ only 1 child
                     seq[pos++] = astForStmt(c, ch);
                 }
-                else {
+                else
+                {
                     ch = CHILD(ch, 0);
                     REQ(ch, SYM.simple_stmt);
-                    for (var j = 0; j < NCH(ch); j += 2) {
-                        if (NCH(CHILD(ch, j)) === 0) {
-                            asserts_1.assert(j + 1 === NCH(ch));
+                    for (var j = 0; j < NCH(ch); j += 2)
+                    {
+                        if (NCH(CHILD(ch, j)) === 0)
+                        {
+                            assert(j + 1 === NCH(ch));
                             break;
                         }
                         seq[pos++] = astForStmt(c, CHILD(ch, j));
@@ -276,134 +410,171 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 }
             }
         }
-        asserts_1.assert(pos === numStmts(n));
+        assert(pos === numStmts(n));
         return seq;
     }
-    function astForExceptClause(c, exc, body) {
+
+    function astForExceptClause(c, exc, body)
+    {
         /* except_clause: 'except' [test [(',' | 'as') test]] */
         REQ(exc, SYM.except_clause);
         REQ(body, SYM.suite);
         if (NCH(exc) === 1)
-            return new astnodes_28.ExceptHandler(null, null, astForSuite(c, body), exc.lineno, exc.col_offset);
+            return new ExceptHandler(null, null, astForSuite(c, body), exc.lineno, exc.col_offset);
         else if (NCH(exc) === 2)
-            return new astnodes_28.ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.lineno, exc.col_offset);
-        else if (NCH(exc) === 4) {
+            return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.lineno, exc.col_offset);
+        else if (NCH(exc) === 4)
+        {
             var e = astForExpr(c, CHILD(exc, 3));
-            setContext(c, e, astnodes_74.Store, CHILD(exc, 3));
-            return new astnodes_28.ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.lineno, exc.col_offset);
+            setContext(c, e, Store, CHILD(exc, 3));
+            return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.lineno, exc.col_offset);
         }
-        asserts_1.fail("wrong number of children for except clause");
+        fail("wrong number of children for except clause");
     }
-    function astForTryStmt(c, n) {
+
+    function astForTryStmt(c, n): TryExcept | TryFinally
+    {
         var nc = NCH(n);
         var nexcept = (nc - 3) / 3;
         var body, orelse = [], finally_ = null;
+
         REQ(n, SYM.try_stmt);
         body = astForSuite(c, CHILD(n, 2));
-        if (CHILD(n, nc - 3).type === TOK.T_NAME) {
-            if (CHILD(n, nc - 3).value === "finally") {
-                if (nc >= 9 && CHILD(n, nc - 6).type === TOK.T_NAME) {
+        if (CHILD(n, nc - 3).type === TOK.T_NAME)
+        {
+            if (CHILD(n, nc - 3).value === "finally")
+            {
+                if (nc >= 9 && CHILD(n, nc - 6).type === TOK.T_NAME)
+                {
                     /* we can assume it's an "else",
                        because nc >= 9 for try-else-finally and
                        it would otherwise have a type of except_clause */
                     orelse = astForSuite(c, CHILD(n, nc - 4));
                     nexcept--;
                 }
+
                 finally_ = astForSuite(c, CHILD(n, nc - 1));
                 nexcept--;
             }
-            else {
+            else
+            {
                 /* we can assume it's an "else",
                    otherwise it would have a type of except_clause */
                 orelse = astForSuite(c, CHILD(n, nc - 1));
                 nexcept--;
             }
         }
-        else if (CHILD(n, nc - 3).type !== SYM.except_clause) {
+        else if (CHILD(n, nc - 3).type !== SYM.except_clause)
+        {
             throw syntaxError("malformed 'try' statement", c.c_filename, n.lineno);
         }
-        if (nexcept > 0) {
+
+        if (nexcept > 0)
+        {
             var handlers = [];
             for (var i = 0; i < nexcept; ++i)
                 handlers[i] = astForExceptClause(c, CHILD(n, 3 + i * 3), CHILD(n, 5 + i * 3));
-            var exceptSt = new astnodes_78.TryExcept(body, handlers, orelse, n.lineno, n.col_offset);
+            var exceptSt = new TryExcept(body, handlers, orelse, n.lineno, n.col_offset);
+
             if (!finally_)
                 return exceptSt;
+
             /* if a 'finally' is present too, we nest the TryExcept within a
                TryFinally to emulate try ... except ... finally */
             body = [exceptSt];
         }
-        asserts_1.assert(finally_ !== null);
-        return new astnodes_79.TryFinally(body, finally_, n.lineno, n.col_offset);
+
+        assert(finally_ !== null);
+        return new TryFinally(body, finally_, n.lineno, n.col_offset);
     }
-    function astForDottedName(c, n) {
+
+
+    function astForDottedName(c, n): Attribute | Name
+    {
         REQ(n, SYM.dotted_name);
         var lineno = n.lineno;
         var col_offset = n.col_offset;
         var id = strobj(CHILD(n, 0).value);
-        var e = new astnodes_59.Name(id, astnodes_52.Load, lineno, col_offset);
-        for (var i = 2; i < NCH(n); i += 2) {
+        var e: Attribute | Name = new Name(id, Load, lineno, col_offset);
+        for (var i = 2; i < NCH(n); i += 2)
+        {
             id = strobj(CHILD(n, i).value);
-            e = new astnodes_7.Attribute(e, id, astnodes_52.Load, lineno, col_offset);
+            e = new Attribute(e, id, Load, lineno, col_offset);
         }
         return e;
     }
-    function astForDecorator(c, n) {
+
+    function astForDecorator(c, n): Attribute | Call | Name
+    {
         /* decorator: '@' dotted_name [ '(' [arglist] ')' ] NEWLINE */
         REQ(n, SYM.decorator);
         REQ(CHILD(n, 0), TOK.T_AT);
         REQ(CHILD(n, NCH(n) - 1), TOK.T_NEWLINE);
         var nameExpr = astForDottedName(c, CHILD(n, 1));
         var d;
-        if (NCH(n) === 3)
+        if (NCH(n) === 3) // no args
             return nameExpr;
-        else if (NCH(n) === 5)
-            return new astnodes_17.Call(nameExpr, [], [], null, null, n.lineno, n.col_offset);
+        else if (NCH(n) === 5) // call with no args
+            return new Call(nameExpr, [], [], null, null, n.lineno, n.col_offset);
         else
             return astForCall(c, CHILD(n, 3), nameExpr);
     }
-    function astForDecorators(c, n) {
+
+    function astForDecorators(c, n)
+    {
         REQ(n, SYM.decorators);
         var decoratorSeq = [];
         for (var i = 0; i < NCH(n); ++i)
             decoratorSeq[i] = astForDecorator(c, CHILD(n, i));
         return decoratorSeq;
     }
-    function astForDecorated(c, n) {
+
+    function astForDecorated(c, n)
+    {
         REQ(n, SYM.decorated);
         var decoratorSeq = astForDecorators(c, CHILD(n, 0));
-        asserts_1.assert(CHILD(n, 1).type === SYM.funcdef || CHILD(n, 1).type === SYM.classdef);
+        assert(CHILD(n, 1).type === SYM.funcdef || CHILD(n, 1).type === SYM.classdef);
+
         var thing = null;
         if (CHILD(n, 1).type === SYM.funcdef)
             thing = astForFuncdef(c, CHILD(n, 1), decoratorSeq);
         else if (CHILD(n, 1) === SYM.classdef)
             thing = astForClassdef(c, CHILD(n, 1), decoratorSeq);
-        if (thing) {
+        if (thing)
+        {
             thing.lineno = n.lineno;
             thing.col_offset = n.col_offset;
         }
         return thing;
     }
-    function astForWithVar(c, n) {
+
+    function astForWithVar(c, n)
+    {
         REQ(n, SYM.with_var);
         return astForExpr(c, CHILD(n, 1));
     }
-    function astForWithStmt(c, n) {
+
+    function astForWithStmt(c, n)
+    {
         /* with_stmt: 'with' test [ with_var ] ':' suite */
         var suiteIndex = 3; // skip with, test, :
-        asserts_1.assert(n.type === SYM.with_stmt);
+        assert(n.type === SYM.with_stmt);
         var contextExpr = astForExpr(c, CHILD(n, 1));
-        if (CHILD(n, 2).type === SYM.with_var) {
+        if (CHILD(n, 2).type === SYM.with_var)
+        {
             var optionalVars = astForWithVar(c, CHILD(n, 2));
-            setContext(c, optionalVars, astnodes_74.Store, n);
+            setContext(c, optionalVars, Store, n);
             suiteIndex = 4;
         }
-        return new astnodes_85.With_(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
+        return new With_(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
     }
-    function astForExecStmt(c, n) {
+
+    function astForExecStmt(c, n)
+    {
         var expr1, globals = null, locals = null;
         var nchildren = NCH(n);
-        asserts_1.assert(nchildren === 2 || nchildren === 4 || nchildren === 6);
+        assert(nchildren === 2 || nchildren === 4 || nchildren === 6);
+
         /* exec_stmt: 'exec' expr ['in' test [',' test]] */
         REQ(n, SYM.exec_stmt);
         var expr1 = astForExpr(c, CHILD(n, 1));
@@ -411,146 +582,202 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             globals = astForExpr(c, CHILD(n, 3));
         if (nchildren === 6)
             locals = astForExpr(c, CHILD(n, 5));
-        return new astnodes_29.Exec(expr1, globals, locals, n.lineno, n.col_offset);
+        return new Exec(expr1, globals, locals, n.lineno, n.col_offset);
     }
-    function astForIfStmt(c, n) {
+
+    function astForIfStmt(c, n)
+    {
         /* if_stmt: 'if' test ':' suite ('elif' test ':' suite)*
            ['else' ':' suite]
         */
         REQ(n, SYM.if_stmt);
         if (NCH(n) === 4)
-            return new astnodes_40.If_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
+            return new If_(
+                    astForExpr(c, CHILD(n, 1)),
+                    astForSuite(c, CHILD(n, 3)),
+                    [], n.lineno, n.col_offset);
+
         var s = CHILD(n, 4).value;
         var decider = s.charAt(2); // elSe or elIf
-        if (decider === 's') {
-            return new astnodes_40.If_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
+        if (decider === 's')
+        {
+            return new If_(
+                    astForExpr(c, CHILD(n, 1)),
+                    astForSuite(c, CHILD(n, 3)),
+                    astForSuite(c, CHILD(n, 6)),
+                    n.lineno, n.col_offset);
         }
-        else if (decider === 'i') {
+        else if (decider === 'i')
+        {
             var nElif = NCH(n) - 4;
             var hasElse = false;
             var orelse = [];
             /* must reference the child nElif+1 since 'else' token is third, not
              * fourth child from the end. */
-            if (CHILD(n, nElif + 1).type === TOK.T_NAME && CHILD(n, nElif + 1).value.charAt(2) === 's') {
+            if (CHILD(n, nElif + 1).type === TOK.T_NAME && CHILD(n, nElif + 1).value.charAt(2) === 's')
+            {
                 hasElse = true;
                 nElif -= 3;
             }
             nElif /= 4;
-            if (hasElse) {
+
+            if (hasElse)
+            {
                 orelse = [
-                    new astnodes_40.If_(astForExpr(c, CHILD(n, NCH(n) - 6)), astForSuite(c, CHILD(n, NCH(n) - 4)), astForSuite(c, CHILD(n, NCH(n) - 1)), CHILD(n, NCH(n) - 6).lineno, CHILD(n, NCH(n) - 6).col_offset)];
+                    new If_(
+                        astForExpr(c, CHILD(n, NCH(n) - 6)),
+                        astForSuite(c, CHILD(n, NCH(n) - 4)),
+                        astForSuite(c, CHILD(n, NCH(n) - 1)),
+                        CHILD(n, NCH(n) - 6).lineno,
+                        CHILD(n, NCH(n) - 6).col_offset)];
                 nElif--;
             }
-            for (var i = 0; i < nElif; ++i) {
+
+            for (var i = 0; i < nElif; ++i)
+            {
                 var off = 5 + (nElif - i - 1) * 4;
                 orelse = [
-                    new astnodes_40.If_(astForExpr(c, CHILD(n, off)), astForSuite(c, CHILD(n, off + 2)), orelse, CHILD(n, off).lineno, CHILD(n, off).col_offset)];
+                    new If_(
+                        astForExpr(c, CHILD(n, off)),
+                        astForSuite(c, CHILD(n, off + 2)),
+                        orelse,
+                        CHILD(n, off).lineno,
+                        CHILD(n, off).col_offset)];
             }
-            return new astnodes_40.If_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), orelse, n.lineno, n.col_offset);
+            return new If_(
+                    astForExpr(c, CHILD(n, 1)),
+                    astForSuite(c, CHILD(n, 3)),
+                    orelse, n.lineno, n.col_offset);
         }
-        asserts_1.fail("unexpected token in 'if' statement");
+        fail("unexpected token in 'if' statement");
     }
-    function astForExprlist(c, n, context) {
+
+    function astForExprlist(c, n, context)
+    {
         REQ(n, SYM.ExprList);
         var seq = [];
-        for (var i = 0; i < NCH(n); i += 2) {
+        for (var i = 0; i < NCH(n); i += 2)
+        {
             var e = astForExpr(c, CHILD(n, i));
             seq[i / 2] = e;
-            if (context)
-                setContext(c, e, context, CHILD(n, i));
+            if (context) setContext(c, e, context, CHILD(n, i));
         }
         return seq;
     }
-    function astForDelStmt(c, n) {
+
+    function astForDelStmt(c, n)
+    {
         REQ(n, SYM.del_stmt);
-        return new astnodes_23.Delete_(astForExprlist(c, CHILD(n, 1), astnodes_22.Del), n.lineno, n.col_offset);
+        return new Delete_(astForExprlist(c, CHILD(n, 1), Del), n.lineno, n.col_offset);
     }
-    function astForGlobalStmt(c, n) {
+
+    function astForGlobalStmt(c, n)
+    {
         REQ(n, SYM.GlobalStmt);
         var s = [];
-        for (var i = 1; i < NCH(n); i += 2) {
+        for (var i = 1; i < NCH(n); i += 2)
+        {
             s[(i - 1) / 2] = strobj(CHILD(n, i).value);
         }
-        return new astnodes_36.Global(s, n.lineno, n.col_offset);
+        return new Global(s, n.lineno, n.col_offset);
     }
-    function astForNonLocalStmt(c, n) {
+
+    function astForNonLocalStmt(c, n)
+    {
         REQ(n, SYM.NonLocalStmt);
         var s = [];
-        for (var i = 1; i < NCH(n); i += 2) {
+        for (var i = 1; i < NCH(n); i += 2)
+        {
             s[(i - 1) / 2] = strobj(CHILD(n, i).value);
         }
-        return new astnodes_60.NonLocal(s, n.lineno, n.col_offset);
+        return new NonLocal(s, n.lineno, n.col_offset);
     }
-    function astForAssertStmt(c, n) {
+
+    function astForAssertStmt(c, n)
+    {
         /* assert_stmt: 'assert' test [',' test] */
         REQ(n, SYM.assert_stmt);
         if (NCH(n) === 2)
-            return new astnodes_5.Assert(astForExpr(c, CHILD(n, 1)), null, n.lineno, n.col_offset);
+            return new Assert(astForExpr(c, CHILD(n, 1)), null, n.lineno, n.col_offset);
         else if (NCH(n) === 4)
-            return new astnodes_5.Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.lineno, n.col_offset);
-        asserts_1.fail("improper number of parts to assert stmt");
+            return new Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.lineno, n.col_offset);
+        fail("improper number of parts to assert stmt");
     }
-    function aliasForImportName(c, n) {
+
+    function aliasForImportName(c, n)
+    {
         /*
           import_as_name: NAME ['as' NAME]
           dotted_as_name: dotted_name ['as' NAME]
           dotted_name: NAME ('.' NAME)*
         */
+
         loop: while (true) {
-            switch (n.type) {
+            switch (n.type)
+            {
                 case SYM.import_as_name:
-                    var str = null;
-                    var name_1 = strobj(CHILD(n, 0).value);
+                    let str = null;
+                    const name = strobj(CHILD(n, 0).value);
                     if (NCH(n) === 3)
                         str = CHILD(n, 2).value;
-                    return new astnodes_2.alias(name_1, str == null ? null : strobj(str));
+                    return new alias(name, str == null ? null : strobj(str));
                 case SYM.dotted_as_name:
-                    if (NCH(n) === 1) {
+                    if (NCH(n) === 1)
+                    {
                         n = CHILD(n, 0);
                         continue loop;
                     }
-                    else {
+                    else
+                    {
                         var a = aliasForImportName(c, CHILD(n, 0));
-                        asserts_1.assert(!a.asname);
+                        assert(!a.asname);
                         a.asname = strobj(CHILD(n, 2).value);
                         return a;
                     }
                 case SYM.dotted_name:
                     if (NCH(n) === 1)
-                        return new astnodes_2.alias(strobj(CHILD(n, 0).value), null);
-                    else {
+                        return new alias(strobj(CHILD(n, 0).value), null);
+                    else
+                    {
                         // create a string of the form a.b.c
-                        var str_1 = '';
+                        let str = '';
                         for (var i = 0; i < NCH(n); i += 2)
-                            str_1 += CHILD(n, i).value + ".";
-                        return new astnodes_2.alias(strobj(str_1.substr(0, str_1.length - 1)), null);
+                            str += CHILD(n, i).value + ".";
+                        return new alias(strobj(str.substr(0, str.length - 1)), null);
                     }
                 case TOK.T_STAR:
-                    return new astnodes_2.alias(strobj("*"), null);
+                    return new alias(strobj("*"), null);
                 default:
                     throw syntaxError("unexpected import name", c.c_filename, n.lineno);
             }
         }
     }
-    function astForImportStmt(c, n) {
+
+    function astForImportStmt(c, n)
+    {
         REQ(n, SYM.import_stmt);
         var lineno = n.lineno;
         var col_offset = n.col_offset;
         n = CHILD(n, 0);
-        if (n.type === SYM.import_name) {
+        if (n.type === SYM.import_name)
+        {
             n = CHILD(n, 1);
             REQ(n, SYM.dotted_as_names);
             var aliases = [];
             for (var i = 0; i < NCH(n); i += 2)
                 aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
-            return new astnodes_42.Import_(aliases, lineno, col_offset);
+            return new Import_(aliases, lineno, col_offset);
         }
-        else if (n.type === SYM.import_from) {
+        else if (n.type === SYM.import_from)
+        {
             var mod = null;
             var ndots = 0;
             var nchildren;
-            for (var idx = 1; idx < NCH(n); ++idx) {
-                if (CHILD(n, idx).type === SYM.dotted_name) {
+
+            for (var idx = 1; idx < NCH(n); ++idx)
+            {
+                if (CHILD(n, idx).type === SYM.dotted_name)
+                {
                     mod = aliasForImportName(c, CHILD(n, idx));
                     idx++;
                     break;
@@ -560,7 +787,8 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 ndots++;
             }
             ++idx; // skip the import keyword
-            switch (CHILD(n, idx).type) {
+            switch (CHILD(n, idx).type)
+            {
                 case TOK.T_STAR:
                     // from ... import
                     n = CHILD(n, idx);
@@ -588,48 +816,60 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 for (var i = 0; i < NCH(n); i += 2)
                     aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
             var modname = mod ? mod.name : "";
-            return new astnodes_43.ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
+            return new ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
         }
         throw syntaxError("unknown import statement", c.c_filename, n.lineno);
     }
-    function astForTestlistGexp(c, n) {
-        asserts_1.assert(n.type === SYM.testlist_gexp || n.type === SYM.argument);
+
+    function astForTestlistGexp(c, n)
+    {
+        assert(n.type === SYM.testlist_gexp || n.type === SYM.argument);
         if (NCH(n) > 1 && CHILD(n, 1).type === SYM.gen_for)
             return astForGenexp(c, n);
         return astForTestlist(c, n);
     }
-    function astForListcomp(c, n) {
-        function countListFors(c, n) {
+
+    function astForListcomp(c, n)
+    {
+        function countListFors(c, n)
+        {
             var nfors = 0;
             var ch = CHILD(n, 1);
-            count_list_for: while (true) {
+            count_list_for: while (true)
+            {
                 nfors++;
                 REQ(ch, SYM.list_for);
                 if (NCH(ch) === 5)
                     ch = CHILD(ch, 4);
                 else
                     return nfors;
-                count_list_iter: while (true) {
+                count_list_iter: while (true)
+                {
                     REQ(ch, SYM.list_iter);
                     ch = CHILD(ch, 0);
                     if (ch.type === SYM.list_for)
                         continue count_list_for;
-                    else if (ch.type === SYM.list_if) {
-                        if (NCH(ch) === 3) {
+                    else if (ch.type === SYM.list_if)
+                    {
+                        if (NCH(ch) === 3)
+                        {
                             ch = CHILD(ch, 2);
                             continue count_list_iter;
                         }
                         else
                             return nfors;
                     }
-                    break;
-                }
                 break;
+                }
+            break;
             }
         }
-        function countListIfs(c, n) {
+
+        function countListIfs(c, n)
+        {
             var nifs = 0;
-            while (true) {
+            while (true)
+            {
                 REQ(n, SYM.list_iter);
                 if (CHILD(n, 0).type === SYM.list_for)
                     return nifs;
@@ -641,27 +881,32 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 n = CHILD(n, 2);
             }
         }
+
         REQ(n, SYM.listmaker);
-        asserts_1.assert(NCH(n) > 1);
+        assert(NCH(n) > 1);
         var elt = astForExpr(c, CHILD(n, 0));
         var nfors = countListFors(c, n);
         var listcomps = [];
         var ch = CHILD(n, 1);
-        for (var i = 0; i < nfors; ++i) {
+        for (var i = 0; i < nfors; ++i)
+        {
             REQ(ch, SYM.list_for);
             var forch = CHILD(ch, 1);
-            var t = astForExprlist(c, forch, astnodes_74.Store);
+            var t = astForExprlist(c, forch, Store);
             var expression = astForTestlist(c, CHILD(ch, 3));
             var lc;
             if (NCH(forch) === 1)
-                lc = new astnodes_20.comprehension(t[0], expression, []);
+                lc = new comprehension(t[0], expression, []);
             else
-                lc = new astnodes_20.comprehension(new astnodes_80.Tuple(t, astnodes_74.Store, ch.lineno, ch.col_offset), expression, []);
-            if (NCH(ch) === 5) {
+                lc = new comprehension(new Tuple(t, Store, ch.lineno, ch.col_offset), expression, []);
+
+            if (NCH(ch) === 5)
+            {
                 ch = CHILD(ch, 4);
                 var nifs = countListIfs(c, ch);
                 var ifs = [];
-                for (var j = 0; j < nifs; ++j) {
+                for (var j = 0; j < nifs; ++j)
+                {
                     REQ(ch, SYM.list_iter);
                     ch = CHILD(ch, 0);
                     REQ(ch, SYM.list_if);
@@ -675,18 +920,25 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             }
             listcomps[i] = lc;
         }
-        return new astnodes_51.ListComp(elt, listcomps, n.lineno, n.col_offset);
+        return new ListComp(elt, listcomps, n.lineno, n.col_offset);
     }
-    function astForUnaryExpr(c, n) {
-        if (CHILD(n, 0).type === TOK.T_MINUS && NCH(n) === 2) {
+
+    function astForUnaryExpr(c, n)
+    {
+        if (CHILD(n, 0).type === TOK.T_MINUS && NCH(n) === 2)
+        {
             var pfactor = CHILD(n, 1);
-            if (pfactor.type === SYM.UnaryExpr && NCH(pfactor) === 1) {
+            if (pfactor.type === SYM.UnaryExpr && NCH(pfactor) === 1)
+            {
                 var ppower = CHILD(pfactor, 0);
-                if (ppower.type === SYM.PowerExpr && NCH(ppower) === 1) {
+                if (ppower.type === SYM.PowerExpr && NCH(ppower) === 1)
+                {
                     var patom = CHILD(ppower, 0);
-                    if (patom.type === SYM.AtomExpr) {
+                    if (patom.type === SYM.AtomExpr)
+                    {
                         var pnum = CHILD(patom, 0);
-                        if (pnum.type === TOK.T_NUMBER) {
+                        if (pnum.type === TOK.T_NUMBER)
+                        {
                             pnum.value = "-" + pnum.value;
                             return astForAtomExpr(c, patom);
                         }
@@ -694,29 +946,40 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 }
             }
         }
+
         var expression = astForExpr(c, CHILD(n, 1));
-        switch (CHILD(n, 0).type) {
-            case TOK.T_PLUS: return new astnodes_82.UnaryOp(astnodes_81.UAdd, expression, n.lineno, n.col_offset);
-            case TOK.T_MINUS: return new astnodes_82.UnaryOp(astnodes_83.USub, expression, n.lineno, n.col_offset);
-            case TOK.T_TILDE: return new astnodes_82.UnaryOp(astnodes_46.Invert, expression, n.lineno, n.col_offset);
+        switch (CHILD(n, 0).type)
+        {
+            case TOK.T_PLUS: return new UnaryOp(UAdd, expression, n.lineno, n.col_offset);
+            case TOK.T_MINUS: return new UnaryOp(USub, expression, n.lineno, n.col_offset);
+            case TOK.T_TILDE: return new UnaryOp(Invert, expression, n.lineno, n.col_offset);
         }
-        asserts_1.fail("unhandled UnaryExpr");
+
+        fail("unhandled UnaryExpr");
     }
-    function astForForStmt(c, n) {
+
+    function astForForStmt(c, n)
+    {
         var seq = [];
         REQ(n, SYM.for_stmt);
         if (NCH(n) === 9)
             seq = astForSuite(c, CHILD(n, 8));
         var nodeTarget = CHILD(n, 1);
-        var _target = astForExprlist(c, nodeTarget, astnodes_74.Store);
+        var _target = astForExprlist(c, nodeTarget, Store);
         var target;
         if (NCH(nodeTarget) === 1)
             target = _target[0];
         else
-            target = new astnodes_80.Tuple(_target, astnodes_74.Store, n.lineno, n.col_offset);
-        return new astnodes_33.For_(target, astForTestlist(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 5)), seq, n.lineno, n.col_offset);
+            target = new Tuple(_target, Store, n.lineno, n.col_offset);
+
+        return new For_(target,
+                astForTestlist(c, CHILD(n, 3)),
+                astForSuite(c, CHILD(n, 5)),
+                seq, n.lineno, n.col_offset);
     }
-    function astForCall(c, n, func) {
+
+    function astForCall(c, n, func)
+    {
         /*
           arglist: (argument ',')* (argument [',']| '*' test [',' '**' test]
                    | '**' test)
@@ -726,15 +989,14 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         var nargs = 0;
         var nkeywords = 0;
         var ngens = 0;
-        for (var i = 0; i < NCH(n); ++i) {
+        for (var i = 0; i < NCH(n); ++i)
+        {
             var ch = CHILD(n, i);
-            if (ch.type === SYM.argument) {
-                if (NCH(ch) === 1)
-                    nargs++;
-                else if (CHILD(ch, 1).type === SYM.gen_for)
-                    ngens++;
-                else
-                    nkeywords++;
+            if (ch.type === SYM.argument)
+            {
+                if (NCH(ch) === 1) nargs++;
+                else if (CHILD(ch, 1).type === SYM.gen_for) ngens++;
+                else nkeywords++;
             }
         }
         if (ngens > 1 || (ngens && (nargs || nkeywords)))
@@ -747,32 +1009,32 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         nkeywords = 0;
         var vararg = null;
         var kwarg = null;
-        for (var i = 0; i < NCH(n); ++i) {
+        for (var i = 0; i < NCH(n); ++i)
+        {
             var ch = CHILD(n, i);
-            if (ch.type === SYM.argument) {
-                if (NCH(ch) === 1) {
-                    if (nkeywords)
-                        throw syntaxError("non-keyword arg after keyword arg", c.c_filename, n.lineno);
-                    if (vararg)
-                        throw syntaxError("only named arguments may follow *expression", c.c_filename, n.lineno);
+            if (ch.type === SYM.argument)
+            {
+                if (NCH(ch) === 1)
+                {
+                    if (nkeywords) throw syntaxError("non-keyword arg after keyword arg", c.c_filename, n.lineno);
+                    if (vararg) throw syntaxError("only named arguments may follow *expression", c.c_filename, n.lineno);
                     args[nargs++] = astForExpr(c, CHILD(ch, 0));
                 }
                 else if (CHILD(ch, 1).type === SYM.gen_for)
                     args[nargs++] = astForGenexp(c, ch);
-                else {
+                else
+                {
                     var e = astForExpr(c, CHILD(ch, 0));
-                    if (e.constructor === astnodes_49.Lambda)
-                        throw syntaxError("lambda cannot contain assignment", c.c_filename, n.lineno);
-                    else if (e.constructor !== astnodes_59.Name)
-                        throw syntaxError("keyword can't be an expression", c.c_filename, n.lineno);
+                    if (e.constructor === Lambda) throw syntaxError("lambda cannot contain assignment", c.c_filename, n.lineno);
+                    else if (e.constructor !== Name) throw syntaxError("keyword can't be an expression", c.c_filename, n.lineno);
                     var key = e.id;
                     forbiddenCheck(c, CHILD(ch, 0), key, n.lineno);
-                    for (var k = 0; k < nkeywords; ++k) {
+                    for (var k = 0; k < nkeywords; ++k)
+                    {
                         var tmp = keywords[k].arg;
-                        if (tmp === key)
-                            throw syntaxError("keyword argument repeated", c.c_filename, n.lineno);
+                        if (tmp === key) throw syntaxError("keyword argument repeated", c.c_filename, n.lineno);
                     }
-                    keywords[nkeywords++] = new astnodes_39.keyword(key, astForExpr(c, CHILD(ch, 2)));
+                    keywords[nkeywords++] = new keyword(key, astForExpr(c, CHILD(ch, 2)));
                 }
             }
             else if (ch.type === TOK.T_STAR)
@@ -780,84 +1042,104 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             else if (ch.type === TOK.T_DOUBLESTAR)
                 kwarg = astForExpr(c, CHILD(n, ++i));
         }
-        return new astnodes_17.Call(func, args, keywords, vararg, kwarg, func.lineno, func.col_offset);
+        return new Call(func, args, keywords, vararg, kwarg, func.lineno, func.col_offset);
     }
-    function astForTrailer(c, n, leftExpr) {
+
+    function astForTrailer(c, n, leftExpr): Attribute | Call | Subscript
+    {
         /* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
            subscriptlist: subscript (',' subscript)* [',']
            subscript: '.' '.' '.' | test | [test] ':' [test] [sliceop]
          */
         REQ(n, SYM.trailer);
-        if (CHILD(n, 0).type === TOK.T_LPAR) {
+        if (CHILD(n, 0).type === TOK.T_LPAR)
+        {
             if (NCH(n) === 2)
-                return new astnodes_17.Call(leftExpr, [], [], null, null, n.lineno, n.col_offset);
+                return new Call(leftExpr, [], [], null, null, n.lineno, n.col_offset);
             else
                 return astForCall(c, CHILD(n, 1), leftExpr);
         }
         else if (CHILD(n, 0).type === TOK.T_DOT)
-            return new astnodes_7.Attribute(leftExpr, strobj(CHILD(n, 1).value), astnodes_52.Load, n.lineno, n.col_offset);
-        else {
+            return new Attribute(leftExpr, strobj(CHILD(n, 1).value), Load, n.lineno, n.col_offset);
+        else
+        {
             REQ(CHILD(n, 0), TOK.T_LSQB);
             REQ(CHILD(n, 2), TOK.T_RSQB);
             n = CHILD(n, 1);
             if (NCH(n) === 1)
-                return new astnodes_77.Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), astnodes_52.Load, n.lineno, n.col_offset);
-            else {
+                return new Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), Load, n.lineno, n.col_offset);
+            else
+            {
                 /* The grammar is ambiguous here. The ambiguity is resolved
                    by treating the sequence as a tuple literal if there are
                    no slice features.
                 */
                 var simple = true;
                 var slices = [];
-                for (var j = 0; j < NCH(n); j += 2) {
+                for (var j = 0; j < NCH(n); j += 2)
+                {
                     var slc = astForSlice(c, CHILD(n, j));
-                    if (slc.constructor !== astnodes_44.Index)
+                    if (slc.constructor !== Index)
                         simple = false;
                     slices[j / 2] = slc;
                 }
-                if (!simple) {
-                    return new astnodes_77.Subscript(leftExpr, new astnodes_31.ExtSlice(slices), astnodes_52.Load, n.lineno, n.col_offset);
+                if (!simple)
+                {
+                    return new Subscript(leftExpr, new ExtSlice(slices), Load, n.lineno, n.col_offset);
                 }
                 var elts = [];
-                for (var j = 0; j < slices.length; ++j) {
-                    var slc_1 = slices[j];
-                    asserts_1.assert(slc_1.constructor === astnodes_44.Index && slc_1.value !== null && slc_1.value !== undefined);
-                    elts[j] = slc_1.value;
+                for (var j = 0; j < slices.length; ++j)
+                {
+                    let slc = slices[j];
+                    assert(slc.constructor === Index && slc.value !== null && slc.value !== undefined);
+                    elts[j] = slc.value;
                 }
-                var e = new astnodes_80.Tuple(elts, astnodes_52.Load, n.lineno, n.col_offset);
-                return new astnodes_77.Subscript(leftExpr, new astnodes_44.Index(e), astnodes_52.Load, n.lineno, n.col_offset);
+                var e = new Tuple(elts, Load, n.lineno, n.col_offset);
+                return new Subscript(leftExpr, new Index(e), Load, n.lineno, n.col_offset);
             }
         }
     }
-    function astForFlowStmt(c, n) {
+
+    function astForFlowStmt(c, n)
+    {
         var ch;
         REQ(n, SYM.flow_stmt);
         ch = CHILD(n, 0);
-        switch (ch.type) {
-            case SYM.break_stmt: return new astnodes_16.Break_(n.lineno, n.col_offset);
-            case SYM.continue_stmt: return new astnodes_21.Continue_(n.lineno, n.col_offset);
+        switch (ch.type)
+        {
+            case SYM.break_stmt: return new Break_(n.lineno, n.col_offset);
+            case SYM.continue_stmt: return new Continue_(n.lineno, n.col_offset);
             case SYM.yield_stmt:
-                return new astnodes_30.Expr(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
+                return new Expr(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
             case SYM.return_stmt:
                 if (NCH(ch) === 1)
-                    return new astnodes_71.Return_(null, n.lineno, n.col_offset);
+                    return new Return_(null, n.lineno, n.col_offset);
                 else
-                    return new astnodes_71.Return_(astForTestlist(c, CHILD(ch, 1)), n.lineno, n.col_offset);
+                    return new Return_(astForTestlist(c, CHILD(ch, 1)), n.lineno, n.col_offset);
             case SYM.raise_stmt:
                 if (NCH(ch) === 1)
-                    return new astnodes_70.Raise(null, null, null, n.lineno, n.col_offset);
+                    return new Raise(null, null, null, n.lineno, n.col_offset);
                 else if (NCH(ch) === 2)
-                    return new astnodes_70.Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.lineno, n.col_offset);
+                    return new Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.lineno, n.col_offset);
                 else if (NCH(ch) === 4)
-                    return new astnodes_70.Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), null, n.lineno, n.col_offset);
+                    return new Raise(
+                            astForExpr(c, CHILD(ch, 1)),
+                            astForExpr(c, CHILD(ch, 3)),
+                            null, n.lineno, n.col_offset);
                 else if (NCH(ch) === 6)
-                    return new astnodes_70.Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), astForExpr(c, CHILD(ch, 5)), n.lineno, n.col_offset);
+                    return new Raise(
+                            astForExpr(c, CHILD(ch, 1)),
+                            astForExpr(c, CHILD(ch, 3)),
+                            astForExpr(c, CHILD(ch, 5)),
+                            n.lineno, n.col_offset);
             default:
-                asserts_1.fail("unexpected flow_stmt");
+                fail("unexpected flow_stmt");
         }
-        asserts_1.fail("unhandled flow statement");
+        fail("unhandled flow statement");
     }
-    function astForArguments(c, n) {
+
+    function astForArguments(c, n)
+    {
         /* parameters: '(' [varargslist] ')'
            varargslist: (fpdef ['=' test] ',')* ('*' NAME [',' '**' NAME]
                 | '**' NAME) | fpdef ['=' test] (',' fpdef ['=' test])* [',']
@@ -865,14 +1147,17 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         var ch;
         var vararg = null;
         var kwarg = null;
-        if (n.type === SYM.parameters) {
-            if (NCH(n) === 2)
-                return new astnodes_3.arguments_([], null, null, []);
+        if (n.type === SYM.parameters)
+        {
+            if (NCH(n) === 2) // () as arglist
+                return new arguments_([], null, null, []);
             n = CHILD(n, 1);
         }
         REQ(n, SYM.varargslist);
+
         var args = [];
         var defaults = [];
+
         /* fpdef: NAME | '(' fplist ')'
            fplist: fpdef (',' fpdef)* [',']
         */
@@ -880,51 +1165,59 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         var i = 0;
         var j = 0; // index for defaults
         var k = 0; // index for args
-        while (i < NCH(n)) {
+        while (i < NCH(n))
+        {
             ch = CHILD(n, i);
-            switch (ch.type) {
+            switch (ch.type)
+            {
                 case SYM.fpdef:
                     var complexArgs = 0;
-                    var parenthesized = false;
+                    let parenthesized = false;
                     handle_fpdef: while (true) {
-                        if (i + 1 < NCH(n) && CHILD(n, i + 1).type === TOK.T_EQUAL) {
+                        if (i + 1 < NCH(n) && CHILD(n, i + 1).type === TOK.T_EQUAL)
+                        {
                             defaults[j++] = astForExpr(c, CHILD(n, i + 2));
                             i += 2;
                             foundDefault = true;
                         }
-                        else if (foundDefault) {
+                        else if (foundDefault)
+                        {
                             /* def f((x)=4): pass should raise an error.
                                def f((x, (y))): pass will just incur the tuple unpacking warning. */
                             if (parenthesized && !complexArgs)
                                 throw syntaxError("parenthesized arg with default", c.c_filename, n.lineno);
                             throw syntaxError("non-default argument follows default argument", c.c_filename, n.lineno);
                         }
-                        if (NCH(ch) === 3) {
+
+                        if (NCH(ch) === 3)
+                        {
                             ch = CHILD(ch, 1);
                             // def foo((x)): is not complex, special case.
-                            if (NCH(ch) !== 1) {
+                            if (NCH(ch) !== 1)
+                            {
                                 throw syntaxError("tuple parameter unpacking has been removed", c.c_filename, n.lineno);
                             }
-                            else {
+                            else
+                            {
                                 /* def foo((x)): setup for checking NAME below. */
                                 /* Loop because there can be many parens and tuple
                                    unpacking mixed in. */
                                 parenthesized = true;
                                 ch = CHILD(ch, 0);
-                                asserts_1.assert(ch.type === SYM.fpdef);
+                                assert(ch.type === SYM.fpdef);
                                 continue handle_fpdef;
                             }
                         }
-                        if (CHILD(ch, 0).type === TOK.T_NAME) {
+                        if (CHILD(ch, 0).type === TOK.T_NAME)
+                        {
                             forbiddenCheck(c, n, CHILD(ch, 0).value, n.lineno);
                             var id = strobj(CHILD(ch, 0).value);
-                            args[k++] = new astnodes_59.Name(id, astnodes_66.Param, ch.lineno, ch.col_offset);
+                            args[k++] = new Name(id, Param, ch.lineno, ch.col_offset);
                         }
                         i += 2;
                         if (parenthesized)
                             throw syntaxError("parenthesized argument names are invalid", c.c_filename, n.lineno);
-                        break;
-                    }
+                    break; }
                     break;
                 case TOK.T_STAR:
                     forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.lineno);
@@ -937,58 +1230,73 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                     i += 3;
                     break;
                 default:
-                    asserts_1.fail("unexpected node in varargslist");
+                    fail("unexpected node in varargslist");
             }
         }
-        return new astnodes_3.arguments_(args, vararg, kwarg, defaults);
+        return new arguments_(args, vararg, kwarg, defaults);
     }
-    function astForFuncdef(c, n, decoratorSeq) {
+
+    function astForFuncdef(c, n, decoratorSeq)
+    {
         /* funcdef: 'def' NAME parameters ':' suite */
         REQ(n, SYM.funcdef);
         var name = strobj(CHILD(n, 1).value);
         forbiddenCheck(c, CHILD(n, 1), CHILD(n, 1).value, n.lineno);
         var args = astForArguments(c, CHILD(n, 2));
         var body = astForSuite(c, CHILD(n, 4));
-        return new astnodes_34.FunctionDef(name, args, body, decoratorSeq, n.lineno, n.col_offset);
+        return new FunctionDef(name, args, body, decoratorSeq, n.lineno, n.col_offset);
     }
-    function astForClassBases(c, n) {
-        asserts_1.assert(NCH(n) > 0);
+
+    function astForClassBases(c, n)
+    {
+        assert(NCH(n) > 0);
         REQ(n, SYM.testlist);
         if (NCH(n) === 1)
             return [astForExpr(c, CHILD(n, 0))];
         return seqForTestlist(c, n);
     }
-    function astForClassdef(c, n, decoratorSeq) {
+
+    function astForClassdef(c, n, decoratorSeq)
+    {
         REQ(n, SYM.classdef);
         forbiddenCheck(c, n, CHILD(n, 1).value, n.lineno);
         var classname = strobj(CHILD(n, 1).value);
         if (NCH(n) === 4)
-            return new astnodes_18.ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.lineno, n.col_offset);
+            return new ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.lineno, n.col_offset);
         if (CHILD(n, 3).type === TOK.T_RPAR)
-            return new astnodes_18.ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.lineno, n.col_offset);
+            return new ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.lineno, n.col_offset);
+
         var bases = astForClassBases(c, CHILD(n, 3));
         var s = astForSuite(c, CHILD(n, 6));
-        return new astnodes_18.ClassDef(classname, bases, s, decoratorSeq, n.lineno, n.col_offset);
+        return new ClassDef(classname, bases, s, decoratorSeq, n.lineno, n.col_offset);
     }
-    function astForLambdef(c, n) {
+
+    function astForLambdef(c, n)
+    {
         var args;
         var expression;
-        if (NCH(n) === 3) {
-            args = new astnodes_3.arguments_([], null, null, []);
+        if (NCH(n) === 3)
+        {
+            args = new arguments_([], null, null, []);
             expression = astForExpr(c, CHILD(n, 2));
         }
-        else {
+        else
+        {
             args = astForArguments(c, CHILD(n, 1));
             expression = astForExpr(c, CHILD(n, 3));
         }
-        return new astnodes_49.Lambda(args, expression, n.lineno, n.col_offset);
+        return new Lambda(args, expression, n.lineno, n.col_offset);
     }
-    function astForGenexp(c, n) {
+
+    function astForGenexp(c, n)
+    {
         /* testlist_gexp: test ( gen_for | (',' test)* [','] )
            argument: [test '='] test [gen_for]       # Really [keyword '='] test */
-        asserts_1.assert(n.type === SYM.testlist_gexp || n.type === SYM.argument);
-        asserts_1.assert(NCH(n) > 1);
-        function countGenFors(c, n) {
+        assert(n.type === SYM.testlist_gexp || n.type === SYM.argument);
+        assert(NCH(n) > 1);
+
+        function countGenFors(c, n)
+        {
             var nfors = 0;
             var ch = CHILD(n, 1);
             count_gen_for: while (true) {
@@ -1003,23 +1311,26 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                     ch = CHILD(ch, 0);
                     if (ch.type === SYM.gen_for)
                         continue count_gen_for;
-                    else if (ch.type === SYM.gen_if) {
-                        if (NCH(ch) === 3) {
+                    else if (ch.type === SYM.gen_if)
+                    {
+                        if (NCH(ch) === 3)
+                        {
                             ch = CHILD(ch, 2);
                             continue count_gen_iter;
                         }
                         else
                             return nfors;
                     }
-                    break;
-                }
-                break;
-            }
-            asserts_1.fail("logic error in countGenFors");
+                break; }
+            break; }
+            fail("logic error in countGenFors");
         }
-        function countGenIfs(c, n) {
+
+        function countGenIfs(c, n)
+        {
             var nifs = 0;
-            while (true) {
+            while (true)
+            {
                 REQ(n, SYM.gen_iter);
                 if (CHILD(n, 0).type === SYM.gen_for)
                     return nifs;
@@ -1031,25 +1342,29 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 n = CHILD(n, 2);
             }
         }
+
         var elt = astForExpr(c, CHILD(n, 0));
         var nfors = countGenFors(c, n);
         var genexps = [];
         var ch = CHILD(n, 1);
-        for (var i = 0; i < nfors; ++i) {
+        for (var i = 0; i < nfors; ++i)
+        {
             REQ(ch, SYM.gen_for);
             var forch = CHILD(ch, 1);
-            var t = astForExprlist(c, forch, astnodes_74.Store);
+            var t = astForExprlist(c, forch, Store);
             var expression = astForExpr(c, CHILD(ch, 3));
             var ge;
             if (NCH(forch) === 1)
-                ge = new astnodes_20.comprehension(t[0], expression, []);
+                ge = new comprehension(t[0], expression, []);
             else
-                ge = new astnodes_20.comprehension(new astnodes_80.Tuple(t, astnodes_74.Store, ch.lineno, ch.col_offset), expression, []);
-            if (NCH(ch) === 5) {
+                ge = new comprehension(new Tuple(t, Store, ch.lineno, ch.col_offset), expression, []);
+            if (NCH(ch) === 5)
+            {
                 ch = CHILD(ch, 4);
                 var nifs = countGenIfs(c, ch);
                 var ifs = [];
-                for (var j = 0; j < nifs; ++j) {
+                for (var j = 0; j < nifs; ++j)
+                {
                     REQ(ch, SYM.gen_iter);
                     ch = CHILD(ch, 0);
                     REQ(ch, SYM.gen_if);
@@ -1064,115 +1379,140 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             }
             genexps[i] = ge;
         }
-        return new astnodes_35.GeneratorExp(elt, genexps, n.lineno, n.col_offset);
+        return new GeneratorExp(elt, genexps, n.lineno, n.col_offset);
     }
-    function astForWhileStmt(c, n) {
+
+    function astForWhileStmt(c, n)
+    {
         /* while_stmt: 'while' test ':' suite ['else' ':' suite] */
         REQ(n, SYM.while_stmt);
         if (NCH(n) === 4)
-            return new astnodes_84.While_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
+            return new While_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
         else if (NCH(n) === 7)
-            return new astnodes_84.While_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
-        asserts_1.fail("wrong number of tokens for 'while' stmt");
+            return new While_(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
+        fail("wrong number of tokens for 'while' stmt");
     }
-    function astForAugassign(c, n) {
+
+    function astForAugassign(c, n)
+    {
         REQ(n, SYM.augassign);
         n = CHILD(n, 0);
-        switch (n.value.charAt(0)) {
-            case '+': return astnodes_1.Add;
-            case '-': return astnodes_76.Sub;
-            case '/':
-                if (n.value.charAt(1) === '/')
-                    return astnodes_32.FloorDiv;
-                return astnodes_25.Div;
-            case '%': return astnodes_56.Mod;
-            case '<': return astnodes_53.LShift;
-            case '>': return astnodes_72.RShift;
-            case '&': return astnodes_12.BitAnd;
-            case '^': return astnodes_14.BitXor;
-            case '|': return astnodes_13.BitOr;
-            case '*':
-                if (n.value.charAt(1) === '*')
-                    return astnodes_68.Pow;
-                return astnodes_58.Mult;
-            default: asserts_1.fail("invalid augassign");
+        switch (n.value.charAt(0))
+        {
+            case '+': return Add;
+            case '-': return Sub;
+            case '/': if (n.value.charAt(1) === '/') return FloorDiv;
+                      return Div;
+            case '%': return Mod;
+            case '<': return LShift;
+            case '>': return RShift;
+            case '&': return BitAnd;
+            case '^': return BitXor;
+            case '|': return BitOr;
+            case '*': if (n.value.charAt(1) === '*') return Pow;
+                      return Mult;
+            default: fail("invalid augassign");
         }
     }
-    function astForBinop(c, n) {
+
+    function astForBinop(c, n)
+    {
         /* Must account for a sequence of expressions.
             How should A op B op C by represented?
             BinOp(BinOp(A, op, B), op, C).
         */
-        var result = new astnodes_11.BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.lineno, n.col_offset);
+        var result = new BinOp(
+                astForExpr(c, CHILD(n, 0)),
+                getOperator(CHILD(n, 1)),
+                astForExpr(c, CHILD(n, 2)),
+                n.lineno, n.col_offset);
         var nops = (NCH(n) - 1) / 2;
-        for (var i = 1; i < nops; ++i) {
+        for (var i = 1; i < nops; ++i)
+        {
             var nextOper = CHILD(n, i * 2 + 1);
             var newoperator = getOperator(nextOper);
             var tmp = astForExpr(c, CHILD(n, i * 2 + 2));
-            result = new astnodes_11.BinOp(result, newoperator, tmp, nextOper.lineno, nextOper.col_offset);
+            result = new BinOp(result, newoperator, tmp, nextOper.lineno, nextOper.col_offset);
         }
         return result;
+
     }
-    function astForTestlist(c, n) {
+
+    function astForTestlist(c, n)
+    {
         /* testlist_gexp: test (',' test)* [','] */
         /* testlist: test (',' test)* [','] */
         /* testlist_safe: test (',' test)+ [','] */
         /* testlist1: test (',' test)* */
-        asserts_1.assert(NCH(n) > 0);
-        if (n.type === SYM.testlist_gexp) {
-            if (NCH(n) > 1) {
-                asserts_1.assert(CHILD(n, 1).type !== SYM.gen_for);
+        assert(NCH(n) > 0);
+        if (n.type === SYM.testlist_gexp)
+        {
+            if (NCH(n) > 1)
+            {
+                assert(CHILD(n, 1).type !== SYM.gen_for);
             }
         }
-        else {
-            asserts_1.assert(n.type === SYM.testlist || n.type === SYM.testlist_safe || n.type === SYM.testlist1);
+        else
+        {
+            assert(n.type === SYM.testlist || n.type === SYM.testlist_safe || n.type === SYM.testlist1);
         }
-        if (NCH(n) === 1) {
+
+        if (NCH(n) === 1)
+        {
             return astForExpr(c, CHILD(n, 0));
         }
-        else {
-            return new astnodes_80.Tuple(seqForTestlist(c, n), astnodes_52.Load, n.lineno, n.col_offset);
+        else
+        {
+            return new Tuple(seqForTestlist(c, n), Load, n.lineno, n.col_offset);
         }
+
     }
-    function astForExprStmt(c, n) {
+
+    function astForExprStmt(c, n)
+    {
         REQ(n, SYM.ExprStmt);
         if (NCH(n) === 1)
-            return new astnodes_30.Expr(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
-        else if (CHILD(n, 1).type === SYM.augassign) {
+            return new Expr(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
+        else if (CHILD(n, 1).type === SYM.augassign)
+        {
             var ch = CHILD(n, 0);
             var expr1 = astForTestlist(c, ch);
-            switch (expr1.constructor) {
-                case astnodes_35.GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", c.c_filename, n.lineno);
-                case astnodes_86.Yield: throw syntaxError("augmented assignment to yield expression not possible", c.c_filename, n.lineno);
-                case astnodes_59.Name:
+            switch (expr1.constructor)
+            {
+                case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", c.c_filename, n.lineno);
+                case Yield: throw syntaxError("augmented assignment to yield expression not possible", c.c_filename, n.lineno);
+                case Name:
                     var varName = expr1.id;
                     forbiddenCheck(c, ch, varName, n.lineno);
                     break;
-                case astnodes_7.Attribute:
-                case astnodes_77.Subscript:
+                case Attribute:
+                case Subscript:
                     break;
                 default:
                     throw syntaxError("illegal expression for augmented assignment", c.c_filename, n.lineno);
             }
-            setContext(c, expr1, astnodes_74.Store, ch);
+            setContext(c, expr1, Store, ch);
+
             ch = CHILD(n, 2);
             var expr2;
             if (ch.type === SYM.testlist)
                 expr2 = astForTestlist(c, ch);
             else
                 expr2 = astForExpr(c, ch);
-            return new astnodes_8.AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.lineno, n.col_offset);
+
+            return new AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.lineno, n.col_offset);
         }
-        else {
+        else
+        {
             // normal assignment
             REQ(CHILD(n, 1), TOK.T_EQUAL);
             var targets = [];
-            for (var i = 0; i < NCH(n) - 2; i += 2) {
+            for (var i = 0; i < NCH(n) - 2; i += 2)
+            {
                 var ch = CHILD(n, i);
-                if (ch.type === SYM.YieldExpr)
-                    throw syntaxError("assignment to yield expression not possible", c.c_filename, n.lineno);
+                if (ch.type === SYM.YieldExpr) throw syntaxError("assignment to yield expression not possible", c.c_filename, n.lineno);
                 var e = astForTestlist(c, ch);
-                setContext(c, e, astnodes_74.Store, CHILD(n, i));
+                setContext(c, e, Store, CHILD(n, i));
                 targets[i / 2] = e;
             }
             var value = CHILD(n, NCH(n) - 1);
@@ -1181,263 +1521,324 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 expression = astForTestlist(c, value);
             else
                 expression = astForExpr(c, value);
-            return new astnodes_6.Assign(targets, expression, n.lineno, n.col_offset);
+            return new Assign(targets, expression, n.lineno, n.col_offset);
         }
     }
-    function astForIfexpr(c, n) {
-        asserts_1.assert(NCH(n) === 5);
-        return new astnodes_41.IfExp(astForExpr(c, CHILD(n, 2)), astForExpr(c, CHILD(n, 0)), astForExpr(c, CHILD(n, 4)), n.lineno, n.col_offset);
+
+    function astForIfexpr(c, n)
+    {
+        assert(NCH(n) === 5);
+        return new IfExp(
+                astForExpr(c, CHILD(n, 2)),
+                astForExpr(c, CHILD(n, 0)),
+                astForExpr(c, CHILD(n, 4)),
+                n.lineno, n.col_offset);
     }
+    
     // escape() was deprecated in JavaScript 1.5. Use encodeURI or encodeURIComponent instead.
-    function escape(s) {
+    function escape(s: string): string {
         return encodeURIComponent(s);
     }
-    function unescape(s) {
+    
+    function unescape(s: string): string {
         return decodeURIComponent(s);
     }
     /**
      * s is a python-style string literal, including quote characters and u/r/b
      * prefixes. Returns decoded string object.
      */
-    function parsestr(c, s) {
+    function parsestr(c: string, s: string)
+    {
         // 
-        var encodeUtf8 = function (s) { return unescape(encodeURIComponent(s)); };
-        var decodeUtf8 = function (s) { return decodeURIComponent(escape(s)); };
-        var decodeEscape = function (s, quote) {
+        var encodeUtf8 = function(s) { return unescape(encodeURIComponent(s)); };
+        var decodeUtf8 = function(s) { return decodeURIComponent(escape(s)); };
+        var decodeEscape = function(s, quote)
+        {
             var len = s.length;
             var ret = '';
-            for (var i = 0; i < len; ++i) {
+            for (var i = 0; i < len; ++i)
+            {
                 var c = s.charAt(i);
-                if (c === '\\') {
+                if (c === '\\')
+                {
                     ++i;
                     c = s.charAt(i);
-                    if (c === 'n')
-                        ret += "\n";
-                    else if (c === '\\')
-                        ret += "\\";
-                    else if (c === 't')
-                        ret += "\t";
-                    else if (c === 'r')
-                        ret += "\r";
-                    else if (c === 'b')
-                        ret += "\b";
-                    else if (c === 'f')
-                        ret += "\f";
-                    else if (c === 'v')
-                        ret += "\v";
-                    else if (c === '0')
-                        ret += "\0";
-                    else if (c === '"')
-                        ret += '"';
-                    else if (c === '\'')
-                        ret += '\'';
-                    else if (c === '\n') { }
-                    else if (c === 'x') {
+                    if (c === 'n') ret += "\n";
+                    else if (c === '\\') ret += "\\";
+                    else if (c === 't') ret += "\t";
+                    else if (c === 'r') ret += "\r";
+                    else if (c === 'b') ret += "\b";
+                    else if (c === 'f') ret += "\f";
+                    else if (c === 'v') ret += "\v";
+                    else if (c === '0') ret += "\0";
+                    else if (c === '"') ret += '"';
+                    else if (c === '\'') ret += '\'';
+                    else if (c === '\n') /* escaped newline, join lines */ {}
+                    else if (c === 'x')
+                    {
                         var d0 = s.charAt(++i);
                         var d1 = s.charAt(++i);
                         ret += String.fromCharCode(parseInt(d0 + d1, 16));
                     }
-                    else if (c === 'u' || c === 'U') {
+                    else if (c === 'u' || c === 'U')
+                    {
                         var d0 = s.charAt(++i);
                         var d1 = s.charAt(++i);
                         var d2 = s.charAt(++i);
                         var d3 = s.charAt(++i);
                         ret += String.fromCharCode(parseInt(d0 + d1, 16), parseInt(d2 + d3, 16));
                     }
-                    else {
+                    else
+                    {
                         // Leave it alone
                         ret += "\\" + c;
                     }
                 }
-                else {
+                else
+                {
                     ret += c;
                 }
             }
             return ret;
         };
+
         var quote = s.charAt(0);
         var rawmode = false;
-        if (quote === 'u' || quote === 'U') {
+
+        if (quote === 'u' || quote === 'U')
+        {
             s = s.substr(1);
             quote = s.charAt(0);
         }
-        else if (quote === 'r' || quote === 'R') {
+        else if (quote === 'r' || quote === 'R')
+        {
             s = s.substr(1);
             quote = s.charAt(0);
             rawmode = true;
         }
-        asserts_1.assert(quote !== 'b' && quote !== 'B', "todo; haven't done b'' strings yet");
-        asserts_1.assert(quote === "'" || quote === '"' && s.charAt(s.length - 1) === quote);
+        assert(quote !== 'b' && quote !== 'B', "todo; haven't done b'' strings yet");
+
+        assert(quote === "'" || quote === '"' && s.charAt(s.length - 1) === quote);
         s = s.substr(1, s.length - 2);
-        if (s.length >= 4 && s.charAt(0) === quote && s.charAt(1) === quote) {
-            asserts_1.assert(s.charAt(s.length - 1) === quote && s.charAt(s.length - 2) === quote);
+
+        if (s.length >= 4 && s.charAt(0) === quote && s.charAt(1) === quote)
+        {
+            assert(s.charAt(s.length - 1) === quote && s.charAt(s.length - 2) === quote);
             s = s.substr(2, s.length - 4);
         }
-        if (rawmode || s.indexOf('\\') === -1) {
+
+        if (rawmode || s.indexOf('\\') === -1)
+        {
             return strobj(decodeUtf8(s));
         }
         return strobj(decodeEscape(s, quote));
     }
+
     /**
      * @return {string}
      */
-    function parsestrplus(c, n) {
+    function parsestrplus(c, n)
+    {
         REQ(CHILD(n, 0), TOK.T_STRING);
         var ret = "";
-        for (var i = 0; i < NCH(n); ++i) {
+        for (var i = 0; i < NCH(n); ++i)
+        {
             var child = CHILD(n, i);
-            try {
+            try
+            {
                 ret = ret + parsestr(c, child.value);
             }
-            catch (x) {
+            catch (x)
+            {
                 throw syntaxError("invalid string (possibly contains a unicode character)", c.c_filename, child.lineno);
             }
         }
         return ret;
     }
-    function parsenumber(c, s, lineno) {
+
+    function parsenumber(c, s, lineno): INumericLiteral
+    {
         var end = s.charAt(s.length - 1);
-        if (end === 'j' || end === 'J') {
+
+        if (end === 'j' || end === 'J')
+        {
             throw syntaxError("complex numbers are currently unsupported", c.c_filename, lineno);
         }
-        if (s.indexOf('.') !== -1) {
-            return numericLiteral_1.floatAST(s);
+
+        if (s.indexOf('.') !== -1)
+        {
+            return floatAST(s);
         }
+
         // Handle integers of various bases
         var tmp = s;
         var value;
         var radix = 10;
         var neg = false;
-        if (s.charAt(0) === '-') {
+        if (s.charAt(0) === '-')
+        {
             tmp = s.substr(1);
             neg = true;
         }
-        if (tmp.charAt(0) === '0' && (tmp.charAt(1) === 'x' || tmp.charAt(1) === 'X')) {
+
+        if (tmp.charAt(0) === '0' && (tmp.charAt(1) === 'x' || tmp.charAt(1) === 'X'))
+        {
             // Hex
             tmp = tmp.substring(2);
             value = parseInt(tmp, 16);
             radix = 16;
         }
-        else if ((s.indexOf('e') !== -1) || (s.indexOf('E') !== -1)) {
+        else if ((s.indexOf('e') !== -1) || (s.indexOf('E') !== -1))
+        {
             // Float with exponent (needed to make sure e/E wasn't hex first)
-            return numericLiteral_1.floatAST(s);
+            return floatAST(s);
         }
-        else if (tmp.charAt(0) === '0' && (tmp.charAt(1) === 'b' || tmp.charAt(1) === 'B')) {
+        else if (tmp.charAt(0) === '0' && (tmp.charAt(1) === 'b' || tmp.charAt(1) === 'B'))
+        {
             // Binary
             tmp = tmp.substring(2);
             value = parseInt(tmp, 2);
             radix = 2;
         }
-        else if (tmp.charAt(0) === '0') {
-            if (tmp === "0") {
+        else if (tmp.charAt(0) === '0')
+        {
+            if (tmp === "0")
+            {
                 // Zero
                 value = 0;
             }
-            else {
+            else
+            {
                 // Octal (Leading zero, but not actually zero)
-                if (end === 'l' || end === 'L') {
-                    return numericLiteral_1.longAST(s.substr(0, s.length - 1), 8);
+                if (end === 'l' || end === 'L')
+                {
+                    return longAST(s.substr(0, s.length - 1), 8);
                 }
-                else {
+                else
+                {
                     radix = 8;
                     tmp = tmp.substring(1);
-                    if ((tmp.charAt(0) === 'o') || (tmp.charAt(0) === 'O')) {
+                    if ((tmp.charAt(0) === 'o') || (tmp.charAt(0) === 'O'))
+                    {
                         tmp = tmp.substring(1);
                     }
                     value = parseInt(tmp, 8);
                 }
             }
         }
-        else {
+        else
+        {
             // Decimal
-            if (end === 'l' || end === 'L') {
-                return numericLiteral_1.longAST(s.substr(0, s.length - 1), radix);
+            if (end === 'l' || end === 'L')
+            {
+                return longAST(s.substr(0, s.length - 1), radix);
             }
-            else {
+            else
+            {
                 value = parseInt(tmp, radix);
             }
         }
+
         // Convert to long
-        if (value > LONG_THRESHOLD && Math.floor(value) === value && (s.indexOf('e') === -1 && s.indexOf('E') === -1)) {
+        if (value > LONG_THRESHOLD && Math.floor(value) === value && (s.indexOf('e') === -1 && s.indexOf('E') === -1))
+        {
             // TODO: Does radix zero make sense?
-            return numericLiteral_1.longAST(s, 0);
+            return longAST(s, 0);
         }
-        if (end === 'l' || end === 'L') {
-            return numericLiteral_1.longAST(s.substr(0, s.length - 1), radix);
+
+        if (end === 'l' || end === 'L')
+        {
+            return longAST(s.substr(0, s.length - 1), radix);
         }
-        else {
-            if (neg) {
-                return numericLiteral_1.intAST(-value);
+        else
+        {
+            if (neg)
+            {
+                return intAST(-value);
             }
-            else {
-                return numericLiteral_1.intAST(value);
+            else
+            {
+                return intAST(value);
             }
         }
     }
-    function astForSlice(c, n) {
+
+    function astForSlice(c, n)
+    {
         REQ(n, SYM.subscript);
+
         var ch = CHILD(n, 0);
         var lower = null;
         var upper = null;
         var step = null;
         if (ch.type === TOK.T_DOT)
-            return new astnodes_26.Ellipsis();
+            return new Ellipsis();
         if (NCH(n) === 1 && ch.type === SYM.IfExpr)
-            return new astnodes_44.Index(astForExpr(c, ch));
+            return new Index(astForExpr(c, ch));
         if (ch.type === SYM.IfExpr)
             lower = astForExpr(c, ch);
-        if (ch.type === TOK.T_COLON) {
-            if (NCH(n) > 1) {
+        if (ch.type === TOK.T_COLON)
+        {
+            if (NCH(n) > 1)
+            {
                 var n2 = CHILD(n, 1);
                 if (n2.type === SYM.IfExpr)
                     upper = astForExpr(c, n2);
             }
         }
-        else if (NCH(n) > 2) {
+        else if (NCH(n) > 2)
+        {
             var n2 = CHILD(n, 2);
             if (n2.type === SYM.IfExpr)
                 upper = astForExpr(c, n2);
         }
+
         ch = CHILD(n, NCH(n) - 1);
-        if (ch.type === SYM.sliceop) {
-            if (NCH(ch) === 1) {
+        if (ch.type === SYM.sliceop)
+        {
+            if (NCH(ch) === 1)
+            {
                 ch = CHILD(ch, 0);
-                step = new astnodes_59.Name(strobj("None"), astnodes_52.Load, ch.lineno, ch.col_offset);
+                step = new Name(strobj("None"), Load, ch.lineno, ch.col_offset);
             }
-            else {
+            else
+            {
                 ch = CHILD(ch, 1);
                 if (ch.type === SYM.IfExpr)
                     step = astForExpr(c, ch);
             }
         }
-        return new astnodes_73.Slice(lower, upper, step);
+        return new Slice(lower, upper, step);
     }
-    function astForAtomExpr(c, n) {
+
+    function astForAtomExpr(c, n)
+    {
         var ch = CHILD(n, 0);
-        switch (ch.type) {
+        switch (ch.type)
+        {
             case TOK.T_NAME:
                 // All names start in Load context, but may be changed later
-                return new astnodes_59.Name(strobj(ch.value), astnodes_52.Load, n.lineno, n.col_offset);
+                return new Name(strobj(ch.value), Load, n.lineno, n.col_offset);
             case TOK.T_STRING:
-                return new astnodes_75.Str(parsestrplus(c, n), n.lineno, n.col_offset);
+                return new Str(parsestrplus(c, n), n.lineno, n.col_offset);
             case TOK.T_NUMBER:
-                return new astnodes_64.Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
-            case TOK.T_LPAR:
+            return new Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
+            case TOK.T_LPAR: // various uses for parens
                 ch = CHILD(n, 1);
                 if (ch.type === TOK.T_RPAR)
-                    return new astnodes_80.Tuple([], astnodes_52.Load, n.lineno, n.col_offset);
+                    return new Tuple([], Load, n.lineno, n.col_offset);
                 if (ch.type === SYM.YieldExpr)
                     return astForExpr(c, ch);
                 if (NCH(ch) > 1 && CHILD(ch, 1).type === SYM.gen_for)
                     return astForGenexp(c, ch);
                 return astForTestlistGexp(c, ch);
-            case TOK.T_LSQB:
+            case TOK.T_LSQB: // list or listcomp
                 ch = CHILD(n, 1);
                 if (ch.type === TOK.T_RSQB)
-                    return new astnodes_50.List([], astnodes_52.Load, n.lineno, n.col_offset);
+                    return new List([], Load, n.lineno, n.col_offset);
                 REQ(ch, SYM.listmaker);
                 if (NCH(ch) === 1 || CHILD(ch, 1).type === TOK.T_COMMA)
-                    return new astnodes_50.List(seqForTestlist(c, ch), astnodes_52.Load, n.lineno, n.col_offset);
+                    return new List(seqForTestlist(c, ch), Load, n.lineno, n.col_offset);
                 else
                     return astForListcomp(c, ch);
             case TOK.T_LBRACE:
@@ -1446,23 +1847,26 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 var size = Math.floor((NCH(ch) + 1) / 4); // + 1 for no trailing comma case
                 var keys = [];
                 var values = [];
-                for (var i = 0; i < NCH(ch); i += 4) {
+                for (var i = 0; i < NCH(ch); i += 4)
+                {
                     keys[i / 4] = astForExpr(c, CHILD(ch, i));
                     values[i / 4] = astForExpr(c, CHILD(ch, i + 2));
                 }
-                return new astnodes_24.Dict(keys, values, n.lineno, n.col_offset);
+                return new Dict(keys, values, n.lineno, n.col_offset);
             case TOK.T_BACKQUOTE:
                 throw syntaxError("backquote not supported, use repr()", c.c_filename, n.lineno);
             default:
-                asserts_1.fail("unhandled atom" /*, ch.type*/);
+                fail("unhandled atom"/*, ch.type*/);
         }
     }
-    function astForPowerExpr(c, n) {
+
+    function astForPowerExpr(c, n)
+    {
         REQ(n, SYM.PowerExpr);
         var e = astForAtomExpr(c, CHILD(n, 0));
-        if (NCH(n) === 1)
-            return e;
-        for (var i = 1; i < NCH(n); ++i) {
+        if (NCH(n) === 1) return e;
+        for (var i = 1; i < NCH(n); ++i)
+        {
             var ch = CHILD(n, i);
             if (ch.type !== SYM.trailer)
                 break;
@@ -1471,25 +1875,30 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             tmp.col_offset = e.col_offset;
             e = tmp;
         }
-        if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr) {
+        if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr)
+        {
             var f = astForExpr(c, CHILD(n, NCH(n) - 1));
-            e = new astnodes_11.BinOp(e, astnodes_68.Pow, f, n.lineno, n.col_offset);
+            e = new BinOp(e, Pow, f, n.lineno, n.col_offset);
         }
         return e;
     }
-    function astForExpr(c, n) {
+
+    function astForExpr(c, n)
+    {
         LOOP: while (true) {
-            switch (n.type) {
+            switch (n.type)
+            {
                 case SYM.IfExpr:
                 case SYM.old_test:
                     if (CHILD(n, 0).type === SYM.LambdaExpr || CHILD(n, 0).type === SYM.old_LambdaExpr)
                         return astForLambdef(c, CHILD(n, 0));
                     else if (NCH(n) > 1)
                         return astForIfexpr(c, n);
-                // fallthrough
+                    // fallthrough
                 case SYM.OrExpr:
                 case SYM.AndExpr:
-                    if (NCH(n) === 1) {
+                    if (NCH(n) === 1)
+                    {
                         n = CHILD(n, 0);
                         continue LOOP;
                     }
@@ -1497,30 +1906,35 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                     for (var i = 0; i < NCH(n); i += 2)
                         seq[i / 2] = astForExpr(c, CHILD(n, i));
                     if (CHILD(n, 1).value === "and")
-                        return new astnodes_15.BoolOp(astnodes_4.And, seq, n.lineno, n.col_offset);
-                    asserts_1.assert(CHILD(n, 1).value === "or");
-                    return new astnodes_15.BoolOp(astnodes_65.Or, seq, n.lineno, n.col_offset);
+                        return new BoolOp(And, seq, n.lineno, n.col_offset);
+                    assert(CHILD(n, 1).value === "or");
+                    return new BoolOp(Or, seq, n.lineno, n.col_offset);
                 case SYM.NotExpr:
-                    if (NCH(n) === 1) {
+                    if (NCH(n) === 1)
+                    {
                         n = CHILD(n, 0);
                         continue LOOP;
                     }
-                    else {
-                        return new astnodes_82.UnaryOp(astnodes_61.Not, astForExpr(c, CHILD(n, 1)), n.lineno, n.col_offset);
+                    else
+                    {
+                        return new UnaryOp(Not, astForExpr(c, CHILD(n, 1)), n.lineno, n.col_offset);
                     }
                 case SYM.ComparisonExpr:
-                    if (NCH(n) === 1) {
+                    if (NCH(n) === 1)
+                    {
                         n = CHILD(n, 0);
                         continue LOOP;
                     }
-                    else {
+                    else
+                    {
                         var ops = [];
                         var cmps = [];
-                        for (var i = 1; i < NCH(n); i += 2) {
+                        for (var i = 1; i < NCH(n); i += 2)
+                        {
                             ops[(i - 1) / 2] = astForCompOp(c, CHILD(n, i));
                             cmps[(i - 1) / 2] = astForExpr(c, CHILD(n, i + 1));
                         }
-                        return new astnodes_19.Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.lineno, n.col_offset);
+                        return new Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.lineno, n.col_offset);
                     }
                 case SYM.ArithmeticExpr:
                 case SYM.GeometricExpr:
@@ -1528,19 +1942,22 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 case SYM.BitwiseOrExpr:
                 case SYM.BitwiseXorExpr:
                 case SYM.BitwiseAndExpr:
-                    if (NCH(n) === 1) {
+                    if (NCH(n) === 1)
+                    {
                         n = CHILD(n, 0);
                         continue LOOP;
                     }
                     return astForBinop(c, n);
                 case SYM.YieldExpr:
                     var exp = null;
-                    if (NCH(n) === 2) {
+                    if (NCH(n) === 2)
+                    {
                         exp = astForTestlist(c, CHILD(n, 1));
                     }
-                    return new astnodes_86.Yield(exp, n.lineno, n.col_offset);
+                    return new Yield(exp, n.lineno, n.col_offset);
                 case SYM.UnaryExpr:
-                    if (NCH(n) === 1) {
+                    if (NCH(n) === 1)
+                    {
                         n = CHILD(n, 0);
                         continue LOOP;
                     }
@@ -1548,56 +1965,67 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 case SYM.PowerExpr:
                     return astForPowerExpr(c, n);
                 default:
-                    asserts_1.fail("unhandled expr" /*, "n.type: %d", n.type*/);
+                    fail("unhandled expr"/*, "n.type: %d", n.type*/);
             }
-            break;
-        }
+        break; }
     }
-    function astForPrintStmt(c, n) {
+
+    function astForPrintStmt(c, n)
+    {
         var start = 1;
         var dest = null;
         REQ(n, SYM.print_stmt);
-        if (NCH(n) >= 2 && CHILD(n, 1).type === TOK.T_RIGHTSHIFT) {
+        if (NCH(n) >= 2 && CHILD(n, 1).type === TOK.T_RIGHTSHIFT)
+        {
             dest = astForExpr(c, CHILD(n, 2));
             start = 4;
         }
         var seq = [];
-        for (var i = start, j = 0; i < NCH(n); i += 2, ++j) {
+        for (var i = start, j = 0; i < NCH(n); i += 2, ++j)
+        {
             seq[j] = astForExpr(c, CHILD(n, i));
         }
         var nl = (CHILD(n, NCH(n) - 1)).type === TOK.T_COMMA ? false : true;
-        return new astnodes_69.Print(dest, seq, nl, n.lineno, n.col_offset);
+        return new Print(dest, seq, nl, n.lineno, n.col_offset);
     }
-    function astForStmt(c, n) {
-        if (n.type === SYM.stmt) {
-            asserts_1.assert(NCH(n) === 1);
+
+    function astForStmt(c, n)
+    {
+        if (n.type === SYM.stmt)
+        {
+            assert(NCH(n) === 1);
             n = CHILD(n, 0);
         }
-        if (n.type === SYM.simple_stmt) {
-            asserts_1.assert(numStmts(n) === 1);
+        if (n.type === SYM.simple_stmt)
+        {
+            assert(numStmts(n) === 1);
             n = CHILD(n, 0);
         }
-        if (n.type === SYM.small_stmt) {
+        if (n.type === SYM.small_stmt)
+        {
             REQ(n, SYM.small_stmt);
             n = CHILD(n, 0);
-            switch (n.type) {
+            switch (n.type)
+            {
                 case SYM.ExprStmt: return astForExprStmt(c, n);
                 case SYM.print_stmt: return astForPrintStmt(c, n);
                 case SYM.del_stmt: return astForDelStmt(c, n);
-                case SYM.pass_stmt: return new astnodes_67.Pass(n.lineno, n.col_offset);
+                case SYM.pass_stmt: return new Pass(n.lineno, n.col_offset);
                 case SYM.flow_stmt: return astForFlowStmt(c, n);
                 case SYM.import_stmt: return astForImportStmt(c, n);
                 case SYM.GlobalStmt: return astForGlobalStmt(c, n);
                 case SYM.NonLocalStmt: return astForNonLocalStmt(c, n);
                 case SYM.exec_stmt: return astForExecStmt(c, n);
                 case SYM.assert_stmt: return astForAssertStmt(c, n);
-                default: asserts_1.fail("unhandled small_stmt");
+                default: fail("unhandled small_stmt");
             }
         }
-        else {
+        else
+        {
             var ch = CHILD(n, 0);
             REQ(n, SYM.compound_stmt);
-            switch (ch.type) {
+            switch (ch.type)
+            {
                 case SYM.if_stmt: return astForIfStmt(c, ch);
                 case SYM.while_stmt: return astForWhileStmt(c, ch);
                 case SYM.for_stmt: return astForForStmt(c, ch);
@@ -1606,92 +2034,112 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 case SYM.funcdef: return astForFuncdef(c, ch, []);
                 case SYM.classdef: return astForClassdef(c, ch, []);
                 case SYM.decorated: return astForDecorated(c, ch);
-                default: asserts_1.fail("unhandled compound_stmt");
+                default: fail("unhandled compound_stmt");
             }
         }
     }
-    var astFromParse = function (n, filename) {
+
+    var astFromParse = function(n, filename)
+    {
         var c = new Compiling("utf-8", filename);
+
         var stmts = [];
         var ch;
         var k = 0;
-        switch (n.type) {
+        switch (n.type)
+        {
             case SYM.file_input:
-                for (var i = 0; i < NCH(n) - 1; ++i) {
+                for (var i = 0; i < NCH(n) - 1; ++i)
+                {
                     var ch = CHILD(n, i);
                     if (n.type === TOK.T_NEWLINE)
                         continue;
                     REQ(ch, SYM.stmt);
                     var num = numStmts(ch);
-                    if (num === 1) {
+                    if (num === 1)
+                    {
                         stmts[k++] = astForStmt(c, ch);
                     }
-                    else {
+                    else
+                    {
                         ch = CHILD(ch, 0);
                         REQ(ch, SYM.simple_stmt);
-                        for (var j = 0; j < num; ++j) {
+                        for (var j = 0; j < num; ++j)
+                        {
                             stmts[k++] = astForStmt(c, CHILD(ch, j * 2));
                         }
                     }
                 }
-                return new astnodes_57.Module(stmts);
+                return new Module(stmts);
             case SYM.eval_input:
-                asserts_1.fail("todo;");
+                fail("todo;");
             case SYM.single_input:
-                asserts_1.fail("todo;");
+                fail("todo;");
             default:
-                asserts_1.fail("todo;");
+                fail("todo;");
         }
     };
-    var astDump = function (node) {
-        var _format = function (node) {
-            if (node === null) {
+
+    var astDump = function(node)
+    {
+        var _format = function(node)
+        {
+            if (node === null)
+            {
                 return "None";
             }
-            else if (node.prototype && node.prototype._astname !== undefined && node.prototype._isenum) {
+            else if (node.prototype && node.prototype._astname !== undefined && node.prototype._isenum)
+            {
                 return node.prototype._astname + "()";
             }
-            else if (node._astname !== undefined) {
+            else if (node._astname !== undefined)
+            {
                 var fields = [];
-                for (var i = 0; i < node._fields.length; i += 2) {
+                for (var i = 0; i < node._fields.length; i += 2) // iter_fields
+                {
                     var a = node._fields[i]; // field name
                     var b = node._fields[i + 1](node); // field getter func
                     fields.push([a, _format(b)]);
                 }
                 var attrs = [];
-                for (var i = 0; i < fields.length; ++i) {
+                for (var i = 0; i < fields.length; ++i)
+                {
                     var field = fields[i];
                     attrs.push(field[0] + "=" + field[1].replace(/^\s+/, ''));
                 }
                 var fieldstr = attrs.join(',');
                 return node._astname + "(" + fieldstr + ")";
             }
-            else if (base_1.isArrayLike(node)) {
+            else if (isArrayLike(node))
+            {
                 var elems = [];
-                for (var i = 0; i < node.length; ++i) {
+                for (var i = 0; i < node.length; ++i)
+                {
                     var x = node[i];
                     elems.push(_format(x));
                 }
                 var elemsstr = elems.join(',');
                 return "[" + elemsstr.replace(/^\s+/, '') + "]";
             }
-            else {
+            else
+            {
                 var ret;
-                if (node === true)
-                    ret = "True";
-                else if (node === false)
-                    ret = "False";
-                else
-                    ret = "" + node;
+                if (node === true) ret = "True";
+                else if (node === false) ret = "False";
+    //          else if (Sk.ffi.isLong(node)) ret = Sk.ffi.remapToJs(node.tp$str());
+    //          else if (Sk.builtin.isStringPy(node)) ret = Sk.builtin.stringToJs(node.tp$repr());
+                else ret = "" + node;
                 return ret;
             }
         };
+
         return _format(node);
     };
-    var that = {
+
+    const that =
+    {
         'astFromParse': astFromParse,
         'astDump': astDump
     };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.default = that;
-});
+    export default that;
+

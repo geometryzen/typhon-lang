@@ -59,9 +59,9 @@ def gen():
     """regenerate the parser/ast source code"""
     if not os.path.exists("src/pytools"): os.mkdir("src/pytools")
     os.chdir("src/pgen/parser")
-    os.system("python main.py ../../../src/pytools/tables.js")
+    os.system("python main.py ../../../src/pytools/tables.ts")
     os.chdir("../ast")
-    os.system("python asdl_js.py Python.asdl ../../../src/pytools/astnodes.js")
+    # os.system("python asdl_js.py Python.asdl ../../../src/pytools/astnodes-generated.js")
     os.chdir("../../..")
 
 def regenasttests(togen="{0}/run/*.py".format(TEST_DIR)):

@@ -1,6 +1,8 @@
 # pytools
 
-Python Tools for Scanning, Parsing, Semantic Analysis and Code Generation.
+Python Tools for Scanning, Parsing, Semantic Analysis, and Code Generation.
+
+Based on the SPARK tool chain:
 
 http://pages.cpsc.ucalgary.ca/~aycock/spark/
 
