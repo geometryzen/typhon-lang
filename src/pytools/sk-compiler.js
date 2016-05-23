@@ -1,5 +1,12 @@
 define(["require", "exports", './asserts', './parser', './builder', './reservedNames', './reservedWords', './symtable', './toStringLiteralJS', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, astnodes_49, astnodes_50, astnodes_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
     "use strict";
+    var OP_FAST = 0;
+    var OP_GLOBAL = 1;
+    var OP_DEREF = 2;
+    var OP_NAME = 3;
+    // const D_NAMES = 0;
+    // const D_FREEVARS = 1;
+    // const D_CELLVARS = 2;
     /**
      * The output function is scoped at the module level so that it is available without being a parameter.
      * @param {...*} x
@@ -124,6 +131,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             return this.gensym(roughName.replace("<", "").replace(">", "").replace(" ", "_"));
         };
         /**
+         * @method _gr
          * @param {string} hint basename for gensym
          * @param {...*} rest
          */
@@ -137,9 +145,9 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             return v;
         };
         /**
-        * Function to test if an interrupt should occur if the program has been running for too long.
-        * This function is executed at every test/branch operation.
-        */
+         * Function to test if an interrupt should occur if the program has been running for too long.
+         * This function is executed at every test/branch operation.
+         */
         Compiler.prototype._interruptTest = function () {
             out("if (typeof Sk.execStart === 'undefined') {Sk.execStart=new Date()}");
             out("if (Sk.execLimit !== null && new Date() - Sk.execStart > Sk.execLimit) {throw new Sk.builtin.TimeLimitError(Sk.timeoutMsg())}");
@@ -199,7 +207,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             // load targets
             var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
             this._jumpundef(nexti, anchor); // todo; this should be handled by StopIteration
-            var target = this.vexpr(l.target, nexti);
+            // var target = this.vexpr(l.target, nexti);
             var n = l.ifs.length;
             for (var i = 0; i < n; ++i) {
                 var ifres = this.vexpr(l.ifs[i]);
@@ -321,7 +329,6 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
         Compiler.prototype.cboolop = function (e) {
             asserts_1.assert(e instanceof astnodes_9.BoolOp);
             var jtype;
-            var ifFailed;
             if (e.op === astnodes_1.And)
                 jtype = this._jumpfalse;
             else
@@ -358,7 +365,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                 this.u.lineno = e.lineno;
                 this.u.linenoSet = false;
             }
-            //this.annotateSource(e);
+            // this.annotateSource(e);
             switch (e.constructor) {
                 case astnodes_9.BoolOp:
                     return this.cboolop(e);
@@ -433,19 +440,19 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                     }
                     break;
                 case astnodes_45.Subscript:
-                    var val;
                     switch (e.ctx) {
                         case astnodes_6.AugLoad:
                         case astnodes_33.Load:
                         case astnodes_43.Store:
                         case astnodes_15.Del:
                             return this.vslice(e.slice, e.ctx, this.vexpr(e.value), data);
-                        case astnodes_7.AugStore:
+                        case astnodes_7.AugStore: {
                             out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
-                            val = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
-                            this.vslice(e.slice, e.ctx, val, data);
+                            var val_1 = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
+                            this.vslice(e.slice, e.ctx, val_1, data);
                             out("}");
                             break;
+                        }
                         case astnodes_37.Param:
                         default:
                             asserts_1.fail("invalid subscript expression");
@@ -482,28 +489,30 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             asserts_1.assert(s instanceof astnodes_5.AugAssign);
             var e = s.target;
             switch (e.constructor) {
-                case astnodes_4.Attribute:
+                case astnodes_4.Attribute: {
                     var auge = new astnodes_4.Attribute(e.value, e.attr, astnodes_6.AugLoad, e.lineno, e.col_offset);
                     var aug = this.vexpr(auge);
                     var val = this.vexpr(s.value);
                     var res = this._gr('inplbinopattr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
                     auge.ctx = astnodes_7.AugStore;
                     return this.vexpr(auge, res, e.value);
+                }
                 case astnodes_45.Subscript: {
                     // Only compile the subscript value once
                     var augsub = this.vslicesub(e.slice);
-                    var auge_1 = new astnodes_45.Subscript(e.value, augsub, astnodes_6.AugLoad, e.lineno, e.col_offset);
-                    var aug = this.vexpr(auge_1);
+                    var auge = new astnodes_45.Subscript(e.value, augsub, astnodes_6.AugLoad, e.lineno, e.col_offset);
+                    var aug = this.vexpr(auge);
                     var val = this.vexpr(s.value);
                     var res = this._gr('inplbinopsubscr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
-                    auge_1.ctx = astnodes_7.AugStore;
-                    return this.vexpr(auge_1, res, e.value);
+                    auge.ctx = astnodes_7.AugStore;
+                    return this.vexpr(auge, res, e.value);
                 }
-                case astnodes_35.Name:
+                case astnodes_35.Name: {
                     var to = this.nameop(e.id, astnodes_33.Load);
                     var val = this.vexpr(s.value);
                     var res = this._gr('inplbinop', "Sk.abstr.numberInplaceBinOp(", to, ",", val, ",'", s.op.prototype._astname, "')");
                     return this.nameop(e.id, astnodes_43.Store, res);
+                }
                 default:
                     asserts_1.fail("unhandled case in augassign");
             }
@@ -567,7 +576,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
         };
         Compiler.prototype.setupExcept = function (eb) {
             out("$exc.push(", eb, ");");
-            //this.pushExceptBlock(eb);
+            // this.pushExceptBlock(eb);
         };
         Compiler.prototype.endExcept = function () {
             out("$exc.pop();");
@@ -682,7 +691,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             // load targets
             var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
             this._jumpundef(nexti, cleanup); // todo; this should be handled by StopIteration
-            var target = this.vexpr(s.target, nexti);
+            // var target = this.vexpr(s.target, nexti);
             // execute body
             this.vseqstmt(s.body);
             // jump to top of loop
@@ -748,7 +757,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                 if (handler.type) {
                     // should jump to next handler if err not isinstance of handler.type
                     var handlertype = this.vexpr(handler.type);
-                    var next = (i == n - 1) ? unhandled : handlers[i + 1];
+                    var next = (i === n - 1) ? unhandled : handlers[i + 1];
                     // this check is not right, should use isinstance, but exception objects
                     // are not yet proper Python objects
                     var check = this._gr('instance', "$err instanceof ", handlertype);
@@ -1146,7 +1155,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
         Compiler.prototype.cgenexpgen = function (generators, genIndex, elt) {
             var start = this.newBlock('start for ' + genIndex);
             var skip = this.newBlock('skip for ' + genIndex);
-            var ifCleanup = this.newBlock('if cleanup for ' + genIndex);
+            // var ifCleanup = this.newBlock('if cleanup for ' + genIndex);
             var end = this.newBlock('end for ' + genIndex);
             var ge = generators[genIndex];
             var iter;
@@ -1166,7 +1175,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             // load targets
             var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
             this._jumpundef(nexti, end); // todo; this should be handled by StopIteration
-            var target = this.vexpr(ge.target, nexti);
+            // var target = this.vexpr(ge.target, nexti);
             var n = ge.ifs.length;
             for (var i = 0; i < n; ++i) {
                 var ifres = this.vexpr(ge.ifs[i]);
@@ -1201,9 +1210,9 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
         };
         Compiler.prototype.cclass = function (s) {
             asserts_1.assert(s instanceof astnodes_12.ClassDef);
-            var decos = s.decorator_list;
+            // var decos = s.decorator_list;
             // decorators and bases need to be eval'd out here
-            //this.vseqexpr(decos);
+            // this.vseqexpr(decos);
             var bases = this.vseqexpr(s.bases);
             /**
              * @const
@@ -1311,7 +1320,6 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
         Compiler.prototype.isCell = function (name) {
             var mangled = mangleName(this.u.private_, name);
             var scope = this.u.ste.getScope(mangled);
-            var dict = null;
             if (scope === SymbolConstants_5.CELL)
                 return true;
             return false;
@@ -1336,7 +1344,6 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
                 return "Sk.ffi.bool.False";
             // Have to do this before looking it up in the scope
             var mangled = mangleName(this.u.private_, name);
-            var op = 0;
             var optype = OP_NAME;
             var scope = this.u.ste.getScope(mangled);
             var dict = null;
@@ -1366,7 +1373,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
             // have to do this after looking it up in the scope
             mangled = fixReservedNames(mangled);
             mangled = fixReservedWords(mangled);
-            //print("mangled", mangled);
+            // print("mangled", mangled);
             // TODO TODO TODO todo; import * at global scope failing here
             asserts_1.assert(scope || name.charAt(1) === '_');
             // in generator or at module scope, we need to store to $loc, rather that
@@ -1563,13 +1570,6 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
         strpriv.replace(/^_*/, '');
         return '_' + strpriv + name;
     }
-    var OP_FAST = 0;
-    var OP_GLOBAL = 1;
-    var OP_DEREF = 2;
-    var OP_NAME = 3;
-    var D_NAMES = 0;
-    var D_FREEVARS = 1;
-    var D_CELLVARS = 2;
     /**
      * @param {string} source the code
      * @param {string} fileName where it came from
@@ -1579,7 +1579,7 @@ define(["require", "exports", './asserts', './parser', './builder', './reservedN
     function compile(source, fileName) {
         var cst = parser_1.parse(fileName, source);
         var ast = builder_1.astFromParse(cst, fileName);
-        var st = symtable_1.default.symbolTable(ast, fileName);
+        var st = symtable_1.symbolTable(ast, fileName);
         var c = new Compiler(fileName, st, 0, source);
         return { 'funcname': c.cmod(ast), 'code': c.result.join('') };
     }

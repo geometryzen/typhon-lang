@@ -12,26 +12,26 @@ import {SCOPE_OFF} from './SymbolConstants';
 let astScopeCounter = 0;
 
 export default class SymbolTableScope {
-    symFlags
-    name
-    varnames
+    symFlags;
+    private name
+    private varnames
     children
     blockType
-    isNested
-    hasFree
-    childHasFree
+    private isNested
+    hasFree: boolean;
+    childHasFree: boolean;
     generator
-    varargs
-    varkeywords
-    returnsValue
-    lineno
-    table
-    symbols
-    _classMethods;
-    _funcParams
-    _funcLocals
-    _funcGlobals
-    _funcFrees
+    private varargs
+    private varkeywords
+    private returnsValue
+    private lineno
+    private table
+    private symbols
+    private _classMethods;
+    private _funcParams
+    private _funcLocals
+    private _funcGlobals
+    private _funcFrees
     /**
      * @constructor
      * @param {Object} table
@@ -77,7 +77,7 @@ export default class SymbolTableScope {
     has_children() { return this.children.length > 0; }
     get_identifiers() { return this._identsMatching(function(x) { return true; }); }
 
-    lookup(name) {
+    lookup(name: string) {
         var sym;
         if (!this.symbols.hasOwnProperty(name)) {
             var flags = this.symFlags[name];
@@ -90,8 +90,8 @@ export default class SymbolTableScope {
         return sym;
     }
 
-    __check_children(name) {
-        //print("  check_children:", name);
+    __check_children(name: string): any[] {
+        // print("  check_children:", name);
         var ret = [];
         for (var i = 0; i < this.children.length; ++i) {
             var child = this.children[i];
@@ -162,9 +162,9 @@ export default class SymbolTableScope {
         return this._classMethods;
     }
 
-    getScope(name) {
-        //print("getScope");
-        //for (var k in this.symFlags) print(k);
+    getScope(name: string): number {
+        // print("getScope");
+        // for (var k in this.symFlags) print(k);
         var v = this.symFlags[name];
         if (v === undefined) return 0;
         return (v >> SCOPE_OFF) & SCOPE_MASK;

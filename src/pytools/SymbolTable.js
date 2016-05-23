@@ -6,100 +6,6 @@ define(["require", "exports", './asserts', './dictUpdate', './mangleName', './Sy
          * @param {string} fileName
          */
         function SymbolTable(fileName) {
-            this.visitExpr = function (e) {
-                asserts_1.assert(e !== undefined, "visitExpr called with undefined");
-                //print("  e: ", e.constructor.name);
-                switch (e.constructor) {
-                    case astnodes_6.BoolOp:
-                        this.SEQExpr(e.values);
-                        break;
-                    case astnodes_5.BinOp:
-                        this.visitExpr(e.left);
-                        this.visitExpr(e.right);
-                        break;
-                    case astnodes_45.UnaryOp:
-                        this.visitExpr(e.operand);
-                        break;
-                    case astnodes_27.Lambda:
-                        this.addDef("lambda", SymbolConstants_7.DEF_LOCAL, e.lineno);
-                        if (e.args.defaults)
-                            this.SEQExpr(e.args.defaults);
-                        this.enterBlock("lambda", SymbolConstants_10.FunctionBlock, e, e.lineno);
-                        this.visitArguments(e.args, e.lineno);
-                        this.visitExpr(e.body);
-                        this.exitBlock();
-                        break;
-                    case astnodes_23.IfExp:
-                        this.visitExpr(e.test);
-                        this.visitExpr(e.body);
-                        this.visitExpr(e.orelse);
-                        break;
-                    case astnodes_13.Dict:
-                        this.SEQExpr(e.keys);
-                        this.SEQExpr(e.values);
-                        break;
-                    case astnodes_30.ListComp:
-                        this.newTmpname(e.lineno);
-                        this.visitExpr(e.elt);
-                        this.visitComprehension(e.generators, 0);
-                        break;
-                    case astnodes_20.GeneratorExp:
-                        this.visitGenexp(e);
-                        break;
-                    case astnodes_48.Yield:
-                        if (e.value)
-                            this.visitExpr(e.value);
-                        this.cur.generator = true;
-                        if (this.cur.returnsValue) {
-                            throw syntaxError_1.default("'return' with argument inside generator", this.fileName);
-                        }
-                        break;
-                    case astnodes_10.Compare:
-                        this.visitExpr(e.left);
-                        this.SEQExpr(e.comparators);
-                        break;
-                    case astnodes_8.Call:
-                        this.visitExpr(e.func);
-                        this.SEQExpr(e.args);
-                        for (var i = 0; i < e.keywords.length; ++i)
-                            this.visitExpr(e.keywords[i].value);
-                        //print(JSON.stringify(e.starargs, null, 2));
-                        //print(JSON.stringify(e.kwargs, null,2));
-                        if (e.starargs)
-                            this.visitExpr(e.starargs);
-                        if (e.kwargs)
-                            this.visitExpr(e.kwargs);
-                        break;
-                    case astnodes_32.Num:
-                    case astnodes_40.Str:
-                        break;
-                    case astnodes_3.Attribute:
-                        this.visitExpr(e.value);
-                        break;
-                    case astnodes_41.Subscript:
-                        this.visitExpr(e.value);
-                        this.visitSlice(e.slice);
-                        break;
-                    case astnodes_31.Name:
-                        this.addDef(e.id, e.ctx === astnodes_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.lineno);
-                        break;
-                    case astnodes_29.List:
-                    case astnodes_44.Tuple:
-                        this.SEQExpr(e.elts);
-                        break;
-                    default:
-                        asserts_1.fail("Unhandled type " + e.constructor.name + " in visitExpr");
-                }
-            };
-            this.visitComprehension = function (lcs, startAt) {
-                var len = lcs.length;
-                for (var i = startAt; i < len; ++i) {
-                    var lc = lcs[i];
-                    this.visitExpr(lc.target);
-                    this.visitExpr(lc.iter);
-                    this.SEQExpr(lc.ifs);
-                }
-            };
             /**
              * This is probably not correct for names. What are they?
              * @param {Array.<Object>} names
@@ -154,7 +60,7 @@ define(["require", "exports", './asserts', './dictUpdate', './mangleName', './Sy
                 }
             };
             /**
-             * @param {Object} ste The Symbol Table Scope.
+             * @param {SymbolTableScope} ste The Symbol Table Scope.
              */
             this.analyzeBlock = function (ste, bound, free, global) {
                 var local = {};
@@ -162,7 +68,7 @@ define(["require", "exports", './asserts', './dictUpdate', './mangleName', './Sy
                 var newglobal = {};
                 var newbound = {};
                 var newfree = {};
-                if (ste.blockType == SymbolConstants_2.ClassBlock) {
+                if (ste.blockType === SymbolConstants_2.ClassBlock) {
                     dictUpdate_1.default(newglobal, global);
                     if (bound)
                         dictUpdate_1.default(newbound, bound);
@@ -225,7 +131,6 @@ define(["require", "exports", './asserts', './dictUpdate', './mangleName', './Sy
                     symbols[name] = flags;
                 }
                 var freeValue = SymbolConstants_9.FREE << SymbolConstants_16.SCOPE_OFF;
-                var pos = 0;
                 for (var name in free) {
                     var o = symbols[name];
                     if (o !== undefined) {
@@ -335,7 +240,7 @@ define(["require", "exports", './asserts', './dictUpdate', './mangleName', './Sy
             }
         };
         SymbolTable.prototype.exitBlock = function () {
-            //print("exitBlock");
+            // print("exitBlock");
             this.cur = null;
             if (this.stack.length > 0)
                 this.cur = this.stack.pop();
@@ -368,6 +273,7 @@ define(["require", "exports", './asserts', './dictUpdate', './mangleName', './Sy
         };
         /**
          * @param {number} lineno
+         * @return {void}
          */
         SymbolTable.prototype.newTmpname = function (lineno) {
             this.addDef("_[" + (++this.tmpname) + "]", SymbolConstants_7.DEF_LOCAL, lineno);
@@ -376,6 +282,7 @@ define(["require", "exports", './asserts', './dictUpdate', './mangleName', './Sy
          * @param {string} name
          * @param {number} flag
          * @param {number} lineno
+         * @return {void}
          */
         SymbolTable.prototype.addDef = function (name, flag, lineno) {
             var mangled = mangleName_1.default(this.curClass, name);
@@ -568,6 +475,100 @@ define(["require", "exports", './asserts', './dictUpdate', './mangleName', './Sy
                     break;
                 default:
                     asserts_1.fail("Unhandled type " + s.constructor.name + " in visitStmt");
+            }
+        };
+        SymbolTable.prototype.visitExpr = function (e) {
+            asserts_1.assert(e !== undefined, "visitExpr called with undefined");
+            // print("  e: ", e.constructor.name);
+            switch (e.constructor) {
+                case astnodes_6.BoolOp:
+                    this.SEQExpr(e.values);
+                    break;
+                case astnodes_5.BinOp:
+                    this.visitExpr(e.left);
+                    this.visitExpr(e.right);
+                    break;
+                case astnodes_45.UnaryOp:
+                    this.visitExpr(e.operand);
+                    break;
+                case astnodes_27.Lambda:
+                    this.addDef("lambda", SymbolConstants_7.DEF_LOCAL, e.lineno);
+                    if (e.args.defaults)
+                        this.SEQExpr(e.args.defaults);
+                    this.enterBlock("lambda", SymbolConstants_10.FunctionBlock, e, e.lineno);
+                    this.visitArguments(e.args, e.lineno);
+                    this.visitExpr(e.body);
+                    this.exitBlock();
+                    break;
+                case astnodes_23.IfExp:
+                    this.visitExpr(e.test);
+                    this.visitExpr(e.body);
+                    this.visitExpr(e.orelse);
+                    break;
+                case astnodes_13.Dict:
+                    this.SEQExpr(e.keys);
+                    this.SEQExpr(e.values);
+                    break;
+                case astnodes_30.ListComp:
+                    this.newTmpname(e.lineno);
+                    this.visitExpr(e.elt);
+                    this.visitComprehension(e.generators, 0);
+                    break;
+                case astnodes_20.GeneratorExp:
+                    this.visitGenexp(e);
+                    break;
+                case astnodes_48.Yield:
+                    if (e.value)
+                        this.visitExpr(e.value);
+                    this.cur.generator = true;
+                    if (this.cur.returnsValue) {
+                        throw syntaxError_1.default("'return' with argument inside generator", this.fileName);
+                    }
+                    break;
+                case astnodes_10.Compare:
+                    this.visitExpr(e.left);
+                    this.SEQExpr(e.comparators);
+                    break;
+                case astnodes_8.Call:
+                    this.visitExpr(e.func);
+                    this.SEQExpr(e.args);
+                    for (var i = 0; i < e.keywords.length; ++i)
+                        this.visitExpr(e.keywords[i].value);
+                    // print(JSON.stringify(e.starargs, null, 2));
+                    // print(JSON.stringify(e.kwargs, null,2));
+                    if (e.starargs)
+                        this.visitExpr(e.starargs);
+                    if (e.kwargs)
+                        this.visitExpr(e.kwargs);
+                    break;
+                case astnodes_32.Num:
+                case astnodes_40.Str:
+                    break;
+                case astnodes_3.Attribute:
+                    this.visitExpr(e.value);
+                    break;
+                case astnodes_41.Subscript:
+                    this.visitExpr(e.value);
+                    this.visitSlice(e.slice);
+                    break;
+                case astnodes_31.Name:
+                    this.addDef(e.id, e.ctx === astnodes_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.lineno);
+                    break;
+                case astnodes_29.List:
+                case astnodes_44.Tuple:
+                    this.SEQExpr(e.elts);
+                    break;
+                default:
+                    asserts_1.fail("Unhandled type " + e.constructor.name + " in visitExpr");
+            }
+        };
+        SymbolTable.prototype.visitComprehension = function (lcs, startAt) {
+            var len = lcs.length;
+            for (var i = startAt; i < len; ++i) {
+                var lc = lcs[i];
+                this.visitExpr(lc.target);
+                this.visitExpr(lc.iter);
+                this.SEQExpr(lc.ifs);
             }
         };
         return SymbolTable;

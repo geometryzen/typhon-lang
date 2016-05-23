@@ -279,7 +279,7 @@ define(["require", "exports", './asserts', './base', './TokenError', './Tokens']
     /** @param {...*} x */
     function maybe(x) { return group.apply(null, arguments) + "?"; }
     /* we have to use string and ctor to be able to build patterns up. + on /.../
-     * does something strange. */
+        * does something strange. */
     var Whitespace = "[ \\f\\t]*";
     var Comment_ = "#[^\\r\\n]*";
     var Ident = "[a-zA-Z_]\\w*";

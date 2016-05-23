@@ -1,21 +1,30 @@
-define(["require", "exports", './SymbolTable', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, SymbolTable_1, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7) {
+define(["require", "exports", './SymbolTable', './SymbolConstants'], function (require, exports, SymbolTable_1, SymbolConstants_1) {
     "use strict";
     /**
+     * @methdod symbolTable
      * @param {Object} ast
      * @param {string} fileName
+     * @return {SymbolTable}
      */
-    var symbolTable = function (ast, fileName) {
-        var ret = new SymbolTable_1.default(fileName);
-        ret.enterBlock("top", SymbolConstants_7.ModuleBlock, ast, 0);
-        ret.top = ret.cur;
-        //print(Sk.astDump(ast));
-        for (var i = 0; i < ast.body.length; ++i)
-            ret.visitStmt(ast.body[i]);
-        ret.exitBlock();
-        ret.analyze();
-        return ret;
-    };
-    var dumpSymbolTable = function (st) {
+    function symbolTable(ast, fileName) {
+        var st = new SymbolTable_1.default(fileName);
+        st.enterBlock("top", SymbolConstants_1.ModuleBlock, ast, 0);
+        st.top = st.cur;
+        // This is a good place to fump the AST for debugging.
+        for (var i = 0; i < ast.body.length; ++i) {
+            st.visitStmt(ast.body[i]);
+        }
+        st.exitBlock();
+        st.analyze();
+        return st;
+    }
+    exports.symbolTable = symbolTable;
+    /**
+     * @method dumpSymbolTable
+     * @param st {SymbolTable}
+     * @return {string}
+     */
+    function dumpSymbolTable(st) {
         var pyBoolStr = function (b) {
             return b ? "True" : "False";
         };
@@ -74,17 +83,7 @@ define(["require", "exports", './SymbolTable', './SymbolConstants', './SymbolCon
             return ret;
         };
         return getIdents(st.top, '');
-    };
-    var that = {
-        symbolTable: symbolTable,
-        LOCAL: SymbolConstants_6.LOCAL,
-        GLOBAL_EXPLICIT: SymbolConstants_4.GLOBAL_EXPLICIT,
-        GLOBAL_IMPLICIT: SymbolConstants_5.GLOBAL_IMPLICIT,
-        FREE: SymbolConstants_2.FREE,
-        CELL: SymbolConstants_1.CELL,
-        FunctionBlock: SymbolConstants_3.FunctionBlock,
-        dumpSymbolTable: dumpSymbolTable
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.default = that;
+    }
+    exports.dumpSymbolTable = dumpSymbolTable;
+    ;
 });

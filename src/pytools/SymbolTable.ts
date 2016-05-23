@@ -76,7 +76,7 @@ export default class SymbolTable {
     top
     stack
     global
-    curClass
+    curClass: string;
     tmpname: number;
     stss
     /**
@@ -141,7 +141,7 @@ export default class SymbolTable {
     }
 
     exitBlock() {
-        //print("exitBlock");
+        // print("exitBlock");
         this.cur = null;
         if (this.stack.length > 0)
             this.cur = this.stack.pop();
@@ -161,7 +161,7 @@ export default class SymbolTable {
         }
     };
 
-    visitArguments(a, lineno) {
+    visitArguments(a, lineno: number) {
         if (a.args) this.visitParams(a.args, true);
         if (a.vararg) {
             this.addDef(a.vararg, DEF_PARAM, lineno);
@@ -175,8 +175,9 @@ export default class SymbolTable {
 
     /**
      * @param {number} lineno
+     * @return {void}
      */
-    newTmpname(lineno) {
+    newTmpname(lineno: number): void {
         this.addDef("_[" + (++this.tmpname) + "]", DEF_LOCAL, lineno);
     }
 
@@ -184,8 +185,9 @@ export default class SymbolTable {
      * @param {string} name
      * @param {number} flag
      * @param {number} lineno
+     * @return {void}
      */
-    addDef(name, flag, lineno) {
+    addDef(name: string, flag: number, lineno: number): void {
         var mangled = mangleName(this.curClass, name);
         //  mangled = fixReservedNames(mangled);
         var val = this.cur.symFlags[mangled];
@@ -371,9 +373,9 @@ export default class SymbolTable {
         }
     }
 
-    visitExpr = function(e) {
+    visitExpr(e) {
         assert(e !== undefined, "visitExpr called with undefined");
-        //print("  e: ", e.constructor.name);
+        // print("  e: ", e.constructor.name);
         switch (e.constructor) {
             case BoolOp:
                 this.SEQExpr(e.values);
@@ -427,8 +429,8 @@ export default class SymbolTable {
                 this.SEQExpr(e.args);
                 for (var i = 0; i < e.keywords.length; ++i)
                     this.visitExpr(e.keywords[i].value);
-                //print(JSON.stringify(e.starargs, null, 2));
-                //print(JSON.stringify(e.kwargs, null,2));
+                // print(JSON.stringify(e.starargs, null, 2));
+                // print(JSON.stringify(e.kwargs, null,2));
                 if (e.starargs) this.visitExpr(e.starargs);
                 if (e.kwargs) this.visitExpr(e.kwargs);
                 break;
@@ -452,9 +454,9 @@ export default class SymbolTable {
             default:
                 fail("Unhandled type " + e.constructor.name + " in visitExpr");
         }
-    };
+    }
 
-    visitComprehension = function(lcs, startAt) {
+    visitComprehension(lcs, startAt) {
         var len = lcs.length;
         for (var i = startAt; i < len; ++i) {
             var lc = lcs[i];
@@ -462,7 +464,7 @@ export default class SymbolTable {
             this.visitExpr(lc.iter);
             this.SEQExpr(lc.ifs);
         }
-    };
+    }
 
     /**
      * This is probably not correct for names. What are they?
@@ -519,16 +521,16 @@ export default class SymbolTable {
     };
 
     /**
-     * @param {Object} ste The Symbol Table Scope.
+     * @param {SymbolTableScope} ste The Symbol Table Scope.
      */
-    analyzeBlock = function(ste, bound, free, global) {
+    analyzeBlock = function(ste: SymbolTableScope, bound, free, global) {
         var local = {};
         var scope = {};
         var newglobal = {};
         var newbound = {};
         var newfree = {};
 
-        if (ste.blockType == ClassBlock) {
+        if (ste.blockType === ClassBlock) {
             dictUpdate(newglobal, global);
             if (bound)
                 dictUpdate(newbound, bound);
@@ -598,7 +600,6 @@ export default class SymbolTable {
         }
 
         var freeValue = FREE << SCOPE_OFF;
-        var pos = 0;
         for (var name in free) {
             var o = symbols[name];
             if (o !== undefined) {

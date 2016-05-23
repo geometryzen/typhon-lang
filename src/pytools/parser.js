@@ -68,7 +68,7 @@ define(["require", "exports", './tables', './asserts', './base', './Tokenizer', 
                     var i = arcs[a][0];
                     var newstate = arcs[a][1];
                     var t = this.grammar.labels[i][0];
-                    var v = this.grammar.labels[i][1];
+                    // var v = this.grammar.labels[i][1];
                     if (ilabel === i) {
                         // look it up in the list of labels
                         asserts_1.assert(t < 256);
@@ -134,7 +134,7 @@ define(["require", "exports", './tables', './asserts', './base', './Tokenizer', 
         // shift a token
         Parser.prototype.shift = function (type, value, newstate, context) {
             var dfa = this.stack[this.stack.length - 1].dfa;
-            var state = this.stack[this.stack.length - 1].state;
+            // var state = this.stack[this.stack.length - 1].state;
             var node = this.stack[this.stack.length - 1].node;
             var newnode = {
                 type: type,
@@ -187,8 +187,6 @@ define(["require", "exports", './tables', './asserts', './base', './Tokenizer', 
         }
         return false;
     }
-    //var ac = 0;
-    //var bc = 0;
     /**
      * parser for interactive input. returns a function that should be called with
      * lines of input as they are entered. the function will return false
@@ -206,7 +204,6 @@ define(["require", "exports", './tables', './asserts', './base', './Tokenizer', 
             p.setup(ParseTables.sym.file_input);
         else
             asserts_1.fail("TODO");
-        var curIndex = 0;
         var lineno = 1;
         var column = 0;
         var prefix = "";
@@ -214,8 +211,8 @@ define(["require", "exports", './tables', './asserts', './base', './Tokenizer', 
         var T_NL = Tokens_1.default.T_NL;
         var T_OP = Tokens_1.default.T_OP;
         var tokenizer = new Tokenizer_1.default(filename, style === "single_input", function (type, value, start, end, line) {
-            var s_lineno = start[0];
-            var s_column = start[1];
+            // var s_lineno = start[0];
+            // var s_column = start[1];
             /*
             if (s_lineno !== lineno && s_column !== column)
             {
@@ -264,6 +261,7 @@ define(["require", "exports", './tables', './asserts', './base', './Tokenizer', 
     exports.parse = parse;
     function parseTreeDump(n) {
         var ret = "";
+        // non-term
         if (n.type >= 256) {
             ret += ParseTables.number2symbol[n.type] + "\n";
             for (var i = 0; i < n.children.length; ++i) {

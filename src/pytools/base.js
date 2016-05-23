@@ -135,9 +135,9 @@ define(["require", "exports"], function (require, exports) {
     base.abstractMethod = function () {
         throw Error('unimplemented abstract method');
     };
-    //==============================================================================
+    // ==============================================================================
     // Language Enhancements
-    //==============================================================================
+    // ==============================================================================
     /**
      * This is a "fixed" version of the typeof operator.  It differs from the typeof
      * operator in such a way that null returns 'null' and arrays return 'array'.

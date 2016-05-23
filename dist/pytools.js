@@ -2160,9 +2160,9 @@ define('pytools/base',["require", "exports"], function (require, exports) {
     base.abstractMethod = function () {
         throw Error('unimplemented abstract method');
     };
-    //==============================================================================
+    // ==============================================================================
     // Language Enhancements
-    //==============================================================================
+    // ==============================================================================
     /**
      * This is a "fixed" version of the typeof operator.  It differs from the typeof
      * operator in such a way that null returns 'null' and arrays return 'array'.
@@ -3275,7 +3275,7 @@ define('pytools/Tokenizer',["require", "exports", './asserts', './base', './Toke
     /** @param {...*} x */
     function maybe(x) { return group.apply(null, arguments) + "?"; }
     /* we have to use string and ctor to be able to build patterns up. + on /.../
-     * does something strange. */
+        * does something strange. */
     var Whitespace = "[ \\f\\t]*";
     var Comment_ = "#[^\\r\\n]*";
     var Ident = "[a-zA-Z_]\\w*";
@@ -3476,7 +3476,7 @@ define('pytools/parser',["require", "exports", './tables', './asserts', './base'
                     var i = arcs[a][0];
                     var newstate = arcs[a][1];
                     var t = this.grammar.labels[i][0];
-                    var v = this.grammar.labels[i][1];
+                    // var v = this.grammar.labels[i][1];
                     if (ilabel === i) {
                         // look it up in the list of labels
                         asserts_1.assert(t < 256);
@@ -3542,7 +3542,7 @@ define('pytools/parser',["require", "exports", './tables', './asserts', './base'
         // shift a token
         Parser.prototype.shift = function (type, value, newstate, context) {
             var dfa = this.stack[this.stack.length - 1].dfa;
-            var state = this.stack[this.stack.length - 1].state;
+            // var state = this.stack[this.stack.length - 1].state;
             var node = this.stack[this.stack.length - 1].node;
             var newnode = {
                 type: type,
@@ -3595,8 +3595,6 @@ define('pytools/parser',["require", "exports", './tables', './asserts', './base'
         }
         return false;
     }
-    //var ac = 0;
-    //var bc = 0;
     /**
      * parser for interactive input. returns a function that should be called with
      * lines of input as they are entered. the function will return false
@@ -3614,7 +3612,6 @@ define('pytools/parser',["require", "exports", './tables', './asserts', './base'
             p.setup(ParseTables.sym.file_input);
         else
             asserts_1.fail("TODO");
-        var curIndex = 0;
         var lineno = 1;
         var column = 0;
         var prefix = "";
@@ -3622,8 +3619,8 @@ define('pytools/parser',["require", "exports", './tables', './asserts', './base'
         var T_NL = Tokens_1.default.T_NL;
         var T_OP = Tokens_1.default.T_OP;
         var tokenizer = new Tokenizer_1.default(filename, style === "single_input", function (type, value, start, end, line) {
-            var s_lineno = start[0];
-            var s_column = start[1];
+            // var s_lineno = start[0];
+            // var s_column = start[1];
             /*
             if (s_lineno !== lineno && s_column !== column)
             {
@@ -3672,6 +3669,7 @@ define('pytools/parser',["require", "exports", './tables', './asserts', './base'
     exports.parse = parse;
     function parseTreeDump(n) {
         var ret = "";
+        // non-term
         if (n.type >= 256) {
             ret += ParseTables.number2symbol[n.type] + "\n";
             for (var i = 0; i < n.children.length; ++i) {
@@ -5180,7 +5178,6 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         REQ(CHILD(n, 0), TOK.T_AT);
         REQ(CHILD(n, NCH(n) - 1), TOK.T_NEWLINE);
         var nameExpr = astForDottedName(c, CHILD(n, 1));
-        var d;
         if (NCH(n) === 3)
             return nameExpr;
         else if (NCH(n) === 5)
@@ -5227,7 +5224,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
         return new astnodes_85.With_(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
     }
     function astForExecStmt(c, n) {
-        var expr1, globals = null, locals = null;
+        var globals = null, locals = null;
         var nchildren = NCH(n);
         asserts_1.assert(nchildren === 2 || nchildren === 4 || nchildren === 6);
         /* exec_stmt: 'exec' expr ['in' test [',' test]] */
@@ -5462,7 +5459,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                 n = CHILD(n, 0);
                 REQ(n, SYM.list_if);
                 nifs++;
-                if (NCH(n) == 2)
+                if (NCH(n) === 2)
                     return nifs;
                 n = CHILD(n, 2);
             }
@@ -5852,7 +5849,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
                 n = CHILD(n, 0);
                 REQ(n, SYM.gen_if);
                 nifs++;
-                if (NCH(n) == 2)
+                if (NCH(n) === 2)
                     return nifs;
                 n = CHILD(n, 2);
             }
@@ -6018,16 +6015,13 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
     function escape(s) {
         return encodeURIComponent(s);
     }
-    function unescape(s) {
-        return decodeURIComponent(s);
-    }
     /**
      * s is a python-style string literal, including quote characters and u/r/b
      * prefixes. Returns decoded string object.
      */
     function parsestr(c, s) {
         // 
-        var encodeUtf8 = function (s) { return unescape(encodeURIComponent(s)); };
+        // const encodeUtf8 = function(s) { return unescape(encodeURIComponent(s)); };
         var decodeUtf8 = function (s) { return decodeURIComponent(escape(s)); };
         var decodeEscape = function (s, quote) {
             var len = s.length;
@@ -6269,7 +6263,7 @@ define('pytools/builder',["require", "exports", './asserts', './astnodes', './as
             case TOK.T_LBRACE:
                 /* dictmaker: test ':' test (',' test ':' test)* [','] */
                 ch = CHILD(n, 1);
-                var size = Math.floor((NCH(ch) + 1) / 4); // + 1 for no trailing comma case
+                // var size = Math.floor((NCH(ch) + 1) / 4); // + 1 for no trailing comma case
                 var keys = [];
                 var values = [];
                 for (var i = 0; i < NCH(ch); i += 4) {
@@ -6720,10 +6714,10 @@ define('pytools/Symbol',["require", "exports", './SymbolConstants', './SymbolCon
             return !!(this.__flags & SymbolConstants_4.DEF_PARAM);
         };
         Symbol.prototype.is_global = function () {
-            return this.__scope === SymbolConstants_7.GLOBAL_IMPLICIT || this.__scope == SymbolConstants_6.GLOBAL_EXPLICIT;
+            return this.__scope === SymbolConstants_7.GLOBAL_IMPLICIT || this.__scope === SymbolConstants_6.GLOBAL_EXPLICIT;
         };
         Symbol.prototype.is_declared_global = function () {
-            return this.__scope == SymbolConstants_6.GLOBAL_EXPLICIT;
+            return this.__scope === SymbolConstants_6.GLOBAL_EXPLICIT;
         };
         Symbol.prototype.is_local = function () {
             return !!(this.__flags & SymbolConstants_1.DEF_BOUND);
@@ -6794,7 +6788,7 @@ define('pytools/SymbolTableScope',["require", "exports", './asserts', './Symbol'
             return sym;
         };
         SymbolTableScope.prototype.__check_children = function (name) {
-            //print("  check_children:", name);
+            // print("  check_children:", name);
             var ret = [];
             for (var i = 0; i < this.children.length; ++i) {
                 var child = this.children[i];
@@ -6859,8 +6853,8 @@ define('pytools/SymbolTableScope',["require", "exports", './asserts', './Symbol'
             return this._classMethods;
         };
         SymbolTableScope.prototype.getScope = function (name) {
-            //print("getScope");
-            //for (var k in this.symFlags) print(k);
+            // print("getScope");
+            // for (var k in this.symFlags) print(k);
             var v = this.symFlags[name];
             if (v === undefined)
                 return 0;
@@ -6904,100 +6898,6 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
          * @param {string} fileName
          */
         function SymbolTable(fileName) {
-            this.visitExpr = function (e) {
-                asserts_1.assert(e !== undefined, "visitExpr called with undefined");
-                //print("  e: ", e.constructor.name);
-                switch (e.constructor) {
-                    case astnodes_6.BoolOp:
-                        this.SEQExpr(e.values);
-                        break;
-                    case astnodes_5.BinOp:
-                        this.visitExpr(e.left);
-                        this.visitExpr(e.right);
-                        break;
-                    case astnodes_45.UnaryOp:
-                        this.visitExpr(e.operand);
-                        break;
-                    case astnodes_27.Lambda:
-                        this.addDef("lambda", SymbolConstants_7.DEF_LOCAL, e.lineno);
-                        if (e.args.defaults)
-                            this.SEQExpr(e.args.defaults);
-                        this.enterBlock("lambda", SymbolConstants_10.FunctionBlock, e, e.lineno);
-                        this.visitArguments(e.args, e.lineno);
-                        this.visitExpr(e.body);
-                        this.exitBlock();
-                        break;
-                    case astnodes_23.IfExp:
-                        this.visitExpr(e.test);
-                        this.visitExpr(e.body);
-                        this.visitExpr(e.orelse);
-                        break;
-                    case astnodes_13.Dict:
-                        this.SEQExpr(e.keys);
-                        this.SEQExpr(e.values);
-                        break;
-                    case astnodes_30.ListComp:
-                        this.newTmpname(e.lineno);
-                        this.visitExpr(e.elt);
-                        this.visitComprehension(e.generators, 0);
-                        break;
-                    case astnodes_20.GeneratorExp:
-                        this.visitGenexp(e);
-                        break;
-                    case astnodes_48.Yield:
-                        if (e.value)
-                            this.visitExpr(e.value);
-                        this.cur.generator = true;
-                        if (this.cur.returnsValue) {
-                            throw syntaxError_1.default("'return' with argument inside generator", this.fileName);
-                        }
-                        break;
-                    case astnodes_10.Compare:
-                        this.visitExpr(e.left);
-                        this.SEQExpr(e.comparators);
-                        break;
-                    case astnodes_8.Call:
-                        this.visitExpr(e.func);
-                        this.SEQExpr(e.args);
-                        for (var i = 0; i < e.keywords.length; ++i)
-                            this.visitExpr(e.keywords[i].value);
-                        //print(JSON.stringify(e.starargs, null, 2));
-                        //print(JSON.stringify(e.kwargs, null,2));
-                        if (e.starargs)
-                            this.visitExpr(e.starargs);
-                        if (e.kwargs)
-                            this.visitExpr(e.kwargs);
-                        break;
-                    case astnodes_32.Num:
-                    case astnodes_40.Str:
-                        break;
-                    case astnodes_3.Attribute:
-                        this.visitExpr(e.value);
-                        break;
-                    case astnodes_41.Subscript:
-                        this.visitExpr(e.value);
-                        this.visitSlice(e.slice);
-                        break;
-                    case astnodes_31.Name:
-                        this.addDef(e.id, e.ctx === astnodes_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.lineno);
-                        break;
-                    case astnodes_29.List:
-                    case astnodes_44.Tuple:
-                        this.SEQExpr(e.elts);
-                        break;
-                    default:
-                        asserts_1.fail("Unhandled type " + e.constructor.name + " in visitExpr");
-                }
-            };
-            this.visitComprehension = function (lcs, startAt) {
-                var len = lcs.length;
-                for (var i = startAt; i < len; ++i) {
-                    var lc = lcs[i];
-                    this.visitExpr(lc.target);
-                    this.visitExpr(lc.iter);
-                    this.SEQExpr(lc.ifs);
-                }
-            };
             /**
              * This is probably not correct for names. What are they?
              * @param {Array.<Object>} names
@@ -7052,7 +6952,7 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                 }
             };
             /**
-             * @param {Object} ste The Symbol Table Scope.
+             * @param {SymbolTableScope} ste The Symbol Table Scope.
              */
             this.analyzeBlock = function (ste, bound, free, global) {
                 var local = {};
@@ -7060,7 +6960,7 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                 var newglobal = {};
                 var newbound = {};
                 var newfree = {};
-                if (ste.blockType == SymbolConstants_2.ClassBlock) {
+                if (ste.blockType === SymbolConstants_2.ClassBlock) {
                     dictUpdate_1.default(newglobal, global);
                     if (bound)
                         dictUpdate_1.default(newbound, bound);
@@ -7123,7 +7023,6 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                     symbols[name] = flags;
                 }
                 var freeValue = SymbolConstants_9.FREE << SymbolConstants_16.SCOPE_OFF;
-                var pos = 0;
                 for (var name in free) {
                     var o = symbols[name];
                     if (o !== undefined) {
@@ -7233,7 +7132,7 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
             }
         };
         SymbolTable.prototype.exitBlock = function () {
-            //print("exitBlock");
+            // print("exitBlock");
             this.cur = null;
             if (this.stack.length > 0)
                 this.cur = this.stack.pop();
@@ -7266,6 +7165,7 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
         };
         /**
          * @param {number} lineno
+         * @return {void}
          */
         SymbolTable.prototype.newTmpname = function (lineno) {
             this.addDef("_[" + (++this.tmpname) + "]", SymbolConstants_7.DEF_LOCAL, lineno);
@@ -7274,6 +7174,7 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
          * @param {string} name
          * @param {number} flag
          * @param {number} lineno
+         * @return {void}
          */
         SymbolTable.prototype.addDef = function (name, flag, lineno) {
             var mangled = mangleName_1.default(this.curClass, name);
@@ -7468,30 +7369,133 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
                     asserts_1.fail("Unhandled type " + s.constructor.name + " in visitStmt");
             }
         };
+        SymbolTable.prototype.visitExpr = function (e) {
+            asserts_1.assert(e !== undefined, "visitExpr called with undefined");
+            // print("  e: ", e.constructor.name);
+            switch (e.constructor) {
+                case astnodes_6.BoolOp:
+                    this.SEQExpr(e.values);
+                    break;
+                case astnodes_5.BinOp:
+                    this.visitExpr(e.left);
+                    this.visitExpr(e.right);
+                    break;
+                case astnodes_45.UnaryOp:
+                    this.visitExpr(e.operand);
+                    break;
+                case astnodes_27.Lambda:
+                    this.addDef("lambda", SymbolConstants_7.DEF_LOCAL, e.lineno);
+                    if (e.args.defaults)
+                        this.SEQExpr(e.args.defaults);
+                    this.enterBlock("lambda", SymbolConstants_10.FunctionBlock, e, e.lineno);
+                    this.visitArguments(e.args, e.lineno);
+                    this.visitExpr(e.body);
+                    this.exitBlock();
+                    break;
+                case astnodes_23.IfExp:
+                    this.visitExpr(e.test);
+                    this.visitExpr(e.body);
+                    this.visitExpr(e.orelse);
+                    break;
+                case astnodes_13.Dict:
+                    this.SEQExpr(e.keys);
+                    this.SEQExpr(e.values);
+                    break;
+                case astnodes_30.ListComp:
+                    this.newTmpname(e.lineno);
+                    this.visitExpr(e.elt);
+                    this.visitComprehension(e.generators, 0);
+                    break;
+                case astnodes_20.GeneratorExp:
+                    this.visitGenexp(e);
+                    break;
+                case astnodes_48.Yield:
+                    if (e.value)
+                        this.visitExpr(e.value);
+                    this.cur.generator = true;
+                    if (this.cur.returnsValue) {
+                        throw syntaxError_1.default("'return' with argument inside generator", this.fileName);
+                    }
+                    break;
+                case astnodes_10.Compare:
+                    this.visitExpr(e.left);
+                    this.SEQExpr(e.comparators);
+                    break;
+                case astnodes_8.Call:
+                    this.visitExpr(e.func);
+                    this.SEQExpr(e.args);
+                    for (var i = 0; i < e.keywords.length; ++i)
+                        this.visitExpr(e.keywords[i].value);
+                    // print(JSON.stringify(e.starargs, null, 2));
+                    // print(JSON.stringify(e.kwargs, null,2));
+                    if (e.starargs)
+                        this.visitExpr(e.starargs);
+                    if (e.kwargs)
+                        this.visitExpr(e.kwargs);
+                    break;
+                case astnodes_32.Num:
+                case astnodes_40.Str:
+                    break;
+                case astnodes_3.Attribute:
+                    this.visitExpr(e.value);
+                    break;
+                case astnodes_41.Subscript:
+                    this.visitExpr(e.value);
+                    this.visitSlice(e.slice);
+                    break;
+                case astnodes_31.Name:
+                    this.addDef(e.id, e.ctx === astnodes_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.lineno);
+                    break;
+                case astnodes_29.List:
+                case astnodes_44.Tuple:
+                    this.SEQExpr(e.elts);
+                    break;
+                default:
+                    asserts_1.fail("Unhandled type " + e.constructor.name + " in visitExpr");
+            }
+        };
+        SymbolTable.prototype.visitComprehension = function (lcs, startAt) {
+            var len = lcs.length;
+            for (var i = startAt; i < len; ++i) {
+                var lc = lcs[i];
+                this.visitExpr(lc.target);
+                this.visitExpr(lc.iter);
+                this.SEQExpr(lc.ifs);
+            }
+        };
         return SymbolTable;
     }());
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = SymbolTable;
 });
 
-define('pytools/symtable',["require", "exports", './SymbolTable', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, SymbolTable_1, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7) {
+define('pytools/symtable',["require", "exports", './SymbolTable', './SymbolConstants'], function (require, exports, SymbolTable_1, SymbolConstants_1) {
     "use strict";
     /**
+     * @methdod symbolTable
      * @param {Object} ast
      * @param {string} fileName
+     * @return {SymbolTable}
      */
-    var symbolTable = function (ast, fileName) {
-        var ret = new SymbolTable_1.default(fileName);
-        ret.enterBlock("top", SymbolConstants_7.ModuleBlock, ast, 0);
-        ret.top = ret.cur;
-        //print(Sk.astDump(ast));
-        for (var i = 0; i < ast.body.length; ++i)
-            ret.visitStmt(ast.body[i]);
-        ret.exitBlock();
-        ret.analyze();
-        return ret;
-    };
-    var dumpSymbolTable = function (st) {
+    function symbolTable(ast, fileName) {
+        var st = new SymbolTable_1.default(fileName);
+        st.enterBlock("top", SymbolConstants_1.ModuleBlock, ast, 0);
+        st.top = st.cur;
+        // This is a good place to fump the AST for debugging.
+        for (var i = 0; i < ast.body.length; ++i) {
+            st.visitStmt(ast.body[i]);
+        }
+        st.exitBlock();
+        st.analyze();
+        return st;
+    }
+    exports.symbolTable = symbolTable;
+    /**
+     * @method dumpSymbolTable
+     * @param st {SymbolTable}
+     * @return {string}
+     */
+    function dumpSymbolTable(st) {
         var pyBoolStr = function (b) {
             return b ? "True" : "False";
         };
@@ -7550,19 +7554,9 @@ define('pytools/symtable',["require", "exports", './SymbolTable', './SymbolConst
             return ret;
         };
         return getIdents(st.top, '');
-    };
-    var that = {
-        symbolTable: symbolTable,
-        LOCAL: SymbolConstants_6.LOCAL,
-        GLOBAL_EXPLICIT: SymbolConstants_4.GLOBAL_EXPLICIT,
-        GLOBAL_IMPLICIT: SymbolConstants_5.GLOBAL_IMPLICIT,
-        FREE: SymbolConstants_2.FREE,
-        CELL: SymbolConstants_1.CELL,
-        FunctionBlock: SymbolConstants_3.FunctionBlock,
-        dumpSymbolTable: dumpSymbolTable
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.default = that;
+    }
+    exports.dumpSymbolTable = dumpSymbolTable;
+    ;
 });
 
 define('pytools/toStringLiteralJS',["require", "exports"], function (require, exports) {
@@ -7607,6 +7601,13 @@ define('pytools/toStringLiteralJS',["require", "exports"], function (require, ex
 
 define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './builder', './reservedNames', './reservedWords', './symtable', './toStringLiteralJS', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './astnodes', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, astnodes_1, astnodes_2, astnodes_3, astnodes_4, astnodes_5, astnodes_6, astnodes_7, astnodes_8, astnodes_9, astnodes_10, astnodes_11, astnodes_12, astnodes_13, astnodes_14, astnodes_15, astnodes_16, astnodes_17, astnodes_18, astnodes_19, astnodes_20, astnodes_21, astnodes_22, astnodes_23, astnodes_24, astnodes_25, astnodes_26, astnodes_27, astnodes_28, astnodes_29, astnodes_30, astnodes_31, astnodes_32, astnodes_33, astnodes_34, astnodes_35, astnodes_36, astnodes_37, astnodes_38, astnodes_39, astnodes_40, astnodes_41, astnodes_42, astnodes_43, astnodes_44, astnodes_45, astnodes_46, astnodes_47, astnodes_48, astnodes_49, astnodes_50, astnodes_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
     "use strict";
+    var OP_FAST = 0;
+    var OP_GLOBAL = 1;
+    var OP_DEREF = 2;
+    var OP_NAME = 3;
+    // const D_NAMES = 0;
+    // const D_FREEVARS = 1;
+    // const D_CELLVARS = 2;
     /**
      * The output function is scoped at the module level so that it is available without being a parameter.
      * @param {...*} x
@@ -7731,6 +7732,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             return this.gensym(roughName.replace("<", "").replace(">", "").replace(" ", "_"));
         };
         /**
+         * @method _gr
          * @param {string} hint basename for gensym
          * @param {...*} rest
          */
@@ -7744,9 +7746,9 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             return v;
         };
         /**
-        * Function to test if an interrupt should occur if the program has been running for too long.
-        * This function is executed at every test/branch operation.
-        */
+         * Function to test if an interrupt should occur if the program has been running for too long.
+         * This function is executed at every test/branch operation.
+         */
         Compiler.prototype._interruptTest = function () {
             out("if (typeof Sk.execStart === 'undefined') {Sk.execStart=new Date()}");
             out("if (Sk.execLimit !== null && new Date() - Sk.execStart > Sk.execLimit) {throw new Sk.builtin.TimeLimitError(Sk.timeoutMsg())}");
@@ -7806,7 +7808,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             // load targets
             var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
             this._jumpundef(nexti, anchor); // todo; this should be handled by StopIteration
-            var target = this.vexpr(l.target, nexti);
+            // var target = this.vexpr(l.target, nexti);
             var n = l.ifs.length;
             for (var i = 0; i < n; ++i) {
                 var ifres = this.vexpr(l.ifs[i]);
@@ -7928,7 +7930,6 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
         Compiler.prototype.cboolop = function (e) {
             asserts_1.assert(e instanceof astnodes_9.BoolOp);
             var jtype;
-            var ifFailed;
             if (e.op === astnodes_1.And)
                 jtype = this._jumpfalse;
             else
@@ -7965,7 +7966,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                 this.u.lineno = e.lineno;
                 this.u.linenoSet = false;
             }
-            //this.annotateSource(e);
+            // this.annotateSource(e);
             switch (e.constructor) {
                 case astnodes_9.BoolOp:
                     return this.cboolop(e);
@@ -8040,19 +8041,19 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                     }
                     break;
                 case astnodes_45.Subscript:
-                    var val;
                     switch (e.ctx) {
                         case astnodes_6.AugLoad:
                         case astnodes_33.Load:
                         case astnodes_43.Store:
                         case astnodes_15.Del:
                             return this.vslice(e.slice, e.ctx, this.vexpr(e.value), data);
-                        case astnodes_7.AugStore:
+                        case astnodes_7.AugStore: {
                             out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
-                            val = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
-                            this.vslice(e.slice, e.ctx, val, data);
+                            var val_1 = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
+                            this.vslice(e.slice, e.ctx, val_1, data);
                             out("}");
                             break;
+                        }
                         case astnodes_37.Param:
                         default:
                             asserts_1.fail("invalid subscript expression");
@@ -8089,28 +8090,30 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             asserts_1.assert(s instanceof astnodes_5.AugAssign);
             var e = s.target;
             switch (e.constructor) {
-                case astnodes_4.Attribute:
+                case astnodes_4.Attribute: {
                     var auge = new astnodes_4.Attribute(e.value, e.attr, astnodes_6.AugLoad, e.lineno, e.col_offset);
                     var aug = this.vexpr(auge);
                     var val = this.vexpr(s.value);
                     var res = this._gr('inplbinopattr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
                     auge.ctx = astnodes_7.AugStore;
                     return this.vexpr(auge, res, e.value);
+                }
                 case astnodes_45.Subscript: {
                     // Only compile the subscript value once
                     var augsub = this.vslicesub(e.slice);
-                    var auge_1 = new astnodes_45.Subscript(e.value, augsub, astnodes_6.AugLoad, e.lineno, e.col_offset);
-                    var aug = this.vexpr(auge_1);
+                    var auge = new astnodes_45.Subscript(e.value, augsub, astnodes_6.AugLoad, e.lineno, e.col_offset);
+                    var aug = this.vexpr(auge);
                     var val = this.vexpr(s.value);
                     var res = this._gr('inplbinopsubscr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
-                    auge_1.ctx = astnodes_7.AugStore;
-                    return this.vexpr(auge_1, res, e.value);
+                    auge.ctx = astnodes_7.AugStore;
+                    return this.vexpr(auge, res, e.value);
                 }
-                case astnodes_35.Name:
+                case astnodes_35.Name: {
                     var to = this.nameop(e.id, astnodes_33.Load);
                     var val = this.vexpr(s.value);
                     var res = this._gr('inplbinop', "Sk.abstr.numberInplaceBinOp(", to, ",", val, ",'", s.op.prototype._astname, "')");
                     return this.nameop(e.id, astnodes_43.Store, res);
+                }
                 default:
                     asserts_1.fail("unhandled case in augassign");
             }
@@ -8174,7 +8177,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
         };
         Compiler.prototype.setupExcept = function (eb) {
             out("$exc.push(", eb, ");");
-            //this.pushExceptBlock(eb);
+            // this.pushExceptBlock(eb);
         };
         Compiler.prototype.endExcept = function () {
             out("$exc.pop();");
@@ -8289,7 +8292,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             // load targets
             var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
             this._jumpundef(nexti, cleanup); // todo; this should be handled by StopIteration
-            var target = this.vexpr(s.target, nexti);
+            // var target = this.vexpr(s.target, nexti);
             // execute body
             this.vseqstmt(s.body);
             // jump to top of loop
@@ -8355,7 +8358,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                 if (handler.type) {
                     // should jump to next handler if err not isinstance of handler.type
                     var handlertype = this.vexpr(handler.type);
-                    var next = (i == n - 1) ? unhandled : handlers[i + 1];
+                    var next = (i === n - 1) ? unhandled : handlers[i + 1];
                     // this check is not right, should use isinstance, but exception objects
                     // are not yet proper Python objects
                     var check = this._gr('instance', "$err instanceof ", handlertype);
@@ -8753,7 +8756,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
         Compiler.prototype.cgenexpgen = function (generators, genIndex, elt) {
             var start = this.newBlock('start for ' + genIndex);
             var skip = this.newBlock('skip for ' + genIndex);
-            var ifCleanup = this.newBlock('if cleanup for ' + genIndex);
+            // var ifCleanup = this.newBlock('if cleanup for ' + genIndex);
             var end = this.newBlock('end for ' + genIndex);
             var ge = generators[genIndex];
             var iter;
@@ -8773,7 +8776,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             // load targets
             var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
             this._jumpundef(nexti, end); // todo; this should be handled by StopIteration
-            var target = this.vexpr(ge.target, nexti);
+            // var target = this.vexpr(ge.target, nexti);
             var n = ge.ifs.length;
             for (var i = 0; i < n; ++i) {
                 var ifres = this.vexpr(ge.ifs[i]);
@@ -8808,9 +8811,9 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
         };
         Compiler.prototype.cclass = function (s) {
             asserts_1.assert(s instanceof astnodes_12.ClassDef);
-            var decos = s.decorator_list;
+            // var decos = s.decorator_list;
             // decorators and bases need to be eval'd out here
-            //this.vseqexpr(decos);
+            // this.vseqexpr(decos);
             var bases = this.vseqexpr(s.bases);
             /**
              * @const
@@ -8918,7 +8921,6 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
         Compiler.prototype.isCell = function (name) {
             var mangled = mangleName(this.u.private_, name);
             var scope = this.u.ste.getScope(mangled);
-            var dict = null;
             if (scope === SymbolConstants_5.CELL)
                 return true;
             return false;
@@ -8943,7 +8945,6 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
                 return "Sk.ffi.bool.False";
             // Have to do this before looking it up in the scope
             var mangled = mangleName(this.u.private_, name);
-            var op = 0;
             var optype = OP_NAME;
             var scope = this.u.ste.getScope(mangled);
             var dict = null;
@@ -8973,7 +8974,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
             // have to do this after looking it up in the scope
             mangled = fixReservedNames(mangled);
             mangled = fixReservedWords(mangled);
-            //print("mangled", mangled);
+            // print("mangled", mangled);
             // TODO TODO TODO todo; import * at global scope failing here
             asserts_1.assert(scope || name.charAt(1) === '_');
             // in generator or at module scope, we need to store to $loc, rather that
@@ -9170,13 +9171,6 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
         strpriv.replace(/^_*/, '');
         return '_' + strpriv + name;
     }
-    var OP_FAST = 0;
-    var OP_GLOBAL = 1;
-    var OP_DEREF = 2;
-    var OP_NAME = 3;
-    var D_NAMES = 0;
-    var D_FREEVARS = 1;
-    var D_CELLVARS = 2;
     /**
      * @param {string} source the code
      * @param {string} fileName where it came from
@@ -9186,7 +9180,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
     function compile(source, fileName) {
         var cst = parser_1.parse(fileName, source);
         var ast = builder_1.astFromParse(cst, fileName);
-        var st = symtable_1.default.symbolTable(ast, fileName);
+        var st = symtable_1.symbolTable(ast, fileName);
         var c = new Compiler(fileName, st, 0, source);
         return { 'funcname': c.cmod(ast), 'code': c.result.join('') };
     }

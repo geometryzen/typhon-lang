@@ -53,7 +53,7 @@ define(["require", "exports", './asserts', './Symbol', './SymbolConstants', './S
             return sym;
         };
         SymbolTableScope.prototype.__check_children = function (name) {
-            //print("  check_children:", name);
+            // print("  check_children:", name);
             var ret = [];
             for (var i = 0; i < this.children.length; ++i) {
                 var child = this.children[i];
@@ -118,8 +118,8 @@ define(["require", "exports", './asserts', './Symbol', './SymbolConstants', './S
             return this._classMethods;
         };
         SymbolTableScope.prototype.getScope = function (name) {
-            //print("getScope");
-            //for (var k in this.symFlags) print(k);
+            // print("getScope");
+            // for (var k in this.symFlags) print(k);
             var v = this.symFlags[name];
             if (v === undefined)
                 return 0;

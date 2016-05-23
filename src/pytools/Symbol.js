@@ -19,10 +19,10 @@ define(["require", "exports", './SymbolConstants', './SymbolConstants', './Symbo
             return !!(this.__flags & SymbolConstants_4.DEF_PARAM);
         };
         Symbol.prototype.is_global = function () {
-            return this.__scope === SymbolConstants_7.GLOBAL_IMPLICIT || this.__scope == SymbolConstants_6.GLOBAL_EXPLICIT;
+            return this.__scope === SymbolConstants_7.GLOBAL_IMPLICIT || this.__scope === SymbolConstants_6.GLOBAL_EXPLICIT;
         };
         Symbol.prototype.is_declared_global = function () {
-            return this.__scope == SymbolConstants_6.GLOBAL_EXPLICIT;
+            return this.__scope === SymbolConstants_6.GLOBAL_EXPLICIT;
         };
         Symbol.prototype.is_local = function () {
             return !!(this.__flags & SymbolConstants_1.DEF_BOUND);

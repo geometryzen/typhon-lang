@@ -54,22 +54,21 @@ class Parser {
     setup(start) {
         start = start || this.grammar.start;
 
-        var newnode =
-            {
-                type: start,
-                value: null,
-                context: null,
-                children: []
-            };
-        var stackentry =
-            {
-                dfa: this.grammar.dfas[start],
-                state: 0,
-                node: newnode
-            };
+        const newnode = {
+            type: start,
+            value: null,
+            context: null,
+            children: []
+        };
+        const stackentry = {
+            dfa: this.grammar.dfas[start],
+            state: 0,
+            node: newnode
+        };
         this.stack = [stackentry];
         this.used_names = {};
     }
+
     // Add a token; return true if we're done
     addtoken(type, value, context) {
         var ilabel = this.classify(type, value, context);
@@ -86,7 +85,7 @@ class Parser {
                 var i = arcs[a][0];
                 var newstate = arcs[a][1];
                 var t = this.grammar.labels[i][0];
-                var v = this.grammar.labels[i][1];
+                // var v = this.grammar.labels[i][1];
                 if (ilabel === i) {
                     // look it up in the list of labels
                     assert(t < 256);
@@ -154,16 +153,15 @@ class Parser {
     // shift a token
     shift(type, value, newstate, context) {
         var dfa = this.stack[this.stack.length - 1].dfa;
-        var state = this.stack[this.stack.length - 1].state;
+        // var state = this.stack[this.stack.length - 1].state;
         var node = this.stack[this.stack.length - 1].node;
-        var newnode =
-            {
-                type: type,
-                value: value,
-                lineno: context[0][0],
-                col_offset: context[0][1],
-                children: null
-            };
+        const newnode = {
+            type: type,
+            value: value,
+            lineno: context[0][0],
+            col_offset: context[0][1],
+            children: null
+        };
         if (newnode) {
             node.children.push(newnode);
         }
@@ -217,9 +215,6 @@ function findInDfa(a, obj) {
     return false;
 }
 
-//var ac = 0;
-//var bc = 0;
-
 /**
  * parser for interactive input. returns a function that should be called with
  * lines of input as they are entered. the function will return false
@@ -237,7 +232,6 @@ function makeParser(filename: string, style?: string) {
         p.setup(ParseTables.sym.file_input);
     else
         fail("TODO");
-    var curIndex = 0;
     var lineno = 1;
     var column = 0;
     var prefix = "";
@@ -245,8 +239,8 @@ function makeParser(filename: string, style?: string) {
     var T_NL = Tokens.T_NL;
     var T_OP = Tokens.T_OP;
     var tokenizer = new Tokenizer(filename, style === "single_input", function(type, value, start, end, line) {
-        var s_lineno = start[0];
-        var s_column = start[1];
+        // var s_lineno = start[0];
+        // var s_column = start[1];
         /*
         if (s_lineno !== lineno && s_column !== column)
         {
@@ -293,10 +287,10 @@ export function parse(filename: string, input: string) {
     return ret;
 }
 
-export function parseTreeDump(n) {
+export function parseTreeDump(n): string {
     var ret = "";
-    if (n.type >= 256) // non-term
-    {
+    // non-term
+    if (n.type >= 256) {
         ret += ParseTables.number2symbol[n.type] + "\n";
         for (var i = 0; i < n.children.length; ++i) {
             ret += parseTreeDump(n.children[i]);

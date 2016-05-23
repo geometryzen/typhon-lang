@@ -1,5 +1,4 @@
-const that =
-    {
-        VERSION: '0.9.247'
-    };
+const that = {
+    VERSION: '0.1.0'
+};
 export default that;

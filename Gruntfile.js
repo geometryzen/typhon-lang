@@ -45,6 +45,17 @@ module.exports = function(grunt) {
                 }
             }
         },
+
+        tslint: {
+            src: [
+                'src/pytools/**/*.ts',
+                'src/pytools.ts'
+            ],
+            options: {
+                configuration: 'tslint.json'
+            }
+        },
+
         // run jasmine tests any time watched files change
         watch: {
             files: ['src/**/*', 'test/spec/**/*'],
@@ -69,7 +80,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-tslint');
 
     // Make task shortcuts
-    grunt.registerTask('default', ['test', 'requirejs', 'uglify']);
+    grunt.registerTask('default', [/*'tslint',*/ 'test', 'requirejs', 'uglify']);
     grunt.registerTask('test', ['connect:test', 'jasmine']);
 
 };

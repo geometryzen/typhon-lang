@@ -34,7 +34,7 @@ export default class Tokenizer {
     endprog: RegExp;
     strstart: number[];
     interactive: any;
-    doneFunc: ()=>any;
+    doneFunc: () => any;
     /**
      * Not sure who needs this yet.
      */
@@ -44,8 +44,7 @@ export default class Tokenizer {
      * @constructor
      * @param {string} fileName
      */
-    constructor(fileName: string, interactive, callback)
-    {
+    constructor(fileName: string, interactive, callback) {
         assert(isString(fileName), "fileName must be a string");
         this.fileName = fileName;
         this.callback = callback;
@@ -61,10 +60,8 @@ export default class Tokenizer {
         this.endprog = /.*/;
         this.strstart = [-1,-1];
         this.interactive = interactive;
-        this.doneFunc = function()
-        {
-            for (var i = 1; i < this.indents.length; ++i) // pop remaining indent levels
-            {
+        this.doneFunc = function() {
+            for (var i = 1; i < this.indents.length; ++i) {
                 if (this.callback(Tokens.T_DEDENT, '', [this.lnum, 0], [this.lnum, 0], '')) return 'done';
             }
             if (this.callback(Tokens.T_ENDMARKER, '', [this.lnum, 0], [this.lnum, 0], '')) return 'done';
@@ -78,8 +75,7 @@ export default class Tokenizer {
      * @param line {string}
      * @return {boolean | string} 'done' or true?
      */
-    generateTokens(line: string): boolean | string
-    {
+    generateTokens(line: string): boolean | string {
         var endmatch, pos, column, end, max;
 
 
@@ -118,16 +114,13 @@ export default class Tokenizer {
         pos = 0;
         max = line.length;
 
-        if (this.contstr.length > 0)
-        {
-            if (!line)
-            {
+        if (this.contstr.length > 0) {
+            if (!line) {
                 throw new TokenError("EOF in multi-line string", this.fileName, this.strstart[0], this.strstart[1]);
             }
             this.endprog.lastIndex = 0;
             endmatch = this.endprog.test(line);
-            if (endmatch)
-            {
+            if (endmatch) {
                 pos = end = this.endprog.lastIndex;
                 if (this.callback(Tokens.T_STRING, this.contstr + line.substring(0,end),
                             this.strstart, [this.lnum, end], this.contline + line))
@@ -136,42 +129,35 @@ export default class Tokenizer {
                 this.needcont = false;
                 this.contline = undefined;
             }
-            else if (this.needcont && line.substring(line.length - 2) !== "\\\n" && line.substring(line.length - 3) !== "\\\r\n")
-            {
+            else if (this.needcont && line.substring(line.length - 2) !== "\\\n" && line.substring(line.length - 3) !== "\\\r\n") {
                 if (this.callback(Tokens.T_ERRORTOKEN, this.contstr + line,
-                            this.strstart, [this.lnum, line.length], this.contline))
-                {
+                            this.strstart, [this.lnum, line.length], this.contline)) {
                     return 'done';
                 }
                 this.contstr = '';
                 this.contline = undefined;
                 return false;
             }
-            else
-            {
+            else {
                 this.contstr += line;
                 this.contline = this.contline + line;
                 return false;
             }
         }
-        else if (this.parenlev === 0 && !this.continued)
-        {
+        else if (this.parenlev === 0 && !this.continued) {
             if (!line) return this.doneFunc();
             column = 0;
-            while (pos < max)
-            {
+            while (pos < max) {
                 if (line.charAt(pos) === ' ') column += 1;
-                else if (line.charAt(pos) === '\t') column = (column/tabsize + 1)*tabsize;
+                else if (line.charAt(pos) === '\t') column = (column / tabsize + 1) * tabsize;
                 else if (line.charAt(pos) === '\f') column = 0;
                 else break;
                 pos = pos + 1;
             }
             if (pos === max) return this.doneFunc();
 
-            if ("#\r\n".indexOf(line.charAt(pos)) !== -1) // skip comments or blank lines
-            {
-                if (line.charAt(pos) === '#')
-                {
+            if ("#\r\n".indexOf(line.charAt(pos)) !== -1) {
+                if (line.charAt(pos) === '#') {
                     var comment_token = rstrip(line.substring(pos), '\r\n');
                     var nl_pos = pos + comment_token.length;
                     if (this.callback(Tokens.T_COMMENT, comment_token,
@@ -182,8 +168,7 @@ export default class Tokenizer {
                         return 'done';
                     return false;
                 }
-                else
-                {
+                else {
                     if (this.callback(Tokens.T_NL, line.substring(pos),
                                 [this.lnum, pos], [this.lnum, line.length], line))
                         return 'done';
@@ -191,49 +176,40 @@ export default class Tokenizer {
                 }
             }
 
-            if (column > this.indents[this.indents.length - 1]) // count indents or dedents
-            {
+            if (column > this.indents[this.indents.length - 1]) {
                 this.indents.push(column);
                 if (this.callback(Tokens.T_INDENT, line.substring(0, pos), [this.lnum, 0], [this.lnum, pos], line))
                     return 'done';
             }
-            while (column < this.indents[this.indents.length - 1])
-            {
-                if (!contains(this.indents, column))
-                {
+            while (column < this.indents[this.indents.length - 1]) {
+                if (!contains(this.indents, column)) {
                     throw indentationError("unindent does not match any outer indentation level", this.fileName, [this.lnum, 0], [this.lnum, pos], line);
                 }
                 this.indents.splice(this.indents.length - 1, 1);
-                if (this.callback(Tokens.T_DEDENT, '', [this.lnum, pos], [this.lnum, pos], line))
-                {
+                if (this.callback(Tokens.T_DEDENT, '', [this.lnum, pos], [this.lnum, pos], line)) {
                     return 'done';
                 }
             }
         }
-        else // continued statement
-        {
-            if (!line)
-            {
+        else {
+            if (!line) {
                 throw new TokenError("EOF in multi-line statement", this.fileName, this.lnum, 0);
             }
             this.continued = false;
         }
 
-        while (pos < max)
-        {
+        while (pos < max) {
             // js regexes don't return any info about matches, other than the
             // content. we'd like to put a \w+ before pseudomatch, but then we
             // can't get any data
             var capos = line.charAt(pos);
-            while (capos === ' ' || capos === '\f' || capos === '\t')
-            {
+            while (capos === ' ' || capos === '\f' || capos === '\t') {
                 pos += 1;
                 capos = line.charAt(pos);
             }
             pseudoprog.lastIndex = 0;
             var pseudomatch = pseudoprog.exec(line.substring(pos));
-            if (pseudomatch)
-            {
+            if (pseudomatch) {
                 var start = pos;
                 end = start + pseudomatch[1].length;
                 var spos = [this.lnum, start];
@@ -241,33 +217,27 @@ export default class Tokenizer {
                 pos = end;
                 var token = line.substring(start, end);
                 var initial = line.charAt(start);
-                if (this.numchars.indexOf(initial) !== -1 || (initial === '.' && token !== '.'))
-                {
+                if (this.numchars.indexOf(initial) !== -1 || (initial === '.' && token !== '.')) {
                     if (this.callback(Tokens.T_NUMBER, token, spos, epos, line)) return 'done';
                 }
-                else if (initial === '\r' || initial === '\n')
-                {
+                else if (initial === '\r' || initial === '\n') {
                     var newl = Tokens.T_NEWLINE;
                     if (this.parenlev > 0) newl = Tokens.T_NL;
                     if (this.callback(newl, token, spos, epos, line)) return 'done';
                 }
-                else if (initial === '#')
-                {
+                else if (initial === '#') {
                     if (this.callback(Tokens.T_COMMENT, token, spos, epos, line)) return 'done';
                 }
-                else if (triple_quoted.hasOwnProperty(token))
-                {
+                else if (triple_quoted.hasOwnProperty(token)) {
                     this.endprog = endprogs[token];
                     this.endprog.lastIndex = 0;
                     endmatch = this.endprog.test(line.substring(pos));
-                    if (endmatch)
-                    {
+                    if (endmatch) {
                         pos = this.endprog.lastIndex + pos;
                         token = line.substring(start, pos);
                         if (this.callback(Tokens.T_STRING, token, spos, [this.lnum, pos], line)) return 'done';
                     }
-                    else
-                    {
+                    else {
                         this.strstart = [this.lnum, start];
                         this.contstr = line.substring(start);
                         this.contline = line;
@@ -278,8 +248,7 @@ export default class Tokenizer {
                         single_quoted.hasOwnProperty(token.substring(0, 2)) ||
                         single_quoted.hasOwnProperty(token.substring(0, 3)))
                 {
-                    if (token[token.length - 1] === '\n')
-                    {
+                    if (token[token.length - 1] === '\n') {
                         this.strstart = [this.lnum, start];
                         this.endprog = endprogs[initial] || endprogs[token[1]] || endprogs[token[2]];
                         this.contstr = line.substring(start);
@@ -287,31 +256,26 @@ export default class Tokenizer {
                         this.contline = line;
                         return false;
                     }
-                    else
-                    {
+                    else {
                         if (this.callback(Tokens.T_STRING, token, spos, epos, line)) return 'done';
                     }
                 }
-                else if (this.namechars.indexOf(initial) !== -1)
-                {
+                else if (this.namechars.indexOf(initial) !== -1) {
                     if (this.callback(Tokens.T_NAME, token, spos, epos, line)) return 'done';
                 }
-                else if (initial === '\\')
-                {
+                else if (initial === '\\') {
                     if (this.callback(Tokens.T_NL, token, spos, [this.lnum, pos], line)) return 'done';
                     this.continued = true;
                 }
-                else
-                {
+                else {
                     if ('([{'.indexOf(initial) !== -1) this.parenlev += 1;
                     else if (')]}'.indexOf(initial) !== -1) this.parenlev -= 1;
                     if (this.callback(Tokens.T_OP, token, spos, epos, line)) return 'done';
                 }
             }
-            else
-            {
+            else {
                 if (this.callback(Tokens.T_ERRORTOKEN, line.charAt(pos),
-                            [this.lnum, pos], [this.lnum, pos+1], line))
+                            [this.lnum, pos], [this.lnum, pos + 1], line))
                     return 'done';
                 pos += 1;
             }
@@ -321,155 +285,142 @@ export default class Tokenizer {
     }
 }
 
+/** @param {...*} x */
+function group(x, arg1?: string, arg2?: string, arg3?: string, arg4?: string, arg5?: string, arg6?: string, arg7?: string, arg8?: string, arg9?: string) {
+    var args = Array.prototype.slice.call(arguments);
+    return '(' + args.join('|') + ')'; 
+}
 
-    /** @param {...*} x */
-    function group(x, arg1?: string, arg2?: string, arg3?: string, arg4?: string, arg5?: string, arg6?: string, arg7?: string, arg8?: string, arg9?: string)
-    {
-        var args = Array.prototype.slice.call(arguments);
-        return '(' + args.join('|') + ')'; 
+/** @param {...*} x */
+function any(x) { return group.apply(null, arguments) + "*"; }
+
+/** @param {...*} x */
+function maybe(x) { return group.apply(null, arguments) + "?"; }
+
+/* we have to use string and ctor to be able to build patterns up. + on /.../
+    * does something strange. */
+const Whitespace = "[ \\f\\t]*";
+const Comment_ = "#[^\\r\\n]*";
+const Ident = "[a-zA-Z_]\\w*";
+
+const Binnumber = '0[bB][01]*';
+const Hexnumber = '0[xX][\\da-fA-F]*[lL]?';
+const Octnumber = '0[oO]?[0-7]*[lL]?';
+const Decnumber = '[1-9]\\d*[lL]?';
+const Intnumber = group(Binnumber, Hexnumber, Octnumber, Decnumber);
+
+const Exponent = "[eE][-+]?\\d+";
+const Pointfloat = group("\\d+\\.\\d*", "\\.\\d+") + maybe(Exponent);
+const Expfloat = '\\d+' + Exponent;
+const Floatnumber = group(Pointfloat, Expfloat);
+const Imagnumber = group("\\d+[jJ]", Floatnumber + "[jJ]");
+const Number_ = group(Imagnumber, Floatnumber, Intnumber);
+
+// tail end of ' string
+const Single = "^[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
+// tail end of " string
+const Double_= '^[^"\\\\]*(?:\\\\.[^"\\\\]*)*"';
+// tail end of ''' string
+const Single3 = "[^'\\\\]*(?:(?:\\\\.|'(?!''))[^'\\\\]*)*'''";
+// tail end of """ string
+const Double3 = '[^"\\\\]*(?:(?:\\\\.|"(?!""))[^"\\\\]*)*"""';
+const Triple = group("[ubUB]?[rR]?'''", '[ubUB]?[rR]?"""');
+const String_ = group("[uU]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*'",
+        '[uU]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*"');
+
+// Because of leftmost-then-longest match semantics, be sure to put the
+// longest operators first (e.g., if = came before ==, == would get
+// recognized as two instances of =).
+const Operator = group("\\*\\*=?", ">>=?", "<<=?", "<>", "!=",
+                    "//=?", "->",
+                    "[+\\-*/%&|^=<>]=?",
+                    "~");
+
+const Bracket = '[\\][(){}]';
+const Special = group('\\r?\\n', '[:;.,`@]');
+const Funny  = group(Operator, Bracket, Special);
+
+const ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
+                group("'", '\\\\\\r?\\n'),
+                '[uUbB]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*' +
+                group('"', '\\\\\\r?\\n'));
+const PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
+// Need to prefix with "^" as we only want to match what's next
+const PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
+
+let pseudoprog;
+let single3prog;
+let double3prog;
+const endprogs = {};
+
+const triple_quoted = {
+"'''": true, '"""': true,
+"r'''": true, 'r"""': true, "R'''": true, 'R"""': true,
+"u'''": true, 'u"""': true, "U'''": true, 'U"""': true,
+"b'''": true, 'b"""': true, "B'''": true, 'B"""': true,
+"ur'''": true, 'ur"""': true, "Ur'''": true, 'Ur"""': true,
+"uR'''": true, 'uR"""': true, "UR'''": true, 'UR"""': true,
+"br'''": true, 'br"""': true, "Br'''": true, 'Br"""': true,
+"bR'''": true, 'bR"""': true, "BR'''": true, 'BR"""': true
+};
+
+const single_quoted = {
+"'": true, '"': true,
+"r'": true, 'r"': true, "R'": true, 'R"': true,
+"u'": true, 'u"': true, "U'": true, 'U"': true,
+"b'": true, 'b"': true, "B'": true, 'B"': true,
+"ur'": true, 'ur"': true, "Ur'": true, 'Ur"': true,
+"uR'": true, 'uR"': true, "UR'": true, 'UR"': true,
+"br'": true, 'br"': true, "Br'": true, 'Br"': true,
+"bR'": true, 'bR"': true, "BR'": true, 'BR"': true
+};
+
+// hack to make closure keep those objects. not sure what a better way is.
+(function() {
+    for (var k in triple_quoted) {/* */}
+    for (var k in single_quoted) {/* */}
+    }());
+
+
+const tabsize = 8;
+
+function contains(a, obj) {
+    var i = a.length;
+    while (i--) {
+        if (a[i] === obj) {
+            return true;
+        }
     }
+    return false;
+}
 
-    /** @param {...*} x */
-    function any(x) { return group.apply(null, arguments) + "*"; }
-
-    /** @param {...*} x */
-    function maybe(x) { return group.apply(null, arguments) + "?"; }
-
-    /* we have to use string and ctor to be able to build patterns up. + on /.../
-     * does something strange. */
-    var Whitespace = "[ \\f\\t]*";
-    var Comment_ = "#[^\\r\\n]*";
-    var Ident = "[a-zA-Z_]\\w*";
-
-    var Binnumber = '0[bB][01]*';
-    var Hexnumber = '0[xX][\\da-fA-F]*[lL]?';
-    var Octnumber = '0[oO]?[0-7]*[lL]?';
-    var Decnumber = '[1-9]\\d*[lL]?';
-    var Intnumber = group(Binnumber, Hexnumber, Octnumber, Decnumber);
-
-    var Exponent = "[eE][-+]?\\d+";
-    var Pointfloat = group("\\d+\\.\\d*", "\\.\\d+") + maybe(Exponent);
-    var Expfloat = '\\d+' + Exponent;
-    var Floatnumber = group(Pointfloat, Expfloat);
-    var Imagnumber = group("\\d+[jJ]", Floatnumber + "[jJ]");
-    var Number_ = group(Imagnumber, Floatnumber, Intnumber);
-
-    // tail end of ' string
-    var Single = "^[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
-    // tail end of " string
-    var Double_= '^[^"\\\\]*(?:\\\\.[^"\\\\]*)*"';
-    // tail end of ''' string
-    var Single3 = "[^'\\\\]*(?:(?:\\\\.|'(?!''))[^'\\\\]*)*'''";
-    // tail end of """ string
-    var Double3 = '[^"\\\\]*(?:(?:\\\\.|"(?!""))[^"\\\\]*)*"""';
-    var Triple = group("[ubUB]?[rR]?'''", '[ubUB]?[rR]?"""');
-    var String_ = group("[uU]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*'",
-            '[uU]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*"');
-
-    // Because of leftmost-then-longest match semantics, be sure to put the
-    // longest operators first (e.g., if = came before ==, == would get
-    // recognized as two instances of =).
-    var Operator = group("\\*\\*=?", ">>=?", "<<=?", "<>", "!=",
-                     "//=?", "->",
-                     "[+\\-*/%&|^=<>]=?",
-                     "~");
-
-    var Bracket = '[\\][(){}]';
-    var Special = group('\\r?\\n', '[:;.,`@]');
-    var Funny  = group(Operator, Bracket, Special);
-
-    var ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
-                    group("'", '\\\\\\r?\\n'),
-                    '[uUbB]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*' +
-                    group('"', '\\\\\\r?\\n'));
-    var PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
-    // Need to prefix with "^" as we only want to match what's next
-    var PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
-
-    var pseudoprog;
-    var single3prog;
-    var double3prog;
-    var endprogs = {};
-
-    var triple_quoted = {
-    "'''": true, '"""': true,
-    "r'''": true, 'r"""': true, "R'''": true, 'R"""': true,
-    "u'''": true, 'u"""': true, "U'''": true, 'U"""': true,
-    "b'''": true, 'b"""': true, "B'''": true, 'B"""': true,
-    "ur'''": true, 'ur"""': true, "Ur'''": true, 'Ur"""': true,
-    "uR'''": true, 'uR"""': true, "UR'''": true, 'UR"""': true,
-    "br'''": true, 'br"""': true, "Br'''": true, 'Br"""': true,
-    "bR'''": true, 'bR"""': true, "BR'''": true, 'BR"""': true
-    };
-
-    var single_quoted = {
-    "'": true, '"': true,
-    "r'": true, 'r"': true, "R'": true, 'R"': true,
-    "u'": true, 'u"': true, "U'": true, 'U"': true,
-    "b'": true, 'b"': true, "B'": true, 'B"': true,
-    "ur'": true, 'ur"': true, "Ur'": true, 'Ur"': true,
-    "uR'": true, 'uR"': true, "UR'": true, 'UR"': true,
-    "br'": true, 'br"': true, "Br'": true, 'Br"': true,
-    "bR'": true, 'bR"': true, "BR'": true, 'BR"': true
-    };
-
-    // hack to make closure keep those objects. not sure what a better way is.
-    (function() {
-     for (var k in triple_quoted) {}
-     for (var k in single_quoted) {}
-     }());
-
-
-    var tabsize = 8;
-
-    function contains(a, obj)
-    {
-        var i = a.length;
-        while (i--)
-        {
-            if (a[i] === obj)
-            {
-                return true;
-            }
-        }
-        return false;
+function rstrip(input: string, what: string): string {
+    for (var i = input.length; i > 0; --i) {
+        if (what.indexOf(input.charAt(i - 1)) === -1) break;
     }
+    return input.substring(0, i);
+}
 
-    function rstrip(input, what)
-    {
-        for (var i = input.length; i > 0; --i)
-        {
-            if (what.indexOf(input.charAt(i - 1)) === -1) break;
-        }
-        return input.substring(0, i);
+/**
+ * @param {string} message
+ * @param {string} fileName
+ * @param {Array.<number>} begin
+ * @param {Array.<number>} end
+ * @param {string|undefined} text
+ */
+function indentationError(message: string, fileName: string, begin: number[], end: number[], text: string) {
+    if (!isArray(begin)) {
+        fail("begin must be Array.<number>");
     }
-
-
-    /**
-     * @param {string} message
-     * @param {string} fileName
-     * @param {Array.<number>} begin
-     * @param {Array.<number>} end
-     * @param {string|undefined} text
-     */
-    function indentationError(message, fileName, begin, end, text)
-    {
-        if (!isArray(begin))
-        {
-            fail("begin must be Array.<number>");
-        }
-        if (!isArray(end))
-        {
-            fail("end must be Array.<number>");
-        }
-        var e = new SyntaxError(message/*, fileName*/);
-        e.name = "IndentationError";
-        e['fileName'] = fileName;
-        if (isDef(begin))
-        {
-            e['lineNumber']   = begin[0];
-            e['columnNumber'] = begin[1];
-        }
-        return e;
+    if (!isArray(end)) {
+        fail("end must be Array.<number>");
     }
-    
+    var e = new SyntaxError(message/*, fileName*/);
+    e.name = "IndentationError";
+    e['fileName'] = fileName;
+    if (isDef(begin)) {
+        e['lineNumber']   = begin[0];
+        e['columnNumber'] = begin[1];
+    }
+    return e;
+}

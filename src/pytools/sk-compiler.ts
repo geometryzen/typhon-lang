@@ -1,11 +1,11 @@
 import {assert, fail} from './asserts';
-import {parse, parseTreeDump} from './parser';
-import {astFromParse, astDump} from './builder';
+import {parse} from './parser';
+import {astFromParse} from './builder';
 import reservedNames from './reservedNames';
 import reservedWords from './reservedWords';
 import SymbolTable from './SymbolTable';
 import SymbolTableScope from './SymbolTableScope';
-import symtable from './symtable';
+import {symbolTable} from './symtable';
 import toStringLiteralJS from './toStringLiteralJS';
 
 import {And} from './astnodes';
@@ -66,6 +66,14 @@ import {GLOBAL_IMPLICIT} from './SymbolConstants'
 import {FREE} from './SymbolConstants'
 import {CELL} from './SymbolConstants'
 import {FunctionBlock} from './SymbolConstants'
+
+const OP_FAST = 0;
+const OP_GLOBAL = 1;
+const OP_DEREF = 2;
+const OP_NAME = 3;
+// const D_NAMES = 0;
+// const D_FREEVARS = 1;
+// const D_CELLVARS = 2;
 
 /**
  * The output function is scoped at the module level so that it is available without being a parameter.
@@ -246,11 +254,12 @@ class Compiler {
         return hint;
     }
 
-    niceName(roughName) {
+    niceName(roughName: string): string {
         return this.gensym(roughName.replace("<", "").replace(">", "").replace(" ", "_"));
     }
 
     /**
+     * @method _gr
      * @param {string} hint basename for gensym
      * @param {...*} rest
      */
@@ -265,9 +274,9 @@ class Compiler {
     }
 
     /**
-    * Function to test if an interrupt should occur if the program has been running for too long.
-    * This function is executed at every test/branch operation.
-    */
+     * Function to test if an interrupt should occur if the program has been running for too long.
+     * This function is executed at every test/branch operation.
+     */
     _interruptTest() {
         out("if (typeof Sk.execStart === 'undefined') {Sk.execStart=new Date()}");
         out("if (Sk.execLimit !== null && new Date() - Sk.execStart > Sk.execLimit) {throw new Sk.builtin.TimeLimitError(Sk.timeoutMsg())}");
@@ -336,7 +345,7 @@ class Compiler {
         // load targets
         var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
         this._jumpundef(nexti, anchor); // todo; this should be handled by StopIteration
-        var target = this.vexpr(l.target, nexti);
+        // var target = this.vexpr(l.target, nexti);
 
         var n = l.ifs.length;
         for (var i = 0; i < n; ++i) {
@@ -475,7 +484,6 @@ class Compiler {
     cboolop(e) {
         assert(e instanceof BoolOp);
         var jtype;
-        var ifFailed;
         if (e.op === And)
             jtype = this._jumpfalse;
         else
@@ -513,7 +521,7 @@ class Compiler {
             this.u.lineno = e.lineno;
             this.u.linenoSet = false;
         }
-        //this.annotateSource(e);
+        // this.annotateSource(e);
         switch (e.constructor) {
             case BoolOp:
                 return this.cboolop(e);
@@ -588,19 +596,19 @@ class Compiler {
                 }
                 break;
             case Subscript:
-                var val;
                 switch (e.ctx) {
                     case AugLoad:
                     case Load:
                     case Store:
                     case Del:
                         return this.vslice(e.slice, e.ctx, this.vexpr(e.value), data);
-                    case AugStore:
+                    case AugStore: {
                         out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
-                        val = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
+                        const val = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
                         this.vslice(e.slice, e.ctx, val, data);
                         out("}");
                         break;
+                    }
                     case Param:
                     default:
                         fail("invalid subscript expression");
@@ -638,30 +646,32 @@ class Compiler {
 
     caugassign(s: AugAssign) {
         assert(s instanceof AugAssign);
-        var e = s.target;
+        const e = s.target;
         switch (e.constructor) {
-            case Attribute:
-                var auge = new Attribute(e.value, e.attr, AugLoad, e.lineno, e.col_offset);
-                var aug = this.vexpr(auge);
-                var val = this.vexpr(s.value);
-                var res = this._gr('inplbinopattr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
+            case Attribute: {
+                const auge = new Attribute(e.value, e.attr, AugLoad, e.lineno, e.col_offset);
+                const aug = this.vexpr(auge);
+                const val = this.vexpr(s.value);
+                const res = this._gr('inplbinopattr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
                 auge.ctx = AugStore;
-                return this.vexpr(auge, res, e.value)
+                return this.vexpr(auge, res, e.value);
+            }
             case Subscript: {
                 // Only compile the subscript value once
-                var augsub = this.vslicesub(e.slice);
-                let auge = new Subscript(e.value, augsub, AugLoad, e.lineno, e.col_offset);
-                var aug = this.vexpr(auge);
-                var val = this.vexpr(s.value);
-                var res = this._gr('inplbinopsubscr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
+                const augsub = this.vslicesub(e.slice);
+                const auge = new Subscript(e.value, augsub, AugLoad, e.lineno, e.col_offset);
+                const aug = this.vexpr(auge);
+                const val = this.vexpr(s.value);
+                const res = this._gr('inplbinopsubscr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
                 auge.ctx = AugStore;
                 return this.vexpr(auge, res, e.value)
             }
-            case Name:
-                var to = this.nameop(e.id, Load);
-                var val = this.vexpr(s.value);
-                var res = this._gr('inplbinop', "Sk.abstr.numberInplaceBinOp(", to, ",", val, ",'", s.op.prototype._astname, "')");
+            case Name: {
+                const to = this.nameop(e.id, Load);
+                const val = this.vexpr(s.value);
+                const res = this._gr('inplbinop', "Sk.abstr.numberInplaceBinOp(", to, ",", val, ",'", s.op.prototype._astname, "')");
                 return this.nameop(e.id, Store, res);
+            }
             default:
                 fail("unhandled case in augassign");
         }
@@ -737,7 +747,7 @@ class Compiler {
 
     setupExcept(eb) {
         out("$exc.push(", eb, ");");
-        //this.pushExceptBlock(eb);
+        // this.pushExceptBlock(eb);
     }
 
     endExcept() {
@@ -876,7 +886,7 @@ class Compiler {
         // load targets
         var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
         this._jumpundef(nexti, cleanup); // todo; this should be handled by StopIteration
-        var target = this.vexpr(s.target, nexti);
+        // var target = this.vexpr(s.target, nexti);
 
         // execute body
         this.vseqstmt(s.body);
@@ -954,7 +964,7 @@ class Compiler {
             if (handler.type) {
                 // should jump to next handler if err not isinstance of handler.type
                 var handlertype = this.vexpr(handler.type);
-                var next = (i == n - 1) ? unhandled : handlers[i + 1];
+                var next = (i === n - 1) ? unhandled : handlers[i + 1];
 
                 // this check is not right, should use isinstance, but exception objects
                 // are not yet proper Python objects
@@ -1399,7 +1409,7 @@ class Compiler {
     cgenexpgen(generators, genIndex, elt) {
         var start = this.newBlock('start for ' + genIndex);
         var skip = this.newBlock('skip for ' + genIndex);
-        var ifCleanup = this.newBlock('if cleanup for ' + genIndex);
+        // var ifCleanup = this.newBlock('if cleanup for ' + genIndex);
         var end = this.newBlock('end for ' + genIndex);
 
         var ge = generators[genIndex];
@@ -1422,7 +1432,7 @@ class Compiler {
         // load targets
         var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
         this._jumpundef(nexti, end); // todo; this should be handled by StopIteration
-        var target = this.vexpr(ge.target, nexti);
+        // var target = this.vexpr(ge.target, nexti);
 
         var n = ge.ifs.length;
         for (var i = 0; i < n; ++i) {
@@ -1469,10 +1479,10 @@ class Compiler {
 
     cclass(s: ClassDef) {
         assert(s instanceof ClassDef);
-        var decos = s.decorator_list;
+        // var decos = s.decorator_list;
 
         // decorators and bases need to be eval'd out here
-        //this.vseqexpr(decos);
+        // this.vseqexpr(decos);
 
         var bases = this.vseqexpr(s.bases);
 
@@ -1592,10 +1602,9 @@ class Compiler {
         for (var i = 0; i < stmts.length; ++i) this.vstmt(stmts[i]);
     }
 
-    isCell(name) {
+    isCell(name: string): boolean {
         var mangled = mangleName(this.u.private_, name);
         var scope = this.u.ste.getScope(mangled);
-        var dict = null;
         if (scope === CELL)
             return true;
         return false;
@@ -1620,7 +1629,6 @@ class Compiler {
 
         // Have to do this before looking it up in the scope
         var mangled = mangleName(this.u.private_, name);
-        var op = 0;
         var optype = OP_NAME;
         var scope = this.u.ste.getScope(mangled);
         var dict = null;
@@ -1652,7 +1660,7 @@ class Compiler {
         mangled = fixReservedNames(mangled);
         mangled = fixReservedWords(mangled);
 
-        //print("mangled", mangled);
+        // print("mangled", mangled);
         // TODO TODO TODO todo; import * at global scope failing here
         assert(scope || name.charAt(1) === '_');
 
@@ -1873,14 +1881,6 @@ function mangleName(priv: string, name: string): string {
     return '_' + strpriv + name;
 }
 
-const OP_FAST = 0;
-const OP_GLOBAL = 1;
-const OP_DEREF = 2;
-const OP_NAME = 3;
-const D_NAMES = 0;
-const D_FREEVARS = 1;
-const D_CELLVARS = 2;
-
 /**
  * @param {string} source the code
  * @param {string} fileName where it came from
@@ -1888,10 +1888,10 @@ const D_CELLVARS = 2;
  * @return {{funcname: string, code: string}}
  */
 export function compile(source, fileName) {
-    var cst = parse(fileName, source);
-    var ast = astFromParse(cst, fileName);
-    var st = symtable.symbolTable(ast, fileName);
-    var c = new Compiler(fileName, st, 0, source);
+    const cst = parse(fileName, source);
+    const ast = astFromParse(cst, fileName);
+    const st = symbolTable(ast, fileName);
+    const c = new Compiler(fileName, st, 0, source);
     return { 'funcname': c.cmod(ast), 'code': c.result.join('') };
 };
 

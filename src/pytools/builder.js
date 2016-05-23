@@ -354,7 +354,6 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         REQ(CHILD(n, 0), TOK.T_AT);
         REQ(CHILD(n, NCH(n) - 1), TOK.T_NEWLINE);
         var nameExpr = astForDottedName(c, CHILD(n, 1));
-        var d;
         if (NCH(n) === 3)
             return nameExpr;
         else if (NCH(n) === 5)
@@ -401,7 +400,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
         return new astnodes_85.With_(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
     }
     function astForExecStmt(c, n) {
-        var expr1, globals = null, locals = null;
+        var globals = null, locals = null;
         var nchildren = NCH(n);
         asserts_1.assert(nchildren === 2 || nchildren === 4 || nchildren === 6);
         /* exec_stmt: 'exec' expr ['in' test [',' test]] */
@@ -636,7 +635,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 n = CHILD(n, 0);
                 REQ(n, SYM.list_if);
                 nifs++;
-                if (NCH(n) == 2)
+                if (NCH(n) === 2)
                     return nifs;
                 n = CHILD(n, 2);
             }
@@ -1026,7 +1025,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
                 n = CHILD(n, 0);
                 REQ(n, SYM.gen_if);
                 nifs++;
-                if (NCH(n) == 2)
+                if (NCH(n) === 2)
                     return nifs;
                 n = CHILD(n, 2);
             }
@@ -1192,16 +1191,13 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
     function escape(s) {
         return encodeURIComponent(s);
     }
-    function unescape(s) {
-        return decodeURIComponent(s);
-    }
     /**
      * s is a python-style string literal, including quote characters and u/r/b
      * prefixes. Returns decoded string object.
      */
     function parsestr(c, s) {
         // 
-        var encodeUtf8 = function (s) { return unescape(encodeURIComponent(s)); };
+        // const encodeUtf8 = function(s) { return unescape(encodeURIComponent(s)); };
         var decodeUtf8 = function (s) { return decodeURIComponent(escape(s)); };
         var decodeEscape = function (s, quote) {
             var len = s.length;
@@ -1443,7 +1439,7 @@ define(["require", "exports", './asserts', './astnodes', './astnodes', './astnod
             case TOK.T_LBRACE:
                 /* dictmaker: test ':' test (',' test ':' test)* [','] */
                 ch = CHILD(n, 1);
-                var size = Math.floor((NCH(ch) + 1) / 4); // + 1 for no trailing comma case
+                // var size = Math.floor((NCH(ch) + 1) / 4); // + 1 for no trailing comma case
                 var keys = [];
                 var values = [];
                 for (var i = 0; i < NCH(ch); i += 4) {
