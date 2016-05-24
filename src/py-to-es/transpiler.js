@@ -1,4 +1,4 @@
-define(["require", "exports", '../pytools/asserts', '../pytools/base', '../pytools/parser', '../pytools/builder', '../pytools/reservedNames', '../pytools/reservedWords', '../pytools/symtable', '../pytools/toStringLiteralJS', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants'], function (require, exports, asserts_1, base_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
+define(["require", "exports", '../pytools/asserts', '../pytools/base', '../pytools/parser', '../pytools/builder', '../pytools/reservedNames', '../pytools/reservedWords', '../pytools/symtable', '../pytools/toStringLiteralJS', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../estools/esprima', '../estools/escodegen'], function (require, exports, asserts_1, base_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, esprima_1, escodegen_1) {
     "use strict";
     var OP_FAST = 0;
     var OP_GLOBAL = 1;
@@ -1596,25 +1596,214 @@ define(["require", "exports", '../pytools/asserts', '../pytools/base', '../pytoo
      * @param {string} source the code
      * @param {string} fileName where it came from
      *
-     * @return {{funcname: string, code: string}}
+     * @return {{code: string}}
      */
     function compile(source, fileName) {
-        var cst = parser_1.parse(fileName, source);
-        var ast = builder_1.astFromParse(cst, fileName);
-        var st = symtable_1.symbolTable(ast, fileName);
-        var c = new Compiler(fileName, st, 0, source);
-        /**
-         * flags are used to confition the code generation.
-         */
-        var flags = 0;
-        // TODO: Get rif of the funcname
-        return { funcname: c.cmod(ast, flags), code: c.result.join('') };
+        var node = transpile(source, fileName);
+        var code = escodegen_1.generate(node, {});
+        return { code: code };
     }
     exports.compile = compile;
-    ;
     function resetCompiler() {
         gensymCount = 0;
     }
     exports.resetCompiler = resetCompiler;
-    ;
+    /**
+     * Transpiles from Python to JavaScript.
+     */
+    var Transpiler = (function () {
+        function Transpiler(fileName, st, flags, sourceCodeForAnnotation) {
+            this.fileName = fileName;
+            /**
+             * @type {Object}
+             * @private
+             */
+            this.st = st;
+            this.flags = flags;
+            this.interactive = false;
+            this.nestlevel = 0;
+            this.u = null;
+            /**
+             * @type Array.<CompilerUnit>
+             * @private
+             */
+            this.stack = [];
+            this.result = [];
+            // this.gensymcount = 0;
+            /**
+             * @type Array.<CompilerUnit>
+             * @private
+             */
+            this.allUnits = [];
+            this.source = sourceCodeForAnnotation ? sourceCodeForAnnotation.split("\n") : false;
+        }
+        Transpiler.prototype.module = function (ast, flags) {
+            var node = new esprima_1.Node();
+            var body = this.statementList(ast.body, flags);
+            node.finishProgram(body);
+            return node;
+        };
+        Transpiler.prototype.statementList = function (stmts, flags) {
+            var nodes = [];
+            var iLen = stmts.length;
+            for (var i = 0; i < iLen; i++) {
+                var stmt = stmts[i];
+                nodes.push(this.statement(stmt, flags));
+            }
+            return nodes;
+        };
+        Transpiler.prototype.statement = function (s, flags) {
+            // this.u.lineno = s.lineno;
+            // this.u.linenoSet = false;
+            //        this.annotateSource(s);
+            switch (s.constructor) {
+                case types_21.FunctionDef:
+                    return this.functionDef(s, flags);
+                case types_11.ClassDef:
+                    return this.classDef(s, flags);
+                case types_40.ReturnStatement: {
+                    return this.returnStatement(s, flags);
+                }
+                case types_15.DeleteExpression:
+                    return this.deleteExpression(s, flags);
+                case types_2.Assign: {
+                    return this.assign(s, flags);
+                }
+                case types_4.AugAssign: {
+                    return this.augAssign(s, flags);
+                }
+                case types_38.Print: {
+                    this.print(s, flags);
+                    break;
+                }
+                case types_20.ForStatement: {
+                    return this.forStatement(s, flags);
+                }
+                case types_49.WhileStatement: {
+                    return this.whileStatement(s, flags);
+                }
+                case types_24.IfStatement: {
+                    return this.ifStatement(s, flags);
+                }
+                case types_39.Raise: {
+                    return this.raise(s, flags);
+                }
+                case types_45.TryExcept: {
+                    return this.tryExcept(s, flags);
+                }
+                case types_46.TryFinally: {
+                    return this.tryFinally(s, flags);
+                }
+                case types_1.Assert: {
+                    return this.assert(s, flags);
+                }
+                case types_26.ImportStatement:
+                    return this.importStatement(s, flags);
+                case types_27.ImportFrom:
+                    return this.importFrom(s, flags);
+                case types_23.Global:
+                    break;
+                case types_18.Expr:
+                    return this.expr(s, flags);
+                case types_37.Pass:
+                    break;
+                case types_9.BreakStatement:
+                    return this.breakStatement(s, flags);
+                case types_13.ContinueStatement:
+                    return this.continueStatement(s, flags);
+                default:
+                    asserts_1.fail("statement");
+            }
+        };
+        Transpiler.prototype.assert = function (a, flags) {
+            throw new Error("Assert");
+        };
+        Transpiler.prototype.breakStatement = function (b, flags) {
+            /*
+            if (this.u.breakBlocks.length === 0)
+                throw new SyntaxError("'break' outside loop");
+            break;
+            */
+            throw new Error("BreakStatement");
+        };
+        Transpiler.prototype.classDef = function (c, flags) {
+            throw new Error("ClassDef");
+        };
+        Transpiler.prototype.continueStatement = function (c, flags) {
+            throw new Error("ContinueStatement");
+        };
+        Transpiler.prototype.forStatement = function (fs, flags) {
+            throw new Error("ForStatement");
+        };
+        Transpiler.prototype.functionDef = function (f, flags) {
+            throw new Error("FunctionDef");
+        };
+        Transpiler.prototype.ifStatement = function (fs, flags) {
+            throw new Error("IfStatement");
+        };
+        Transpiler.prototype.importFrom = function (i, flags) {
+            // const node = new Node();
+            // node.fi
+            throw new Error("ImportFrom");
+        };
+        Transpiler.prototype.importStatement = function (i, flags) {
+            throw new Error("ImportStatement");
+        };
+        Transpiler.prototype.returnStatement = function (rs, flags) {
+            /*
+            if (this.u.ste.blockType !== FunctionBlock)
+                throw new SyntaxError("'return' outside function");
+            if (rs.value)
+                out("return ", this.vexpr(rs.value), ";");
+            else
+                out("return null;");
+            */
+            throw new Error("ClassDef");
+        };
+        Transpiler.prototype.deleteExpression = function (de, flags) {
+            throw new Error("DeleteExpression");
+        };
+        Transpiler.prototype.assign = function (assign, flags) {
+            var node = new esprima_1.Node();
+            // node.finishAssignmentExpression(operator, left, right);
+            /*
+            var n = assign.targets.length;
+            var val = this.vexpr(assign.value);
+            for (var i = 0; i < n; ++i)
+                this.vexpr(assign.targets[i], val);
+            */
+            return node;
+        };
+        Transpiler.prototype.augAssign = function (aa, flags) {
+            throw new Error("FunctionDef");
+        };
+        Transpiler.prototype.expr = function (expr, flags) {
+            throw new Error("Expr");
+        };
+        Transpiler.prototype.print = function (p, flags) {
+            throw new Error("Print");
+        };
+        Transpiler.prototype.raise = function (raise, flags) {
+            throw new Error("Raise");
+        };
+        Transpiler.prototype.tryExcept = function (te, flags) {
+            throw new Error("TryExcept");
+        };
+        Transpiler.prototype.tryFinally = function (tf, flags) {
+            throw new Error("TryFinally");
+        };
+        Transpiler.prototype.whileStatement = function (ws, flags) {
+            throw new Error("WhileStatement");
+        };
+        return Transpiler;
+    }());
+    function transpile(source, fileName) {
+        var cst = parser_1.parse(fileName, source);
+        var ast = builder_1.astFromParse(cst, fileName);
+        var st = symtable_1.symbolTable(ast, fileName);
+        var t = new Transpiler(fileName, st, 0, source);
+        var flags = 0;
+        return t.module(ast, flags);
+    }
+    exports.transpile = transpile;
 });

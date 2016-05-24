@@ -15,7 +15,7 @@ define(['pytools'], function(m) {
             expect(typeof tsCompiler.resetCompiler).toBe('function');
         });
 
-        describe('ImportFrom', function() {
+        xdescribe('ImportFrom', function() {
             it('everything from a module', function() {
                 var result = tsCompiler.compile('from visual import *', fileName);
                 expect(typeof result).toBe('object');
@@ -24,7 +24,7 @@ define(['pytools'], function(m) {
             });
         });
 
-        describe('Assign', function() {
+        xdescribe('Assign', function() {
             it('Float', function() {
                 var result = tsCompiler.compile('x = 0.01', fileName);
                 expect(typeof result).toBe('object');
@@ -33,7 +33,7 @@ define(['pytools'], function(m) {
             });
         });
 
-        describe('Assign', function() {
+        xdescribe('Assign', function() {
             it('Integer', function() {
                 var result = tsCompiler.compile('x = 1', fileName);
                 expect(typeof result).toBe('object');
@@ -42,7 +42,7 @@ define(['pytools'], function(m) {
             });
         });
 
-        describe('Assign', function() {
+        xdescribe('Assign', function() {
             it('String', function() {
                 var result = tsCompiler.compile("name = 'David'", fileName);
                 expect(typeof result).toBe('object');
@@ -60,7 +60,7 @@ define(['pytools'], function(m) {
             });
         });
 
-        describe('FunctionCall', function() {
+        xdescribe('FunctionCall', function() {
             it('TODO', function() {
                 const result = tsCompiler.compile('rate(100)', fileName);
                 expect(result.code).toBe("rate(100)");

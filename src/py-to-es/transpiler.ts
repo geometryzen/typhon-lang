@@ -69,6 +69,8 @@ import {GLOBAL_IMPLICIT} from '../pytools/SymbolConstants';
 import {FREE} from '../pytools/SymbolConstants';
 import {CELL} from '../pytools/SymbolConstants';
 import {FunctionBlock} from '../pytools/SymbolConstants';
+import {Node} from '../estools/esprima';
+import {generate} from '../estools/escodegen';
 
 const OP_FAST = 0;
 const OP_GLOBAL = 1;
@@ -1931,21 +1933,229 @@ function mangleName(priv: string, name: string): string {
  * @param {string} source the code
  * @param {string} fileName where it came from
  *
- * @return {{funcname: string, code: string}}
+ * @return {{code: string}}
  */
-export function compile(source, fileName) {
-    const cst = parse(fileName, source);
-    const ast = astFromParse(cst, fileName);
-    const st = symbolTable(ast, fileName);
-    const c = new Compiler(fileName, st, 0, source);
-    /**
-     * flags are used to confition the code generation.
-     */
-    const flags = 0;
-    // TODO: Get rif of the funcname
-    return { funcname: c.cmod(ast, flags), code: c.result.join('') };
-};
+export function compile(source: string, fileName: string): { code: string } {
+    const node: Node = transpile(source, fileName);
+    const code = generate(node, {});
+    return { code };
+}
 
 export function resetCompiler() {
     gensymCount = 0;
-};
+}
+
+/**
+ * Transpiles from Python to JavaScript.
+ */
+class Transpiler {
+    public result: string[];
+    private fileName: string;
+    private st: SymbolTable;
+    private flags: number;
+    private interactive: boolean;
+    private nestlevel: number;
+    private u: CompilerUnit;
+    private stack: CompilerUnit[];
+    private allUnits: CompilerUnit[];
+    private source: string[] | boolean;
+    constructor(fileName: string, st: SymbolTable, flags: number, sourceCodeForAnnotation: string) {
+        this.fileName = fileName;
+        /**
+         * @type {Object}
+         * @private
+         */
+        this.st = st;
+        this.flags = flags;
+        this.interactive = false;
+        this.nestlevel = 0;
+
+        this.u = null;
+        /**
+         * @type Array.<CompilerUnit>
+         * @private
+         */
+        this.stack = [];
+
+        this.result = [];
+
+        // this.gensymcount = 0;
+
+        /**
+         * @type Array.<CompilerUnit>
+         * @private
+         */
+        this.allUnits = [];
+
+        this.source = sourceCodeForAnnotation ? sourceCodeForAnnotation.split("\n") : false;
+    }
+    module(ast: Module, flags: number): Node {
+        const node = new Node();
+        const body = this.statementList(ast.body, flags);
+        node.finishProgram(body);
+        return node;
+    }
+    statementList(stmts: Statement[], flags): Node[] {
+        const nodes: Node[] = [];
+        const iLen = stmts.length;
+        for (let i = 0; i < iLen; i++) {
+            const stmt = stmts[i];
+            nodes.push(this.statement(stmt, flags));
+        }
+        return nodes;
+    }
+    statement(s: Statement, flags: number): Node {
+        // this.u.lineno = s.lineno;
+        // this.u.linenoSet = false;
+
+        //        this.annotateSource(s);
+
+        switch (s.constructor) {
+            case FunctionDef:
+                return this.functionDef(<FunctionDef>s, flags);
+            case ClassDef:
+                return this.classDef(<ClassDef>s, flags);
+            case ReturnStatement: {
+                return this.returnStatement(<ReturnStatement>s, flags);
+            }
+            case DeleteExpression:
+                return this.deleteExpression((<DeleteExpression>s), flags);
+            case Assign: {
+                return this.assign(<Assign>s, flags);
+            }
+            case AugAssign: {
+                return this.augAssign(<AugAssign>s, flags);
+            }
+            case Print: {
+                this.print(<Print>s, flags);
+                break;
+            }
+            case ForStatement: {
+                return this.forStatement(<ForStatement>s, flags);
+            }
+            case WhileStatement: {
+                return this.whileStatement(<WhileStatement>s, flags);
+            }
+            case IfStatement: {
+                return this.ifStatement(<IfStatement>s, flags);
+            }
+            case Raise: {
+                return this.raise(<Raise>s, flags);
+            }
+            case TryExcept: {
+                return this.tryExcept(<TryExcept>s, flags);
+            }
+            case TryFinally: {
+                return this.tryFinally(<TryFinally>s, flags);
+            }
+            case Assert: {
+                return this.assert(<Assert>s, flags);
+            }
+            case ImportStatement:
+                return this.importStatement(<ImportStatement>s, flags);
+            case ImportFrom:
+                return this.importFrom(<ImportFrom>s, flags);
+            case Global:
+                break;
+            case Expr:
+                return this.expr((<Expr>s), flags);
+            case Pass:
+                break;
+            case BreakStatement:
+                return this.breakStatement((<BreakStatement>s), flags);
+            case ContinueStatement:
+                return this.continueStatement(<ContinueStatement>s, flags);
+            default:
+                fail("statement");
+        }
+    }
+    assert(a: Assert, flags: number): Node {
+        throw new Error("Assert");
+    }
+    breakStatement(b: BreakStatement, flags: number): Node {
+        /*
+        if (this.u.breakBlocks.length === 0)
+            throw new SyntaxError("'break' outside loop");
+        break;
+        */
+        throw new Error("BreakStatement");
+    }
+    classDef(c: ClassDef, flags: number): Node {
+        throw new Error("ClassDef");
+    }
+    continueStatement(c: ContinueStatement, flags: number): Node {
+        throw new Error("ContinueStatement");
+    }
+    forStatement(fs: ForStatement, flags: number): Node {
+        throw new Error("ForStatement");
+    }
+    functionDef(f: FunctionDef, flags: number): Node {
+        throw new Error("FunctionDef");
+    }
+    ifStatement(fs: IfStatement, flags: number): Node {
+        throw new Error("IfStatement");
+    }
+    importFrom(i: ImportFrom, flags: number): Node {
+        // const node = new Node();
+        // node.fi
+        throw new Error("ImportFrom");
+    }
+    importStatement(i: ImportStatement, flags: number): Node {
+        throw new Error("ImportStatement");
+    }
+    returnStatement(rs: ReturnStatement, flags: number): Node {
+        /*
+        if (this.u.ste.blockType !== FunctionBlock)
+            throw new SyntaxError("'return' outside function");
+        if (rs.value)
+            out("return ", this.vexpr(rs.value), ";");
+        else
+            out("return null;");
+        */
+        throw new Error("ClassDef");
+    }
+    deleteExpression(de: DeleteExpression, flags: number): Node {
+        throw new Error("DeleteExpression");
+    }
+    assign(assign: Assign, flags: number): Node {
+        const node = new Node();
+        // node.finishAssignmentExpression(operator, left, right);
+        /*
+        var n = assign.targets.length;
+        var val = this.vexpr(assign.value);
+        for (var i = 0; i < n; ++i)
+            this.vexpr(assign.targets[i], val);
+        */
+        return node;
+    }
+    augAssign(aa: AugAssign, flags: number): Node {
+        throw new Error("FunctionDef");
+    }
+    expr(expr: Expr, flags: number): Node {
+        throw new Error("Expr");
+    }
+    print(p: Print, flags: number): Node {
+        throw new Error("Print");
+    }
+    raise(raise: Raise, flags: number): Node {
+        throw new Error("Raise");
+    }
+    tryExcept(te: TryExcept, flags: number): Node {
+        throw new Error("TryExcept");
+    }
+    tryFinally(tf: TryFinally, flags: number): Node {
+        throw new Error("TryFinally");
+    }
+    whileStatement(ws: WhileStatement, flags: number): Node {
+        throw new Error("WhileStatement");
+    }
+}
+
+export function transpile(source: string, fileName: string): Node {
+    const cst = parse(fileName, source);
+    const ast = astFromParse(cst, fileName);
+    const st = symbolTable(ast, fileName);
+    const t = new Transpiler(fileName, st, 0, source);
+    const flags = 0;
+    return t.module(ast, flags);
+}

@@ -40,6 +40,7 @@
 import {isDecimalDigit, isLineTerminator, isWhiteSpace} from './code';
 import {isIdentifierPartES6 as isIdentifierPart} from './code';
 import {Syntax} from './estraverse';
+import {Node} from './esprima';
 
 // import esutils from './esutils';
 
@@ -200,7 +201,7 @@ function getDefaultOptions() {
     };
 }
 
-function stringRepeat(str, num) {
+function stringRepeat(str: string, num: number): string {
     var result = '';
 
     for (num |= 0; num > 0; num >>>= 1, str += str) {
@@ -2446,29 +2447,42 @@ function generateInternal(node) {
     throw new Error('Unknown node type: ' + node.type);
 }
 
-export function generate(node, options) {
+export function generate(
+    node: Node,
+    options: {
+        format?: {
+            indent?: {
+                style?: string;
+                base?: number;
+            };
+            json?;
+            renumber?;
+            hexadecimal?;
+            quotes?;
+            escapeless?;
+            newline?;
+            space?;
+            compact?;
+            parentheses?;
+            preserveBlankLines?;
+            semicolons?;
+            safeConcatenation?;
+        };
+        directive?;
+        file?;
+        parse?;
+        sourceMap?;
+        sourceMapRoot?;
+        sourceMapWithCode?;
+        sourceCode?;
+        sourceContent?;
+    }): string {
     var defaultOptions = getDefaultOptions(), result, pair;
 
     if (options != null) {
-        // Obsolete options
-        //
-        //   `options.indent`
-        //   `options.base`
-        //
-        // Instead of them, we can use `option.format.indent`.
-        if (typeof options.indent === 'string') {
-            defaultOptions.format.indent.style = options.indent;
-        }
-        if (typeof options.base === 'number') {
-            defaultOptions.format.indent.base = options.base;
-        }
         options = updateDeeply(defaultOptions, options);
         indent = options.format.indent.style;
-        if (typeof options.base === 'string') {
-            base = options.base;
-        } else {
-            base = stringRepeat(indent, options.format.indent.base);
-        }
+        base = stringRepeat(indent, options.format.indent.base);
     } else {
         options = defaultOptions;
         indent = options.format.indent.style;

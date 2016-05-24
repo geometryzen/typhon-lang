@@ -32,14 +32,35 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-let source;
-let strict;
+interface LookAhead {
+    type: number;
+    value;
+    octal?;
+    start;
+    end;
+    startLineNumber?: number;
+    startLineStart?: number;
+    lineNumber: number;
+    lineStart: number;
+}
+
+let source: string;
+let strict: boolean;
 let index: number;
 let lineNumber: number;
 let lineStart: number;
-let length;
-let lookahead;
-let state;
+let length: number;
+let lookahead: LookAhead;
+let state: {
+    allowIn: boolean;
+    inFunctionBody: boolean;
+    inIteration: boolean;
+    inSwitch: boolean;
+    labelSet;
+    lastCommentStart: number;
+    parenthesisCount?: number;
+    parenthesizedCount?: number;
+};
 let extra;
 
 const Token = {
@@ -635,7 +656,7 @@ function scanIdentifier() {
 
 // 7.7 Punctuators
 
-function scanPunctuator() {
+function scanPunctuator(): LookAhead {
     var start = index,
         code = source.charCodeAt(index),
         code2,
@@ -1445,7 +1466,7 @@ function advance() {
 }
 
 function collectToken() {
-    var loc, token, value, entry;
+    var loc, value, entry;
 
     skipComment();
     loc = {
@@ -1455,7 +1476,7 @@ function collectToken() {
         }
     };
 
-    token = advance();
+    const token = advance();
     loc.end = {
         line: lineNumber,
         column: index - lineStart
@@ -1482,9 +1503,8 @@ function collectToken() {
 }
 
 function lex() {
-    var token;
 
-    token = lookahead;
+    const token = lookahead;
     index = token.end;
     lineNumber = token.lineNumber;
     lineStart = token.lineStart;
@@ -1554,7 +1574,7 @@ export class WrappingSourceLocation {
  */
 export class SyntaxNode {
     range: number[];
-    type;
+    type: string;
     body: Node | Node[];
     leadingComments;
     trailingComments;
@@ -1578,7 +1598,7 @@ export class SyntaxNode {
     init;
     update;
     each;
-    name;
+    name: string;
     value;
     raw;
     regex;
@@ -1810,7 +1830,7 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishIdentifier(name) {
+    finishIdentifier(name: string) {
         this.type = Syntax.Identifier;
         this.name = name;
         this.finish();
@@ -2145,7 +2165,7 @@ function tolerateUnexpectedToken(token?, message?) {
 // If not, an exception will be thrown.
 
 function expect(value) {
-    var token = lex();
+    const token = lex();
     if (token.type !== Token.Punctuator || token.value !== value) {
         throwUnexpectedToken(token);
     }
@@ -2936,7 +2956,7 @@ function parseAssignmentExpression() {
     let oldParenthesisCount;
     let token;
     let expr: WrappingNode;
-    let right;
+    let right: Node;
     let list;
     let startToken;
 

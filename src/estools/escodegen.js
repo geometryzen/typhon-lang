@@ -2130,26 +2130,9 @@ define(["require", "exports", './code', './code', './estraverse'], function (req
     function generate(node, options) {
         var defaultOptions = getDefaultOptions(), result, pair;
         if (options != null) {
-            // Obsolete options
-            //
-            //   `options.indent`
-            //   `options.base`
-            //
-            // Instead of them, we can use `option.format.indent`.
-            if (typeof options.indent === 'string') {
-                defaultOptions.format.indent.style = options.indent;
-            }
-            if (typeof options.base === 'number') {
-                defaultOptions.format.indent.base = options.base;
-            }
             options = updateDeeply(defaultOptions, options);
             indent = options.format.indent.style;
-            if (typeof options.base === 'string') {
-                base = options.base;
-            }
-            else {
-                base = stringRepeat(indent, options.format.indent.base);
-            }
+            base = stringRepeat(indent, options.format.indent.base);
         }
         else {
             options = defaultOptions;

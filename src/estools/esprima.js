@@ -1307,7 +1307,7 @@ define(["require", "exports"], function (require, exports) {
         return scanPunctuator();
     }
     function collectToken() {
-        var loc, token, value, entry;
+        var loc, value, entry;
         skipComment();
         loc = {
             start: {
@@ -1315,7 +1315,7 @@ define(["require", "exports"], function (require, exports) {
                 column: index - lineStart
             }
         };
-        token = advance();
+        var token = advance();
         loc.end = {
             line: lineNumber,
             column: index - lineStart
@@ -1339,8 +1339,7 @@ define(["require", "exports"], function (require, exports) {
         return token;
     }
     function lex() {
-        var token;
-        token = lookahead;
+        var token = lookahead;
         index = token.end;
         lineNumber = token.lineNumber;
         lineStart = token.lineStart;

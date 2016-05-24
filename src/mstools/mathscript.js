@@ -289,7 +289,7 @@ define(["require", "exports", '../estools/esprima', '../estools/escodegen'], fun
                 case 'DebuggerStatement':
                     break;
                 default: {
-                    console.log(JSON.stringify(node, null, 2));
+                    console.warn(JSON.stringify(node, null, 2));
                 }
             }
         }
