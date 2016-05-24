@@ -1528,19 +1528,23 @@ export class SourceLocation {
     }
 }
 
-function WrappingSourceLocation(startToken) {
-    if (startToken.type === Token.StringLiteral) {
-        this.start = {
-            line: startToken.startLineNumber,
-            column: startToken.start - startToken.startLineStart
-        };
-    } else {
-        this.start = {
-            line: startToken.lineNumber,
-            column: startToken.start - startToken.lineStart
-        };
+export class WrappingSourceLocation {
+    start: Position;
+    end: Position;
+    constructor(startToken) {
+        if (startToken.type === Token.StringLiteral) {
+            this.start = {
+                line: startToken.startLineNumber,
+                column: startToken.start - startToken.startLineStart
+            };
+        } else {
+            this.start = {
+                line: startToken.lineNumber,
+                column: startToken.start - startToken.lineStart
+            };
+        }
+        this.end = null;
     }
-    this.end = null;
 }
 
 function Node() {

@@ -1371,21 +1371,25 @@ define(["require", "exports"], function (require, exports) {
         return SourceLocation;
     }());
     exports.SourceLocation = SourceLocation;
-    function WrappingSourceLocation(startToken) {
-        if (startToken.type === Token.StringLiteral) {
-            this.start = {
-                line: startToken.startLineNumber,
-                column: startToken.start - startToken.startLineStart
-            };
+    var WrappingSourceLocation = (function () {
+        function WrappingSourceLocation(startToken) {
+            if (startToken.type === Token.StringLiteral) {
+                this.start = {
+                    line: startToken.startLineNumber,
+                    column: startToken.start - startToken.startLineStart
+                };
+            }
+            else {
+                this.start = {
+                    line: startToken.lineNumber,
+                    column: startToken.start - startToken.lineStart
+                };
+            }
+            this.end = null;
         }
-        else {
-            this.start = {
-                line: startToken.lineNumber,
-                column: startToken.start - startToken.lineStart
-            };
-        }
-        this.end = null;
-    }
+        return WrappingSourceLocation;
+    }());
+    exports.WrappingSourceLocation = WrappingSourceLocation;
     function Node() {
         // Skip comment.
         index = lookahead.start;
