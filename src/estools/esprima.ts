@@ -1532,6 +1532,7 @@ export class SourceLocation {
 export class WrappingSourceLocation {
     start: Position;
     end: Position;
+    source;
     constructor(startToken) {
         if (startToken.type === Token.StringLiteral) {
             this.start = {
@@ -1548,9 +1549,11 @@ export class WrappingSourceLocation {
     }
 }
 
-export class Node {
+/**
+ *
+ */
+export class SyntaxNode {
     range: number[];
-    loc: SourceLocation;
     type;
     body;
     leadingComments;
@@ -1597,23 +1600,6 @@ export class Node {
     handlers;
     finalizer;
     declarations;
-    constructor() {
-        // Skip comment.
-        index = lookahead.start;
-        if (lookahead.type === Token.StringLiteral) {
-            lineNumber = lookahead.startLineNumber;
-            lineStart = lookahead.startLineStart;
-        } else {
-            lineNumber = lookahead.lineNumber;
-            lineStart = lookahead.lineStart;
-        }
-        if (extra.range) {
-            this.range = [index, 0];
-        }
-        if (extra.loc) {
-            this.loc = new SourceLocation();
-        }
-    }
     processComment() {
         var lastChild,
             leadingComments,
@@ -1681,19 +1667,7 @@ export class Node {
         bottomRight.push(this);
     }
     finish() {
-        if (extra.range) {
-            this.range[1] = index;
-        }
-        if (extra.loc) {
-            this.loc.end = new Position();
-            if (extra.source) {
-                this.loc.source = extra.source;
-            }
-        }
-
-        if (extra.attachComment) {
-            this.processComment();
-        }
+        throw new Error("Derived classes must implement finish method.");
     }
     finishArrayExpression(elements) {
         this.type = Syntax.ArrayExpression;
@@ -1994,16 +1968,73 @@ export class Node {
     }
 }
 
-function WrappingNode(startToken) {
-    if (extra.range) {
-        this.range = [startToken.start, 0];
+export class Node extends SyntaxNode {
+    loc: SourceLocation;
+    constructor() {
+        super();
+        // Skip comment.
+        index = lookahead.start;
+        if (lookahead.type === Token.StringLiteral) {
+            lineNumber = lookahead.startLineNumber;
+            lineStart = lookahead.startLineStart;
+        } else {
+            lineNumber = lookahead.lineNumber;
+            lineStart = lookahead.lineStart;
+        }
+        if (extra.range) {
+            this.range = [index, 0];
+        }
+        if (extra.loc) {
+            this.loc = new SourceLocation();
+        }
     }
-    if (extra.loc) {
-        this.loc = new WrappingSourceLocation(startToken);
+    finish() {
+        if (extra.range) {
+            this.range[1] = index;
+        }
+        if (extra.loc) {
+            this.loc.end = new Position();
+            if (extra.source) {
+                this.loc.source = extra.source;
+            }
+        }
+
+        if (extra.attachComment) {
+            this.processComment();
+        }
     }
 }
 
-WrappingNode.prototype = Node.prototype;
+export class WrappingNode extends SyntaxNode {
+    range: number[];
+    loc: WrappingSourceLocation;
+    constructor(startToken: { start: number }) {
+        super();
+        if (extra.range) {
+            this.range = [startToken.start, 0];
+        }
+        if (extra.loc) {
+            this.loc = new WrappingSourceLocation(startToken);
+        }
+    }
+    finish() {
+        if (extra.range) {
+            this.range[1] = index;
+        }
+        if (extra.loc) {
+            this.loc.end = new Position();
+            if (extra.source) {
+                this.loc.source = extra.source;
+            }
+        }
+
+        if (extra.attachComment) {
+            this.processComment();
+        }
+    }
+}
+
+// WrappingNode.prototype = Node.prototype;
 
 // Return true if there is a line terminator before the next token.
 
