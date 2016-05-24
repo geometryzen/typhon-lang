@@ -8880,7 +8880,7 @@ define('pytools/sk-compiler',["require", "exports", './asserts', './parser', './
     ;
 });
 
-define('pytools/ts-compiler',["require", "exports", './asserts', './base', './parser', './builder', './reservedNames', './reservedWords', './symtable', './toStringLiteralJS', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, base_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
+define('py-to-es/ts-compiler',["require", "exports", '../pytools/asserts', '../pytools/base', '../pytools/parser', '../pytools/builder', '../pytools/reservedNames', '../pytools/reservedWords', '../pytools/symtable', '../pytools/toStringLiteralJS', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants'], function (require, exports, asserts_1, base_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
     "use strict";
     var OP_FAST = 0;
     var OP_GLOBAL = 1;
@@ -9748,7 +9748,7 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './base', './pa
                     this.cimportas(alias.name, alias.asname, mod);
                 }
                 else {
-                    var lastDot = alias.name.indexOf('.');
+                    var lastDot = alias.name.indexOf('../pytools');
                     if (lastDot !== -1) {
                         this.nameop(alias.name.substr(0, lastDot), types_42.Store, mod);
                     }
@@ -9996,7 +9996,7 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './base', './pa
                 out(scopename, ".co_kwargs=1;");
             }
             //
-            // build either a 'function' or 'generator'. the function is just a simple
+            // build either a 'function' or 'generator'../pytools the function is just a simple
             // constructor call. the generator is more complicated. it needs to make a
             // new generator every time it's called, so the thing that's returned is
             // actually a function that makes the generator (and passes arguments to
@@ -10501,7 +10501,7 @@ define('pytools/ts-compiler',["require", "exports", './asserts', './base', './pa
     ;
 });
 
-define('pytools',["require", "exports", './pytools/parser', './pytools/builder', './pytools/sk-compiler', './pytools/ts-compiler'], function (require, exports, parser_1, builder_1, sk_compiler_1, ts_compiler_1) {
+define('pytools',["require", "exports", './pytools/parser', './pytools/builder', './pytools/sk-compiler', './py-to-es/ts-compiler'], function (require, exports, parser_1, builder_1, sk_compiler_1, ts_compiler_1) {
     "use strict";
     var pytools = {
         parser: { parse: parser_1.parse, parseTreeDump: parser_1.parseTreeDump },

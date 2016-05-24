@@ -3337,11 +3337,7 @@ define(["require", "exports"], function (require, exports) {
         extra.tokens = tokens;
     }
     function tokenize(code, options) {
-        var toString, tokens;
-        toString = String;
-        if (typeof code !== 'string' && !(code instanceof String)) {
-            code = toString(code);
-        }
+        var tokens;
         source = code;
         index = 0;
         lineNumber = (source.length > 0) ? 1 : 0;
@@ -3413,12 +3409,9 @@ define(["require", "exports"], function (require, exports) {
         }
         return tokens;
     }
+    exports.tokenize = tokenize;
     function parse(code, options) {
-        var program, toString;
-        toString = String;
-        if (typeof code !== 'string' && !(code instanceof String)) {
-            code = toString(code);
-        }
+        var program;
         source = code;
         index = 0;
         lineNumber = (source.length > 0) ? 1 : 0;
@@ -3440,7 +3433,7 @@ define(["require", "exports"], function (require, exports) {
             extra.loc = (typeof options.loc === 'boolean') && options.loc;
             extra.attachComment = (typeof options.attachComment === 'boolean') && options.attachComment;
             if (extra.loc && options.source !== null && options.source !== undefined) {
-                extra.source = toString(options.source);
+                extra.source = String(options.source);
             }
             if (typeof options.tokens === 'boolean' && options.tokens) {
                 extra.tokens = [];
@@ -3480,9 +3473,10 @@ define(["require", "exports"], function (require, exports) {
         }
         return program;
     }
+    exports.parse = parse;
     // Deep copy.
     /* istanbul ignore next */
-    var esprimaSyntax = (function () {
+    exports.esprimaSyntax = (function () {
         var name, types = {};
         if (typeof Object.create === 'function') {
             types = Object.create(null);
@@ -3497,10 +3491,4 @@ define(["require", "exports"], function (require, exports) {
         }
         return types;
     }());
-    var esprima = {
-        tokenize: tokenize,
-        parse: parse,
-        Syntax: esprimaSyntax
-    };
-    return esprima;
 });
