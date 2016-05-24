@@ -1,5 +1,5 @@
 // import core = require('davinci-mathscript/core');
-import {parse as esparse} from '../estools/esprima';
+import {parse as esparse, Node} from '../estools/esprima';
 import {generate} from '../estools/escodegen';
 // import escodegen = require('davinci-mathscript/escodegen');
 // i mport estraverse = require('davinci-mathscript/estraverse');
@@ -52,20 +52,20 @@ export function transpile(code, options) {
     return generate(tree, null);
 }
 
-function visit(node) {
+function visit(node: Node) {
     if (node && node.type) {
         switch (node.type) {
             case 'BlockStatement': {
-                node.body.forEach(function(part, index) { visit(part); });
+                (<Node[]>node.body).forEach(function(part, index) { visit(part); });
             }
                 break;
             case 'FunctionDeclaration': {
                 node.params.forEach(function(param, index) { visit(param); });
-                visit(node.body);
+                visit(<Node>node.body);
             }
                 break;
             case 'Program': {
-                node.body.forEach(function(node, index) {
+                (<Node[]>node.body).forEach(function(node, index) {
                     visit(node);
                 });
             }
@@ -101,7 +101,7 @@ function visit(node) {
                         };
                         visit(node.left);
                         visit(node.right);
-                        node['arguments'] = [node.left, node.right];
+                        node.arguments = [node.left, node.right];
                     }
                     else {
                         visit(node.left);
@@ -117,13 +117,13 @@ function visit(node) {
                 visit(node.init);
                 visit(node.test);
                 visit(node.update);
-                visit(node.body);
+                visit(<Node>node.body);
             }
                 break;
             case 'ForInStatement': {
                 visit(node.left);
                 visit(node.right);
-                visit(node.body);
+                visit(<Node>node.body);
             }
                 break;
             case 'IfStatement': {
@@ -133,7 +133,7 @@ function visit(node) {
             }
                 break;
             case 'ArrayExpression': {
-                node['elements'].forEach(function(elem, index) { visit(elem); });
+                node.elements.forEach(function(elem, index) { visit(elem); });
             }
                 break;
             case 'AssignmentExpression':
@@ -150,16 +150,16 @@ function visit(node) {
                 break;
             case 'CallExpression': {
                 visit(node.callee);
-                node['arguments'].forEach(function(argument, index) { visit(argument); });
+                node.arguments.forEach(function(argument, index) { visit(argument); });
             }
                 break;
             case 'CatchClause': {
                 visit(node.param);
-                visit(node.body);
+                visit(<Node>node.body);
             }
                 break;
             case 'FunctionExpression': {
-                visit(node.body);
+                visit(<Node>node.body);
             }
                 break;
             case 'MemberExpression': {
@@ -168,11 +168,11 @@ function visit(node) {
                 break;
             case 'NewExpression': {
                 visit(node.callee);
-                node['arguments'].forEach(function(argument, index) { visit(argument); });
+                node.arguments.forEach(function(argument, index) { visit(argument); });
             }
                 break;
             case 'ObjectExpression': {
-                node['properties'].forEach(function(prop, index) { visit(prop); });
+                node.properties.forEach(function(prop, index) { visit(prop); });
             }
                 break;
             case 'ReturnStatement': {
@@ -180,17 +180,17 @@ function visit(node) {
             }
                 break;
             case 'SequenceExpression': {
-                node['expressions'].forEach(function(expr, index) { visit(expr); });
+                node.expressions.forEach(function(expr, index) { visit(expr); });
             }
                 break;
             case 'SwitchCase': {
                 visit(node.test);
-                node['consequent'].forEach(function(expr, index) { visit(expr); });
+                node.consequent.forEach(function(expr, index) { visit(expr); });
             }
                 break;
             case 'SwitchStatement': {
                 visit(node.discriminant);
-                node['cases'].forEach(function(kase, index) { visit(kase); });
+                node.cases.forEach(function(kase, index) { visit(kase); });
             }
                 break;
             case 'ThrowStatement': {
@@ -199,8 +199,8 @@ function visit(node) {
                 break;
             case 'TryStatement': {
                 visit(node.block);
-                node['guardedHandlers'].forEach(function(guardedHandler, index) { visit(guardedHandler); });
-                node['handlers'].forEach(function(handler, index) { visit(handler); });
+                node.guardedHandlers.forEach(function(guardedHandler, index) { visit(guardedHandler); });
+                node.handlers.forEach(function(handler, index) { visit(handler); });
                 visit(node.finalizer);
             }
                 break;
@@ -220,7 +220,7 @@ function visit(node) {
                         }
                     };
                     visit(node.argument);
-                    node['arguments'] = [node.argument];
+                    node.arguments = [node.argument];
                 } else {
                     visit(node.argument);
                 }
@@ -242,7 +242,7 @@ function visit(node) {
                         }
                     };
                     visit(node.argument);
-                    node['arguments'] = [node.argument];
+                    node.arguments = [node.argument];
                 }
                 else {
                     visit(node.argument);
@@ -256,7 +256,7 @@ function visit(node) {
                 break;
             case 'WhileStatement': {
                 visit(node.test);
-                visit(node.body);
+                visit(<Node>node.body);
             }
                 break;
             case 'BreakStatement':
@@ -267,7 +267,7 @@ function visit(node) {
             case 'DebuggerStatement':
                 break;
             default: {
-                console.log(JSON.stringify(node, null, 2));
+                console.warn(JSON.stringify(node, null, 2));
             }
         }
     }

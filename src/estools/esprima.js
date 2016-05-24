@@ -1404,7 +1404,9 @@ define(["require", "exports"], function (require, exports) {
         SyntaxNode.prototype.processComment = function () {
             var lastChild, leadingComments, trailingComments, bottomRight = extra.bottomRightStack, i, comment, last = bottomRight[bottomRight.length - 1];
             if (this.type === Syntax.Program) {
-                if (this.body.length > 0) {
+                // Is body a Node or a Node[]?
+                // This may be a red herring.
+                if (this.body['length'] > 0) {
                     return;
                 }
             }
@@ -1825,15 +1827,15 @@ define(["require", "exports"], function (require, exports) {
         return WrappingNode;
     }(SyntaxNode));
     exports.WrappingNode = WrappingNode;
-    // WrappingNode.prototype = Node.prototype;
-    // Return true if there is a line terminator before the next token.
+    /**
+     * Return true if there is a line terminator before the next token.
+     */
     function peekLineTerminator() {
-        var pos, line, start, found;
-        pos = index;
-        line = lineNumber;
-        start = lineStart;
+        var pos = index;
+        var line = lineNumber;
+        var start = lineStart;
         skipComment();
-        found = lineNumber !== line;
+        var found = lineNumber !== line;
         index = pos;
         lineNumber = line;
         lineStart = start;
@@ -2171,7 +2173,9 @@ define(["require", "exports"], function (require, exports) {
     }
     // 11.1 Primary Expressions
     function parsePrimaryExpression() {
-        var type, token, expr, node;
+        var type;
+        var token;
+        var expr;
         if (match('(')) {
             return parseGroupExpression();
         }
@@ -2182,7 +2186,7 @@ define(["require", "exports"], function (require, exports) {
             return parseObjectInitialiser();
         }
         type = lookahead.type;
-        node = new Node();
+        var node = new Node();
         if (type === Token.Identifier) {
             expr = node.finishIdentifier(lex().value);
         }
@@ -2485,8 +2489,11 @@ define(["require", "exports"], function (require, exports) {
     }
     // 11.12 Conditional Operator
     function parseConditionalExpression() {
-        var expr, previousAllowIn, consequent, alternate, startToken;
-        startToken = lookahead;
+        var expr;
+        var previousAllowIn;
+        var consequent;
+        var alternate;
+        var startToken = lookahead;
         expr = parseBinaryExpression();
         if (expr === PlaceHolders.ArrowParameterPlaceHolder) {
             return expr;
@@ -2553,10 +2560,9 @@ define(["require", "exports"], function (require, exports) {
         };
     }
     function parseArrowFunctionExpression(options, node) {
-        var previousStrict, body;
         expect('=>');
-        previousStrict = strict;
-        body = parseConciseBody();
+        var previousStrict = strict;
+        var body = parseConciseBody();
         if (strict && options.firstRestricted) {
             throwUnexpectedToken(options.firstRestricted, options.message);
         }
@@ -2568,7 +2574,12 @@ define(["require", "exports"], function (require, exports) {
     }
     // 11.13 Assignment Operators
     function parseAssignmentExpression() {
-        var oldParenthesisCount, token, expr, right, list, startToken;
+        var oldParenthesisCount;
+        var token;
+        var expr;
+        var right;
+        var list;
+        var startToken;
         oldParenthesisCount = state.parenthesisCount;
         startToken = lookahead;
         token = lookahead;
@@ -2610,8 +2621,9 @@ define(["require", "exports"], function (require, exports) {
     }
     // 11.14 Comma Operator
     function parseExpression() {
-        var expr, startToken = lookahead, expressions;
-        expr = parseAssignmentExpression();
+        var startToken = lookahead;
+        var expressions;
+        var expr = parseAssignmentExpression();
         if (match(',')) {
             expressions = [expr];
             while (index < length) {
@@ -2627,7 +2639,8 @@ define(["require", "exports"], function (require, exports) {
     }
     // 12.1 Block
     function parseStatementList() {
-        var list = [], statement;
+        var list = [];
+        var statement;
         while (index < length) {
             if (match('}')) {
                 break;
@@ -2641,16 +2654,16 @@ define(["require", "exports"], function (require, exports) {
         return list;
     }
     function parseBlock() {
-        var block, node = new Node();
+        var node = new Node();
         expect('{');
-        block = parseStatementList();
+        var block = parseStatementList();
         expect('}');
         return node.finishBlockStatement(block);
     }
     // 12.2 Variable Statement
     function parseVariableIdentifier() {
-        var token, node = new Node();
-        token = lex();
+        var node = new Node();
+        var token = lex();
         if (token.type !== Token.Identifier) {
             if (strict && token.type === Token.Keyword && isStrictModeReservedWord(token.value)) {
                 tolerateUnexpectedToken(token, Messages.StrictReservedWord);
@@ -2662,8 +2675,9 @@ define(["require", "exports"], function (require, exports) {
         return node.finishIdentifier(token.value);
     }
     function parseVariableDeclaration(kind) {
-        var init = null, id, node = new Node();
-        id = parseVariableIdentifier();
+        var init = null;
+        var node = new Node();
+        var id = parseVariableIdentifier();
         // 12.2.1
         if (strict && isRestrictedWord(id.name)) {
             tolerateError(Messages.StrictVarName);
@@ -2701,9 +2715,9 @@ define(["require", "exports"], function (require, exports) {
     // see http://wiki.ecmascript.org/doku.php?id=harmony:const
     // and http://wiki.ecmascript.org/doku.php?id=harmony:let
     function parseConstLetDeclaration(kind) {
-        var declarations, node = new Node();
+        var node = new Node();
         expectKeyword(kind);
-        declarations = parseVariableDeclarationList(kind);
+        var declarations = parseVariableDeclarationList(kind);
         consumeSemicolon();
         return node.finishVariableDeclaration(declarations, kind);
     }
@@ -2721,12 +2735,12 @@ define(["require", "exports"], function (require, exports) {
     }
     // 12.5 If statement
     function parseIfStatement(node) {
-        var test, consequent, alternate;
+        var alternate;
         expectKeyword('if');
         expect('(');
-        test = parseExpression();
+        var test = parseExpression();
         expect(')');
-        consequent = parseStatement();
+        var consequent = parseStatement();
         if (matchKeyword('else')) {
             lex();
             alternate = parseStatement();
@@ -2918,17 +2932,15 @@ define(["require", "exports"], function (require, exports) {
     }
     // 12.10 The with statement
     function parseWithStatement(node) {
-        var object, body;
         if (strict) {
-            // TODO(ikarienator): Should we update the test cases instead?
             skipComment();
             tolerateError(Messages.StrictModeWith);
         }
         expectKeyword('with');
         expect('(');
-        object = parseExpression();
+        var object = parseExpression();
         expect(')');
-        body = parseStatement();
+        var body = parseStatement();
         return node.finishWithStatement(object, body);
     }
     // 12.10 The swith statement
@@ -2997,19 +3009,19 @@ define(["require", "exports"], function (require, exports) {
     }
     // 12.14 The try statement
     function parseCatchClause() {
-        var param, body, node = new Node();
+        var node = new Node();
         expectKeyword('catch');
         expect('(');
         if (match(')')) {
             throwUnexpectedToken(lookahead);
         }
-        param = parseVariableIdentifier();
+        var param = parseVariableIdentifier();
         // 12.14.1
         if (strict && isRestrictedWord(param.name)) {
             tolerateError(Messages.StrictCatchVariable);
         }
         expect(')');
-        body = parseBlock();
+        var body = parseBlock();
         return node.finishCatchClause(param, body);
     }
     function parseTryStatement(node) {
@@ -3036,14 +3048,14 @@ define(["require", "exports"], function (require, exports) {
     }
     // 12 Statements
     function parseStatement() {
-        var type = lookahead.type, expr, labeledBody, key, node;
+        var type = lookahead.type, expr, labeledBody, key;
         if (type === Token.EOF) {
             throwUnexpectedToken(lookahead);
         }
         if (type === Token.Punctuator && lookahead.value === '{') {
             return parseBlock();
         }
-        node = new Node();
+        var node = new Node();
         if (type === Token.Punctuator) {
             switch (lookahead.value) {
                 case ';':
@@ -3106,7 +3118,17 @@ define(["require", "exports"], function (require, exports) {
     }
     // 13 Function Definition
     function parseFunctionSourceElements() {
-        var sourceElement, sourceElements = [], token, directive, firstRestricted, oldLabelSet, oldInIteration, oldInSwitch, oldInFunctionBody, oldParenthesisCount, node = new Node();
+        var sourceElement;
+        var sourceElements = [];
+        var token;
+        var directive;
+        var firstRestricted;
+        var oldLabelSet;
+        var oldInIteration;
+        var oldInSwitch;
+        var oldInFunctionBody;
+        var oldParenthesisCount;
+        var node = new Node();
         expect('{');
         while (index < length) {
             if (lookahead.type !== Token.StringLiteral) {
@@ -3330,7 +3352,11 @@ define(["require", "exports"], function (require, exports) {
         }
     }
     function parseSourceElements() {
-        var sourceElement, sourceElements = [], token, directive, firstRestricted;
+        var sourceElement;
+        var sourceElements = [];
+        var token;
+        var directive;
+        var firstRestricted;
         while (index < length) {
             token = lookahead;
             if (token.type !== Token.StringLiteral) {
@@ -3366,12 +3392,11 @@ define(["require", "exports"], function (require, exports) {
         return sourceElements;
     }
     function parseProgram() {
-        var body, node;
         skipComment();
         peek();
-        node = new Node();
+        var node = new Node();
         strict = false;
-        body = parseSourceElements();
+        var body = parseSourceElements();
         return node.finishProgram(body);
     }
     function filterTokenLocation() {

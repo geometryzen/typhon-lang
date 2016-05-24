@@ -101,7 +101,7 @@ define(["require", "exports", '../estools/esprima', '../estools/escodegen'], fun
                             };
                             visit(node.left);
                             visit(node.right);
-                            node['arguments'] = [node.left, node.right];
+                            node.arguments = [node.left, node.right];
                         }
                         else {
                             visit(node.left);
@@ -138,7 +138,7 @@ define(["require", "exports", '../estools/esprima', '../estools/escodegen'], fun
                     break;
                 case 'ArrayExpression':
                     {
-                        node['elements'].forEach(function (elem, index) { visit(elem); });
+                        node.elements.forEach(function (elem, index) { visit(elem); });
                     }
                     break;
                 case 'AssignmentExpression':
@@ -156,7 +156,7 @@ define(["require", "exports", '../estools/esprima', '../estools/escodegen'], fun
                 case 'CallExpression':
                     {
                         visit(node.callee);
-                        node['arguments'].forEach(function (argument, index) { visit(argument); });
+                        node.arguments.forEach(function (argument, index) { visit(argument); });
                     }
                     break;
                 case 'CatchClause':
@@ -178,12 +178,12 @@ define(["require", "exports", '../estools/esprima', '../estools/escodegen'], fun
                 case 'NewExpression':
                     {
                         visit(node.callee);
-                        node['arguments'].forEach(function (argument, index) { visit(argument); });
+                        node.arguments.forEach(function (argument, index) { visit(argument); });
                     }
                     break;
                 case 'ObjectExpression':
                     {
-                        node['properties'].forEach(function (prop, index) { visit(prop); });
+                        node.properties.forEach(function (prop, index) { visit(prop); });
                     }
                     break;
                 case 'ReturnStatement':
@@ -193,19 +193,19 @@ define(["require", "exports", '../estools/esprima', '../estools/escodegen'], fun
                     break;
                 case 'SequenceExpression':
                     {
-                        node['expressions'].forEach(function (expr, index) { visit(expr); });
+                        node.expressions.forEach(function (expr, index) { visit(expr); });
                     }
                     break;
                 case 'SwitchCase':
                     {
                         visit(node.test);
-                        node['consequent'].forEach(function (expr, index) { visit(expr); });
+                        node.consequent.forEach(function (expr, index) { visit(expr); });
                     }
                     break;
                 case 'SwitchStatement':
                     {
                         visit(node.discriminant);
-                        node['cases'].forEach(function (kase, index) { visit(kase); });
+                        node.cases.forEach(function (kase, index) { visit(kase); });
                     }
                     break;
                 case 'ThrowStatement':
@@ -216,8 +216,8 @@ define(["require", "exports", '../estools/esprima', '../estools/escodegen'], fun
                 case 'TryStatement':
                     {
                         visit(node.block);
-                        node['guardedHandlers'].forEach(function (guardedHandler, index) { visit(guardedHandler); });
-                        node['handlers'].forEach(function (handler, index) { visit(handler); });
+                        node.guardedHandlers.forEach(function (guardedHandler, index) { visit(guardedHandler); });
+                        node.handlers.forEach(function (handler, index) { visit(handler); });
                         visit(node.finalizer);
                     }
                     break;
@@ -238,7 +238,7 @@ define(["require", "exports", '../estools/esprima', '../estools/escodegen'], fun
                                 }
                             };
                             visit(node.argument);
-                            node['arguments'] = [node.argument];
+                            node.arguments = [node.argument];
                         }
                         else {
                             visit(node.argument);
@@ -262,7 +262,7 @@ define(["require", "exports", '../estools/esprima', '../estools/escodegen'], fun
                                 }
                             };
                             visit(node.argument);
-                            node['arguments'] = [node.argument];
+                            node.arguments = [node.argument];
                         }
                         else {
                             visit(node.argument);

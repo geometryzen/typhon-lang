@@ -1555,7 +1555,7 @@ export class WrappingSourceLocation {
 export class SyntaxNode {
     range: number[];
     type;
-    body;
+    body: Node | Node[];
     leadingComments;
     trailingComments;
     elements;
@@ -1610,7 +1610,9 @@ export class SyntaxNode {
             last = bottomRight[bottomRight.length - 1];
 
         if (this.type === Syntax.Program) {
-            if (this.body.length > 0) {
+            // Is body a Node or a Node[]?
+            // This may be a red herring.
+            if (this.body['length'] > 0) {
                 return;
             }
         }
@@ -1675,7 +1677,7 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishArrowFunctionExpression(params, defaults, body, expression) {
+    finishArrowFunctionExpression(params, defaults, body: Node, expression) {
         this.type = Syntax.ArrowFunctionExpression;
         this.id = null;
         this.params = params;
@@ -1703,7 +1705,7 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishBlockStatement(body) {
+    finishBlockStatement(body: Node[]) {
         this.type = Syntax.BlockStatement;
         this.body = body;
         this.finish();
@@ -1722,7 +1724,7 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishCatchClause(param, body) {
+    finishCatchClause(param: Node, body: Node) {
         this.type = Syntax.CatchClause;
         this.param = param;
         this.body = body;
@@ -1748,7 +1750,7 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishDoWhileStatement(body, test) {
+    finishDoWhileStatement(body: Node, test) {
         this.type = Syntax.DoWhileStatement;
         this.body = body;
         this.test = test;
@@ -1766,7 +1768,7 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishForStatement(init, test, update, body) {
+    finishForStatement(init, test, update, body: Node) {
         this.type = Syntax.ForStatement;
         this.init = init;
         this.test = test;
@@ -1775,7 +1777,7 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishForInStatement(left, right, body) {
+    finishForInStatement(left, right, body: Node) {
         this.type = Syntax.ForInStatement;
         this.left = left;
         this.right = right;
@@ -1784,7 +1786,7 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishFunctionDeclaration(id, params, defaults, body) {
+    finishFunctionDeclaration(id, params, defaults, body: Node) {
         this.type = Syntax.FunctionDeclaration;
         this.id = id;
         this.params = params;
@@ -1796,7 +1798,7 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishFunctionExpression(id, params, defaults, body) {
+    finishFunctionExpression(id, params, defaults, body: Node) {
         this.type = Syntax.FunctionExpression;
         this.id = id;
         this.params = params;
@@ -1814,7 +1816,7 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishIfStatement(test, consequent, alternate) {
+    finishIfStatement(test: Node, consequent: Node, alternate: Node) {
         this.type = Syntax.IfStatement;
         this.test = test;
         this.consequent = consequent;
@@ -1822,7 +1824,7 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishLabeledStatement(label, body) {
+    finishLabeledStatement(label, body: Node) {
         this.type = Syntax.LabeledStatement;
         this.label = label;
         this.body = body;
@@ -1868,7 +1870,7 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishProgram(body) {
+    finishProgram(body: Node[]) {
         this.type = Syntax.Program;
         this.body = body;
         this.finish();
@@ -1952,14 +1954,14 @@ export class SyntaxNode {
         this.finish();
         return this;
     }
-    finishWhileStatement(test, body) {
+    finishWhileStatement(test, body: Node) {
         this.type = Syntax.WhileStatement;
         this.test = test;
         this.body = body;
         this.finish();
         return this;
     }
-    finishWithStatement(object, body) {
+    finishWithStatement(object, body: Node) {
         this.type = Syntax.WithStatement;
         this.object = object;
         this.body = body;
@@ -2034,18 +2036,16 @@ export class WrappingNode extends SyntaxNode {
     }
 }
 
-// WrappingNode.prototype = Node.prototype;
+/**
+ * Return true if there is a line terminator before the next token.
+ */
+function peekLineTerminator(): boolean {
 
-// Return true if there is a line terminator before the next token.
-
-function peekLineTerminator() {
-    var pos, line, start, found;
-
-    pos = index;
-    line = lineNumber;
-    start = lineStart;
+    const pos = index;
+    const line = lineNumber;
+    const start = lineStart;
     skipComment();
-    found = lineNumber !== line;
+    const found = lineNumber !== line;
     index = pos;
     lineNumber = line;
     lineStart = start;
@@ -2253,7 +2253,7 @@ function isLeftHandSide(expr) {
 
 // 11.1.4 Array Initialiser
 
-function parseArrayInitialiser() {
+function parseArrayInitialiser(): Node {
     var elements = [], node = new Node();
 
     expect('[');
@@ -2454,8 +2454,10 @@ function parseGroupExpression() {
 
 // 11.1 Primary Expressions
 
-function parsePrimaryExpression() {
-    var type, token, expr, node;
+function parsePrimaryExpression(): Node {
+    let type;
+    let token;
+    let expr: Node;
 
     if (match('(')) {
         return parseGroupExpression();
@@ -2470,7 +2472,7 @@ function parsePrimaryExpression() {
     }
 
     type = lookahead.type;
-    node = new Node();
+    const node = new Node();
 
     if (type === Token.Identifier) {
         expr = node.finishIdentifier(lex().value);
@@ -2513,8 +2515,8 @@ function parsePrimaryExpression() {
 
 // 11.2 Left-Hand-Side Expressions
 
-function parseArguments() {
-    var args = [];
+function parseArguments(): Node[] {
+    const args: Node[] = [];
 
     expect('(');
 
@@ -2533,7 +2535,7 @@ function parseArguments() {
     return args;
 }
 
-function parseNonComputedProperty() {
+function parseNonComputedProperty(): Node {
     var token, node = new Node();
 
     token = lex();
@@ -2545,7 +2547,7 @@ function parseNonComputedProperty() {
     return node.finishIdentifier(token.value);
 }
 
-function parseNonComputedMember() {
+function parseNonComputedMember(): Node {
     expect('.');
 
     return parseNonComputedProperty();
@@ -2828,10 +2830,12 @@ function parseBinaryExpression() {
 
 // 11.12 Conditional Operator
 
-function parseConditionalExpression() {
-    var expr, previousAllowIn, consequent, alternate, startToken;
-
-    startToken = lookahead;
+function parseConditionalExpression(): WrappingNode {
+    let expr: WrappingNode;
+    let previousAllowIn;
+    let consequent;
+    let alternate;
+    let startToken = lookahead;
 
     expr = parseBinaryExpression();
     if (expr === PlaceHolders.ArrowParameterPlaceHolder) {
@@ -2907,13 +2911,12 @@ function reinterpretAsCoverFormalsList(expressions) {
     };
 }
 
-function parseArrowFunctionExpression(options, node) {
-    var previousStrict, body;
+function parseArrowFunctionExpression(options, node: Node): Node {
 
     expect('=>');
-    previousStrict = strict;
+    const previousStrict = strict;
 
-    body = parseConciseBody();
+    const body = parseConciseBody();
 
     if (strict && options.firstRestricted) {
         throwUnexpectedToken(options.firstRestricted, options.message);
@@ -2930,7 +2933,12 @@ function parseArrowFunctionExpression(options, node) {
 // 11.13 Assignment Operators
 
 function parseAssignmentExpression() {
-    var oldParenthesisCount, token, expr, right, list, startToken;
+    let oldParenthesisCount;
+    let token;
+    let expr: WrappingNode;
+    let right;
+    let list;
+    let startToken;
 
     oldParenthesisCount = state.parenthesisCount;
 
@@ -2978,10 +2986,11 @@ function parseAssignmentExpression() {
 
 // 11.14 Comma Operator
 
-function parseExpression() {
-    var expr, startToken = lookahead, expressions;
+function parseExpression(): Node {
+    let startToken = lookahead;
+    let expressions: Node[];
 
-    expr = parseAssignmentExpression();
+    let expr: Node = parseAssignmentExpression();
 
     if (match(',')) {
         expressions = [expr];
@@ -3002,9 +3011,9 @@ function parseExpression() {
 
 // 12.1 Block
 
-function parseStatementList() {
-    var list = [],
-        statement;
+function parseStatementList(): Node[] {
+    const list: Node[] = [];
+    let statement: Node;
 
     while (index < length) {
         if (match('}')) {
@@ -3020,12 +3029,12 @@ function parseStatementList() {
     return list;
 }
 
-function parseBlock() {
-    var block, node = new Node();
+function parseBlock(): Node {
+    const node = new Node();
 
     expect('{');
 
-    block = parseStatementList();
+    const block = parseStatementList();
 
     expect('}');
 
@@ -3034,10 +3043,10 @@ function parseBlock() {
 
 // 12.2 Variable Statement
 
-function parseVariableIdentifier() {
-    var token, node = new Node();
+function parseVariableIdentifier(): Node {
+    const node = new Node();
 
-    token = lex();
+    const token = lex();
 
     if (token.type !== Token.Identifier) {
         if (strict && token.type === Token.Keyword && isStrictModeReservedWord(token.value)) {
@@ -3050,10 +3059,11 @@ function parseVariableIdentifier() {
     return node.finishIdentifier(token.value);
 }
 
-function parseVariableDeclaration(kind) {
-    var init = null, id, node = new Node();
+function parseVariableDeclaration(kind): Node {
+    let init: Node = null;
+    const node = new Node();
 
-    id = parseVariableIdentifier();
+    const id = parseVariableIdentifier();
 
     // 12.2.1
     if (strict && isRestrictedWord(id.name)) {
@@ -3071,8 +3081,8 @@ function parseVariableDeclaration(kind) {
     return node.finishVariableDeclarator(id, init);
 }
 
-function parseVariableDeclarationList(kind?) {
-    var list = [];
+function parseVariableDeclarationList(kind?): Node[] {
+    const list: Node[] = [];
 
     do {
         list.push(parseVariableDeclaration(kind));
@@ -3085,7 +3095,7 @@ function parseVariableDeclarationList(kind?) {
     return list;
 }
 
-function parseVariableStatement(node) {
+function parseVariableStatement(node: Node): Node {
     var declarations;
 
     expectKeyword('var');
@@ -3101,12 +3111,12 @@ function parseVariableStatement(node) {
 // Both are experimental and not in the specification yet.
 // see http://wiki.ecmascript.org/doku.php?id=harmony:const
 // and http://wiki.ecmascript.org/doku.php?id=harmony:let
-function parseConstLetDeclaration(kind) {
-    var declarations, node = new Node();
+function parseConstLetDeclaration(kind): Node {
+    const node = new Node();
 
     expectKeyword(kind);
 
-    declarations = parseVariableDeclarationList(kind);
+    const declarations = parseVariableDeclarationList(kind);
 
     consumeSemicolon();
 
@@ -3115,7 +3125,7 @@ function parseConstLetDeclaration(kind) {
 
 // 12.3 Empty Statement
 
-function parseEmptyStatement(ignore?) {
+function parseEmptyStatement(ignore?): Node {
     var node = new Node();
     expect(';');
     return node.finishEmptyStatement();
@@ -3123,7 +3133,7 @@ function parseEmptyStatement(ignore?) {
 
 // 12.4 Expression Statement
 
-function parseExpressionStatement(node) {
+function parseExpressionStatement(node: Node): Node {
     var expr = parseExpression();
     consumeSemicolon();
     return node.finishExpressionStatement(expr);
@@ -3131,18 +3141,18 @@ function parseExpressionStatement(node) {
 
 // 12.5 If statement
 
-function parseIfStatement(node) {
-    var test, consequent, alternate;
+function parseIfStatement(node: Node): Node {
+    let alternate: Node;
 
     expectKeyword('if');
 
     expect('(');
 
-    test = parseExpression();
+    const test = parseExpression();
 
     expect(')');
 
-    consequent = parseStatement();
+    const consequent = parseStatement();
 
     if (matchKeyword('else')) {
         lex();
@@ -3331,7 +3341,7 @@ function parseContinueStatement(node) {
 
 // 12.8 The break statement
 
-function parseBreakStatement(node) {
+function parseBreakStatement(node: Node): Node {
     var label = null, key;
 
     expectKeyword('break');
@@ -3375,7 +3385,7 @@ function parseBreakStatement(node) {
 
 // 12.9 The return statement
 
-function parseReturnStatement(node) {
+function parseReturnStatement(node: Node): Node {
     var argument = null;
 
     expectKeyword('return');
@@ -3410,11 +3420,9 @@ function parseReturnStatement(node) {
 
 // 12.10 The with statement
 
-function parseWithStatement(node) {
-    var object, body;
+function parseWithStatement(node: Node): Node {
 
     if (strict) {
-        // TODO(ikarienator): Should we update the test cases instead?
         skipComment();
         tolerateError(Messages.StrictModeWith);
     }
@@ -3423,18 +3431,18 @@ function parseWithStatement(node) {
 
     expect('(');
 
-    object = parseExpression();
+    const object = parseExpression();
 
     expect(')');
 
-    body = parseStatement();
+    const body = parseStatement();
 
     return node.finishWithStatement(object, body);
 }
 
 // 12.10 The swith statement
 
-function parseSwitchCase() {
+function parseSwitchCase(): Node {
     var test, consequent = [], statement, node = new Node();
 
     if (matchKeyword('default')) {
@@ -3457,7 +3465,7 @@ function parseSwitchCase() {
     return node.finishSwitchCase(test, consequent);
 }
 
-function parseSwitchStatement(node) {
+function parseSwitchStatement(node: Node): Node {
     var discriminant, cases, clause, oldInSwitch, defaultFound;
 
     expectKeyword('switch');
@@ -3504,7 +3512,7 @@ function parseSwitchStatement(node) {
 
 // 12.13 The throw statement
 
-function parseThrowStatement(node) {
+function parseThrowStatement(node: Node): Node {
     var argument;
 
     expectKeyword('throw');
@@ -3522,8 +3530,8 @@ function parseThrowStatement(node) {
 
 // 12.14 The try statement
 
-function parseCatchClause() {
-    var param, body, node = new Node();
+function parseCatchClause(): Node {
+    const node = new Node();
 
     expectKeyword('catch');
 
@@ -3532,18 +3540,18 @@ function parseCatchClause() {
         throwUnexpectedToken(lookahead);
     }
 
-    param = parseVariableIdentifier();
+    const param = parseVariableIdentifier();
     // 12.14.1
     if (strict && isRestrictedWord(param.name)) {
         tolerateError(Messages.StrictCatchVariable);
     }
 
     expect(')');
-    body = parseBlock();
+    const body = parseBlock();
     return node.finishCatchClause(param, body);
 }
 
-function parseTryStatement(node) {
+function parseTryStatement(node: Node) {
     var block, handlers = [], finalizer = null;
 
     expectKeyword('try');
@@ -3578,12 +3586,11 @@ function parseDebuggerStatement(node) {
 
 // 12 Statements
 
-function parseStatement() {
+function parseStatement(): Node {
     var type = lookahead.type,
         expr,
         labeledBody,
-        key,
-        node;
+        key;
 
     if (type === Token.EOF) {
         throwUnexpectedToken(lookahead);
@@ -3593,7 +3600,7 @@ function parseStatement() {
         return parseBlock();
     }
 
-    node = new Node();
+    let node = new Node();
 
     if (type === Token.Punctuator) {
         switch (lookahead.value) {
@@ -3663,10 +3670,18 @@ function parseStatement() {
 
 // 13 Function Definition
 
-function parseFunctionSourceElements() {
-    var sourceElement, sourceElements = [], token, directive, firstRestricted,
-        oldLabelSet, oldInIteration, oldInSwitch, oldInFunctionBody, oldParenthesisCount,
-        node = new Node();
+function parseFunctionSourceElements(): Node {
+    let sourceElement;
+    let sourceElements: Node[] = [];
+    let token;
+    let directive;
+    let firstRestricted;
+    let oldLabelSet;
+    let oldInIteration;
+    let oldInSwitch;
+    let oldInFunctionBody;
+    let oldParenthesisCount;
+    const node = new Node();
 
     expect('{');
 
@@ -3755,7 +3770,7 @@ function validateParam(options, param, name) {
     options.paramSet[key] = true;
 }
 
-function parseParam(options) {
+function parseParam(options): boolean {
     var token, param, def;
 
     token = lookahead;
@@ -3810,7 +3825,7 @@ function parseParams(firstRestricted?) {
     };
 }
 
-function parseFunctionDeclaration(ignore?) {
+function parseFunctionDeclaration(ignore?): Node {
     var id, params = [], defaults = [], body, token, stricted, tmp, firstRestricted, message, previousStrict, node = new Node();
 
     expectKeyword('function');
@@ -3852,7 +3867,7 @@ function parseFunctionDeclaration(ignore?) {
     return node.finishFunctionDeclaration(id, params, defaults, body);
 }
 
-function parseFunctionExpression() {
+function parseFunctionExpression(): Node {
     var token, id = null, stricted, firstRestricted, message, tmp,
         params = [], defaults = [], body, previousStrict, node = new Node();
 
@@ -3900,7 +3915,7 @@ function parseFunctionExpression() {
 
 // 14 Program
 
-function parseSourceElement() {
+function parseSourceElement(): Node {
     if (lookahead.type === Token.Keyword) {
         switch (lookahead.value) {
             case 'const':
@@ -3919,7 +3934,11 @@ function parseSourceElement() {
 }
 
 function parseSourceElements() {
-    var sourceElement, sourceElements = [], token, directive, firstRestricted;
+    let sourceElement: Node;
+    let sourceElements: Node[] = [];
+    let token;
+    let directive;
+    let firstRestricted;
 
     while (index < length) {
         token = lookahead;
@@ -3958,14 +3977,12 @@ function parseSourceElements() {
 }
 
 function parseProgram() {
-    var body, node;
-
     skipComment();
     peek();
-    node = new Node();
+    const node = new Node();
     strict = false;
 
-    body = parseSourceElements();
+    const body = parseSourceElements();
     return node.finishProgram(body);
 }
 
