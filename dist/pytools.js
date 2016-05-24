@@ -11866,10 +11866,14 @@ define('estools/esprima',["require", "exports"], function (require, exports) {
         return Position;
     }());
     exports.Position = Position;
-    function SourceLocation() {
-        this.start = new Position();
-        this.end = null;
-    }
+    var SourceLocation = (function () {
+        function SourceLocation() {
+            this.start = new Position();
+            this.end = null;
+        }
+        return SourceLocation;
+    }());
+    exports.SourceLocation = SourceLocation;
     function WrappingSourceLocation(startToken) {
         if (startToken.type === Token.StringLiteral) {
             this.start = {

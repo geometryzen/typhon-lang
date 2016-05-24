@@ -1519,9 +1519,13 @@ export class Position {
     }
 }
 
-function SourceLocation() {
-    this.start = new Position();
-    this.end = null;
+export class SourceLocation {
+    start: Position;
+    end: Position;
+    constructor() {
+        this.start = new Position();
+        this.end = null;
+    }
 }
 
 function WrappingSourceLocation(startToken) {
