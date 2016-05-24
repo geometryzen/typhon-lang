@@ -34,7 +34,7 @@ module.exports = function(grunt) {
 
         jasmine: {
             taskName: {
-                src: 'src/pytools/**/*.js',
+                src: 'src/**/*.js',
                 options: {
                     specs: 'test/spec/**/*-spec.js',
                     host: 'http://127.0.0.1:8000/',
