@@ -330,37 +330,26 @@ define(["require", "exports", '../estools/esprima', '../estools/escodegen'], fun
     }
     function add(p, q) { return binEval(p, q, '__add__', '__radd__', function (a, b) { return a + b; }); }
     exports.add = add;
-    ;
     function sub(p, q) { return binEval(p, q, '__sub__', '__rsub__', function (a, b) { return a - b; }); }
     exports.sub = sub;
-    ;
     function mul(p, q) { return binEval(p, q, '__mul__', '__rmul__', function (a, b) { return a * b; }); }
     exports.mul = mul;
-    ;
     function div(p, q) { return binEval(p, q, '__div__', '__rdiv__', function (a, b) { return a / b; }); }
     exports.div = div;
-    ;
     function mod(p, q) { return binEval(p, q, '__mod__', '__rmod__', function (a, b) { return a % b; }); }
     exports.mod = mod;
-    ;
     function bitwiseIOR(p, q) { return binEval(p, q, '__vbar__', '__rvbar__', function (a, b) { return a | b; }); }
     exports.bitwiseIOR = bitwiseIOR;
-    ;
     function bitwiseXOR(p, q) { return binEval(p, q, '__wedge__', '__rwedge__', function (a, b) { return a ^ b; }); }
     exports.bitwiseXOR = bitwiseXOR;
-    ;
     function lshift(p, q) { return binEval(p, q, '__lshift__', '__rlshift__', function (a, b) { return a << b; }); }
     exports.lshift = lshift;
-    ;
     function rshift(p, q) { return binEval(p, q, '__rshift__', '__rrshift__', function (a, b) { return a >> b; }); }
     exports.rshift = rshift;
-    ;
     function eq(p, q) { return binEval(p, q, '__eq__', '__req__', function (a, b) { return a === b; }); }
     exports.eq = eq;
-    ;
     function ne(p, q) { return binEval(p, q, '__ne__', '__rne__', function (a, b) { return a !== b; }); }
     exports.ne = ne;
-    ;
     function exp(x) {
         if (specialMethod(x, '__exp__')) {
             return x['__exp__']();

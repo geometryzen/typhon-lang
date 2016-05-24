@@ -1,4 +1,4 @@
-define(["require", "exports", './pytools/parser', './pytools/builder', './pytools/sk-compiler', './py-to-es/ts-compiler'], function (require, exports, parser_1, builder_1, sk_compiler_1, ts_compiler_1) {
+define(["require", "exports", './pytools/parser', './pytools/builder', './py-to-sk/sk-compiler', './py-to-es/ts-compiler'], function (require, exports, parser_1, builder_1, sk_compiler_1, ts_compiler_1) {
     "use strict";
     var pytools = {
         parser: { parse: parser_1.parse, parseTreeDump: parser_1.parseTreeDump },

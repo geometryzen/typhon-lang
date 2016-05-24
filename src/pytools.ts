@@ -1,6 +1,6 @@
 import {parse, parseTreeDump} from './pytools/parser';
 import {astFromParse, astDump} from './pytools/builder';
-import {compile as skCompile, resetCompiler as skReset} from './pytools/sk-compiler';
+import {compile as skCompile, resetCompiler as skReset} from './py-to-sk/sk-compiler';
 import {compile as tsCompile, resetCompiler as tsReset} from './py-to-es/ts-compiler';
 
 const pytools = {
