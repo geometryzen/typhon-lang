@@ -1390,34 +1390,26 @@ define(["require", "exports"], function (require, exports) {
         return WrappingSourceLocation;
     }());
     exports.WrappingSourceLocation = WrappingSourceLocation;
-    function Node() {
-        // Skip comment.
-        index = lookahead.start;
-        if (lookahead.type === Token.StringLiteral) {
-            lineNumber = lookahead.startLineNumber;
-            lineStart = lookahead.startLineStart;
+    var Node = (function () {
+        function Node() {
+            // Skip comment.
+            index = lookahead.start;
+            if (lookahead.type === Token.StringLiteral) {
+                lineNumber = lookahead.startLineNumber;
+                lineStart = lookahead.startLineStart;
+            }
+            else {
+                lineNumber = lookahead.lineNumber;
+                lineStart = lookahead.lineStart;
+            }
+            if (extra.range) {
+                this.range = [index, 0];
+            }
+            if (extra.loc) {
+                this.loc = new SourceLocation();
+            }
         }
-        else {
-            lineNumber = lookahead.lineNumber;
-            lineStart = lookahead.lineStart;
-        }
-        if (extra.range) {
-            this.range = [index, 0];
-        }
-        if (extra.loc) {
-            this.loc = new SourceLocation();
-        }
-    }
-    function WrappingNode(startToken) {
-        if (extra.range) {
-            this.range = [startToken.start, 0];
-        }
-        if (extra.loc) {
-            this.loc = new WrappingSourceLocation(startToken);
-        }
-    }
-    WrappingNode.prototype = Node.prototype = {
-        processComment: function () {
+        Node.prototype.processComment = function () {
             var lastChild, leadingComments, trailingComments, bottomRight = extra.bottomRightStack, i, comment, last = bottomRight[bottomRight.length - 1];
             if (this.type === Syntax.Program) {
                 if (this.body.length > 0) {
@@ -1471,8 +1463,8 @@ define(["require", "exports"], function (require, exports) {
                 this.trailingComments = trailingComments;
             }
             bottomRight.push(this);
-        },
-        finish: function () {
+        };
+        Node.prototype.finish = function () {
             if (extra.range) {
                 this.range[1] = index;
             }
@@ -1485,14 +1477,14 @@ define(["require", "exports"], function (require, exports) {
             if (extra.attachComment) {
                 this.processComment();
             }
-        },
-        finishArrayExpression: function (elements) {
+        };
+        Node.prototype.finishArrayExpression = function (elements) {
             this.type = Syntax.ArrayExpression;
             this.elements = elements;
             this.finish();
             return this;
-        },
-        finishArrowFunctionExpression: function (params, defaults, body, expression) {
+        };
+        Node.prototype.finishArrowFunctionExpression = function (params, defaults, body, expression) {
             this.type = Syntax.ArrowFunctionExpression;
             this.id = null;
             this.params = params;
@@ -1503,87 +1495,87 @@ define(["require", "exports"], function (require, exports) {
             this.expression = expression;
             this.finish();
             return this;
-        },
-        finishAssignmentExpression: function (operator, left, right) {
+        };
+        Node.prototype.finishAssignmentExpression = function (operator, left, right) {
             this.type = Syntax.AssignmentExpression;
             this.operator = operator;
             this.left = left;
             this.right = right;
             this.finish();
             return this;
-        },
-        finishBinaryExpression: function (operator, left, right) {
+        };
+        Node.prototype.finishBinaryExpression = function (operator, left, right) {
             this.type = (operator === '||' || operator === '&&') ? Syntax.LogicalExpression : Syntax.BinaryExpression;
             this.operator = operator;
             this.left = left;
             this.right = right;
             this.finish();
             return this;
-        },
-        finishBlockStatement: function (body) {
+        };
+        Node.prototype.finishBlockStatement = function (body) {
             this.type = Syntax.BlockStatement;
             this.body = body;
             this.finish();
             return this;
-        },
-        finishBreakStatement: function (label) {
+        };
+        Node.prototype.finishBreakStatement = function (label) {
             this.type = Syntax.BreakStatement;
             this.label = label;
             this.finish();
             return this;
-        },
-        finishCallExpression: function (callee, args) {
+        };
+        Node.prototype.finishCallExpression = function (callee, args) {
             this.type = Syntax.CallExpression;
             this.callee = callee;
             this.arguments = args;
             this.finish();
             return this;
-        },
-        finishCatchClause: function (param, body) {
+        };
+        Node.prototype.finishCatchClause = function (param, body) {
             this.type = Syntax.CatchClause;
             this.param = param;
             this.body = body;
             this.finish();
             return this;
-        },
-        finishConditionalExpression: function (test, consequent, alternate) {
+        };
+        Node.prototype.finishConditionalExpression = function (test, consequent, alternate) {
             this.type = Syntax.ConditionalExpression;
             this.test = test;
             this.consequent = consequent;
             this.alternate = alternate;
             this.finish();
             return this;
-        },
-        finishContinueStatement: function (label) {
+        };
+        Node.prototype.finishContinueStatement = function (label) {
             this.type = Syntax.ContinueStatement;
             this.label = label;
             this.finish();
             return this;
-        },
-        finishDebuggerStatement: function () {
+        };
+        Node.prototype.finishDebuggerStatement = function () {
             this.type = Syntax.DebuggerStatement;
             this.finish();
             return this;
-        },
-        finishDoWhileStatement: function (body, test) {
+        };
+        Node.prototype.finishDoWhileStatement = function (body, test) {
             this.type = Syntax.DoWhileStatement;
             this.body = body;
             this.test = test;
             this.finish();
             return this;
-        },
-        finishEmptyStatement: function () {
+        };
+        Node.prototype.finishEmptyStatement = function () {
             this.type = Syntax.EmptyStatement;
             this.finish();
             return this;
-        },
-        finishExpressionStatement: function (expression) {
+        };
+        Node.prototype.finishExpressionStatement = function (expression) {
             this.type = Syntax.ExpressionStatement;
             this.expression = expression;
             this.finish();
             return this;
-        },
-        finishForStatement: function (init, test, update, body) {
+        };
+        Node.prototype.finishForStatement = function (init, test, update, body) {
             this.type = Syntax.ForStatement;
             this.init = init;
             this.test = test;
@@ -1591,8 +1583,8 @@ define(["require", "exports"], function (require, exports) {
             this.body = body;
             this.finish();
             return this;
-        },
-        finishForInStatement: function (left, right, body) {
+        };
+        Node.prototype.finishForInStatement = function (left, right, body) {
             this.type = Syntax.ForInStatement;
             this.left = left;
             this.right = right;
@@ -1600,8 +1592,8 @@ define(["require", "exports"], function (require, exports) {
             this.each = false;
             this.finish();
             return this;
-        },
-        finishFunctionDeclaration: function (id, params, defaults, body) {
+        };
+        Node.prototype.finishFunctionDeclaration = function (id, params, defaults, body) {
             this.type = Syntax.FunctionDeclaration;
             this.id = id;
             this.params = params;
@@ -1612,8 +1604,8 @@ define(["require", "exports"], function (require, exports) {
             this.expression = false;
             this.finish();
             return this;
-        },
-        finishFunctionExpression: function (id, params, defaults, body) {
+        };
+        Node.prototype.finishFunctionExpression = function (id, params, defaults, body) {
             this.type = Syntax.FunctionExpression;
             this.id = id;
             this.params = params;
@@ -1624,29 +1616,29 @@ define(["require", "exports"], function (require, exports) {
             this.expression = false;
             this.finish();
             return this;
-        },
-        finishIdentifier: function (name) {
+        };
+        Node.prototype.finishIdentifier = function (name) {
             this.type = Syntax.Identifier;
             this.name = name;
             this.finish();
             return this;
-        },
-        finishIfStatement: function (test, consequent, alternate) {
+        };
+        Node.prototype.finishIfStatement = function (test, consequent, alternate) {
             this.type = Syntax.IfStatement;
             this.test = test;
             this.consequent = consequent;
             this.alternate = alternate;
             this.finish();
             return this;
-        },
-        finishLabeledStatement: function (label, body) {
+        };
+        Node.prototype.finishLabeledStatement = function (label, body) {
             this.type = Syntax.LabeledStatement;
             this.label = label;
             this.body = body;
             this.finish();
             return this;
-        },
-        finishLiteral: function (token) {
+        };
+        Node.prototype.finishLiteral = function (token) {
             this.type = Syntax.Literal;
             this.value = token.value;
             this.raw = source.slice(token.start, token.end);
@@ -1655,43 +1647,43 @@ define(["require", "exports"], function (require, exports) {
             }
             this.finish();
             return this;
-        },
-        finishMemberExpression: function (accessor, object, property) {
+        };
+        Node.prototype.finishMemberExpression = function (accessor, object, property) {
             this.type = Syntax.MemberExpression;
             this.computed = accessor === '[';
             this.object = object;
             this.property = property;
             this.finish();
             return this;
-        },
-        finishNewExpression: function (callee, args) {
+        };
+        Node.prototype.finishNewExpression = function (callee, args) {
             this.type = Syntax.NewExpression;
             this.callee = callee;
             this.arguments = args;
             this.finish();
             return this;
-        },
-        finishObjectExpression: function (properties) {
+        };
+        Node.prototype.finishObjectExpression = function (properties) {
             this.type = Syntax.ObjectExpression;
             this.properties = properties;
             this.finish();
             return this;
-        },
-        finishPostfixExpression: function (operator, argument) {
+        };
+        Node.prototype.finishPostfixExpression = function (operator, argument) {
             this.type = Syntax.UpdateExpression;
             this.operator = operator;
             this.argument = argument;
             this.prefix = false;
             this.finish();
             return this;
-        },
-        finishProgram: function (body) {
+        };
+        Node.prototype.finishProgram = function (body) {
             this.type = Syntax.Program;
             this.body = body;
             this.finish();
             return this;
-        },
-        finishProperty: function (kind, key, value, method, shorthand) {
+        };
+        Node.prototype.finishProperty = function (kind, key, value, method, shorthand) {
             this.type = Syntax.Property;
             this.key = key;
             this.value = value;
@@ -1700,45 +1692,45 @@ define(["require", "exports"], function (require, exports) {
             this.shorthand = shorthand;
             this.finish();
             return this;
-        },
-        finishReturnStatement: function (argument) {
+        };
+        Node.prototype.finishReturnStatement = function (argument) {
             this.type = Syntax.ReturnStatement;
             this.argument = argument;
             this.finish();
             return this;
-        },
-        finishSequenceExpression: function (expressions) {
+        };
+        Node.prototype.finishSequenceExpression = function (expressions) {
             this.type = Syntax.SequenceExpression;
             this.expressions = expressions;
             this.finish();
             return this;
-        },
-        finishSwitchCase: function (test, consequent) {
+        };
+        Node.prototype.finishSwitchCase = function (test, consequent) {
             this.type = Syntax.SwitchCase;
             this.test = test;
             this.consequent = consequent;
             this.finish();
             return this;
-        },
-        finishSwitchStatement: function (discriminant, cases) {
+        };
+        Node.prototype.finishSwitchStatement = function (discriminant, cases) {
             this.type = Syntax.SwitchStatement;
             this.discriminant = discriminant;
             this.cases = cases;
             this.finish();
             return this;
-        },
-        finishThisExpression: function () {
+        };
+        Node.prototype.finishThisExpression = function () {
             this.type = Syntax.ThisExpression;
             this.finish();
             return this;
-        },
-        finishThrowStatement: function (argument) {
+        };
+        Node.prototype.finishThrowStatement = function (argument) {
             this.type = Syntax.ThrowStatement;
             this.argument = argument;
             this.finish();
             return this;
-        },
-        finishTryStatement: function (block, guardedHandlers, handlers, finalizer) {
+        };
+        Node.prototype.finishTryStatement = function (block, guardedHandlers, handlers, finalizer) {
             this.type = Syntax.TryStatement;
             this.block = block;
             this.guardedHandlers = guardedHandlers;
@@ -1746,44 +1738,55 @@ define(["require", "exports"], function (require, exports) {
             this.finalizer = finalizer;
             this.finish();
             return this;
-        },
-        finishUnaryExpression: function (operator, argument) {
+        };
+        Node.prototype.finishUnaryExpression = function (operator, argument) {
             this.type = (operator === '++' || operator === '--') ? Syntax.UpdateExpression : Syntax.UnaryExpression;
             this.operator = operator;
             this.argument = argument;
             this.prefix = true;
             this.finish();
             return this;
-        },
-        finishVariableDeclaration: function (declarations, kind) {
+        };
+        Node.prototype.finishVariableDeclaration = function (declarations, kind) {
             this.type = Syntax.VariableDeclaration;
             this.declarations = declarations;
             this.kind = kind;
             this.finish();
             return this;
-        },
-        finishVariableDeclarator: function (id, init) {
+        };
+        Node.prototype.finishVariableDeclarator = function (id, init) {
             this.type = Syntax.VariableDeclarator;
             this.id = id;
             this.init = init;
             this.finish();
             return this;
-        },
-        finishWhileStatement: function (test, body) {
+        };
+        Node.prototype.finishWhileStatement = function (test, body) {
             this.type = Syntax.WhileStatement;
             this.test = test;
             this.body = body;
             this.finish();
             return this;
-        },
-        finishWithStatement: function (object, body) {
+        };
+        Node.prototype.finishWithStatement = function (object, body) {
             this.type = Syntax.WithStatement;
             this.object = object;
             this.body = body;
             this.finish();
             return this;
+        };
+        return Node;
+    }());
+    exports.Node = Node;
+    function WrappingNode(startToken) {
+        if (extra.range) {
+            this.range = [startToken.start, 0];
         }
-    };
+        if (extra.loc) {
+            this.loc = new WrappingSourceLocation(startToken);
+        }
+    }
+    WrappingNode.prototype = Node.prototype;
     // Return true if there is a line terminator before the next token.
     function peekLineTerminator() {
         var pos, line, start, found;

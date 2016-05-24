@@ -1522,6 +1522,7 @@ export class Position {
 export class SourceLocation {
     start: Position;
     end: Position;
+    source;
     constructor() {
         this.start = new Position();
         this.end = null;
@@ -1547,36 +1548,73 @@ export class WrappingSourceLocation {
     }
 }
 
-function Node() {
-    // Skip comment.
-    index = lookahead.start;
-    if (lookahead.type === Token.StringLiteral) {
-        lineNumber = lookahead.startLineNumber;
-        lineStart = lookahead.startLineStart;
-    } else {
-        lineNumber = lookahead.lineNumber;
-        lineStart = lookahead.lineStart;
+export class Node {
+    range: number[];
+    loc: SourceLocation;
+    type;
+    body;
+    leadingComments;
+    trailingComments;
+    elements;
+    id;
+    params;
+    defaults;
+    rest;
+    generator;
+    expression;
+    operator;
+    left;
+    right;
+    label;
+    callee;
+    arguments;
+    param;
+    test;
+    consequent;
+    alternate;
+    init;
+    update;
+    each;
+    name;
+    value;
+    raw;
+    regex;
+    computed;
+    object;
+    property;
+    properties;
+    argument;
+    prefix;
+    key;
+    kind;
+    method;
+    shorthand;
+    expressions;
+    discriminant;
+    cases;
+    block;
+    guardedHandlers;
+    handlers;
+    finalizer;
+    declarations;
+    constructor() {
+        // Skip comment.
+        index = lookahead.start;
+        if (lookahead.type === Token.StringLiteral) {
+            lineNumber = lookahead.startLineNumber;
+            lineStart = lookahead.startLineStart;
+        } else {
+            lineNumber = lookahead.lineNumber;
+            lineStart = lookahead.lineStart;
+        }
+        if (extra.range) {
+            this.range = [index, 0];
+        }
+        if (extra.loc) {
+            this.loc = new SourceLocation();
+        }
     }
-    if (extra.range) {
-        this.range = [index, 0];
-    }
-    if (extra.loc) {
-        this.loc = new SourceLocation();
-    }
-}
-
-function WrappingNode(startToken) {
-    if (extra.range) {
-        this.range = [startToken.start, 0];
-    }
-    if (extra.loc) {
-        this.loc = new WrappingSourceLocation(startToken);
-    }
-}
-
-WrappingNode.prototype = Node.prototype = {
-
-    processComment: function() {
+    processComment() {
         var lastChild,
             leadingComments,
             trailingComments,
@@ -1641,9 +1679,8 @@ WrappingNode.prototype = Node.prototype = {
         }
 
         bottomRight.push(this);
-    },
-
-    finish: function() {
+    }
+    finish() {
         if (extra.range) {
             this.range[1] = index;
         }
@@ -1657,16 +1694,14 @@ WrappingNode.prototype = Node.prototype = {
         if (extra.attachComment) {
             this.processComment();
         }
-    },
-
-    finishArrayExpression: function(elements) {
+    }
+    finishArrayExpression(elements) {
         this.type = Syntax.ArrayExpression;
         this.elements = elements;
         this.finish();
         return this;
-    },
-
-    finishArrowFunctionExpression: function(params, defaults, body, expression) {
+    }
+    finishArrowFunctionExpression(params, defaults, body, expression) {
         this.type = Syntax.ArrowFunctionExpression;
         this.id = null;
         this.params = params;
@@ -1677,100 +1712,87 @@ WrappingNode.prototype = Node.prototype = {
         this.expression = expression;
         this.finish();
         return this;
-    },
-
-    finishAssignmentExpression: function(operator, left, right) {
+    }
+    finishAssignmentExpression(operator, left, right) {
         this.type = Syntax.AssignmentExpression;
         this.operator = operator;
         this.left = left;
         this.right = right;
         this.finish();
         return this;
-    },
-
-    finishBinaryExpression: function(operator, left, right) {
+    }
+    finishBinaryExpression(operator, left, right) {
         this.type = (operator === '||' || operator === '&&') ? Syntax.LogicalExpression : Syntax.BinaryExpression;
         this.operator = operator;
         this.left = left;
         this.right = right;
         this.finish();
         return this;
-    },
-
-    finishBlockStatement: function(body) {
+    }
+    finishBlockStatement(body) {
         this.type = Syntax.BlockStatement;
         this.body = body;
         this.finish();
         return this;
-    },
-
-    finishBreakStatement: function(label) {
+    }
+    finishBreakStatement(label) {
         this.type = Syntax.BreakStatement;
         this.label = label;
         this.finish();
         return this;
-    },
-
-    finishCallExpression: function(callee, args) {
+    }
+    finishCallExpression(callee, args) {
         this.type = Syntax.CallExpression;
         this.callee = callee;
         this.arguments = args;
         this.finish();
         return this;
-    },
-
-    finishCatchClause: function(param, body) {
+    }
+    finishCatchClause(param, body) {
         this.type = Syntax.CatchClause;
         this.param = param;
         this.body = body;
         this.finish();
         return this;
-    },
-
-    finishConditionalExpression: function(test, consequent, alternate) {
+    }
+    finishConditionalExpression(test, consequent, alternate) {
         this.type = Syntax.ConditionalExpression;
         this.test = test;
         this.consequent = consequent;
         this.alternate = alternate;
         this.finish();
         return this;
-    },
-
-    finishContinueStatement: function(label) {
+    }
+    finishContinueStatement(label) {
         this.type = Syntax.ContinueStatement;
         this.label = label;
         this.finish();
         return this;
-    },
-
-    finishDebuggerStatement: function() {
+    }
+    finishDebuggerStatement() {
         this.type = Syntax.DebuggerStatement;
         this.finish();
         return this;
-    },
-
-    finishDoWhileStatement: function(body, test) {
+    }
+    finishDoWhileStatement(body, test) {
         this.type = Syntax.DoWhileStatement;
         this.body = body;
         this.test = test;
         this.finish();
         return this;
-    },
-
-    finishEmptyStatement: function() {
+    }
+    finishEmptyStatement() {
         this.type = Syntax.EmptyStatement;
         this.finish();
         return this;
-    },
-
-    finishExpressionStatement: function(expression) {
+    }
+    finishExpressionStatement(expression) {
         this.type = Syntax.ExpressionStatement;
         this.expression = expression;
         this.finish();
         return this;
-    },
-
-    finishForStatement: function(init, test, update, body) {
+    }
+    finishForStatement(init, test, update, body) {
         this.type = Syntax.ForStatement;
         this.init = init;
         this.test = test;
@@ -1778,9 +1800,8 @@ WrappingNode.prototype = Node.prototype = {
         this.body = body;
         this.finish();
         return this;
-    },
-
-    finishForInStatement: function(left, right, body) {
+    }
+    finishForInStatement(left, right, body) {
         this.type = Syntax.ForInStatement;
         this.left = left;
         this.right = right;
@@ -1788,9 +1809,8 @@ WrappingNode.prototype = Node.prototype = {
         this.each = false;
         this.finish();
         return this;
-    },
-
-    finishFunctionDeclaration: function(id, params, defaults, body) {
+    }
+    finishFunctionDeclaration(id, params, defaults, body) {
         this.type = Syntax.FunctionDeclaration;
         this.id = id;
         this.params = params;
@@ -1801,9 +1821,8 @@ WrappingNode.prototype = Node.prototype = {
         this.expression = false;
         this.finish();
         return this;
-    },
-
-    finishFunctionExpression: function(id, params, defaults, body) {
+    }
+    finishFunctionExpression(id, params, defaults, body) {
         this.type = Syntax.FunctionExpression;
         this.id = id;
         this.params = params;
@@ -1814,33 +1833,29 @@ WrappingNode.prototype = Node.prototype = {
         this.expression = false;
         this.finish();
         return this;
-    },
-
-    finishIdentifier: function(name) {
+    }
+    finishIdentifier(name) {
         this.type = Syntax.Identifier;
         this.name = name;
         this.finish();
         return this;
-    },
-
-    finishIfStatement: function(test, consequent, alternate) {
+    }
+    finishIfStatement(test, consequent, alternate) {
         this.type = Syntax.IfStatement;
         this.test = test;
         this.consequent = consequent;
         this.alternate = alternate;
         this.finish();
         return this;
-    },
-
-    finishLabeledStatement: function(label, body) {
+    }
+    finishLabeledStatement(label, body) {
         this.type = Syntax.LabeledStatement;
         this.label = label;
         this.body = body;
         this.finish();
         return this;
-    },
-
-    finishLiteral: function(token) {
+    }
+    finishLiteral(token) {
         this.type = Syntax.Literal;
         this.value = token.value;
         this.raw = source.slice(token.start, token.end);
@@ -1849,49 +1864,43 @@ WrappingNode.prototype = Node.prototype = {
         }
         this.finish();
         return this;
-    },
-
-    finishMemberExpression: function(accessor, object, property) {
+    }
+    finishMemberExpression(accessor, object, property) {
         this.type = Syntax.MemberExpression;
         this.computed = accessor === '[';
         this.object = object;
         this.property = property;
         this.finish();
         return this;
-    },
-
-    finishNewExpression: function(callee, args) {
+    }
+    finishNewExpression(callee, args) {
         this.type = Syntax.NewExpression;
         this.callee = callee;
         this.arguments = args;
         this.finish();
         return this;
-    },
-
-    finishObjectExpression: function(properties) {
+    }
+    finishObjectExpression(properties) {
         this.type = Syntax.ObjectExpression;
         this.properties = properties;
         this.finish();
         return this;
-    },
-
-    finishPostfixExpression: function(operator, argument) {
+    }
+    finishPostfixExpression(operator, argument) {
         this.type = Syntax.UpdateExpression;
         this.operator = operator;
         this.argument = argument;
         this.prefix = false;
         this.finish();
         return this;
-    },
-
-    finishProgram: function(body) {
+    }
+    finishProgram(body) {
         this.type = Syntax.Program;
         this.body = body;
         this.finish();
         return this;
-    },
-
-    finishProperty: function(kind, key, value, method, shorthand) {
+    }
+    finishProperty(kind, key, value, method, shorthand) {
         this.type = Syntax.Property;
         this.key = key;
         this.value = value;
@@ -1900,52 +1909,45 @@ WrappingNode.prototype = Node.prototype = {
         this.shorthand = shorthand;
         this.finish();
         return this;
-    },
-
-    finishReturnStatement: function(argument) {
+    }
+    finishReturnStatement(argument) {
         this.type = Syntax.ReturnStatement;
         this.argument = argument;
         this.finish();
         return this;
-    },
-
-    finishSequenceExpression: function(expressions) {
+    }
+    finishSequenceExpression(expressions) {
         this.type = Syntax.SequenceExpression;
         this.expressions = expressions;
         this.finish();
         return this;
-    },
-
-    finishSwitchCase: function(test, consequent) {
+    }
+    finishSwitchCase(test, consequent) {
         this.type = Syntax.SwitchCase;
         this.test = test;
         this.consequent = consequent;
         this.finish();
         return this;
-    },
-
-    finishSwitchStatement: function(discriminant, cases) {
+    }
+    finishSwitchStatement(discriminant, cases) {
         this.type = Syntax.SwitchStatement;
         this.discriminant = discriminant;
         this.cases = cases;
         this.finish();
         return this;
-    },
-
-    finishThisExpression: function() {
+    }
+    finishThisExpression() {
         this.type = Syntax.ThisExpression;
         this.finish();
         return this;
-    },
-
-    finishThrowStatement: function(argument) {
+    }
+    finishThrowStatement(argument) {
         this.type = Syntax.ThrowStatement;
         this.argument = argument;
         this.finish();
         return this;
-    },
-
-    finishTryStatement: function(block, guardedHandlers, handlers, finalizer) {
+    }
+    finishTryStatement(block, guardedHandlers, handlers, finalizer) {
         this.type = Syntax.TryStatement;
         this.block = block;
         this.guardedHandlers = guardedHandlers;
@@ -1953,49 +1955,55 @@ WrappingNode.prototype = Node.prototype = {
         this.finalizer = finalizer;
         this.finish();
         return this;
-    },
-
-    finishUnaryExpression: function(operator, argument) {
+    }
+    finishUnaryExpression(operator, argument) {
         this.type = (operator === '++' || operator === '--') ? Syntax.UpdateExpression : Syntax.UnaryExpression;
         this.operator = operator;
         this.argument = argument;
         this.prefix = true;
         this.finish();
         return this;
-    },
-
-    finishVariableDeclaration: function(declarations, kind) {
+    }
+    finishVariableDeclaration(declarations, kind) {
         this.type = Syntax.VariableDeclaration;
         this.declarations = declarations;
         this.kind = kind;
         this.finish();
         return this;
-    },
-
-    finishVariableDeclarator: function(id, init) {
+    }
+    finishVariableDeclarator(id, init) {
         this.type = Syntax.VariableDeclarator;
         this.id = id;
         this.init = init;
         this.finish();
         return this;
-    },
-
-    finishWhileStatement: function(test, body) {
+    }
+    finishWhileStatement(test, body) {
         this.type = Syntax.WhileStatement;
         this.test = test;
         this.body = body;
         this.finish();
         return this;
-    },
-
-    finishWithStatement: function(object, body) {
+    }
+    finishWithStatement(object, body) {
         this.type = Syntax.WithStatement;
         this.object = object;
         this.body = body;
         this.finish();
         return this;
     }
-};
+}
+
+function WrappingNode(startToken) {
+    if (extra.range) {
+        this.range = [startToken.start, 0];
+    }
+    if (extra.loc) {
+        this.loc = new WrappingSourceLocation(startToken);
+    }
+}
+
+WrappingNode.prototype = Node.prototype;
 
 // Return true if there is a line terminator before the next token.
 
