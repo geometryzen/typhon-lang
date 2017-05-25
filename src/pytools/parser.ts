@@ -3,7 +3,54 @@ import { assert } from './asserts';
 import { isDef } from './base';
 import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
-import tokenNames from './tokenNames';
+import { tokenNames } from './tokenNames';
+
+/**
+ * Decode this!!!
+ */
+export type Arc = [number, number];
+export type State = [Arc[], [[number, number]], [[number, number]]];
+export type Dfa = [State, { [value: number]: number }];
+
+/**
+ * Describes the shape of the ParseTables objects (which needs to be renamed BTW).
+ */
+export interface Grammar {
+    start: Tokens;
+    dfas: { [value: number]: Dfa };
+    labels: number[][];
+    keywords: { [keyword: string]: number };
+    tokens: { [token: number]: number };
+    /**
+     * Actually maps from the node constructor name.
+     */
+    sym: { [name: string]: number };
+    number2symbol: { [value: number]: string };
+    states: any;
+}
+
+export type LineColumn = [number, number];
+
+/**
+ * [begin, end, line]
+ */
+export type ParseContext = [LineColumn, LineColumn, string];
+
+export interface PyNode {
+    type: Tokens;
+    value: string;
+    context?: any;
+    lineno?: number;
+    col_offset?: number;
+    used_names?: { [name: string]: boolean };
+    children: PyNode[];
+}
+
+export interface StackElement {
+    dfa: Dfa;
+    state: number;
+    node: PyNode;
+}
 
 // low level parser to a concrete syntax tree, derived from cpython's lib2to3
 
@@ -13,8 +60,8 @@ import tokenNames from './tokenNames';
  * @param begin
  * @param end
  */
-function parseError(message: string, fileName: string, begin?: number[], end?: number[]) {
-    var e = new SyntaxError(message/*, fileName*/);
+function parseError(message: string, fileName: string, begin?: LineColumn, end?: LineColumn): SyntaxError {
+    const e = new SyntaxError(message/*, fileName*/);
     e.name = "ParseError";
     e['fileName'] = fileName;
     if (isDef(begin)) {
@@ -25,18 +72,15 @@ function parseError(message: string, fileName: string, begin?: number[], end?: n
 }
 
 class Parser {
-    filename;
-    grammar;
-    stack;
-    used_names;
-    rootnode;
+    filename: string;
+    grammar: Grammar;
+    stack: StackElement[];
+    used_names: { [name: string]: boolean };
+    rootnode: PyNode;
     /**
      *
-     * @constructor
-     * @param {Object} grammar
-     *
      * p = new Parser(grammar);
-     * p.setup([start]);
+     * p.setup(start);
      * foreach input token:
      *     if p.addtoken(...):
      *         break
@@ -44,21 +88,21 @@ class Parser {
      *
      * can throw ParseError
      */
-    constructor(filename, grammar) {
+    constructor(filename: string, grammar: Grammar) {
         this.filename = filename;
         this.grammar = grammar;
         return this;
     }
-    setup(start) {
+    setup(start?: Tokens): void {
         start = start || this.grammar.start;
 
-        const newnode = {
+        const newnode: PyNode = {
             type: start,
             value: null,
             context: null,
             children: []
         };
-        const stackentry = {
+        const stackentry: StackElement = {
             dfa: this.grammar.dfas[start],
             state: 0,
             node: newnode
@@ -67,22 +111,27 @@ class Parser {
         this.used_names = {};
     }
 
-    // Add a token; return true if we're done
-    addtoken(type, value, context) {
-        var ilabel = this.classify(type, value, context);
+    /**
+     * Add a token; return true if we're done.
+     * @param type
+     * @param value
+     * @param context [start, end, line]
+     */
+    addtoken(type: Tokens, value: string, context: ParseContext): boolean {
+        const ilabel = this.classify(type, value, context);
 
         OUTERWHILE:
         while (true) {
-            var tp = this.stack[this.stack.length - 1];
-            var states = tp.dfa[0];
-            var first = tp.dfa[1];
-            var arcs = states[tp.state];
+            let tp = this.stack[this.stack.length - 1];
+            let states = tp.dfa[0];
+            let first = tp.dfa[1];
+            const arcs = states[tp.state];
 
             // look for a state with this label
-            for (var a = 0; a < arcs.length; ++a) {
-                var i = arcs[a][0];
-                var newstate = arcs[a][1];
-                var t = this.grammar.labels[i][0];
+            for (let a = 0; a < arcs.length; ++a) {
+                const i = arcs[a][0];
+                const newstate = arcs[a][1];
+                const t = this.grammar.labels[i][0];
                 // var v = this.grammar.labels[i][1];
                 if (ilabel === i) {
                     // look it up in the list of labels
@@ -90,7 +139,7 @@ class Parser {
                     // shift a token; we're done with it
                     this.shift(type, value, newstate, context);
                     // pop while we are in an accept-only state
-                    var state = newstate;
+                    let state = newstate;
                     while (states[state].length === 1
                         && states[state][0][0] === 0
                         && states[state][0][1] === state) {
@@ -108,8 +157,8 @@ class Parser {
                     return false;
                 }
                 else if (t >= 256) {
-                    var itsdfa = this.grammar.dfas[t];
-                    var itsfirst = itsdfa[1];
+                    const itsdfa = this.grammar.dfas[t];
+                    const itsfirst = itsdfa[1];
                     if (itsfirst.hasOwnProperty(ilabel)) {
                         // push a symbol
                         this.push(t, this.grammar.dfas[t], newstate, context);
@@ -131,9 +180,15 @@ class Parser {
             }
         }
     }
-    // turn a token into a label
-    classify(type, value, context) {
-        var ilabel;
+
+    /**
+     * turn a token into a label.
+     * @param type
+     * @param value
+     * @param context [begin, end, line]
+     */
+    classify(type: Tokens, value: string, context: ParseContext): number {
+        let ilabel: number;
         if (type === Tokens.T_NAME) {
             this.used_names[value] = true;
             ilabel = this.grammar.keywords.hasOwnProperty(value) && this.grammar.keywords[value];
@@ -149,11 +204,11 @@ class Parser {
     }
 
     // shift a token
-    shift(type, value, newstate, context) {
-        var dfa = this.stack[this.stack.length - 1].dfa;
+    shift(type: Tokens, value: string, newstate: number, context: ParseContext): void {
+        const dfa = this.stack[this.stack.length - 1].dfa;
         // var state = this.stack[this.stack.length - 1].state;
-        var node = this.stack[this.stack.length - 1].node;
-        const newnode = {
+        const node = this.stack[this.stack.length - 1].node;
+        const newnode: PyNode = {
             type: type,
             value: value,
             lineno: context[0][0],
@@ -167,7 +222,7 @@ class Parser {
     }
 
     // push a nonterminal
-    push(type, newdfa, newstate, context) {
+    push(type: Tokens, newdfa: Dfa, newstate: number, context: ParseContext): void {
         var dfa = this.stack[this.stack.length - 1].dfa;
         var node = this.stack[this.stack.length - 1].node;
 
@@ -179,7 +234,7 @@ class Parser {
     }
 
     // pop a nonterminal
-    pop() {
+    pop(): void {
         var pop = this.stack.pop();
         var newnode = pop.node;
         if (newnode) {
@@ -193,18 +248,18 @@ class Parser {
             }
         }
     }
-
 }
 
 
 
 /**
+ * TODO: Rename to existsInDfa.
  * Finds the specified
  * @param a An array of arrays where each element is an array of two integers.
  * @param obj An array containing two integers.
  */
-function findInDfa(a, obj) {
-    var i = a.length;
+function findInDfa(a: Arc[], obj: Arc): boolean {
+    let i = a.length;
     while (i--) {
         if (a[i][0] === obj[0] && a[i][1] === obj[1]) {
             return true;
@@ -218,26 +273,27 @@ function findInDfa(a, obj) {
  * lines of input as they are entered. the function will return false
  * until the input is complete, when it will return the rootnode of the parse.
  *
- * @param {string} filename
- * @param {string=} style root of parse tree (optional)
+ * @param filename
+ * @param style root of parse tree (optional)
  */
-function makeParser(filename: string, style?: string): (text: string) => any {
+function makeParser(filename: string, style?: string): (line: string) => PyNode | boolean {
     if (style === undefined) style = "file_input";
 
-    var p = new Parser(filename, ParseTables);
+    // FIXME: Would be nice to get this typing locked down.
+    const p = new Parser(filename, ParseTables as any);
     // for closure's benefit
     if (style === "file_input")
         p.setup(ParseTables.sym.file_input);
     else {
         console.warn(`TODO: makeParser(style = ${style})`);
     }
-    var lineno = 1;
-    var column = 0;
-    var prefix = "";
-    var T_COMMENT = Tokens.T_COMMENT;
-    var T_NL = Tokens.T_NL;
-    var T_OP = Tokens.T_OP;
-    var tokenizer = new Tokenizer(filename, style === "single_input", function tokenizerCallback(type: Tokens, value: string, start: number[], end: number[], line: string): boolean | undefined {
+    let lineno = 1;
+    let column = 0;
+    let prefix = "";
+    const T_COMMENT = Tokens.T_COMMENT;
+    const T_NL = Tokens.T_NL;
+    const T_OP = Tokens.T_OP;
+    const tokenizer = new Tokenizer(filename, style === "single_input", function tokenizerCallback(type: Tokens, value: string, start: [number, number], end: [number, number], line: string): boolean | undefined {
         // var s_lineno = start[0];
         // var s_column = start[1];
         /*
@@ -264,7 +320,7 @@ function makeParser(filename: string, style?: string): (text: string) => any {
         }
         return undefined;
     });
-    return function (line: string) {
+    return function parseFunc(line: string): PyNode | boolean {
         var ret = tokenizer.generateTokens(line);
         if (ret) {
             if (ret !== "done") {
@@ -276,23 +332,25 @@ function makeParser(filename: string, style?: string): (text: string) => any {
     };
 }
 
-export function parse(filename: string, input: string) {
-    var parseFunc = makeParser(filename);
-    if (input.substr(input.length - 1, 1) !== "\n") input += "\n";
-    var lines = input.split("\n");
-    var ret;
-    for (var i = 0; i < lines.length; ++i) {
+export function parse(filename: string, input: string): boolean | PyNode {
+    const parseFunc = makeParser(filename);
+    if (input.substr(input.length - 1, 1) !== "\n") {
+        input += "\n";
+    }
+    const lines = input.split("\n");
+    let ret: boolean | PyNode;
+    for (let i = 0; i < lines.length; ++i) {
         ret = parseFunc(lines[i] + ((i === lines.length - 1) ? "" : "\n"));
     }
     return ret;
 }
 
-export function parseTreeDump(n): string {
-    var ret = "";
+export function parseTreeDump(n: PyNode): string {
+    let ret = "";
     // non-term
     if (n.type >= 256) {
         ret += ParseTables.number2symbol[n.type] + "\n";
-        for (var i = 0; i < n.children.length; ++i) {
+        for (let i = 0; i < n.children.length; ++i) {
             ret += parseTreeDump(n.children[i]);
         }
     }

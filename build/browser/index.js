@@ -5,10 +5,10 @@
 }(this, (function (exports) { 'use strict';
 
 /**
- * Symbolic constant s for various Python Language tokens.
+ * Symbolic constants for various Python Language tokens.
  */
 /**
- * Symbolic constant s for various Python Language tokens.
+ * Symbolic constants for various Python Language tokens.
  */ var Tokens;
 (function (Tokens) {
     Tokens[Tokens["T_ENDMARKER"] = 0] = "T_ENDMARKER";
@@ -349,7 +349,7 @@ var ParseTables = {
                 37: 1 }],
         258: [[[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
-        259: [[[[18, 1], [8, 2], [32, 5], [29, 4], [9, 3], [14, 6], [21, 2]],
+        259: [[[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
                 [[18, 1], [0, 1]],
                 [[0, 2]],
                 [[41, 7], [42, 2]],
@@ -519,8 +519,8 @@ var ParseTables = {
         283: [[[[97, 1],
                     [98, 1],
                     [7, 2],
-                    [97, 1],
                     [99, 1],
+                    [97, 1],
                     [100, 1],
                     [101, 1],
                     [102, 3],
@@ -544,10 +544,10 @@ var ParseTables = {
         286: [[[[113, 1]], [[111, 2], [108, 2]], [[0, 2]]], { 35: 1 }],
         287: [[[[35, 1]],
                 [[114, 2]],
-                [[29, 4], [2, 3]],
-                [[0, 3]],
+                [[2, 4], [29, 3]],
                 [[43, 5], [115, 6]],
-                [[2, 3]],
+                [[0, 4]],
+                [[2, 4]],
                 [[43, 5]]],
             { 35: 1 }],
         288: [[[[116, 1]], [[116, 1], [0, 1]]], { 35: 1 }],
@@ -729,7 +729,7 @@ var ParseTables = {
         319: [[[[29, 1]], [[43, 2], [71, 3]], [[0, 2]], [[43, 2]]], { 29: 1 }],
         320: [[[[23, 1]], [[0, 1]]], { 23: 1 }],
         321: [[[[12, 1]],
-                [[69, 2], [79, 3], [0, 1]],
+                [[69, 2], [80, 3], [0, 1]],
                 [[57, 4], [0, 2]],
                 [[69, 5]],
                 [[69, 2], [0, 4]],
@@ -981,7 +981,7 @@ var ParseTables = {
                 [[162, 6]],
                 [[0, 4]],
                 [[43, 4]],
-                [[47, 4]]],
+                [[42, 4]]],
             { 29: 1, 32: 1, 120: 1 }],
         336: [[[[15, 1]],
                 [[70, 2]],
@@ -1029,7 +1029,7 @@ var ParseTables = {
     states: [[[[1, 1], [2, 1], [3, 2]], [[0, 1]], [[2, 1]]],
         [[[38, 1]], [[39, 0], [0, 1]]],
         [[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
-        [[[18, 1], [8, 2], [32, 5], [29, 4], [9, 3], [14, 6], [21, 2]],
+        [[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
             [[18, 1], [0, 1]],
             [[0, 2]],
             [[41, 7], [42, 2]],
@@ -1102,8 +1102,8 @@ var ParseTables = {
         [[[97, 1],
                 [98, 1],
                 [7, 2],
-                [97, 1],
                 [99, 1],
+                [97, 1],
                 [100, 1],
                 [101, 1],
                 [102, 3],
@@ -1125,10 +1125,10 @@ var ParseTables = {
         [[[113, 1]], [[111, 2], [108, 2]], [[0, 2]]],
         [[[35, 1]],
             [[114, 2]],
-            [[29, 4], [2, 3]],
-            [[0, 3]],
+            [[2, 4], [29, 3]],
             [[43, 5], [115, 6]],
-            [[2, 3]],
+            [[0, 4]],
+            [[2, 4]],
             [[43, 5]]],
         [[[116, 1]], [[116, 1], [0, 1]]],
         [[[22, 1]], [[117, 2]], [[0, 2]]],
@@ -1201,7 +1201,7 @@ var ParseTables = {
         [[[29, 1]], [[43, 2], [71, 3]], [[0, 2]], [[43, 2]]],
         [[[23, 1]], [[0, 1]]],
         [[[12, 1]],
-            [[69, 2], [79, 3], [0, 1]],
+            [[69, 2], [80, 3], [0, 1]],
             [[57, 4], [0, 2]],
             [[69, 5]],
             [[69, 2], [0, 4]],
@@ -1258,7 +1258,7 @@ var ParseTables = {
             [[162, 6]],
             [[0, 4]],
             [[43, 4]],
-            [[47, 4]]],
+            [[42, 4]]],
         [[[15, 1]],
             [[70, 2]],
             [[96, 3]],
@@ -1334,13 +1334,13 @@ var ParseTables = {
         [271, null],
         [1, 'and'],
         [266, null],
-        [290, null],
-        [27, null],
+        [316, null],
+        [10, null],
         [8, null],
         [333, null],
         [276, null],
-        [316, null],
-        [10, null],
+        [290, null],
+        [27, null],
         [332, null],
         [275, null],
         [19, null],
@@ -1372,8 +1372,8 @@ var ParseTables = {
         [335, null],
         [36, null],
         [261, null],
-        [35, null],
         [34, null],
+        [35, null],
         [273, null],
         [278, null],
         [304, null],
@@ -1442,10 +1442,10 @@ var ParseTables = {
         [326, null],
         [13, null],
         [299, null],
-        [267, null],
+        [270, null],
         [265, null],
         [320, null],
-        [270, null],
+        [267, null],
         [321, null],
         [289, null],
         [297, null],
@@ -1501,7 +1501,7 @@ var ParseTables = {
         7: 29,
         8: 43,
         9: 32,
-        10: 47,
+        10: 42,
         11: 70,
         12: 57,
         13: 147,
@@ -1518,15 +1518,15 @@ var ParseTables = {
         24: 65,
         25: 14,
         26: 9,
-        27: 42,
+        27: 47,
         28: 99,
         29: 97,
         30: 101,
         31: 103,
         32: 6,
         33: 54,
-        34: 80,
-        35: 79,
+        34: 79,
+        35: 80,
         36: 77,
         37: 90,
         38: 94,
@@ -2374,22 +2374,67 @@ function indentationError(message, fileName, begin, end, text) {
     return e;
 }
 
-var tokenNames = {
-    0: 'T_ENDMARKER',
-    1: 'T_NAME', 2: 'T_NUMBER', 3: 'T_STRING', 4: 'T_NEWLINE',
-    5: 'T_INDENT', 6: 'T_DEDENT', 7: 'T_LPAR', 8: 'T_RPAR', 9: 'T_LSQB',
-    10: 'T_RSQB', 11: 'T_COLON', 12: 'T_COMMA', 13: 'T_SEMI', 14: 'T_PLUS',
-    15: 'T_MINUS', 16: 'T_STAR', 17: 'T_SLASH', 18: 'T_VBAR', 19: 'T_AMPER',
-    20: 'T_LESS', 21: 'T_GREATER', 22: 'T_EQUAL', 23: 'T_DOT', 24: 'T_PERCENT',
-    25: 'T_BACKQUOTE', 26: 'T_LBRACE', 27: 'T_RBRACE', 28: 'T_EQEQUAL', 29: 'T_NOTEQUAL',
-    30: 'T_LESSEQUAL', 31: 'T_GREATEREQUAL', 32: 'T_TILDE', 33: 'T_CIRCUMFLEX', 34: 'T_LEFTSHIFT',
-    35: 'T_RIGHTSHIFT', 36: 'T_DOUBLESTAR', 37: 'T_PLUSEQUAL', 38: 'T_MINEQUAL', 39: 'T_STAREQUAL',
-    40: 'T_SLASHEQUAL', 41: 'T_PERCENTEQUAL', 42: 'T_AMPEREQUAL', 43: 'T_VBAREQUAL', 44: 'T_CIRCUMFLEXEQUAL',
-    45: 'T_LEFTSHIFTEQUAL', 46: 'T_RIGHTSHIFTEQUAL', 47: 'T_DOUBLESTAREQUAL', 48: 'T_DOUBLESLASH', 49: 'T_DOUBLESLASHEQUAL',
-    50: 'T_AT', 51: 'T_OP', 52: 'T_COMMENT', 53: 'T_NL', 54: 'T_RARROW',
-    55: 'T_ERRORTOKEN', 56: 'T_N_TOKENS',
-    256: 'T_NT_OFFSET'
-};
+/**
+ * Decodes of the tokens
+ */
+var tokenNames = {};
+tokenNames[Tokens.T_AMPER] = 'T_AMPER';
+tokenNames[Tokens.T_AMPEREQUAL] = 'T_AMPEREQUAL';
+tokenNames[Tokens.T_AT] = 'T_AT';
+tokenNames[Tokens.T_BACKQUOTE] = 'T_BACKQUOTE';
+tokenNames[Tokens.T_CIRCUMFLEX] = 'T_CIRCUMFLEX';
+tokenNames[Tokens.T_CIRCUMFLEXEQUAL] = 'T_CIRCUMFLEXEQUAL';
+tokenNames[Tokens.T_COLON] = 'T_COLON';
+tokenNames[Tokens.T_COMMA] = 'T_COMMA';
+tokenNames[Tokens.T_COMMENT] = 'T_COMMENT';
+tokenNames[Tokens.T_DEDENT] = 'T_DEDENT';
+tokenNames[Tokens.T_DOT] = 'T_DOT';
+tokenNames[Tokens.T_DOUBLESLASH] = 'T_DOUBLESLASH';
+tokenNames[Tokens.T_DOUBLESLASHEQUAL] = 'T_DOUBLESLASHEQUAL';
+tokenNames[Tokens.T_DOUBLESTAR] = 'T_DOUBLESTAR';
+tokenNames[Tokens.T_DOUBLESTAREQUAL] = 'T_DOUBLESTAREQUAL';
+tokenNames[Tokens.T_ENDMARKER] = 'T_ENDMARKER';
+tokenNames[Tokens.T_EQEQUAL] = 'T_EQEQUAL';
+tokenNames[Tokens.T_EQUAL] = 'T_EQUAL';
+tokenNames[Tokens.T_ERRORTOKEN] = 'T_ERRORTOKEN';
+tokenNames[Tokens.T_GREATER] = 'T_GREATER';
+tokenNames[Tokens.T_GREATEREQUAL] = 'T_GREATEREQUAL';
+tokenNames[Tokens.T_INDENT] = 'T_INDENT';
+tokenNames[Tokens.T_LBRACE] = 'T_LBRACE';
+tokenNames[Tokens.T_LEFTSHIFT] = 'T_LEFTSHIFT';
+tokenNames[Tokens.T_LEFTSHIFTEQUAL] = 'T_LEFTSHIFTEQUAL';
+tokenNames[Tokens.T_LESS] = 'T_LESS';
+tokenNames[Tokens.T_LESSEQUAL] = 'T_LESSEQUAL';
+tokenNames[Tokens.T_LPAR] = 'T_LPAR';
+tokenNames[Tokens.T_LSQB] = 'T_LSQB';
+tokenNames[Tokens.T_MINEQUAL] = 'T_MINEQUAL';
+tokenNames[Tokens.T_MINUS] = 'T_MINUS';
+tokenNames[Tokens.T_N_TOKENS] = 'T_N_TOKENS';
+tokenNames[Tokens.T_NAME] = 'T_NAME';
+tokenNames[Tokens.T_NEWLINE] = 'T_NEWLINE';
+tokenNames[Tokens.T_NL] = 'T_NL';
+tokenNames[Tokens.T_NOTEQUAL] = 'T_NOTEQUAL';
+tokenNames[Tokens.T_NT_OFFSET] = 'T_NT_OFFSET';
+tokenNames[Tokens.T_NUMBER] = 'T_NUMBER';
+tokenNames[Tokens.T_OP] = 'T_OP';
+tokenNames[Tokens.T_PERCENT] = 'T_PERCENT';
+tokenNames[Tokens.T_PERCENTEQUAL] = 'T_PERCENTEQUAL';
+tokenNames[Tokens.T_PLUS] = 'T_PLUS';
+tokenNames[Tokens.T_PLUSEQUAL] = 'T_PLUSEQUAL';
+tokenNames[Tokens.T_RARROW] = 'T_RARROW';
+tokenNames[Tokens.T_RBRACE] = 'T_RBRACE';
+tokenNames[Tokens.T_RIGHTSHIFT] = 'T_RIGHTSHIFT';
+tokenNames[Tokens.T_RPAR] = 'T_RPAR';
+tokenNames[Tokens.T_RSQB] = 'T_RSQB';
+tokenNames[Tokens.T_SEMI] = 'T_SEMI';
+tokenNames[Tokens.T_SLASH] = 'T_SLASH';
+tokenNames[Tokens.T_SLASHEQUAL] = 'T_SLASHEQUAL';
+tokenNames[Tokens.T_STAR] = 'T_STAR';
+tokenNames[Tokens.T_STAREQUAL] = 'T_STAREQUAL';
+tokenNames[Tokens.T_STRING] = 'T_STRING';
+tokenNames[Tokens.T_TILDE] = 'T_TILDE';
+tokenNames[Tokens.T_VBAR] = 'T_VBAR';
+tokenNames[Tokens.T_VBAREQUAL] = 'T_VBAREQUAL';
 
 // low level parser to a concrete syntax tree, derived from cpython's lib2to3
 /**
@@ -2411,11 +2456,8 @@ function parseError(message, fileName, begin, end) {
 var Parser = (function () {
     /**
      *
-     * @constructor
-     * @param {Object} grammar
-     *
      * p = new Parser(grammar);
-     * p.setup([start]);
+     * p.setup(start);
      * foreach input token:
      *     if p.addtoken(...):
      *         break
@@ -2444,7 +2486,12 @@ var Parser = (function () {
         this.stack = [stackentry];
         this.used_names = {};
     };
-    // Add a token; return true if we're done
+    /**
+     * Add a token; return true if we're done.
+     * @param type
+     * @param value
+     * @param context [start, end, line]
+     */
     Parser.prototype.addtoken = function (type, value, context) {
         var ilabel = this.classify(type, value, context);
         OUTERWHILE: while (true) {
@@ -2504,7 +2551,12 @@ var Parser = (function () {
             }
         }
     };
-    // turn a token into a label
+    /**
+     * turn a token into a label.
+     * @param type
+     * @param value
+     * @param context [begin, end, line]
+     */
     Parser.prototype.classify = function (type, value, context) {
         var ilabel;
         if (type === Tokens.T_NAME) {
@@ -2563,6 +2615,7 @@ var Parser = (function () {
     return Parser;
 }());
 /**
+ * TODO: Rename to existsInDfa.
  * Finds the specified
  * @param a An array of arrays where each element is an array of two integers.
  * @param obj An array containing two integers.
@@ -2581,12 +2634,13 @@ function findInDfa(a, obj) {
  * lines of input as they are entered. the function will return false
  * until the input is complete, when it will return the rootnode of the parse.
  *
- * @param {string} filename
- * @param {string=} style root of parse tree (optional)
+ * @param filename
+ * @param style root of parse tree (optional)
  */
 function makeParser(filename, style) {
     if (style === undefined)
         style = "file_input";
+    // FIXME: Would be nice to get this typing locked down.
     var p = new Parser(filename, ParseTables);
     // for closure's benefit
     if (style === "file_input")
@@ -2627,7 +2681,7 @@ function makeParser(filename, style) {
         }
         return undefined;
     });
-    return function (line) {
+    return function parseFunc(line) {
         var ret = tokenizer.generateTokens(line);
         if (ret) {
             if (ret !== "done") {
@@ -2640,8 +2694,9 @@ function makeParser(filename, style) {
 }
 function parse(filename, input) {
     var parseFunc = makeParser(filename);
-    if (input.substr(input.length - 1, 1) !== "\n")
+    if (input.substr(input.length - 1, 1) !== "\n") {
         input += "\n";
+    }
     var lines = input.split("\n");
     var ret;
     for (var i = 0; i < lines.length; ++i) {
@@ -3841,16 +3896,14 @@ function longAST(s, radix) {
 // code and know that we're the same up to ast level, at least.
 //
 var SYM = ParseTables.sym;
-var TOK = Tokens;
 /**
- * @const
- * @type {number}
+ *
  */
 var LONG_THRESHOLD = Math.pow(2, 53);
 /**
- * @param {string} message
- * @param {string} fileName
- * @param {number} lineNumber
+ * @param message
+ * @param fileName
+ * @param lineNumber
  */
 function syntaxError(message, fileName, lineNumber) {
     assert(isString(message), "message must be a string");
@@ -3868,11 +3921,17 @@ var Compiling = (function () {
     }
     return Compiling;
 }());
+/**
+ * Returns the number of children in the specified node.
+ */
 function NCH(n) {
     assert(n !== undefined);
-    if (n.children === null)
+    if (Array.isArray(n.children)) {
+        return n.children.length;
+    }
+    else {
         return 0;
-    return n.children.length;
+    }
 }
 function CHILD(n, i) {
     assert(n !== undefined);
@@ -3891,7 +3950,7 @@ function strobj(s) {
 function numStmts(n) {
     switch (n.type) {
         case SYM.single_input:
-            if (CHILD(n, 0).type === TOK.T_NEWLINE)
+            if (CHILD(n, 0).type === Tokens.T_NEWLINE)
                 return 0;
             else
                 return numStmts(CHILD(n, 0));
@@ -4007,18 +4066,18 @@ function setContext(c, e, ctx, n) {
 }
 var operatorMap = {};
 (function () {
-    operatorMap[TOK.T_VBAR] = BitOr;
-    operatorMap[TOK.T_VBAR] = BitOr;
-    operatorMap[TOK.T_CIRCUMFLEX] = BitXor;
-    operatorMap[TOK.T_AMPER] = BitAnd;
-    operatorMap[TOK.T_LEFTSHIFT] = LShift;
-    operatorMap[TOK.T_RIGHTSHIFT] = RShift;
-    operatorMap[TOK.T_PLUS] = Add;
-    operatorMap[TOK.T_MINUS] = Sub;
-    operatorMap[TOK.T_STAR] = Mult;
-    operatorMap[TOK.T_SLASH] = Div;
-    operatorMap[TOK.T_DOUBLESLASH] = FloorDiv;
-    operatorMap[TOK.T_PERCENT] = Mod;
+    operatorMap[Tokens.T_VBAR] = BitOr;
+    operatorMap[Tokens.T_VBAR] = BitOr;
+    operatorMap[Tokens.T_CIRCUMFLEX] = BitXor;
+    operatorMap[Tokens.T_AMPER] = BitAnd;
+    operatorMap[Tokens.T_LEFTSHIFT] = LShift;
+    operatorMap[Tokens.T_RIGHTSHIFT] = RShift;
+    operatorMap[Tokens.T_PLUS] = Add;
+    operatorMap[Tokens.T_MINUS] = Sub;
+    operatorMap[Tokens.T_STAR] = Mult;
+    operatorMap[Tokens.T_SLASH] = Div;
+    operatorMap[Tokens.T_DOUBLESLASH] = FloorDiv;
+    operatorMap[Tokens.T_PERCENT] = Mod;
 }());
 function getOperator(n) {
     assert(operatorMap[n.type] !== undefined);
@@ -4030,13 +4089,13 @@ function astForCompOp(c, n) {
     if (NCH(n) === 1) {
         n = CHILD(n, 0);
         switch (n.type) {
-            case TOK.T_LESS: return Lt;
-            case TOK.T_GREATER: return Gt;
-            case TOK.T_EQEQUAL: return Eq;
-            case TOK.T_LESSEQUAL: return LtE;
-            case TOK.T_GREATEREQUAL: return GtE;
-            case TOK.T_NOTEQUAL: return NotEq;
-            case TOK.T_NAME:
+            case Tokens.T_LESS: return Lt;
+            case Tokens.T_GREATER: return Gt;
+            case Tokens.T_EQEQUAL: return Eq;
+            case Tokens.T_LESSEQUAL: return LtE;
+            case Tokens.T_GREATEREQUAL: return GtE;
+            case Tokens.T_NOTEQUAL: return NotEq;
+            case Tokens.T_NAME:
                 if (n.value === "in")
                     return In;
                 if (n.value === "is")
@@ -4044,7 +4103,7 @@ function astForCompOp(c, n) {
         }
     }
     else if (NCH(n) === 2) {
-        if (CHILD(n, 0).type === TOK.T_NAME) {
+        if (CHILD(n, 0).type === Tokens.T_NAME) {
             if (CHILD(n, 1).value === "in")
                 return NotIn;
             if (CHILD(n, 0).value === "is")
@@ -4078,7 +4137,7 @@ function astForSuite(c, n) {
         /* simple_stmt always ends with an NEWLINE and may have a trailing
             * SEMI. */
         var end = NCH(n) - 1;
-        if (CHILD(n, end - 1).type === TOK.T_SEMI) {
+        if (CHILD(n, end - 1).type === Tokens.T_SEMI) {
             end -= 1;
         }
         // by 2 to skip
@@ -4131,12 +4190,13 @@ function astForExceptClause(c, exc, body) {
 function astForTryStmt(c, n) {
     var nc = NCH(n);
     var nexcept = (nc - 3) / 3;
-    var body, orelse = [], finally_ = null;
+    var orelse = [];
+    var finally_ = null;
     REQ(n, SYM.try_stmt);
-    body = astForSuite(c, CHILD(n, 2));
-    if (CHILD(n, nc - 3).type === TOK.T_NAME) {
+    var body = astForSuite(c, CHILD(n, 2));
+    if (CHILD(n, nc - 3).type === Tokens.T_NAME) {
         if (CHILD(n, nc - 3).value === "finally") {
-            if (nc >= 9 && CHILD(n, nc - 6).type === TOK.T_NAME) {
+            if (nc >= 9 && CHILD(n, nc - 6).type === Tokens.T_NAME) {
                 /* we can assume it's an "else",
                     because nc >= 9 for try-else-finally and
                     it would otherwise have a type of except_clause */
@@ -4185,8 +4245,8 @@ function astForDottedName(c, n) {
 function astForDecorator(c, n) {
     /* decorator: '@' dotted_name [ '(' [arglist] ')' ] NEWLINE */
     REQ(n, SYM.decorator);
-    REQ(CHILD(n, 0), TOK.T_AT);
-    REQ(CHILD(n, NCH(n) - 1), TOK.T_NEWLINE);
+    REQ(CHILD(n, 0), Tokens.T_AT);
+    REQ(CHILD(n, NCH(n) - 1), Tokens.T_NEWLINE);
     var nameExpr = astForDottedName(c, CHILD(n, 1));
     if (NCH(n) === 3)
         return nameExpr;
@@ -4198,8 +4258,9 @@ function astForDecorator(c, n) {
 function astForDecorators(c, n) {
     REQ(n, SYM.decorators);
     var decoratorSeq = [];
-    for (var i = 0; i < NCH(n); ++i)
+    for (var i = 0; i < NCH(n); ++i) {
         decoratorSeq[i] = astForDecorator(c, CHILD(n, i));
+    }
     return decoratorSeq;
 }
 function astForDecorated(c, n) {
@@ -4207,10 +4268,12 @@ function astForDecorated(c, n) {
     var decoratorSeq = astForDecorators(c, CHILD(n, 0));
     assert(CHILD(n, 1).type === SYM.funcdef || CHILD(n, 1).type === SYM.classdef);
     var thing = null;
-    if (CHILD(n, 1).type === SYM.funcdef)
+    if (CHILD(n, 1).type === SYM.funcdef) {
         thing = astForFuncdef(c, CHILD(n, 1), decoratorSeq);
-    else if (CHILD(n, 1) === SYM.classdef)
+    }
+    else if (CHILD(n, 1).type === SYM.classdef) {
         thing = astForClassdef(c, CHILD(n, 1), decoratorSeq);
+    }
     if (thing) {
         thing.lineno = n.lineno;
         thing.col_offset = n.col_offset;
@@ -4226,24 +4289,28 @@ function astForWithStmt(c, n) {
     var suiteIndex = 3; // skip with, test, :
     assert(n.type === SYM.with_stmt);
     var contextExpr = astForExpr(c, CHILD(n, 1));
+    var optionalVars;
     if (CHILD(n, 2).type === SYM.with_var) {
-        var optionalVars = astForWithVar(c, CHILD(n, 2));
+        optionalVars = astForWithVar(c, CHILD(n, 2));
         setContext(c, optionalVars, Store, n);
         suiteIndex = 4;
     }
     return new WithStatement(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
 }
 function astForExecStmt(c, n) {
-    var globals = null, locals = null;
+    var globals = null;
+    var locals = null;
     var nchildren = NCH(n);
     assert(nchildren === 2 || nchildren === 4 || nchildren === 6);
     /* exec_stmt: 'exec' expr ['in' test [',' test]] */
     REQ(n, SYM.exec_stmt);
     var expr1 = astForExpr(c, CHILD(n, 1));
-    if (nchildren >= 4)
+    if (nchildren >= 4) {
         globals = astForExpr(c, CHILD(n, 3));
-    if (nchildren === 6)
+    }
+    if (nchildren === 6) {
         locals = astForExpr(c, CHILD(n, 5));
+    }
     return new Exec(expr1, globals, locals, n.lineno, n.col_offset);
 }
 function astForIfStmt(c, n) {
@@ -4264,7 +4331,7 @@ function astForIfStmt(c, n) {
         var orelse = [];
         /* must reference the child nElif+1 since 'else' token is third, not
             * fourth child from the end. */
-        if (CHILD(n, nElif + 1).type === TOK.T_NAME && CHILD(n, nElif + 1).value.charAt(2) === 's') {
+        if (CHILD(n, nElif + 1).type === Tokens.T_NAME && CHILD(n, nElif + 1).value.charAt(2) === 's') {
             hasElse = true;
             nElif -= 3;
         }
@@ -4362,7 +4429,7 @@ function aliasForImportName(c, n) {
                         str_1 += CHILD(n, i).value + ".";
                     return new Alias(strobj(str_1.substr(0, str_1.length - 1)), null);
                 }
-            case TOK.T_STAR:
+            case Tokens.T_STAR:
                 return new Alias(strobj("*"), null);
             default:
                 throw syntaxError("unexpected import name", c.c_filename, n.lineno);
@@ -4392,18 +4459,18 @@ function astForImportStmt(c, n) {
                 idx++;
                 break;
             }
-            else if (CHILD(n, idx).type !== TOK.T_DOT)
+            else if (CHILD(n, idx).type !== Tokens.T_DOT)
                 break;
             ndots++;
         }
         ++idx; // skip the import keyword
         switch (CHILD(n, idx).type) {
-            case TOK.T_STAR:
+            case Tokens.T_STAR:
                 // from ... import
                 n = CHILD(n, idx);
                 nchildren = 1;
                 break;
-            case TOK.T_LPAR:
+            case Tokens.T_LPAR:
                 // from ... import (x, y, z)
                 n = CHILD(n, idx + 1);
                 nchildren = NCH(n);
@@ -4419,7 +4486,7 @@ function astForImportStmt(c, n) {
                 throw syntaxError("Unexpected node-type in from-import", c.c_filename, n.lineno);
         }
         var aliases = [];
-        if (n.type === TOK.T_STAR)
+        if (n.type === Tokens.T_STAR)
             aliases[0] = aliasForImportName(c, n);
         else
             for (var i = 0; i < NCH(n); i += 2) {
@@ -4518,7 +4585,7 @@ function astForListcomp(c, n) {
     return new ListComp(elt, listcomps, n.lineno, n.col_offset);
 }
 function astForUnaryExpr(c, n) {
-    if (CHILD(n, 0).type === TOK.T_MINUS && NCH(n) === 2) {
+    if (CHILD(n, 0).type === Tokens.T_MINUS && NCH(n) === 2) {
         var pfactor = CHILD(n, 1);
         if (pfactor.type === SYM.UnaryExpr && NCH(pfactor) === 1) {
             var ppower = CHILD(pfactor, 0);
@@ -4526,7 +4593,7 @@ function astForUnaryExpr(c, n) {
                 var patom = CHILD(ppower, 0);
                 if (patom.type === SYM.AtomExpr) {
                     var pnum = CHILD(patom, 0);
-                    if (pnum.type === TOK.T_NUMBER) {
+                    if (pnum.type === Tokens.T_NUMBER) {
                         pnum.value = "-" + pnum.value;
                         return astForAtomExpr(c, patom);
                     }
@@ -4536,17 +4603,18 @@ function astForUnaryExpr(c, n) {
     }
     var expression = astForExpr(c, CHILD(n, 1));
     switch (CHILD(n, 0).type) {
-        case TOK.T_PLUS: return new UnaryOp(UAdd, expression, n.lineno, n.col_offset);
-        case TOK.T_MINUS: return new UnaryOp(USub, expression, n.lineno, n.col_offset);
-        case TOK.T_TILDE: return new UnaryOp(Invert, expression, n.lineno, n.col_offset);
+        case Tokens.T_PLUS: return new UnaryOp(UAdd, expression, n.lineno, n.col_offset);
+        case Tokens.T_MINUS: return new UnaryOp(USub, expression, n.lineno, n.col_offset);
+        case Tokens.T_TILDE: return new UnaryOp(Invert, expression, n.lineno, n.col_offset);
     }
     throw new Error("unhandled UnaryExpr");
 }
 function astForForStmt(c, n) {
     var seq = [];
     REQ(n, SYM.for_stmt);
-    if (NCH(n) === 9)
+    if (NCH(n) === 9) {
         seq = astForSuite(c, CHILD(n, 8));
+    }
     var nodeTarget = CHILD(n, 1);
     var _target = astForExprlist(c, nodeTarget, Store);
     var target;
@@ -4615,9 +4683,9 @@ function astForCall(c, n, func) {
                 keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
             }
         }
-        else if (ch.type === TOK.T_STAR)
+        else if (ch.type === Tokens.T_STAR)
             vararg = astForExpr(c, CHILD(n, ++i));
-        else if (ch.type === TOK.T_DOUBLESTAR)
+        else if (ch.type === Tokens.T_DOUBLESTAR)
             kwarg = astForExpr(c, CHILD(n, ++i));
     }
     return new Call(func, args, keywords, vararg, kwarg, func.lineno, func.col_offset);
@@ -4628,17 +4696,17 @@ function astForTrailer(c, n, leftExpr) {
         subscript: '.' '.' '.' | test | [test] ':' [test] [sliceop]
         */
     REQ(n, SYM.trailer);
-    if (CHILD(n, 0).type === TOK.T_LPAR) {
+    if (CHILD(n, 0).type === Tokens.T_LPAR) {
         if (NCH(n) === 2)
             return new Call(leftExpr, [], [], null, null, n.lineno, n.col_offset);
         else
             return astForCall(c, CHILD(n, 1), leftExpr);
     }
-    else if (CHILD(n, 0).type === TOK.T_DOT)
+    else if (CHILD(n, 0).type === Tokens.T_DOT)
         return new Attribute(leftExpr, strobj(CHILD(n, 1).value), Load, n.lineno, n.col_offset);
     else {
-        REQ(CHILD(n, 0), TOK.T_LSQB);
-        REQ(CHILD(n, 2), TOK.T_RSQB);
+        REQ(CHILD(n, 0), Tokens.T_LSQB);
+        REQ(CHILD(n, 2), Tokens.T_RSQB);
         n = CHILD(n, 1);
         if (NCH(n) === 1)
             return new Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), Load, n.lineno, n.col_offset);
@@ -4651,8 +4719,9 @@ function astForTrailer(c, n, leftExpr) {
             var slices = [];
             for (var j = 0; j < NCH(n); j += 2) {
                 var slc = astForSlice(c, CHILD(n, j));
-                if (slc.constructor !== Index)
+                if (slc.constructor !== Index) {
                     simple = false;
+                }
                 slices[j / 2] = slc;
             }
             if (!simple) {
@@ -4661,8 +4730,13 @@ function astForTrailer(c, n, leftExpr) {
             var elts = [];
             for (var j = 0; j < slices.length; ++j) {
                 var slc_1 = slices[j];
-                assert(slc_1.constructor === Index && slc_1.value !== null && slc_1.value !== undefined);
-                elts[j] = slc_1.value;
+                if (slc_1 instanceof Index) {
+                    assert(slc_1.value !== null && slc_1.value !== undefined);
+                    elts[j] = slc_1.value;
+                }
+                else {
+                    assert(slc_1 instanceof Index);
+                }
             }
             var e = new Tuple(elts, Load, n.lineno, n.col_offset);
             return new Subscript(leftExpr, new Index(e), Load, n.lineno, n.col_offset);
@@ -4670,9 +4744,8 @@ function astForTrailer(c, n, leftExpr) {
     }
 }
 function astForFlowStmt(c, n) {
-    var ch;
     REQ(n, SYM.flow_stmt);
-    ch = CHILD(n, 0);
+    var ch = CHILD(n, 0);
     switch (ch.type) {
         case SYM.break_stmt: return new BreakStatement(n.lineno, n.col_offset);
         case SYM.continue_stmt: return new ContinueStatement(n.lineno, n.col_offset);
@@ -4731,7 +4804,7 @@ function astForArguments(c, n) {
                 var complexArgs = 0;
                 var parenthesized = false;
                 handle_fpdef: while (true) {
-                    if (i + 1 < NCH(n) && CHILD(n, i + 1).type === TOK.T_EQUAL) {
+                    if (i + 1 < NCH(n) && CHILD(n, i + 1).type === Tokens.T_EQUAL) {
                         defaults[j++] = astForExpr(c, CHILD(n, i + 2));
                         i += 2;
                         foundDefault = true;
@@ -4759,7 +4832,7 @@ function astForArguments(c, n) {
                             continue handle_fpdef;
                         }
                     }
-                    if (CHILD(ch, 0).type === TOK.T_NAME) {
+                    if (CHILD(ch, 0).type === Tokens.T_NAME) {
                         forbiddenCheck(c, n, CHILD(ch, 0).value, n.lineno);
                         var id = strobj(CHILD(ch, 0).value);
                         args[k++] = new Name(id, Param, ch.lineno, ch.col_offset);
@@ -4770,12 +4843,12 @@ function astForArguments(c, n) {
                     break;
                 }
                 break;
-            case TOK.T_STAR:
+            case Tokens.T_STAR:
                 forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.lineno);
                 vararg = strobj(CHILD(n, i + 1).value);
                 i += 3;
                 break;
-            case TOK.T_DOUBLESTAR:
+            case Tokens.T_DOUBLESTAR:
                 forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.lineno);
                 kwarg = strobj(CHILD(n, i + 1).value);
                 i += 3;
@@ -4799,8 +4872,9 @@ function astForFuncdef(c, n, decoratorSeq) {
 function astForClassBases(c, n) {
     assert(NCH(n) > 0);
     REQ(n, SYM.testlist);
-    if (NCH(n) === 1)
+    if (NCH(n) === 1) {
         return [astForExpr(c, CHILD(n, 0))];
+    }
     return seqForTestlist(c, n);
 }
 function astForClassdef(c, n, decoratorSeq) {
@@ -4809,7 +4883,7 @@ function astForClassdef(c, n, decoratorSeq) {
     var classname = strobj(CHILD(n, 1).value);
     if (NCH(n) === 4)
         return new ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.lineno, n.col_offset);
-    if (CHILD(n, 3).type === TOK.T_RPAR)
+    if (CHILD(n, 3).type === Tokens.T_RPAR)
         return new ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.lineno, n.col_offset);
     var bases = astForClassBases(c, CHILD(n, 3));
     var s = astForSuite(c, CHILD(n, 6));
@@ -5012,7 +5086,7 @@ function astForExprStmt(c, n) {
     }
     else {
         // normal assignment
-        REQ(CHILD(n, 1), TOK.T_EQUAL);
+        REQ(CHILD(n, 1), Tokens.T_EQUAL);
         var targets = [];
         for (var i = 0; i < NCH(n) - 2; i += 2) {
             var ch = CHILD(n, i);
@@ -5125,7 +5199,7 @@ function parsestr(c, s) {
  * @return {string}
  */
 function parsestrplus(c, n) {
-    REQ(CHILD(n, 0), TOK.T_STRING);
+    REQ(CHILD(n, 0), Tokens.T_STRING);
     var ret = "";
     for (var i = 0; i < NCH(n); ++i) {
         var child = CHILD(n, i);
@@ -5223,13 +5297,15 @@ function astForSlice(c, n) {
     var lower = null;
     var upper = null;
     var step = null;
-    if (ch.type === TOK.T_DOT)
+    if (ch.type === Tokens.T_DOT) {
         return new Ellipsis();
-    if (NCH(n) === 1 && ch.type === SYM.IfExpr)
+    }
+    if (NCH(n) === 1 && ch.type === SYM.IfExpr) {
         return new Index(astForExpr(c, ch));
+    }
     if (ch.type === SYM.IfExpr)
         lower = astForExpr(c, ch);
-    if (ch.type === TOK.T_COLON) {
+    if (ch.type === Tokens.T_COLON) {
         if (NCH(n) > 1) {
             var n2 = CHILD(n, 1);
             if (n2.type === SYM.IfExpr)
@@ -5259,32 +5335,35 @@ function astForSlice(c, n) {
 function astForAtomExpr(c, n) {
     var ch = CHILD(n, 0);
     switch (ch.type) {
-        case TOK.T_NAME:
+        case Tokens.T_NAME:
             // All names start in Load context, but may be changed later
             return new Name(strobj(ch.value), Load, n.lineno, n.col_offset);
-        case TOK.T_STRING:
+        case Tokens.T_STRING:
             return new Str(parsestrplus(c, n), n.lineno, n.col_offset);
-        case TOK.T_NUMBER:
+        case Tokens.T_NUMBER:
             return new Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
-        case TOK.T_LPAR:
+        case Tokens.T_LPAR:
             ch = CHILD(n, 1);
-            if (ch.type === TOK.T_RPAR)
+            if (ch.type === Tokens.T_RPAR) {
                 return new Tuple([], Load, n.lineno, n.col_offset);
-            if (ch.type === SYM.YieldExpr)
+            }
+            if (ch.type === SYM.YieldExpr) {
                 return astForExpr(c, ch);
-            if (NCH(ch) > 1 && CHILD(ch, 1).type === SYM.gen_for)
+            }
+            if (NCH(ch) > 1 && CHILD(ch, 1).type === SYM.gen_for) {
                 return astForGenexp(c, ch);
+            }
             return astForTestlistGexp(c, ch);
-        case TOK.T_LSQB:
+        case Tokens.T_LSQB:
             ch = CHILD(n, 1);
-            if (ch.type === TOK.T_RSQB)
+            if (ch.type === Tokens.T_RSQB)
                 return new List([], Load, n.lineno, n.col_offset);
             REQ(ch, SYM.listmaker);
-            if (NCH(ch) === 1 || CHILD(ch, 1).type === TOK.T_COMMA)
+            if (NCH(ch) === 1 || CHILD(ch, 1).type === Tokens.T_COMMA)
                 return new List(seqForTestlist(c, ch), Load, n.lineno, n.col_offset);
             else
                 return astForListcomp(c, ch);
-        case TOK.T_LBRACE:
+        case Tokens.T_LBRACE:
             /* dictmaker: test ':' test (',' test ':' test)* [','] */
             ch = CHILD(n, 1);
             // var size = Math.floor((NCH(ch) + 1) / 4); // + 1 for no trailing comma case
@@ -5295,7 +5374,7 @@ function astForAtomExpr(c, n) {
                 values[i / 4] = astForExpr(c, CHILD(ch, i + 2));
             }
             return new Dict(keys, values, n.lineno, n.col_offset);
-        case TOK.T_BACKQUOTE:
+        case Tokens.T_BACKQUOTE:
             throw syntaxError("backquote not supported, use repr()", c.c_filename, n.lineno);
         default: {
             throw new Error("unhandled atom" /*, ch.type*/);
@@ -5309,8 +5388,9 @@ function astForPowerExpr(c, n) {
         return e;
     for (var i = 1; i < NCH(n); ++i) {
         var ch = CHILD(n, i);
-        if (ch.type !== SYM.trailer)
+        if (ch.type !== SYM.trailer) {
             break;
+        }
         var tmp = astForTrailer(c, ch, e);
         tmp.lineno = e.lineno;
         tmp.col_offset = e.col_offset;
@@ -5318,9 +5398,11 @@ function astForPowerExpr(c, n) {
     }
     if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr) {
         var f = astForExpr(c, CHILD(n, NCH(n) - 1));
-        e = new BinOp(e, Pow, f, n.lineno, n.col_offset);
+        return new BinOp(e, Pow, f, n.lineno, n.col_offset);
     }
-    return e;
+    else {
+        return e;
+    }
 }
 function astForExpr(c, n) {
     LOOP: while (true) {
@@ -5339,10 +5421,12 @@ function astForExpr(c, n) {
                     continue LOOP;
                 }
                 var seq = [];
-                for (var i = 0; i < NCH(n); i += 2)
+                for (var i = 0; i < NCH(n); i += 2) {
                     seq[i / 2] = astForExpr(c, CHILD(n, i));
-                if (CHILD(n, 1).value === "and")
+                }
+                if (CHILD(n, 1).value === "and") {
                     return new BoolOp(And, seq, n.lineno, n.col_offset);
+                }
                 assert(CHILD(n, 1).value === "or");
                 return new BoolOp(Or, seq, n.lineno, n.col_offset);
             case SYM.NotExpr:
@@ -5361,9 +5445,9 @@ function astForExpr(c, n) {
                 else {
                     var ops = [];
                     var cmps = [];
-                    for (var i_1 = 1; i_1 < NCH(n); i_1 += 2) {
-                        ops[(i_1 - 1) / 2] = astForCompOp(c, CHILD(n, i_1));
-                        cmps[(i_1 - 1) / 2] = astForExpr(c, CHILD(n, i_1 + 1));
+                    for (var i = 1; i < NCH(n); i += 2) {
+                        ops[(i - 1) / 2] = astForCompOp(c, CHILD(n, i));
+                        cmps[(i - 1) / 2] = astForExpr(c, CHILD(n, i + 1));
                     }
                     return new Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.lineno, n.col_offset);
                 }
@@ -5402,7 +5486,7 @@ function astForPrintStmt(c, n) {
     var start = 1;
     var dest = null;
     REQ(n, SYM.print_stmt);
-    if (NCH(n) >= 2 && CHILD(n, 1).type === TOK.T_RIGHTSHIFT) {
+    if (NCH(n) >= 2 && CHILD(n, 1).type === Tokens.T_RIGHTSHIFT) {
         dest = astForExpr(c, CHILD(n, 2));
         start = 4;
     }
@@ -5410,7 +5494,7 @@ function astForPrintStmt(c, n) {
     for (var i = start, j = 0; i < NCH(n); i += 2, ++j) {
         seq[j] = astForExpr(c, CHILD(n, i));
     }
-    var nl = (CHILD(n, NCH(n) - 1)).type === TOK.T_COMMA ? false : true;
+    var nl = (CHILD(n, NCH(n) - 1)).type === Tokens.T_COMMA ? false : true;
     return new Print(dest, seq, nl, n.lineno, n.col_offset);
 }
 function astForStmt(c, n) {
@@ -5467,7 +5551,7 @@ function astFromParse(n, filename) {
         case SYM.file_input:
             for (var i = 0; i < NCH(n) - 1; ++i) {
                 var ch = CHILD(n, i);
-                if (n.type === TOK.T_NEWLINE)
+                if (n.type === Tokens.T_NEWLINE)
                     continue;
                 REQ(ch, SYM.stmt);
                 var num = numStmts(ch);
@@ -6806,11 +6890,16 @@ var Transpiler = (function () {
 }());
 function transpile(source, fileName) {
     var cst = parse(fileName, source);
-    var ast = astFromParse(cst, fileName);
-    var st = symbolTable(ast, fileName);
-    var t = new Transpiler(fileName, st, 0, source);
-    var flags = 0;
-    return t.module(ast, flags);
+    if (typeof cst === 'object') {
+        var ast = astFromParse(cst, fileName);
+        var st = symbolTable(ast, fileName);
+        var t = new Transpiler(fileName, st, 0, source);
+        var flags = 0;
+        return t.module(ast, flags);
+    }
+    else {
+        throw new Error("Error parsing source for file " + fileName);
+    }
 }
 
 exports.parse = parse;

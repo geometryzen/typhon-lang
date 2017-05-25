@@ -1,19 +1,64 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var tokenNames = {
-    0: 'T_ENDMARKER',
-    1: 'T_NAME', 2: 'T_NUMBER', 3: 'T_STRING', 4: 'T_NEWLINE',
-    5: 'T_INDENT', 6: 'T_DEDENT', 7: 'T_LPAR', 8: 'T_RPAR', 9: 'T_LSQB',
-    10: 'T_RSQB', 11: 'T_COLON', 12: 'T_COMMA', 13: 'T_SEMI', 14: 'T_PLUS',
-    15: 'T_MINUS', 16: 'T_STAR', 17: 'T_SLASH', 18: 'T_VBAR', 19: 'T_AMPER',
-    20: 'T_LESS', 21: 'T_GREATER', 22: 'T_EQUAL', 23: 'T_DOT', 24: 'T_PERCENT',
-    25: 'T_BACKQUOTE', 26: 'T_LBRACE', 27: 'T_RBRACE', 28: 'T_EQEQUAL', 29: 'T_NOTEQUAL',
-    30: 'T_LESSEQUAL', 31: 'T_GREATEREQUAL', 32: 'T_TILDE', 33: 'T_CIRCUMFLEX', 34: 'T_LEFTSHIFT',
-    35: 'T_RIGHTSHIFT', 36: 'T_DOUBLESTAR', 37: 'T_PLUSEQUAL', 38: 'T_MINEQUAL', 39: 'T_STAREQUAL',
-    40: 'T_SLASHEQUAL', 41: 'T_PERCENTEQUAL', 42: 'T_AMPEREQUAL', 43: 'T_VBAREQUAL', 44: 'T_CIRCUMFLEXEQUAL',
-    45: 'T_LEFTSHIFTEQUAL', 46: 'T_RIGHTSHIFTEQUAL', 47: 'T_DOUBLESTAREQUAL', 48: 'T_DOUBLESLASH', 49: 'T_DOUBLESLASHEQUAL',
-    50: 'T_AT', 51: 'T_OP', 52: 'T_COMMENT', 53: 'T_NL', 54: 'T_RARROW',
-    55: 'T_ERRORTOKEN', 56: 'T_N_TOKENS',
-    256: 'T_NT_OFFSET'
-};
-exports.default = tokenNames;
+var Tokens_1 = require("./Tokens");
+/**
+ * Decodes of the tokens
+ */
+exports.tokenNames = {};
+exports.tokenNames[Tokens_1.Tokens.T_AMPER] = 'T_AMPER';
+exports.tokenNames[Tokens_1.Tokens.T_AMPEREQUAL] = 'T_AMPEREQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_AT] = 'T_AT';
+exports.tokenNames[Tokens_1.Tokens.T_BACKQUOTE] = 'T_BACKQUOTE';
+exports.tokenNames[Tokens_1.Tokens.T_CIRCUMFLEX] = 'T_CIRCUMFLEX';
+exports.tokenNames[Tokens_1.Tokens.T_CIRCUMFLEXEQUAL] = 'T_CIRCUMFLEXEQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_COLON] = 'T_COLON';
+exports.tokenNames[Tokens_1.Tokens.T_COMMA] = 'T_COMMA';
+exports.tokenNames[Tokens_1.Tokens.T_COMMENT] = 'T_COMMENT';
+exports.tokenNames[Tokens_1.Tokens.T_DEDENT] = 'T_DEDENT';
+exports.tokenNames[Tokens_1.Tokens.T_DOT] = 'T_DOT';
+exports.tokenNames[Tokens_1.Tokens.T_DOUBLESLASH] = 'T_DOUBLESLASH';
+exports.tokenNames[Tokens_1.Tokens.T_DOUBLESLASHEQUAL] = 'T_DOUBLESLASHEQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_DOUBLESTAR] = 'T_DOUBLESTAR';
+exports.tokenNames[Tokens_1.Tokens.T_DOUBLESTAREQUAL] = 'T_DOUBLESTAREQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_ENDMARKER] = 'T_ENDMARKER';
+exports.tokenNames[Tokens_1.Tokens.T_EQEQUAL] = 'T_EQEQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_EQUAL] = 'T_EQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_ERRORTOKEN] = 'T_ERRORTOKEN';
+exports.tokenNames[Tokens_1.Tokens.T_GREATER] = 'T_GREATER';
+exports.tokenNames[Tokens_1.Tokens.T_GREATEREQUAL] = 'T_GREATEREQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_INDENT] = 'T_INDENT';
+exports.tokenNames[Tokens_1.Tokens.T_LBRACE] = 'T_LBRACE';
+exports.tokenNames[Tokens_1.Tokens.T_LEFTSHIFT] = 'T_LEFTSHIFT';
+exports.tokenNames[Tokens_1.Tokens.T_LEFTSHIFTEQUAL] = 'T_LEFTSHIFTEQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_LESS] = 'T_LESS';
+exports.tokenNames[Tokens_1.Tokens.T_LESSEQUAL] = 'T_LESSEQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_LPAR] = 'T_LPAR';
+exports.tokenNames[Tokens_1.Tokens.T_LSQB] = 'T_LSQB';
+exports.tokenNames[Tokens_1.Tokens.T_MINEQUAL] = 'T_MINEQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_MINUS] = 'T_MINUS';
+exports.tokenNames[Tokens_1.Tokens.T_N_TOKENS] = 'T_N_TOKENS';
+exports.tokenNames[Tokens_1.Tokens.T_NAME] = 'T_NAME';
+exports.tokenNames[Tokens_1.Tokens.T_NEWLINE] = 'T_NEWLINE';
+exports.tokenNames[Tokens_1.Tokens.T_NL] = 'T_NL';
+exports.tokenNames[Tokens_1.Tokens.T_NOTEQUAL] = 'T_NOTEQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_NT_OFFSET] = 'T_NT_OFFSET';
+exports.tokenNames[Tokens_1.Tokens.T_NUMBER] = 'T_NUMBER';
+exports.tokenNames[Tokens_1.Tokens.T_OP] = 'T_OP';
+exports.tokenNames[Tokens_1.Tokens.T_PERCENT] = 'T_PERCENT';
+exports.tokenNames[Tokens_1.Tokens.T_PERCENTEQUAL] = 'T_PERCENTEQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_PLUS] = 'T_PLUS';
+exports.tokenNames[Tokens_1.Tokens.T_PLUSEQUAL] = 'T_PLUSEQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_RARROW] = 'T_RARROW';
+exports.tokenNames[Tokens_1.Tokens.T_RBRACE] = 'T_RBRACE';
+exports.tokenNames[Tokens_1.Tokens.T_RIGHTSHIFT] = 'T_RIGHTSHIFT';
+exports.tokenNames[Tokens_1.Tokens.T_RPAR] = 'T_RPAR';
+exports.tokenNames[Tokens_1.Tokens.T_RSQB] = 'T_RSQB';
+exports.tokenNames[Tokens_1.Tokens.T_SEMI] = 'T_SEMI';
+exports.tokenNames[Tokens_1.Tokens.T_SLASH] = 'T_SLASH';
+exports.tokenNames[Tokens_1.Tokens.T_SLASHEQUAL] = 'T_SLASHEQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_STAR] = 'T_STAR';
+exports.tokenNames[Tokens_1.Tokens.T_STAREQUAL] = 'T_STAREQUAL';
+exports.tokenNames[Tokens_1.Tokens.T_STRING] = 'T_STRING';
+exports.tokenNames[Tokens_1.Tokens.T_TILDE] = 'T_TILDE';
+exports.tokenNames[Tokens_1.Tokens.T_VBAR] = 'T_VBAR';
+exports.tokenNames[Tokens_1.Tokens.T_VBAREQUAL] = 'T_VBAREQUAL';

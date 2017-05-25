@@ -89,7 +89,7 @@ import { WithStatement } from './types';
 import { Yield } from './types';
 import { isArrayLike, isNumber, isString } from './base';
 import { ParseTables } from './tables';
-import { Tokens } from './Tokens';
+import { Tokens as TOK } from './Tokens';
 import { floatAST, intAST, longAST } from './numericLiteral';
 //
 // This is pretty much a straight port of ast.c from CPython 2.6.5.
@@ -101,16 +101,14 @@ import { floatAST, intAST, longAST } from './numericLiteral';
 // code and know that we're the same up to ast level, at least.
 //
 var SYM = ParseTables.sym;
-var TOK = Tokens;
 /**
- * @const
- * @type {number}
+ *
  */
 var LONG_THRESHOLD = Math.pow(2, 53);
 /**
- * @param {string} message
- * @param {string} fileName
- * @param {number} lineNumber
+ * @param message
+ * @param fileName
+ * @param lineNumber
  */
 function syntaxError(message, fileName, lineNumber) {
     assert(isString(message), "message must be a string");
@@ -128,11 +126,17 @@ var Compiling = (function () {
     }
     return Compiling;
 }());
+/**
+ * Returns the number of children in the specified node.
+ */
 function NCH(n) {
     assert(n !== undefined);
-    if (n.children === null)
+    if (Array.isArray(n.children)) {
+        return n.children.length;
+    }
+    else {
         return 0;
-    return n.children.length;
+    }
 }
 function CHILD(n, i) {
     assert(n !== undefined);
@@ -391,9 +395,10 @@ function astForExceptClause(c, exc, body) {
 function astForTryStmt(c, n) {
     var nc = NCH(n);
     var nexcept = (nc - 3) / 3;
-    var body, orelse = [], finally_ = null;
+    var orelse = [];
+    var finally_ = null;
     REQ(n, SYM.try_stmt);
-    body = astForSuite(c, CHILD(n, 2));
+    var body = astForSuite(c, CHILD(n, 2));
     if (CHILD(n, nc - 3).type === TOK.T_NAME) {
         if (CHILD(n, nc - 3).value === "finally") {
             if (nc >= 9 && CHILD(n, nc - 6).type === TOK.T_NAME) {
@@ -458,8 +463,9 @@ function astForDecorator(c, n) {
 function astForDecorators(c, n) {
     REQ(n, SYM.decorators);
     var decoratorSeq = [];
-    for (var i = 0; i < NCH(n); ++i)
+    for (var i = 0; i < NCH(n); ++i) {
         decoratorSeq[i] = astForDecorator(c, CHILD(n, i));
+    }
     return decoratorSeq;
 }
 function astForDecorated(c, n) {
@@ -467,10 +473,12 @@ function astForDecorated(c, n) {
     var decoratorSeq = astForDecorators(c, CHILD(n, 0));
     assert(CHILD(n, 1).type === SYM.funcdef || CHILD(n, 1).type === SYM.classdef);
     var thing = null;
-    if (CHILD(n, 1).type === SYM.funcdef)
+    if (CHILD(n, 1).type === SYM.funcdef) {
         thing = astForFuncdef(c, CHILD(n, 1), decoratorSeq);
-    else if (CHILD(n, 1) === SYM.classdef)
+    }
+    else if (CHILD(n, 1).type === SYM.classdef) {
         thing = astForClassdef(c, CHILD(n, 1), decoratorSeq);
+    }
     if (thing) {
         thing.lineno = n.lineno;
         thing.col_offset = n.col_offset;
@@ -486,24 +494,28 @@ function astForWithStmt(c, n) {
     var suiteIndex = 3; // skip with, test, :
     assert(n.type === SYM.with_stmt);
     var contextExpr = astForExpr(c, CHILD(n, 1));
+    var optionalVars;
     if (CHILD(n, 2).type === SYM.with_var) {
-        var optionalVars = astForWithVar(c, CHILD(n, 2));
+        optionalVars = astForWithVar(c, CHILD(n, 2));
         setContext(c, optionalVars, Store, n);
         suiteIndex = 4;
     }
     return new WithStatement(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
 }
 function astForExecStmt(c, n) {
-    var globals = null, locals = null;
+    var globals = null;
+    var locals = null;
     var nchildren = NCH(n);
     assert(nchildren === 2 || nchildren === 4 || nchildren === 6);
     /* exec_stmt: 'exec' expr ['in' test [',' test]] */
     REQ(n, SYM.exec_stmt);
     var expr1 = astForExpr(c, CHILD(n, 1));
-    if (nchildren >= 4)
+    if (nchildren >= 4) {
         globals = astForExpr(c, CHILD(n, 3));
-    if (nchildren === 6)
+    }
+    if (nchildren === 6) {
         locals = astForExpr(c, CHILD(n, 5));
+    }
     return new Exec(expr1, globals, locals, n.lineno, n.col_offset);
 }
 function astForIfStmt(c, n) {
@@ -805,8 +817,9 @@ function astForUnaryExpr(c, n) {
 function astForForStmt(c, n) {
     var seq = [];
     REQ(n, SYM.for_stmt);
-    if (NCH(n) === 9)
+    if (NCH(n) === 9) {
         seq = astForSuite(c, CHILD(n, 8));
+    }
     var nodeTarget = CHILD(n, 1);
     var _target = astForExprlist(c, nodeTarget, Store);
     var target;
@@ -911,8 +924,9 @@ function astForTrailer(c, n, leftExpr) {
             var slices = [];
             for (var j = 0; j < NCH(n); j += 2) {
                 var slc = astForSlice(c, CHILD(n, j));
-                if (slc.constructor !== Index)
+                if (slc.constructor !== Index) {
                     simple = false;
+                }
                 slices[j / 2] = slc;
             }
             if (!simple) {
@@ -921,8 +935,13 @@ function astForTrailer(c, n, leftExpr) {
             var elts = [];
             for (var j = 0; j < slices.length; ++j) {
                 var slc_1 = slices[j];
-                assert(slc_1.constructor === Index && slc_1.value !== null && slc_1.value !== undefined);
-                elts[j] = slc_1.value;
+                if (slc_1 instanceof Index) {
+                    assert(slc_1.value !== null && slc_1.value !== undefined);
+                    elts[j] = slc_1.value;
+                }
+                else {
+                    assert(slc_1 instanceof Index);
+                }
             }
             var e = new Tuple(elts, Load, n.lineno, n.col_offset);
             return new Subscript(leftExpr, new Index(e), Load, n.lineno, n.col_offset);
@@ -930,9 +949,8 @@ function astForTrailer(c, n, leftExpr) {
     }
 }
 function astForFlowStmt(c, n) {
-    var ch;
     REQ(n, SYM.flow_stmt);
-    ch = CHILD(n, 0);
+    var ch = CHILD(n, 0);
     switch (ch.type) {
         case SYM.break_stmt: return new BreakStatement(n.lineno, n.col_offset);
         case SYM.continue_stmt: return new ContinueStatement(n.lineno, n.col_offset);
@@ -1059,8 +1077,9 @@ function astForFuncdef(c, n, decoratorSeq) {
 function astForClassBases(c, n) {
     assert(NCH(n) > 0);
     REQ(n, SYM.testlist);
-    if (NCH(n) === 1)
+    if (NCH(n) === 1) {
         return [astForExpr(c, CHILD(n, 0))];
+    }
     return seqForTestlist(c, n);
 }
 function astForClassdef(c, n, decoratorSeq) {
@@ -1483,10 +1502,12 @@ function astForSlice(c, n) {
     var lower = null;
     var upper = null;
     var step = null;
-    if (ch.type === TOK.T_DOT)
+    if (ch.type === TOK.T_DOT) {
         return new Ellipsis();
-    if (NCH(n) === 1 && ch.type === SYM.IfExpr)
+    }
+    if (NCH(n) === 1 && ch.type === SYM.IfExpr) {
         return new Index(astForExpr(c, ch));
+    }
     if (ch.type === SYM.IfExpr)
         lower = astForExpr(c, ch);
     if (ch.type === TOK.T_COLON) {
@@ -1528,12 +1549,15 @@ function astForAtomExpr(c, n) {
             return new Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
         case TOK.T_LPAR:
             ch = CHILD(n, 1);
-            if (ch.type === TOK.T_RPAR)
+            if (ch.type === TOK.T_RPAR) {
                 return new Tuple([], Load, n.lineno, n.col_offset);
-            if (ch.type === SYM.YieldExpr)
+            }
+            if (ch.type === SYM.YieldExpr) {
                 return astForExpr(c, ch);
-            if (NCH(ch) > 1 && CHILD(ch, 1).type === SYM.gen_for)
+            }
+            if (NCH(ch) > 1 && CHILD(ch, 1).type === SYM.gen_for) {
                 return astForGenexp(c, ch);
+            }
             return astForTestlistGexp(c, ch);
         case TOK.T_LSQB:
             ch = CHILD(n, 1);
@@ -1569,8 +1593,9 @@ function astForPowerExpr(c, n) {
         return e;
     for (var i = 1; i < NCH(n); ++i) {
         var ch = CHILD(n, i);
-        if (ch.type !== SYM.trailer)
+        if (ch.type !== SYM.trailer) {
             break;
+        }
         var tmp = astForTrailer(c, ch, e);
         tmp.lineno = e.lineno;
         tmp.col_offset = e.col_offset;
@@ -1578,9 +1603,11 @@ function astForPowerExpr(c, n) {
     }
     if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr) {
         var f = astForExpr(c, CHILD(n, NCH(n) - 1));
-        e = new BinOp(e, Pow, f, n.lineno, n.col_offset);
+        return new BinOp(e, Pow, f, n.lineno, n.col_offset);
     }
-    return e;
+    else {
+        return e;
+    }
 }
 function astForExpr(c, n) {
     LOOP: while (true) {
@@ -1599,10 +1626,12 @@ function astForExpr(c, n) {
                     continue LOOP;
                 }
                 var seq = [];
-                for (var i = 0; i < NCH(n); i += 2)
+                for (var i = 0; i < NCH(n); i += 2) {
                     seq[i / 2] = astForExpr(c, CHILD(n, i));
-                if (CHILD(n, 1).value === "and")
+                }
+                if (CHILD(n, 1).value === "and") {
                     return new BoolOp(And, seq, n.lineno, n.col_offset);
+                }
                 assert(CHILD(n, 1).value === "or");
                 return new BoolOp(Or, seq, n.lineno, n.col_offset);
             case SYM.NotExpr:
@@ -1621,9 +1650,9 @@ function astForExpr(c, n) {
                 else {
                     var ops = [];
                     var cmps = [];
-                    for (var i_1 = 1; i_1 < NCH(n); i_1 += 2) {
-                        ops[(i_1 - 1) / 2] = astForCompOp(c, CHILD(n, i_1));
-                        cmps[(i_1 - 1) / 2] = astForExpr(c, CHILD(n, i_1 + 1));
+                    for (var i = 1; i < NCH(n); i += 2) {
+                        ops[(i - 1) / 2] = astForCompOp(c, CHILD(n, i));
+                        cmps[(i - 1) / 2] = astForExpr(c, CHILD(n, i + 1));
                     }
                     return new Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.lineno, n.col_offset);
                 }

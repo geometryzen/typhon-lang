@@ -66,7 +66,7 @@ var SymbolConstants_3 = require("../pytools/SymbolConstants");
 var SymbolConstants_4 = require("../pytools/SymbolConstants");
 var SymbolConstants_5 = require("../pytools/SymbolConstants");
 var SymbolConstants_6 = require("../pytools/SymbolConstants");
-// TODO: Replace these wit the TypeScript AST
+// TODO: Replace these with the TypeScript AST
 // import {Node} from '../estools/esprima';
 // import {generate} from '../estools/escodegen';
 var OP_FAST = 0;
@@ -1906,10 +1906,15 @@ var Transpiler = (function () {
 }());
 function transpile(source, fileName) {
     var cst = parser_1.parse(fileName, source);
-    var ast = builder_1.astFromParse(cst, fileName);
-    var st = symtable_1.symbolTable(ast, fileName);
-    var t = new Transpiler(fileName, st, 0, source);
-    var flags = 0;
-    return t.module(ast, flags);
+    if (typeof cst === 'object') {
+        var ast = builder_1.astFromParse(cst, fileName);
+        var st = symtable_1.symbolTable(ast, fileName);
+        var t = new Transpiler(fileName, st, 0, source);
+        var flags = 0;
+        return t.module(ast, flags);
+    }
+    else {
+        throw new Error("Error parsing source for file " + fileName);
+    }
 }
 exports.transpile = transpile;

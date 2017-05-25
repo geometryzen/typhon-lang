@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * Symbolic constant s for various Python Language tokens.
+ * Symbolic constants for various Python Language tokens.
  */
 var Tokens;
 (function (Tokens) {

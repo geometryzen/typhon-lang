@@ -3,7 +3,7 @@ import { assert } from './asserts';
 import { isDef } from './base';
 import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
-import tokenNames from './tokenNames';
+import { tokenNames } from './tokenNames';
 // low level parser to a concrete syntax tree, derived from cpython's lib2to3
 /**
  * @param message
@@ -24,11 +24,8 @@ function parseError(message, fileName, begin, end) {
 var Parser = (function () {
     /**
      *
-     * @constructor
-     * @param {Object} grammar
-     *
      * p = new Parser(grammar);
-     * p.setup([start]);
+     * p.setup(start);
      * foreach input token:
      *     if p.addtoken(...):
      *         break
@@ -57,7 +54,12 @@ var Parser = (function () {
         this.stack = [stackentry];
         this.used_names = {};
     };
-    // Add a token; return true if we're done
+    /**
+     * Add a token; return true if we're done.
+     * @param type
+     * @param value
+     * @param context [start, end, line]
+     */
     Parser.prototype.addtoken = function (type, value, context) {
         var ilabel = this.classify(type, value, context);
         OUTERWHILE: while (true) {
@@ -117,7 +119,12 @@ var Parser = (function () {
             }
         }
     };
-    // turn a token into a label
+    /**
+     * turn a token into a label.
+     * @param type
+     * @param value
+     * @param context [begin, end, line]
+     */
     Parser.prototype.classify = function (type, value, context) {
         var ilabel;
         if (type === Tokens.T_NAME) {
@@ -176,6 +183,7 @@ var Parser = (function () {
     return Parser;
 }());
 /**
+ * TODO: Rename to existsInDfa.
  * Finds the specified
  * @param a An array of arrays where each element is an array of two integers.
  * @param obj An array containing two integers.
@@ -194,12 +202,13 @@ function findInDfa(a, obj) {
  * lines of input as they are entered. the function will return false
  * until the input is complete, when it will return the rootnode of the parse.
  *
- * @param {string} filename
- * @param {string=} style root of parse tree (optional)
+ * @param filename
+ * @param style root of parse tree (optional)
  */
 function makeParser(filename, style) {
     if (style === undefined)
         style = "file_input";
+    // FIXME: Would be nice to get this typing locked down.
     var p = new Parser(filename, ParseTables);
     // for closure's benefit
     if (style === "file_input")
@@ -240,7 +249,7 @@ function makeParser(filename, style) {
         }
         return undefined;
     });
-    return function (line) {
+    return function parseFunc(line) {
         var ret = tokenizer.generateTokens(line);
         if (ret) {
             if (ret !== "done") {
@@ -253,8 +262,9 @@ function makeParser(filename, style) {
 }
 export function parse(filename, input) {
     var parseFunc = makeParser(filename);
-    if (input.substr(input.length - 1, 1) !== "\n")
+    if (input.substr(input.length - 1, 1) !== "\n") {
         input += "\n";
+    }
     var lines = input.split("\n");
     var ret;
     for (var i = 0; i < lines.length; ++i) {

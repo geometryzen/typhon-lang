@@ -64,7 +64,7 @@ import { GLOBAL_IMPLICIT } from '../pytools/SymbolConstants';
 import { FREE } from '../pytools/SymbolConstants';
 import { CELL } from '../pytools/SymbolConstants';
 import { FunctionBlock } from '../pytools/SymbolConstants';
-// TODO: Replace these wit the TypeScript AST
+// TODO: Replace these with the TypeScript AST
 // import {Node} from '../estools/esprima';
 // import {generate} from '../estools/escodegen';
 var OP_FAST = 0;
@@ -1902,9 +1902,14 @@ var Transpiler = (function () {
 }());
 export function transpile(source, fileName) {
     var cst = parse(fileName, source);
-    var ast = astFromParse(cst, fileName);
-    var st = symbolTable(ast, fileName);
-    var t = new Transpiler(fileName, st, 0, source);
-    var flags = 0;
-    return t.module(ast, flags);
+    if (typeof cst === 'object') {
+        var ast = astFromParse(cst, fileName);
+        var st = symbolTable(ast, fileName);
+        var t = new Transpiler(fileName, st, 0, source);
+        var flags = 0;
+        return t.module(ast, flags);
+    }
+    else {
+        throw new Error("Error parsing source for file " + fileName);
+    }
 }

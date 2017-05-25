@@ -1,5 +1,5 @@
 /**
- * Symbolic constant s for various Python Language tokens.
+ * Symbolic constants for various Python Language tokens.
  */
 export declare enum Tokens {
     T_ENDMARKER = 0,
