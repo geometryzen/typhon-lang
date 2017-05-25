@@ -1,7 +1,7 @@
 /**
  * TODO: Reserved for whom?
  */
-const reservedNames = {
+export const reservedNames = {
     '__defineGetter__': true,
     '__defineSetter__': true,
     'apply': true,
@@ -21,5 +21,3 @@ const reservedNames = {
     'watch': true,
     'length': true
 };
-
-export default reservedNames;

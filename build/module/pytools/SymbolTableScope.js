@@ -1,5 +1,5 @@
 import { assert } from './asserts';
-import Symbol from './Symbol';
+import { Symbol } from './Symbol';
 import { DEF_PARAM } from './SymbolConstants';
 import { DEF_BOUND } from './SymbolConstants';
 import { FREE } from './SymbolConstants';
@@ -135,4 +135,4 @@ var SymbolTableScope = (function () {
     };
     return SymbolTableScope;
 }());
-export default SymbolTableScope;
+export { SymbolTableScope };

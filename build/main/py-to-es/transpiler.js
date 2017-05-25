@@ -1658,7 +1658,7 @@ exports.Compiler = Compiler;
  * Appends "_$rw$" to any word that is in the list of reserved words.
  */
 function fixReservedWords(word) {
-    if (reservedWords_1.default[word] !== true) {
+    if (reservedWords_1.reservedWords[word] !== true) {
         return word;
     }
     return word + "_$rw$";
@@ -1667,7 +1667,7 @@ function fixReservedWords(word) {
  * Appends "_$rn$" to any name that is in the list of reserved names.
  */
 function fixReservedNames(name) {
-    if (reservedNames_1.default[name])
+    if (reservedNames_1.reservedNames[name])
         return name + "_$rn$";
     return name;
 }

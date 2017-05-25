@@ -2,7 +2,7 @@
  * @param {string|null} priv
  * @param {string} name
  */
-export default function(priv: string, name: string): string {
+export function mangleName(priv: string, name: string): string {
     var strpriv: string = null;
 
     if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_')

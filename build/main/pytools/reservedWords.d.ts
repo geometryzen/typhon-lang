@@ -1,7 +1,7 @@
 /**
  * TODO: Reserved for whom?
  */
-declare const reservedWords: {
+export declare const reservedWords: {
     'abstract': boolean;
     'as': boolean;
     'boolean': boolean;
@@ -66,4 +66,3 @@ declare const reservedWords: {
     'while': boolean;
     'with': boolean;
 };
-export default reservedWords;

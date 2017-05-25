@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * TODO: Reserved for whom?
  */
-var reservedWords = {
+exports.reservedWords = {
     'abstract': true,
     'as': true,
     'boolean': true,
@@ -68,4 +68,3 @@ var reservedWords = {
     'while': true,
     'with': true
 };
-exports.default = reservedWords;

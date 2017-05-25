@@ -1,7 +1,9 @@
 /**
  * TODO: Reserved for whom?
  */
-var reservedNames = {
+/**
+ * TODO: Reserved for whom?
+ */ export var reservedNames = {
     '__defineGetter__': true,
     '__defineSetter__': true,
     'apply': true,
@@ -21,4 +23,3 @@ var reservedNames = {
     'watch': true,
     'length': true
 };
-export default reservedNames;

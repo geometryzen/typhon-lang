@@ -1,14 +1,13 @@
-import SymbolTableScope from './SymbolTableScope';
-export default class Symbol {
+import { SymbolTableScope } from './SymbolTableScope';
+export declare class Symbol {
     private __name;
     private __flags;
     private __scope;
     private __namespaces;
     /**
-     * @constructor
-     * @param {string} name
-     * @param {number} flags
-     * @param {Array.<SymbolTableScope>} namespaces
+     * @param name
+     * @param flags
+     * @param namespaces
      */
     constructor(name: string, flags: number, namespaces: SymbolTableScope[]);
     get_name(): string;

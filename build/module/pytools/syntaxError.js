@@ -1,11 +1,11 @@
 import { assert } from './asserts';
 import { isDef, isNumber, isString } from './base';
 /**
- * @param {string} message
- * @param {string} fileName
- * @param {number=} lineNumber
+ * @param message
+ * @param fileName
+ * @param lineNumber
  */
-export default function (message, fileName, lineNumber) {
+export function syntaxError(message, fileName, lineNumber) {
     assert(isString(message), "message must be a string");
     assert(isString(fileName), "fileName must be a string");
     if (isDef(lineNumber)) {

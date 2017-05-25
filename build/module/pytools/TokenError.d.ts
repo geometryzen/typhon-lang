@@ -1,7 +1,7 @@
 /**
  *
  */
-export default class TokenError {
+export declare class TokenError {
     name: string;
     message: string;
     fileName: string;

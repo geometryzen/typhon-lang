@@ -1,5 +1,5 @@
 /**
- * @param {string} s
+ * @param s
  */
 export function floatAST(s) {
     var thing = {
@@ -13,7 +13,7 @@ export function floatAST(s) {
     return thing;
 }
 /**
- * @param n {number}
+ * @param n
  */
 export function intAST(n) {
     var thing = {

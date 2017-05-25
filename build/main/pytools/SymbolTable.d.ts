@@ -1,6 +1,9 @@
-import SymbolTableScope from './SymbolTableScope';
-export default class SymbolTable {
-    fileName: any;
+import { SymbolTableScope } from './SymbolTableScope';
+/**
+ * The symbol table uses the abstract synntax tree (not the parse tree).
+ */
+export declare class SymbolTable {
+    fileName: string;
     cur: any;
     top: any;
     stack: any;
@@ -9,10 +12,9 @@ export default class SymbolTable {
     tmpname: number;
     stss: any;
     /**
-     * @constructor
-     * @param {string} fileName
+     * @param fileName
      */
-    constructor(fileName: any);
+    constructor(fileName: string);
     /**
      * Lookup the SymbolTableScope for a scopeId of the AST.
      */

@@ -8,18 +8,17 @@ import { GLOBAL_IMPLICIT } from './SymbolConstants';
 import { SCOPE_MASK } from './SymbolConstants';
 import { SCOPE_OFF } from './SymbolConstants';
 import { USE } from './SymbolConstants';
-import SymbolTableScope from './SymbolTableScope';
+import { SymbolTableScope } from './SymbolTableScope';
 
-export default class Symbol {
+export class Symbol {
     private __name: string;
     private __flags: number;
     private __scope: number;
     private __namespaces: SymbolTableScope[];
     /**
-     * @constructor
-     * @param {string} name
-     * @param {number} flags
-     * @param {Array.<SymbolTableScope>} namespaces
+     * @param name
+     * @param flags
+     * @param namespaces
      */
     constructor(name: string, flags: number, namespaces: SymbolTableScope[]) {
         this.__name = name;

@@ -1,7 +1,7 @@
 /**
  * TODO: Reserved for whom?
  */
-const reservedWords = {
+export const reservedWords = {
     'abstract': true,
     'as': true,
     'boolean': true,
@@ -66,5 +66,3 @@ const reservedWords = {
     'while': true,
     'with': true
 };
-
-export default reservedWords;

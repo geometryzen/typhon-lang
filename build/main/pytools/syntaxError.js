@@ -3,11 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var asserts_1 = require("./asserts");
 var base_1 = require("./base");
 /**
- * @param {string} message
- * @param {string} fileName
- * @param {number=} lineNumber
+ * @param message
+ * @param fileName
+ * @param lineNumber
  */
-function default_1(message, fileName, lineNumber) {
+function syntaxError(message, fileName, lineNumber) {
     asserts_1.assert(base_1.isString(message), "message must be a string");
     asserts_1.assert(base_1.isString(fileName), "fileName must be a string");
     if (base_1.isDef(lineNumber)) {
@@ -20,4 +20,4 @@ function default_1(message, fileName, lineNumber) {
     }
     return e;
 }
-exports.default = default_1;
+exports.syntaxError = syntaxError;

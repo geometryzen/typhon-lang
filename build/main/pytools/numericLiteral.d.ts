@@ -1,10 +1,10 @@
 import { INumericLiteral } from './INumericLiteral';
 /**
- * @param {string} s
+ * @param s
  */
 export declare function floatAST(s: string): INumericLiteral;
 /**
- * @param n {number}
+ * @param n
  */
 export declare function intAST(n: number): INumericLiteral;
 /**

@@ -1,4 +1,4 @@
-export default class SymbolTableScope {
+export declare class SymbolTableScope {
     symFlags: {
         [name: string]: number;
     };

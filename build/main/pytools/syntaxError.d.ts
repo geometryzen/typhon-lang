@@ -1,6 +1,6 @@
 /**
- * @param {string} message
- * @param {string} fileName
- * @param {number=} lineNumber
+ * @param message
+ * @param fileName
+ * @param lineNumber
  */
-export default function (message: string, fileName: string, lineNumber?: number): SyntaxError;
+export declare function syntaxError(message: string, fileName: string, lineNumber?: number): SyntaxError;

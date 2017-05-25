@@ -19,4 +19,4 @@ var TokenError = (function () {
     }
     return TokenError;
 }());
-exports.default = TokenError;
+exports.TokenError = TokenError;

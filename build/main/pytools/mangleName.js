@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @param {string|null} priv
  * @param {string} name
  */
-function default_1(priv, name) {
+function mangleName(priv, name) {
     var strpriv = null;
     if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_')
         return name;
@@ -21,4 +21,4 @@ function default_1(priv, name) {
     strpriv = '_' + strpriv + name;
     return strpriv;
 }
-exports.default = default_1;
+exports.mangleName = mangleName;

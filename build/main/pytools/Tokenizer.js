@@ -155,7 +155,7 @@ var Tokenizer = (function () {
         max = line.length;
         if (this.contstr.length > 0) {
             if (!line) {
-                throw new TokenError_1.default("EOF in multi-line string", this.fileName, this.strstart[0], this.strstart[1]);
+                throw new TokenError_1.TokenError("EOF in multi-line string", this.fileName, this.strstart[0], this.strstart[1]);
             }
             this.endprog.lastIndex = 0;
             endmatch = this.endprog.test(line);
@@ -234,7 +234,7 @@ var Tokenizer = (function () {
         }
         else {
             if (!line) {
-                throw new TokenError_1.default("EOF in multi-line statement", this.fileName, this.lnum, 0);
+                throw new TokenError_1.TokenError("EOF in multi-line statement", this.fileName, this.lnum, 0);
             }
             this.continued = false;
         }

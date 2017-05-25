@@ -17,4 +17,4 @@ var TokenError = (function () {
     }
     return TokenError;
 }());
-export default TokenError;
+export { TokenError };

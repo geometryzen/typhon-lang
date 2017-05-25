@@ -1,11 +1,9 @@
-import SymbolTable from './SymbolTable';
+import { SymbolTable } from './SymbolTable';
 import { ModuleBlock } from './SymbolConstants';
 
 /**
- * @methdod symbolTable
- * @param {Object} ast
- * @param {string} fileName
- * @return {SymbolTable}
+ * @param ast
+ * @param fileName
  */
 export function symbolTable(ast, fileName: string): SymbolTable {
     const st = new SymbolTable(fileName);
@@ -13,7 +11,7 @@ export function symbolTable(ast, fileName: string): SymbolTable {
     st.enterBlock("top", ModuleBlock, ast, 0);
     st.top = st.cur;
 
-    // This is a good place to fump the AST for debugging.
+    // This is a good place to dump the AST for debugging.
     for (let i = 0; i < ast.body.length; ++i) {
         st.visitStmt(ast.body[i]);
     }
@@ -26,9 +24,7 @@ export function symbolTable(ast, fileName: string): SymbolTable {
 }
 
 /**
- * @method dumpSymbolTable
- * @param st {SymbolTable}
- * @return {string}
+ * @param st
  */
 export function dumpSymbolTable(st: SymbolTable): string {
     var pyBoolStr = function (b) {

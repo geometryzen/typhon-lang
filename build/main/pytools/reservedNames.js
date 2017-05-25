@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * TODO: Reserved for whom?
  */
-var reservedNames = {
+exports.reservedNames = {
     '__defineGetter__': true,
     '__defineSetter__': true,
     'apply': true,
@@ -23,4 +23,3 @@ var reservedNames = {
     'watch': true,
     'length': true
 };
-exports.default = reservedNames;

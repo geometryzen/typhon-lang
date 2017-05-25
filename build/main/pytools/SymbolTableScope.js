@@ -55,7 +55,7 @@ var SymbolTableScope = (function () {
         if (!this.symbols.hasOwnProperty(name)) {
             var flags = this.symFlags[name];
             var namespaces = this.__check_children(name);
-            sym = this.symbols[name] = new Symbol_1.default(name, flags, namespaces);
+            sym = this.symbols[name] = new Symbol_1.Symbol(name, flags, namespaces);
         }
         else {
             sym = this.symbols[name];
@@ -137,4 +137,4 @@ var SymbolTableScope = (function () {
     };
     return SymbolTableScope;
 }());
-exports.default = SymbolTableScope;
+exports.SymbolTableScope = SymbolTableScope;

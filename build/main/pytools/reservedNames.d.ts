@@ -1,7 +1,7 @@
 /**
  * TODO: Reserved for whom?
  */
-declare const reservedNames: {
+export declare const reservedNames: {
     '__defineGetter__': boolean;
     '__defineSetter__': boolean;
     'apply': boolean;
@@ -21,4 +21,3 @@ declare const reservedNames: {
     'watch': boolean;
     'length': boolean;
 };
-export default reservedNames;

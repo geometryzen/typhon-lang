@@ -1,8 +1,8 @@
 import { assert, fail } from './asserts';
-import dictUpdate from './dictUpdate';
-import mangleName from './mangleName';
-import SymbolTableScope from './SymbolTableScope';
-import syntaxError from './syntaxError';
+import { dictUpdate } from './dictUpdate';
+import { mangleName } from './mangleName';
+import { SymbolTableScope } from './SymbolTableScope';
+import { syntaxError } from './syntaxError';
 
 import { Assert } from './types';
 import { Assign } from './types';
@@ -70,8 +70,11 @@ import { ModuleBlock } from './SymbolConstants';
 import { USE } from './SymbolConstants';
 import { SCOPE_OFF } from './SymbolConstants';
 
-export default class SymbolTable {
-    fileName;
+/**
+ * The symbol table uses the abstract synntax tree (not the parse tree).
+ */
+export class SymbolTable {
+    fileName: string;
     cur;
     top;
     stack;
@@ -80,10 +83,9 @@ export default class SymbolTable {
     tmpname: number;
     stss;
     /**
-     * @constructor
-     * @param {string} fileName
+     * @param fileName
      */
-    constructor(fileName) {
+    constructor(fileName: string) {
         this.fileName = fileName;
         this.cur = null;
         this.top = null;
@@ -212,7 +214,7 @@ export default class SymbolTable {
         }
     }
 
-    visitSlice(s) {
+    visitSlice(s/*: Slice | ExtSlice | Index | Ellipsis*/) {
         switch (s.constructor) {
             case Slice:
                 if (s.lower) this.visitExpr(s.lower);

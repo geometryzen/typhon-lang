@@ -4,7 +4,7 @@ import { isNumber, isString } from './base';
 /**
  *
  */
-export default class TokenError {
+export class TokenError {
     name: string;
     message: string;
     fileName: string;

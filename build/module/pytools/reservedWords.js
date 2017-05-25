@@ -1,7 +1,9 @@
 /**
  * TODO: Reserved for whom?
  */
-var reservedWords = {
+/**
+ * TODO: Reserved for whom?
+ */ export var reservedWords = {
     'abstract': true,
     'as': true,
     'boolean': true,
@@ -66,4 +68,3 @@ var reservedWords = {
     'while': true,
     'with': true
 };
-export default reservedWords;

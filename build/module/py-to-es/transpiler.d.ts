@@ -1,5 +1,5 @@
 /// <reference path="../../../node_modules/typescript/lib/typescriptServices.d.ts" />
-import SymbolTable from '../pytools/SymbolTable';
+import { SymbolTable } from '../pytools/SymbolTable';
 import { Assert } from '../pytools/types';
 import { AugAssign } from '../pytools/types';
 import { Call } from '../pytools/types';

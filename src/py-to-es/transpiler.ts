@@ -4,10 +4,10 @@ import { assert } from '../pytools/asserts';
 import { isArray, isNumber } from '../pytools/base';
 import { parse } from '../pytools/parser';
 import { astFromParse } from '../pytools/builder';
-import reservedNames from '../pytools/reservedNames';
-import reservedWords from '../pytools/reservedWords';
-import SymbolTable from '../pytools/SymbolTable';
-import SymbolTableScope from '../pytools/SymbolTableScope';
+import { reservedNames } from '../pytools/reservedNames';
+import { reservedWords } from '../pytools/reservedWords';
+import { SymbolTable } from '../pytools/SymbolTable';
+import { SymbolTableScope } from '../pytools/SymbolTableScope';
 import { symbolTable } from '../pytools/symtable';
 import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 

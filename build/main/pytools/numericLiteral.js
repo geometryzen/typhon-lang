@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * @param {string} s
+ * @param s
  */
 function floatAST(s) {
     var thing = {
@@ -16,7 +16,7 @@ function floatAST(s) {
 }
 exports.floatAST = floatAST;
 /**
- * @param n {number}
+ * @param n
  */
 function intAST(n) {
     var thing = {

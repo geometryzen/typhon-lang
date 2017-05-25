@@ -1,6 +1,6 @@
 import { assert } from './asserts';
 import { isArray, isDef, isString } from './base';
-import TokenError from './TokenError';
+import { TokenError } from './TokenError';
 import { Tokens } from './Tokens';
 
 /* we have to use string and ctor to be able to build patterns up. + on /.../

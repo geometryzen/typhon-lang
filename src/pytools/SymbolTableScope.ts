@@ -1,5 +1,5 @@
 import { assert } from './asserts';
-import Symbol from './Symbol';
+import { Symbol } from './Symbol';
 import { DEF_PARAM } from './SymbolConstants';
 import { DEF_BOUND } from './SymbolConstants';
 import { FREE } from './SymbolConstants';
@@ -11,7 +11,7 @@ import { SCOPE_OFF } from './SymbolConstants';
 
 let astScopeCounter = 0;
 
-export default class SymbolTableScope {
+export class SymbolTableScope {
     symFlags: { [name: string]: number };
     private name;
     private varnames;

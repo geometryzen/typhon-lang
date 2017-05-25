@@ -3,16 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var SymbolTable_1 = require("./SymbolTable");
 var SymbolConstants_1 = require("./SymbolConstants");
 /**
- * @methdod symbolTable
- * @param {Object} ast
- * @param {string} fileName
- * @return {SymbolTable}
+ * @param ast
+ * @param fileName
  */
 function symbolTable(ast, fileName) {
-    var st = new SymbolTable_1.default(fileName);
+    var st = new SymbolTable_1.SymbolTable(fileName);
     st.enterBlock("top", SymbolConstants_1.ModuleBlock, ast, 0);
     st.top = st.cur;
-    // This is a good place to fump the AST for debugging.
+    // This is a good place to dump the AST for debugging.
     for (var i = 0; i < ast.body.length; ++i) {
         st.visitStmt(ast.body[i]);
     }
@@ -22,9 +20,7 @@ function symbolTable(ast, fileName) {
 }
 exports.symbolTable = symbolTable;
 /**
- * @method dumpSymbolTable
- * @param st {SymbolTable}
- * @return {string}
+ * @param st
  */
 function dumpSymbolTable(st) {
     var pyBoolStr = function (b) {

@@ -12,10 +12,9 @@ var SymbolConstants_9 = require("./SymbolConstants");
 var SymbolConstants_10 = require("./SymbolConstants");
 var Symbol = (function () {
     /**
-     * @constructor
-     * @param {string} name
-     * @param {number} flags
-     * @param {Array.<SymbolTableScope>} namespaces
+     * @param name
+     * @param flags
+     * @param namespaces
      */
     function Symbol(name, flags, namespaces) {
         this.__name = name;
@@ -44,4 +43,4 @@ var Symbol = (function () {
     Symbol.prototype.get_namespaces = function () { return this.__namespaces; };
     return Symbol;
 }());
-exports.default = Symbol;
+exports.Symbol = Symbol;

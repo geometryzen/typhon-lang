@@ -1,14 +1,10 @@
-import SymbolTable from './SymbolTable';
+import { SymbolTable } from './SymbolTable';
 /**
- * @methdod symbolTable
- * @param {Object} ast
- * @param {string} fileName
- * @return {SymbolTable}
+ * @param ast
+ * @param fileName
  */
 export declare function symbolTable(ast: any, fileName: string): SymbolTable;
 /**
- * @method dumpSymbolTable
- * @param st {SymbolTable}
- * @return {string}
+ * @param st
  */
 export declare function dumpSymbolTable(st: SymbolTable): string;

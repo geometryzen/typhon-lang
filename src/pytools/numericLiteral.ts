@@ -1,7 +1,7 @@
 import { INumericLiteral } from './INumericLiteral';
 
 /**
- * @param {string} s
+ * @param s
  */
 export function floatAST(s: string): INumericLiteral {
     const thing: INumericLiteral = {
@@ -16,7 +16,7 @@ export function floatAST(s: string): INumericLiteral {
 }
 
 /**
- * @param n {number}
+ * @param n
  */
 export function intAST(n: number) {
     const thing: INumericLiteral = {

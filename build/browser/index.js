@@ -349,17 +349,17 @@ var ParseTables = {
                 37: 1 }],
         258: [[[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
-        259: [[[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
-                [[18, 1], [0, 1]],
-                [[0, 2]],
-                [[41, 7], [42, 2]],
-                [[43, 2], [44, 8], [45, 8]],
-                [[46, 9], [47, 2]],
+        259: [[[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
+                [[0, 1]],
+                [[41, 7], [42, 1]],
+                [[43, 1], [44, 8], [45, 8]],
+                [[46, 9], [47, 1]],
                 [[48, 10]],
-                [[42, 2]],
-                [[43, 2]],
-                [[47, 2]],
-                [[14, 2]]],
+                [[18, 6], [0, 6]],
+                [[42, 1]],
+                [[43, 1]],
+                [[47, 1]],
+                [[14, 1]]],
             { 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 29: 1, 32: 1 }],
         260: [[[[49, 1]], [[50, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
@@ -519,8 +519,8 @@ var ParseTables = {
         283: [[[[97, 1],
                     [98, 1],
                     [7, 2],
-                    [99, 1],
                     [97, 1],
+                    [99, 1],
                     [100, 1],
                     [101, 1],
                     [102, 3],
@@ -1029,17 +1029,17 @@ var ParseTables = {
     states: [[[[1, 1], [2, 1], [3, 2]], [[0, 1]], [[2, 1]]],
         [[[38, 1]], [[39, 0], [0, 1]]],
         [[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
-        [[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
-            [[18, 1], [0, 1]],
-            [[0, 2]],
-            [[41, 7], [42, 2]],
-            [[43, 2], [44, 8], [45, 8]],
-            [[46, 9], [47, 2]],
+        [[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
+            [[0, 1]],
+            [[41, 7], [42, 1]],
+            [[43, 1], [44, 8], [45, 8]],
+            [[46, 9], [47, 1]],
             [[48, 10]],
-            [[42, 2]],
-            [[43, 2]],
-            [[47, 2]],
-            [[14, 2]]],
+            [[18, 6], [0, 6]],
+            [[42, 1]],
+            [[43, 1]],
+            [[47, 1]],
+            [[14, 1]]],
         [[[49, 1]], [[50, 0], [0, 1]]],
         [[[51, 1]], [[52, 0], [0, 1]]],
         [[[53, 1]], [[54, 0], [0, 1]]],
@@ -1102,8 +1102,8 @@ var ParseTables = {
         [[[97, 1],
                 [98, 1],
                 [7, 2],
-                [99, 1],
                 [97, 1],
+                [99, 1],
                 [100, 1],
                 [101, 1],
                 [102, 3],
@@ -3843,7 +3843,7 @@ Alias.prototype['_fields'] = [
 ];
 
 /**
- * @param {string} s
+ * @param s
  */
 function floatAST(s) {
     var thing = {
@@ -3857,7 +3857,7 @@ function floatAST(s) {
     return thing;
 }
 /**
- * @param n {number}
+ * @param n
  */
 function intAST(n) {
     var thing = {
@@ -5627,7 +5627,9 @@ function astDump(node) {
 /**
  * TODO: Reserved for whom?
  */
-var reservedNames = {
+/**
+ * TODO: Reserved for whom?
+ */ var reservedNames = {
     '__defineGetter__': true,
     '__defineSetter__': true,
     'apply': true,
@@ -5651,7 +5653,9 @@ var reservedNames = {
 /**
  * TODO: Reserved for whom?
  */
-var reservedWords = {
+/**
+ * TODO: Reserved for whom?
+ */ var reservedWords = {
     'abstract': true,
     'as': true,
     'boolean': true,
@@ -5717,13 +5721,13 @@ var reservedWords = {
     'with': true
 };
 
-var dictUpdate = function (a, b) {
+function dictUpdate(a, b) {
     for (var kb in b) {
         if (b.hasOwnProperty(kb)) {
             a[kb] = b[kb];
         }
     }
-};
+}
 
 /**
  * @param {string|null} priv
@@ -5732,7 +5736,7 @@ var dictUpdate = function (a, b) {
 /**
  * @param {string|null} priv
  * @param {string} name
- */ var mangleName$1 = function (priv, name) {
+ */ function mangleName$1(priv, name) {
     var strpriv = null;
     if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_')
         return name;
@@ -5748,7 +5752,7 @@ var dictUpdate = function (a, b) {
     strpriv.replace(/^_*/, '');
     strpriv = '_' + strpriv + name;
     return strpriv;
-};
+}
 
 /* Flags for def-use information */
 /* Flags for def-use information */ var DEF_GLOBAL = 1; /* global stmt */
@@ -5787,10 +5791,9 @@ var ClassBlock = 'class';
 
 var Symbol$1 = (function () {
     /**
-     * @constructor
-     * @param {string} name
-     * @param {number} flags
-     * @param {Array.<SymbolTableScope>} namespaces
+     * @param name
+     * @param flags
+     * @param namespaces
      */
     function Symbol(name, flags, namespaces) {
         this.__name = name;
@@ -5949,11 +5952,11 @@ var SymbolTableScope = (function () {
 }());
 
 /**
- * @param {string} message
- * @param {string} fileName
- * @param {number=} lineNumber
+ * @param message
+ * @param fileName
+ * @param lineNumber
  */
-var syntaxError$1 = function (message, fileName, lineNumber) {
+function syntaxError$1(message, fileName, lineNumber) {
     assert(isString(message), "message must be a string");
     assert(isString(fileName), "fileName must be a string");
     if (isDef(lineNumber)) {
@@ -5965,12 +5968,14 @@ var syntaxError$1 = function (message, fileName, lineNumber) {
         e['lineNumber'] = lineNumber;
     }
     return e;
-};
+}
 
+/**
+ * The symbol table uses the abstract synntax tree (not the parse tree).
+ */
 var SymbolTable = (function () {
     /**
-     * @constructor
-     * @param {string} fileName
+     * @param fileName
      */
     function SymbolTable(fileName) {
         this.fileName = fileName;
@@ -6094,7 +6099,7 @@ var SymbolTable = (function () {
             this.global[mangled] = val;
         }
     };
-    SymbolTable.prototype.visitSlice = function (s) {
+    SymbolTable.prototype.visitSlice = function (s /*: Slice | ExtSlice | Index | Ellipsis*/) {
         switch (s.constructor) {
             case Slice:
                 if (s.lower)
@@ -6566,16 +6571,14 @@ var SymbolTable = (function () {
 }());
 
 /**
- * @methdod symbolTable
- * @param {Object} ast
- * @param {string} fileName
- * @return {SymbolTable}
+ * @param ast
+ * @param fileName
  */
 function symbolTable(ast, fileName) {
     var st = new SymbolTable(fileName);
     st.enterBlock("top", ModuleBlock, ast, 0);
     st.top = st.cur;
-    // This is a good place to fump the AST for debugging.
+    // This is a good place to dump the AST for debugging.
     for (var i = 0; i < ast.body.length; ++i) {
         st.visitStmt(ast.body[i]);
     }
@@ -6584,9 +6587,7 @@ function symbolTable(ast, fileName) {
     return st;
 }
 /**
- * @method dumpSymbolTable
- * @param st {SymbolTable}
- * @return {string}
+ * @param st
  */
 
 /**

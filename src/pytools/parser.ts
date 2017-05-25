@@ -36,6 +36,9 @@ export type LineColumn = [number, number];
  */
 export type ParseContext = [LineColumn, LineColumn, string];
 
+/**
+ * The parse tree (not the abstract syntax tree).
+ */
 export interface PyNode {
     type: Tokens;
     value: string;

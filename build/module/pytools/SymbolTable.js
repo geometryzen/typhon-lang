@@ -1,8 +1,8 @@
 import { assert, fail } from './asserts';
-import dictUpdate from './dictUpdate';
-import mangleName from './mangleName';
-import SymbolTableScope from './SymbolTableScope';
-import syntaxError from './syntaxError';
+import { dictUpdate } from './dictUpdate';
+import { mangleName } from './mangleName';
+import { SymbolTableScope } from './SymbolTableScope';
+import { syntaxError } from './syntaxError';
 import { Assert } from './types';
 import { Assign } from './types';
 import { Attribute } from './types';
@@ -67,10 +67,12 @@ import { LOCAL } from './SymbolConstants';
 import { ModuleBlock } from './SymbolConstants';
 import { USE } from './SymbolConstants';
 import { SCOPE_OFF } from './SymbolConstants';
+/**
+ * The symbol table uses the abstract synntax tree (not the parse tree).
+ */
 var SymbolTable = (function () {
     /**
-     * @constructor
-     * @param {string} fileName
+     * @param fileName
      */
     function SymbolTable(fileName) {
         this.fileName = fileName;
@@ -194,7 +196,7 @@ var SymbolTable = (function () {
             this.global[mangled] = val;
         }
     };
-    SymbolTable.prototype.visitSlice = function (s) {
+    SymbolTable.prototype.visitSlice = function (s /*: Slice | ExtSlice | Index | Ellipsis*/) {
         switch (s.constructor) {
             case Slice:
                 if (s.lower)
@@ -664,4 +666,4 @@ var SymbolTable = (function () {
     };
     return SymbolTable;
 }());
-export default SymbolTable;
+export { SymbolTable };

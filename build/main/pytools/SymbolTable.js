@@ -69,10 +69,12 @@ var SymbolConstants_13 = require("./SymbolConstants");
 var SymbolConstants_14 = require("./SymbolConstants");
 var SymbolConstants_15 = require("./SymbolConstants");
 var SymbolConstants_16 = require("./SymbolConstants");
+/**
+ * The symbol table uses the abstract synntax tree (not the parse tree).
+ */
 var SymbolTable = (function () {
     /**
-     * @constructor
-     * @param {string} fileName
+     * @param fileName
      */
     function SymbolTable(fileName) {
         this.fileName = fileName;
@@ -119,7 +121,7 @@ var SymbolTable = (function () {
             prev = this.cur;
             this.stack.push(this.cur);
         }
-        this.cur = new SymbolTableScope_1.default(this, name, blockType, ast, lineno);
+        this.cur = new SymbolTableScope_1.SymbolTableScope(this, name, blockType, ast, lineno);
         if (name === 'top') {
             this.global = this.cur.symFlags;
         }
@@ -142,7 +144,7 @@ var SymbolTable = (function () {
             }
             else {
                 // Tuple isn't supported
-                throw syntaxError_1.default("invalid expression in parameter list", this.fileName);
+                throw syntaxError_1.syntaxError("invalid expression in parameter list", this.fileName);
             }
         }
     };
@@ -172,12 +174,12 @@ var SymbolTable = (function () {
      * @return {void}
      */
     SymbolTable.prototype.addDef = function (name, flag, lineno) {
-        var mangled = mangleName_1.default(this.curClass, name);
+        var mangled = mangleName_1.mangleName(this.curClass, name);
         //  mangled = fixReservedNames(mangled);
         var val = this.cur.symFlags[mangled];
         if (val !== undefined) {
             if ((flag & SymbolConstants_8.DEF_PARAM) && (val & SymbolConstants_8.DEF_PARAM)) {
-                throw syntaxError_1.default("duplicate argument '" + name + "' in function definition", this.fileName, lineno);
+                throw syntaxError_1.syntaxError("duplicate argument '" + name + "' in function definition", this.fileName, lineno);
             }
             val |= flag;
         }
@@ -196,7 +198,7 @@ var SymbolTable = (function () {
             this.global[mangled] = val;
         }
     };
-    SymbolTable.prototype.visitSlice = function (s) {
+    SymbolTable.prototype.visitSlice = function (s /*: Slice | ExtSlice | Index | Ellipsis*/) {
         switch (s.constructor) {
             case types_38.Slice:
                 if (s.lower)
@@ -252,7 +254,7 @@ var SymbolTable = (function () {
                     this.visitExpr(rs.value);
                     this.cur.returnsValue = true;
                     if (this.cur.generator) {
-                        throw syntaxError_1.default("'return' with argument inside generator", this.fileName);
+                        throw syntaxError_1.syntaxError("'return' with argument inside generator", this.fileName);
                     }
                 }
                 break;
@@ -344,15 +346,15 @@ var SymbolTable = (function () {
             case types_21.Global:
                 var nameslen = s.names.length;
                 for (var i = 0; i < nameslen; ++i) {
-                    var name = mangleName_1.default(this.curClass, s.names[i]);
+                    var name = mangleName_1.mangleName(this.curClass, s.names[i]);
                     //              name = fixReservedNames(name);
                     var cur = this.cur.symFlags[name];
                     if (cur & (SymbolConstants_7.DEF_LOCAL | SymbolConstants_15.USE)) {
                         if (cur & SymbolConstants_7.DEF_LOCAL) {
-                            throw syntaxError_1.default("name '" + name + "' is assigned to before global declaration", this.fileName, s.lineno);
+                            throw syntaxError_1.syntaxError("name '" + name + "' is assigned to before global declaration", this.fileName, s.lineno);
                         }
                         else {
-                            throw syntaxError_1.default("name '" + name + "' is used prior to global declaration", this.fileName, s.lineno);
+                            throw syntaxError_1.syntaxError("name '" + name + "' is used prior to global declaration", this.fileName, s.lineno);
                         }
                     }
                     this.addDef(name, SymbolConstants_5.DEF_GLOBAL, s.lineno);
@@ -426,7 +428,7 @@ var SymbolTable = (function () {
                     this.visitExpr(e.value);
                 this.cur.generator = true;
                 if (this.cur.returnsValue) {
-                    throw syntaxError_1.default("'return' with argument inside generator", this.fileName);
+                    throw syntaxError_1.syntaxError("'return' with argument inside generator", this.fileName);
                 }
                 break;
             case types_10.Compare:
@@ -498,7 +500,7 @@ var SymbolTable = (function () {
             }
             else {
                 if (this.cur.blockType !== SymbolConstants_14.ModuleBlock) {
-                    throw syntaxError_1.default("import * only allowed at module level", this.fileName);
+                    throw syntaxError_1.syntaxError("import * only allowed at module level", this.fileName);
                 }
             }
         }
@@ -538,9 +540,9 @@ var SymbolTable = (function () {
         var newbound = {};
         var newfree = {};
         if (ste.blockType === SymbolConstants_2.ClassBlock) {
-            dictUpdate_1.default(newglobal, global);
+            dictUpdate_1.dictUpdate(newglobal, global);
             if (bound)
-                dictUpdate_1.default(newbound, bound);
+                dictUpdate_1.dictUpdate(newbound, bound);
         }
         for (var name_1 in ste.symFlags) {
             if (ste.symFlags.hasOwnProperty(name_1)) {
@@ -550,10 +552,10 @@ var SymbolTable = (function () {
         }
         if (ste.blockType !== SymbolConstants_2.ClassBlock) {
             if (ste.blockType === SymbolConstants_10.FunctionBlock)
-                dictUpdate_1.default(newbound, local);
+                dictUpdate_1.dictUpdate(newbound, local);
             if (bound)
-                dictUpdate_1.default(newbound, bound);
-            dictUpdate_1.default(newglobal, global);
+                dictUpdate_1.dictUpdate(newbound, bound);
+            dictUpdate_1.dictUpdate(newglobal, global);
         }
         var allfree = {};
         var childlen = ste.children.length;
@@ -563,21 +565,21 @@ var SymbolTable = (function () {
             if (c.hasFree || c.childHasFree)
                 ste.childHasFree = true;
         }
-        dictUpdate_1.default(newfree, allfree);
+        dictUpdate_1.dictUpdate(newfree, allfree);
         if (ste.blockType === SymbolConstants_10.FunctionBlock)
             this.analyzeCells(scope, newfree);
         this.updateSymbols(ste.symFlags, scope, bound, newfree, ste.blockType === SymbolConstants_2.ClassBlock);
-        dictUpdate_1.default(free, newfree);
+        dictUpdate_1.dictUpdate(free, newfree);
     };
     SymbolTable.prototype.analyzeChildBlock = function (entry, bound, free, global, childFree) {
         var tempBound = {};
-        dictUpdate_1.default(tempBound, bound);
+        dictUpdate_1.dictUpdate(tempBound, bound);
         var tempFree = {};
-        dictUpdate_1.default(tempFree, free);
+        dictUpdate_1.dictUpdate(tempFree, free);
         var tempGlobal = {};
-        dictUpdate_1.default(tempGlobal, global);
+        dictUpdate_1.dictUpdate(tempGlobal, global);
         this.analyzeBlock(entry, tempBound, tempFree, tempGlobal);
-        dictUpdate_1.default(childFree, tempFree);
+        dictUpdate_1.dictUpdate(childFree, tempFree);
     };
     SymbolTable.prototype.analyzeCells = function (scope, free) {
         for (var name_2 in scope) {
@@ -632,7 +634,7 @@ var SymbolTable = (function () {
     SymbolTable.prototype.analyzeName = function (ste, dict, name, flags, bound, local, free, global) {
         if (flags & SymbolConstants_5.DEF_GLOBAL) {
             if (flags & SymbolConstants_8.DEF_PARAM)
-                throw syntaxError_1.default("name '" + name + "' is local and global", this.fileName, ste.lineno);
+                throw syntaxError_1.syntaxError("name '" + name + "' is local and global", this.fileName, ste.lineno);
             dict[name] = SymbolConstants_11.GLOBAL_EXPLICIT;
             global[name] = null;
             if (bound && bound[name] !== undefined)
@@ -666,4 +668,4 @@ var SymbolTable = (function () {
     };
     return SymbolTable;
 }());
-exports.default = SymbolTable;
+exports.SymbolTable = SymbolTable;
