@@ -1,19 +1,17 @@
-import tables from './tables';
-import {assert, fail} from './asserts';
-import {isDef} from './base';
-import Tokenizer from './Tokenizer';
-import Tokens from './Tokens';
+import { OpMap, ParseTables } from './tables';
+import { assert } from './asserts';
+import { isDef } from './base';
+import { Tokenizer } from './Tokenizer';
+import { Tokens } from './Tokens';
 import tokenNames from './tokenNames';
 
-const OpMap = tables.OpMap;
-const ParseTables = tables.ParseTables;
 // low level parser to a concrete syntax tree, derived from cpython's lib2to3
 
 /**
- * @param {string} message
- * @param {string} fileName
- * @param {Array.<number>=} begin
- * @param {Array.<number>=} end
+ * @param message
+ * @param fileName
+ * @param begin
+ * @param end
  */
 function parseError(message: string, fileName: string, begin?: number[], end?: number[]) {
     var e = new SyntaxError(message/*, fileName*/);
@@ -223,22 +221,23 @@ function findInDfa(a, obj) {
  * @param {string} filename
  * @param {string=} style root of parse tree (optional)
  */
-function makeParser(filename: string, style?: string) {
+function makeParser(filename: string, style?: string): (text: string) => any {
     if (style === undefined) style = "file_input";
 
     var p = new Parser(filename, ParseTables);
     // for closure's benefit
     if (style === "file_input")
         p.setup(ParseTables.sym.file_input);
-    else
-        fail("TODO");
+    else {
+        console.warn(`TODO: makeParser(style = ${style})`);
+    }
     var lineno = 1;
     var column = 0;
     var prefix = "";
     var T_COMMENT = Tokens.T_COMMENT;
     var T_NL = Tokens.T_NL;
     var T_OP = Tokens.T_OP;
-    var tokenizer = new Tokenizer(filename, style === "single_input", function(type, value, start, end, line) {
+    var tokenizer = new Tokenizer(filename, style === "single_input", function tokenizerCallback(type: Tokens, value: string, start: number[], end: number[], line: string): boolean | undefined {
         // var s_lineno = start[0];
         // var s_column = start[1];
         /*
@@ -263,12 +262,13 @@ function makeParser(filename: string, style?: string) {
         if (p.addtoken(type, value, [start, end, line])) {
             return true;
         }
+        return undefined;
     });
-    return function(line: string) {
+    return function (line: string) {
         var ret = tokenizer.generateTokens(line);
         if (ret) {
             if (ret !== "done") {
-                throw parseError("incomplete input", this.filename);
+                throw parseError("incomplete input", filename);
             }
             return p.rootnode;
         }

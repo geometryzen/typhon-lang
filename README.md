@@ -48,9 +48,9 @@ The `build.py` command `gen` generates two files used for scanning and parsing.
 
 The following process is used to generate a parser.
 
-`main.py` has embedded within it the grammar file which contains a BNF grammar.
+`src/pgen/parser/main.py` has embedded within it the grammar file which contains a BNF grammar.
 
-`main.py` is executed by the python interpreter to produce `tables.js`.
+`src/pgen/parser/main.py` is executed by the python interpreter to produce `tables.js`.
 
 `src/pytools/tables.js`: Tokens and the DFA.
 

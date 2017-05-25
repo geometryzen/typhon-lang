@@ -1,76 +1,79 @@
-import {assert, fail} from '../pytools/asserts';
-import {isArray, isNumber} from '../pytools/base';
-import {parse} from '../pytools/parser';
-import {astFromParse} from '../pytools/builder';
+/// <reference path = "../../node_modules/typescript/lib/typescriptServices.d.ts" />
+
+import { assert } from '../pytools/asserts';
+import { isArray, isNumber } from '../pytools/base';
+import { parse } from '../pytools/parser';
+import { astFromParse } from '../pytools/builder';
 import reservedNames from '../pytools/reservedNames';
 import reservedWords from '../pytools/reservedWords';
 import SymbolTable from '../pytools/SymbolTable';
 import SymbolTableScope from '../pytools/SymbolTableScope';
-import {symbolTable} from '../pytools/symtable';
-import toStringLiteralJS from '../pytools/toStringLiteralJS';
+import { symbolTable } from '../pytools/symtable';
+import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 
 // import {And} from '../pytools/types';
-import {Assert} from '../pytools/types';
-import {Assign} from '../pytools/types';
-import {Attribute} from '../pytools/types';
-import {AugAssign} from '../pytools/types';
-import {AugLoad} from '../pytools/types';
-import {AugStore} from '../pytools/types';
-import {BinOp} from '../pytools/types';
-import {BoolOp} from '../pytools/types';
-import {BreakStatement} from '../pytools/types';
-import {Call} from '../pytools/types';
-import {ClassDef} from '../pytools/types';
-import {Compare} from '../pytools/types';
-import {ContinueStatement} from '../pytools/types';
-import {Del} from '../pytools/types';
-import {DeleteExpression} from '../pytools/types';
-import {Dict} from '../pytools/types';
-import {Ellipsis} from '../pytools/types';
-import {Expr} from '../pytools/types';
-import {Expression} from '../pytools/types';
-import {ExtSlice} from '../pytools/types';
-import {ForStatement} from '../pytools/types';
-import {FunctionDef} from '../pytools/types';
-import {GeneratorExp} from '../pytools/types';
-import {Global} from '../pytools/types';
-import {IfStatement} from '../pytools/types';
-import {IfExp} from '../pytools/types';
-import {ImportStatement} from '../pytools/types';
-import {ImportFrom} from '../pytools/types';
-import {Index} from '../pytools/types';
-import {Lambda} from '../pytools/types';
-import {List} from '../pytools/types';
-import {ListComp} from '../pytools/types';
-import {Load} from '../pytools/types';
-import {Module} from '../pytools/types';
-import {Name} from '../pytools/types';
-import {Num} from '../pytools/types';
-import {Param} from '../pytools/types';
-import {Pass} from '../pytools/types';
-import {Print} from '../pytools/types';
-import {Raise} from '../pytools/types';
-import {ReturnStatement} from '../pytools/types';
-import {Slice} from '../pytools/types';
-import {Statement} from '../pytools/types';
-import {Store} from '../pytools/types';
-import {Str} from '../pytools/types';
-import {Subscript} from '../pytools/types';
-import {TryExcept} from '../pytools/types';
-import {TryFinally} from '../pytools/types';
-import {Tuple} from '../pytools/types';
-import {UnaryOp} from '../pytools/types';
-import {WhileStatement} from '../pytools/types';
-import {Yield} from '../pytools/types';
+import { Assert } from '../pytools/types';
+import { Assign } from '../pytools/types';
+import { Attribute } from '../pytools/types';
+import { AugAssign } from '../pytools/types';
+import { AugLoad } from '../pytools/types';
+import { AugStore } from '../pytools/types';
+import { BinOp } from '../pytools/types';
+import { BoolOp } from '../pytools/types';
+import { BreakStatement } from '../pytools/types';
+import { Call } from '../pytools/types';
+import { ClassDef } from '../pytools/types';
+import { Compare } from '../pytools/types';
+import { ContinueStatement } from '../pytools/types';
+import { Del } from '../pytools/types';
+import { DeleteExpression } from '../pytools/types';
+import { Dict } from '../pytools/types';
+import { Ellipsis } from '../pytools/types';
+import { Expr } from '../pytools/types';
+import { Expression } from '../pytools/types';
+import { ExtSlice } from '../pytools/types';
+import { ForStatement } from '../pytools/types';
+import { FunctionDef } from '../pytools/types';
+import { GeneratorExp } from '../pytools/types';
+import { Global } from '../pytools/types';
+import { IfStatement } from '../pytools/types';
+import { IfExp } from '../pytools/types';
+import { ImportStatement } from '../pytools/types';
+import { ImportFrom } from '../pytools/types';
+import { Index } from '../pytools/types';
+import { Lambda } from '../pytools/types';
+import { List } from '../pytools/types';
+import { ListComp } from '../pytools/types';
+import { Load } from '../pytools/types';
+import { Module } from '../pytools/types';
+import { Name } from '../pytools/types';
+import { Num } from '../pytools/types';
+import { Param } from '../pytools/types';
+import { Pass } from '../pytools/types';
+import { Print } from '../pytools/types';
+import { Raise } from '../pytools/types';
+import { ReturnStatement } from '../pytools/types';
+import { Slice } from '../pytools/types';
+import { Statement } from '../pytools/types';
+import { Store } from '../pytools/types';
+import { Str } from '../pytools/types';
+import { Subscript } from '../pytools/types';
+import { TryExcept } from '../pytools/types';
+import { TryFinally } from '../pytools/types';
+import { Tuple } from '../pytools/types';
+import { UnaryOp } from '../pytools/types';
+import { WhileStatement } from '../pytools/types';
+import { Yield } from '../pytools/types';
 
-import {LOCAL} from '../pytools/SymbolConstants';
-import {GLOBAL_EXPLICIT} from '../pytools/SymbolConstants';
-import {GLOBAL_IMPLICIT} from '../pytools/SymbolConstants';
-import {FREE} from '../pytools/SymbolConstants';
-import {CELL} from '../pytools/SymbolConstants';
-import {FunctionBlock} from '../pytools/SymbolConstants';
-import {Node} from '../estools/esprima';
-import {generate} from '../estools/escodegen';
+import { LOCAL } from '../pytools/SymbolConstants';
+import { GLOBAL_EXPLICIT } from '../pytools/SymbolConstants';
+import { GLOBAL_IMPLICIT } from '../pytools/SymbolConstants';
+import { FREE } from '../pytools/SymbolConstants';
+import { CELL } from '../pytools/SymbolConstants';
+import { FunctionBlock } from '../pytools/SymbolConstants';
+// TODO: Replace these wit the TypeScript AST
+// import {Node} from '../estools/esprima';
+// import {generate} from '../estools/escodegen';
 
 const OP_FAST = 0;
 const OP_GLOBAL = 1;
@@ -150,15 +153,15 @@ let out;
 let gensymCount = 0;
 
 /**
- * 
+ *
  */
 let base;
 /**
- * 
+ *
  */
 let indent;
 /**
- * 
+ *
  */
 let space;
 
@@ -283,7 +286,7 @@ class CompilerUnit {
         // The 'arguments' object cannot be referenced in an arrow function in ES3 and ES5.
         // That's why we use a standard function expression.
         const self = this;
-        out = function() {
+        out = function () {
             const b = self.blocks[self.curblock];
             for (let i = 0; i < arguments.length; ++i)
                 b.push(arguments[i]);
@@ -291,7 +294,7 @@ class CompilerUnit {
     }
 }
 
-class Compiler {
+export class Compiler {
     public result: string[];
     private fileName: string;
     private st: SymbolTable;
@@ -387,13 +390,13 @@ class Compiler {
     ctupleorlist(e, data, tuporlist) {
         assert(tuporlist === 'tuple' || tuporlist === 'list');
         if (e.ctx === Store) {
-            for (var i = 0; i < e.elts.length; ++i) {
+            for (let i = 0; i < e.elts.length; ++i) {
                 this.vexpr(e.elts[i], "Sk.abstr.objectGetItem(" + data + "," + i + ")");
             }
         }
         else if (e.ctx === Load) {
             // const items = [];
-            for (var i = 0; i < e.elts.length; ++i) {
+            for (let i = 0; i < e.elts.length; ++i) {
                 // items.push(this.emitArgs('elem', this.vexpr(e.elts[i])));
             }
         }
@@ -517,10 +520,10 @@ class Compiler {
                 break;
             case Ellipsis:
             case ExtSlice:
-                fail("todo;");
-                break;
+                throw new Error("todo;");
+            // break;
             default:
-                fail("invalid subscript kind");
+                throw new Error("invalid subscript kind");
         }
         return subs;
     }
@@ -539,7 +542,7 @@ class Compiler {
         else if (ctx === Del)
             out("Sk.abstr.objectDelItem(", obj, ",", subs, ");");
         else
-            fail("handlesubscr fail");
+            throw new Error("handlesubscr fail");
     }
 
     cboolop(e) {
@@ -613,7 +616,7 @@ class Compiler {
                 else if (e.n.isLong()) {
                     return "longFromString('" + e.n.text + "', " + e.n.radix + ")";
                 }
-                fail("unhandled Num type");
+                throw new Error("unhandled Num type");
             }
             case Str: {
                 const str = <Str>e;
@@ -642,11 +645,11 @@ class Compiler {
                         out("Sk.abstr.sattr(", val, ",'", mangled, "',", data, ");");
                         break;
                     case Del:
-                        fail("todo;");
-                        break;
+                        throw new Error("todo;");
+                    // break;
                     case Param:
                     default:
-                        fail("invalid attribute expression");
+                        throw new Error("invalid attribute expression");
                 }
                 break;
             case Subscript:
@@ -665,7 +668,7 @@ class Compiler {
                     }
                     case Param:
                     default:
-                        fail("invalid subscript expression");
+                        throw new Error("invalid subscript expression");
                 }
                 break;
             case Name:
@@ -675,7 +678,7 @@ class Compiler {
             case Tuple:
                 return this.ctupleorlist(e, data, 'tuple');
             default:
-                fail("unhandled case in vexpr");
+                throw new Error("unhandled case in vexpr");
         }
     }
 
@@ -727,7 +730,7 @@ class Compiler {
                 return this.nameop(e.id, Store, res);
             }
             default:
-                fail("unhandled case in augassign");
+                throw new Error("unhandled case in augassign");
         }
     }
 
@@ -737,13 +740,13 @@ class Compiler {
     exprConstant(e) {
         switch (e.constructor) {
             case Num:
-                fail("Trying to call the runtime for Num");
-                // return Sk.misceval.isTrue(e.n);
-                break;
+                throw new Error("Trying to call the runtime for Num");
+            // return Sk.misceval.isTrue(e.n);
+            // break;
             case Str:
-                fail("Trying to call the runtime for Str");
-                // return Sk.misceval.isTrue(e.s);
-                break;
+                throw new Error("Trying to call the runtime for Str");
+            // return Sk.misceval.isTrue(e.s);
+            // break;
             case Name:
             // todo; do __debug__ test here if opt
             default:
@@ -810,11 +813,11 @@ class Compiler {
 
     outputLocals(unit) {
         var have = {};
-        for (var i = 0; unit.argnames && i < unit.argnames.length; ++i)
+        for (let i = 0; unit.argnames && i < unit.argnames.length; ++i)
             have[unit.argnames[i]] = true;
         unit.localnames.sort();
         var output = [];
-        for (var i = 0; i < unit.localnames.length; ++i) {
+        for (let i = 0; i < unit.localnames.length; ++i) {
             var name = unit.localnames[i];
             if (have[name] === undefined) {
                 output.push(name);
@@ -1004,7 +1007,7 @@ class Compiler {
 
         // Create a block for each except clause
         var handlers = [];
-        for (var i = 0; i < n; ++i) {
+        for (let i = 0; i < n; ++i) {
             handlers.push(this.newBlock("except_" + i + "_"));
         }
 
@@ -1016,7 +1019,7 @@ class Compiler {
         this.vseqstmt(s.body, flags);
         this.endExcept();
 
-        for (var i = 0; i < n; ++i) {
+        for (let i = 0; i < n; ++i) {
             this.setBlock(handlers[i]);
             var handler = s.handlers[i];
             if (!handler.type && i < n - 1) {
@@ -1094,7 +1097,7 @@ class Compiler {
             }
         }
         return this.nameop(asname, Store, cur);
-    };
+    }
 
     cimport(s: ImportStatement) {
         const n = s.names.length;
@@ -1115,7 +1118,7 @@ class Compiler {
                 }
             }
         }
-    };
+    }
 
     cfromimport(s: ImportFrom) {
         const n = s.names.length;
@@ -1265,7 +1268,7 @@ class Compiler {
         // copy all parameters that are also cells into the cells dict. this is so
         // they can be accessed correctly by nested scopes.
         //
-        for (var i = 0; args && i < args.args.length; ++i) {
+        for (let i = 0; args && i < args.args.length; ++i) {
             var id = args.args[i].id;
             if (this.isCell(id)) {
                 this.u.varDeclsCode += "$cell." + id + " = " + id + ";";
@@ -1293,7 +1296,7 @@ class Compiler {
             // than args we offset to make them match up (we don't need another
             // correlation in the ast)
             var offset = args.args.length - defaults.length;
-            for (var i = 0; i < defaults.length; ++i) {
+            for (let i = 0; i < defaults.length; ++i) {
                 var argname = this.nameop(args.args[i + offset].id, Param);
                 this.u.varDeclsCode += "if(typeof " + argname + " === 'undefined')" + argname + " = " + scopename + ".$defaults[" + i + "];";
             }
@@ -1338,7 +1341,7 @@ class Compiler {
         var argnames;
         if (args && args.args.length > 0) {
             var argnamesarr = [];
-            for (var i = 0; i < args.args.length; ++i) {
+            for (let i = 0; i < args.args.length; ++i) {
                 argnamesarr.push(args.args[i].id);
             }
 
@@ -1418,7 +1421,7 @@ class Compiler {
     cfunction(s: FunctionDef) {
         assert(s instanceof FunctionDef);
         var funcorgen = this.buildcodeobj(s, s.name, s.decorator_list, s.args,
-            function(scopename) {
+            (scopename) => {
                 this.vseqstmt(s.body);
                 out("return Sk.builtin.none.none$;"); // if we fall off the bottom, we want the ret to be None
             }
@@ -1428,7 +1431,7 @@ class Compiler {
 
     clambda(e) {
         assert(e instanceof Lambda);
-        var func = this.buildcodeobj(e, "<lambda>", null, e.args, function(scopename) {
+        var func = this.buildcodeobj(e, "<lambda>", null, e.args, (scopename) => {
             var val = this.vexpr(e.body);
             out("return ", val, ";");
         });
@@ -1500,7 +1503,7 @@ class Compiler {
 
     cgenexp(e) {
         var gen = this.buildcodeobj(e, "<genexpr>", null, null,
-            function(scopename) {
+            (scopename) => {
                 this.cgenexpgen(e.generators, 0, e.elt);
             });
 
@@ -1644,11 +1647,11 @@ class Compiler {
                 this.ccontinue(<ContinueStatement>s);
                 break;
             default:
-                fail("unhandled case in vstmt");
+                throw new Error("unhandled case in vstmt");
         }
     }
 
-    vseqstmt(stmts: Statement[], flags: number) {
+    vseqstmt(stmts: Statement[], flags?: number) {
         for (let i = 0; i < stmts.length; ++i) this.vstmt(stmts[i], flags);
     }
 
@@ -1738,7 +1741,7 @@ class Compiler {
                         out("delete ", mangled, ";");
                         break;
                     default:
-                        fail("unhandled");
+                        throw new Error("unhandled");
                 }
                 break;
             case OP_NAME:
@@ -1755,7 +1758,7 @@ class Compiler {
                     case Param:
                         return mangled;
                     default:
-                        fail("unhandled");
+                        throw new Error("unhandled");
                 }
                 break;
             case OP_GLOBAL:
@@ -1769,7 +1772,7 @@ class Compiler {
                         out("delete $gbl.", mangledNoPre);
                         break;
                     default:
-                        fail("unhandled case in name op_global");
+                        throw new Error("unhandled case in name op_global");
                 }
                 break;
             case OP_DEREF:
@@ -1782,12 +1785,13 @@ class Compiler {
                     case Param:
                         return mangledNoPre;
                     default:
-                        fail("unhandled case in name op_deref");
+                        throw new Error("unhandled case in name op_deref");
                 }
                 break;
             default:
-                fail("unhandled case");
+                throw new Error("unhandled case");
         }
+        throw new Error("TODO");
     }
 
     /**
@@ -1836,7 +1840,7 @@ class Compiler {
     }
 
     /**
-     * 
+     *
      */
     cbody(stmts: Statement[], flags: number) {
         for (let i = 0; i < stmts.length; ++i) {
@@ -1876,7 +1880,7 @@ class Compiler {
                 this.cbody(mod.body, flags);
                 break;
             default:
-                fail("todo; unhandled case in compilerMod");
+                throw new Error("todo; unhandled case in compilerMod");
         }
         this.exitScope();
 
@@ -1936,8 +1940,10 @@ function mangleName(priv: string, name: string): string {
  * @return {{code: string}}
  */
 export function compile(source: string, fileName: string): { code: string } {
-    const node: Node = transpile(source, fileName);
-    const code = generate(node, {});
+    const node: ts.Node = transpile(source, fileName);
+    // TODO: We need a serializer from TypeScript.
+    const code = `Need serializer from TypeScript ${node}`;
+    //  const code = generate(node, {});
     return { code };
 }
 
@@ -1989,14 +1995,15 @@ class Transpiler {
 
         this.source = sourceCodeForAnnotation ? sourceCodeForAnnotation.split("\n") : false;
     }
-    module(ast: Module, flags: number): Node {
-        const node = new Node();
-        const body = this.statementList(ast.body, flags);
-        node.finishProgram(body);
-        return node;
+    module(ast: Module, flags: number): ts.Node {
+        // const node: ts.Node = new Node();
+        // const body = this.statementList(ast.body, flags);
+        // node.finishProgram(body);
+        // return node;
+        throw new Error(`TODO: module`);
     }
-    statementList(stmts: Statement[], flags): Node[] {
-        const nodes: Node[] = [];
+    statementList(stmts: Statement[], flags): ts.Node[] {
+        const nodes: ts.Node[] = [];
         const iLen = stmts.length;
         for (let i = 0; i < iLen; i++) {
             const stmt = stmts[i];
@@ -2004,7 +2011,7 @@ class Transpiler {
         }
         return nodes;
     }
-    statement(s: Statement, flags: number): Node {
+    statement(s: Statement, flags: number): ts.Node {
         // this.u.lineno = s.lineno;
         // this.u.linenoSet = false;
 
@@ -2028,7 +2035,8 @@ class Transpiler {
             }
             case Print: {
                 this.print(<Print>s, flags);
-                break;
+                throw new Error("Print");
+                // break;
             }
             case ForStatement: {
                 return this.forStatement(<ForStatement>s, flags);
@@ -2056,23 +2064,25 @@ class Transpiler {
             case ImportFrom:
                 return this.importFrom(<ImportFrom>s, flags);
             case Global:
-                break;
+                throw new Error("Gloabl");
+            // break;
             case Expr:
                 return this.expr((<Expr>s), flags);
             case Pass:
-                break;
+                throw new Error("Pass");
+            // break;
             case BreakStatement:
                 return this.breakStatement((<BreakStatement>s), flags);
             case ContinueStatement:
                 return this.continueStatement(<ContinueStatement>s, flags);
             default:
-                fail("statement");
+                throw new Error("statement");
         }
     }
-    assert(a: Assert, flags: number): Node {
+    assert(a: Assert, flags: number): ts.Node {
         throw new Error("Assert");
     }
-    breakStatement(b: BreakStatement, flags: number): Node {
+    breakStatement(b: BreakStatement, flags: number): ts.Node {
         /*
         if (this.u.breakBlocks.length === 0)
             throw new SyntaxError("'break' outside loop");
@@ -2080,30 +2090,30 @@ class Transpiler {
         */
         throw new Error("BreakStatement");
     }
-    classDef(c: ClassDef, flags: number): Node {
+    classDef(c: ClassDef, flags: number): ts.Node {
         throw new Error("ClassDef");
     }
-    continueStatement(c: ContinueStatement, flags: number): Node {
+    continueStatement(c: ContinueStatement, flags: number): ts.Node {
         throw new Error("ContinueStatement");
     }
-    forStatement(fs: ForStatement, flags: number): Node {
+    forStatement(fs: ForStatement, flags: number): ts.Node {
         throw new Error("ForStatement");
     }
-    functionDef(f: FunctionDef, flags: number): Node {
+    functionDef(f: FunctionDef, flags: number): ts.Node {
         throw new Error("FunctionDef");
     }
-    ifStatement(fs: IfStatement, flags: number): Node {
+    ifStatement(fs: IfStatement, flags: number): ts.Node {
         throw new Error("IfStatement");
     }
-    importFrom(i: ImportFrom, flags: number): Node {
+    importFrom(i: ImportFrom, flags: number): ts.Node {
         // const node = new Node();
         // node.fi
         throw new Error("ImportFrom");
     }
-    importStatement(i: ImportStatement, flags: number): Node {
+    importStatement(i: ImportStatement, flags: number): ts.Node {
         throw new Error("ImportStatement");
     }
-    returnStatement(rs: ReturnStatement, flags: number): Node {
+    returnStatement(rs: ReturnStatement, flags: number): ts.Node {
         /*
         if (this.u.ste.blockType !== FunctionBlock)
             throw new SyntaxError("'return' outside function");
@@ -2114,11 +2124,11 @@ class Transpiler {
         */
         throw new Error("ClassDef");
     }
-    deleteExpression(de: DeleteExpression, flags: number): Node {
+    deleteExpression(de: DeleteExpression, flags: number): ts.Node {
         throw new Error("DeleteExpression");
     }
-    assign(assign: Assign, flags: number): Node {
-        const node = new Node();
+    assign(assign: Assign, flags: number): ts.Node {
+        // const node = new Node();
         // node.finishAssignmentExpression(operator, left, right);
         /*
         var n = assign.targets.length;
@@ -2126,32 +2136,33 @@ class Transpiler {
         for (var i = 0; i < n; ++i)
             this.vexpr(assign.targets[i], val);
         */
-        return node;
+        // return node;
+        throw new Error("Assign");
     }
-    augAssign(aa: AugAssign, flags: number): Node {
+    augAssign(aa: AugAssign, flags: number): ts.Node {
         throw new Error("FunctionDef");
     }
-    expr(expr: Expr, flags: number): Node {
+    expr(expr: Expr, flags: number): ts.Node {
         throw new Error("Expr");
     }
-    print(p: Print, flags: number): Node {
+    print(p: Print, flags: number): ts.Node {
         throw new Error("Print");
     }
-    raise(raise: Raise, flags: number): Node {
+    raise(raise: Raise, flags: number): ts.Node {
         throw new Error("Raise");
     }
-    tryExcept(te: TryExcept, flags: number): Node {
+    tryExcept(te: TryExcept, flags: number): ts.Node {
         throw new Error("TryExcept");
     }
-    tryFinally(tf: TryFinally, flags: number): Node {
+    tryFinally(tf: TryFinally, flags: number): ts.Node {
         throw new Error("TryFinally");
     }
-    whileStatement(ws: WhileStatement, flags: number): Node {
+    whileStatement(ws: WhileStatement, flags: number): ts.Node {
         throw new Error("WhileStatement");
     }
 }
 
-export function transpile(source: string, fileName: string): Node {
+export function transpile(source: string, fileName: string): ts.Node {
     const cst = parse(fileName, source);
     const ast = astFromParse(cst, fileName);
     const st = symbolTable(ast, fileName);

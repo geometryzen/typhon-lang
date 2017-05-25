@@ -1,5 +1,5 @@
 import SymbolTable from './SymbolTable';
-import {ModuleBlock} from './SymbolConstants';
+import { ModuleBlock } from './SymbolConstants';
 
 /**
  * @methdod symbolTable
@@ -31,10 +31,10 @@ export function symbolTable(ast, fileName: string): SymbolTable {
  * @return {string}
  */
 export function dumpSymbolTable(st: SymbolTable): string {
-    var pyBoolStr = function(b) {
+    var pyBoolStr = function (b) {
         return b ? "True" : "False";
     };
-    var pyList = function(l) {
+    var pyList = function (l) {
         var ret = [];
         for (var i = 0; i < l.length; ++i) {
             // TODO: Originally, this computed the Python repr().
@@ -42,7 +42,7 @@ export function dumpSymbolTable(st: SymbolTable): string {
         }
         return '[' + ret.join(', ') + ']';
     };
-    var getIdents = function(obj, indent) {
+    var getIdents = function (obj, indent) {
         if (indent === undefined) indent = "";
         var ret = "";
         ret += indent + "Sym_type: " + obj.get_type() + "\n";
@@ -88,5 +88,4 @@ export function dumpSymbolTable(st: SymbolTable): string {
         return ret;
     };
     return getIdents(st.top, '');
-};
-
+}

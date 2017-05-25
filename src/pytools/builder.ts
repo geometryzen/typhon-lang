@@ -1,99 +1,99 @@
-import {assert, fail} from './asserts';
+import { assert } from './asserts';
 
-import {Add} from './types';
+import { Add } from './types';
 // TODO: Conventions
-import {Alias} from './types';
-import {Arguments} from './types';
-import {And} from './types';
-import {Assert} from './types';
-import {Assign} from './types';
-import {Attribute} from './types';
-import {AugAssign} from './types';
-import {AugLoad} from './types';
-import {AugStore} from './types';
-import {BinOp} from './types';
-import {BitAnd} from './types';
-import {BitOr} from './types';
-import {BitXor} from './types';
-import {BoolOp} from './types';
-import {BreakStatement} from './types';
-import {Call} from './types';
-import {ClassDef} from './types';
-import {Compare} from './types';
-import {Comprehension} from './types';
-import {ContinueStatement} from './types';
-import {Del} from './types';
-import {DeleteExpression} from './types';
-import {Dict} from './types';
-import {Div} from './types';
-import {Ellipsis} from './types';
-import {Eq} from './types';
-import {ExceptHandler} from './types';
-import {Exec} from './types';
-import {Expr} from './types';
-import {ExtSlice} from './types';
-import {FloorDiv} from './types';
-import {ForStatement} from './types';
-import {FunctionDef} from './types';
-import {GeneratorExp} from './types';
-import {Global} from './types';
-import {Gt} from './types';
-import {GtE} from './types';
+import { Alias } from './types';
+import { Arguments } from './types';
+import { And } from './types';
+import { Assert } from './types';
+import { Assign } from './types';
+import { Attribute } from './types';
+import { AugAssign } from './types';
+import { AugLoad } from './types';
+import { AugStore } from './types';
+import { BinOp } from './types';
+import { BitAnd } from './types';
+import { BitOr } from './types';
+import { BitXor } from './types';
+import { BoolOp } from './types';
+import { BreakStatement } from './types';
+import { Call } from './types';
+import { ClassDef } from './types';
+import { Compare } from './types';
+import { Comprehension } from './types';
+import { ContinueStatement } from './types';
+import { Del } from './types';
+import { DeleteExpression } from './types';
+import { Dict } from './types';
+import { Div } from './types';
+import { Ellipsis } from './types';
+import { Eq } from './types';
+import { ExceptHandler } from './types';
+import { Exec } from './types';
+import { Expr } from './types';
+import { ExtSlice } from './types';
+import { FloorDiv } from './types';
+import { ForStatement } from './types';
+import { FunctionDef } from './types';
+import { GeneratorExp } from './types';
+import { Global } from './types';
+import { Gt } from './types';
+import { GtE } from './types';
 // FIXME: Convention
-import {Keyword} from './types';
-import {IfStatement} from './types';
-import {IfExp} from './types';
-import {ImportStatement} from './types';
-import {ImportFrom} from './types';
-import {Index} from './types';
-import {In} from './types';
-import {Invert} from './types';
-import {Is} from './types';
-import {IsNot} from './types';
-import {Lambda} from './types';
-import {List} from './types';
-import {ListComp} from './types';
-import {Load} from './types';
-import {LShift} from './types';
-import {Lt} from './types';
-import {LtE} from './types';
-import {Mod} from './types';
-import {Module} from './types';
-import {Mult} from './types';
-import {Name} from './types';
-import {NonLocal} from './types';
-import {Not} from './types';
-import {NotEq} from './types';
-import {NotIn} from './types';
-import {Num} from './types';
-import {Or} from './types';
-import {Param} from './types';
-import {Pass} from './types';
-import {Pow} from './types';
-import {Print} from './types';
-import {Raise} from './types';
-import {ReturnStatement} from './types';
-import {RShift} from './types';
-import {Slice} from './types';
-import {Store} from './types';
-import {Str} from './types';
-import {Sub} from './types';
-import {Subscript} from './types';
-import {TryExcept} from './types';
-import {TryFinally} from './types';
-import {Tuple} from './types';
-import {UAdd} from './types';
-import {UnaryOp} from './types';
-import {USub} from './types';
-import {WhileStatement} from './types';
-import {WithStatement} from './types';
-import {Yield} from './types';
+import { Keyword } from './types';
+import { IfStatement } from './types';
+import { IfExp } from './types';
+import { ImportStatement } from './types';
+import { ImportFrom } from './types';
+import { Index } from './types';
+import { In } from './types';
+import { Invert } from './types';
+import { Is } from './types';
+import { IsNot } from './types';
+import { Lambda } from './types';
+import { List } from './types';
+import { ListComp } from './types';
+import { Load } from './types';
+import { LShift } from './types';
+import { Lt } from './types';
+import { LtE } from './types';
+import { Mod } from './types';
+import { Module } from './types';
+import { Mult } from './types';
+import { Name } from './types';
+import { NonLocal } from './types';
+import { Not } from './types';
+import { NotEq } from './types';
+import { NotIn } from './types';
+import { Num } from './types';
+import { Or } from './types';
+import { Param } from './types';
+import { Pass } from './types';
+import { Pow } from './types';
+import { Print } from './types';
+import { Raise } from './types';
+import { ReturnStatement } from './types';
+import { RShift } from './types';
+import { Slice } from './types';
+import { Store } from './types';
+import { Str } from './types';
+import { Sub } from './types';
+import { Subscript } from './types';
+import { TryExcept } from './types';
+import { TryFinally } from './types';
+import { Tuple } from './types';
+import { UAdd } from './types';
+import { UnaryOp } from './types';
+import { USub } from './types';
+import { WhileStatement } from './types';
+import { WithStatement } from './types';
+import { Yield } from './types';
 
-import {isArrayLike, isNumber, isString} from './base';
-import tables from './tables';
-import Tokens from './Tokens';
-import {floatAST, intAST, longAST} from './numericLiteral';
-import INumericLiteral from './INumericLiteral';
+import { isArrayLike, isNumber, isString } from './base';
+import { ParseTables } from './tables';
+import { Tokens } from './Tokens';
+import { floatAST, intAST, longAST } from './numericLiteral';
+import { INumericLiteral } from './INumericLiteral';
 
 //
 // This is pretty much a straight port of ast.c from CPython 2.6.5.
@@ -104,7 +104,6 @@ import INumericLiteral from './INumericLiteral';
 // This way, we can use a dump from the ast module on any arbitrary python
 // code and know that we're the same up to ast level, at least.
 //
-var ParseTables = tables.ParseTables;
 var SYM = ParseTables.sym;
 var TOK = Tokens;
 
@@ -129,15 +128,15 @@ function syntaxError(message, fileName, lineNumber) {
     return e;
 }
 
-/** @constructor */
-function Compiling(encoding, filename) {
-    this.c_encoding = encoding;
-    this.c_filename = filename;
+class Compiling {
+    c_encoding: any;
+    c_filename: any;
+    constructor(encoding, filename) {
+        this.c_encoding = encoding;
+        this.c_filename = filename;
+    }
 }
 
-/**
- * @return {number}
- */
 function NCH(n) {
     assert(n !== undefined);
     if (n.children === null) return 0; return n.children.length;
@@ -160,8 +159,7 @@ function strobj(s: string): string {
     return s;
 }
 
-/** @return {number} */
-function numStmts(n) {
+function numStmts(n): number {
     switch (n.type) {
         case SYM.single_input:
             if (CHILD(n, 0).type === TOK.T_NEWLINE)
@@ -169,11 +167,12 @@ function numStmts(n) {
             else
                 return numStmts(CHILD(n, 0));
         case SYM.file_input:
-            var cnt = 0;
-            for (var i = 0; i < NCH(n); ++i) {
-                var ch = CHILD(n, i);
-                if (ch.type === SYM.stmt)
+            let cnt = 0;
+            for (let i = 0; i < NCH(n); ++i) {
+                const ch = CHILD(n, i);
+                if (ch.type === SYM.stmt) {
                     cnt += numStmts(ch);
+                }
             }
             return cnt;
         case SYM.stmt:
@@ -186,15 +185,16 @@ function numStmts(n) {
             if (NCH(n) === 1)
                 return numStmts(CHILD(n, 0));
             else {
-                var cnt = 0;
-                for (var i = 2; i < NCH(n) - 1; ++i)
+                let cnt = 0;
+                for (let i = 2; i < NCH(n) - 1; ++i) {
                     cnt += numStmts(CHILD(n, i));
+                }
                 return cnt;
             }
-        default:
-            fail("Non-statement found");
+        default: {
+            throw new Error("Non-statement found");
+        }
     }
-    return 0;
 }
 
 function forbiddenCheck(c, n, x, lineno) {
@@ -263,8 +263,9 @@ function setContext(c, e, ctx, n) {
         case IfExp:
             exprName = "conditional expression";
             break;
-        default:
-            fail("unhandled expression in assignment");
+        default: {
+            throw new Error("unhandled expression in assignment");
+        }
     }
     if (exprName) {
         throw syntaxError("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, c.c_filename, n.lineno);
@@ -278,7 +279,7 @@ function setContext(c, e, ctx, n) {
 }
 
 const operatorMap = {};
-(function() {
+(function () {
     operatorMap[TOK.T_VBAR] = BitOr;
     operatorMap[TOK.T_VBAR] = BitOr;
     operatorMap[TOK.T_CIRCUMFLEX] = BitXor;
@@ -298,10 +299,8 @@ function getOperator(n) {
     return operatorMap[n.type];
 }
 
-function astForCompOp(c, n) {
-    /* comp_op: '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is'
-                |'is' 'not'
-    */
+function astForCompOp(c, n): Lt | Gt | Eq | LtE | GtE | NotEq | In | Is | NotIn | IsNot {
+    // comp_op: '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is' |'is' 'not'
     REQ(n, SYM.comp_op);
     if (NCH(n) === 1) {
         n = CHILD(n, 0);
@@ -323,16 +322,16 @@ function astForCompOp(c, n) {
             if (CHILD(n, 0).value === "is") return IsNot;
         }
     }
-    fail("invalid comp_op");
+    throw new Error("invalid comp_op");
 }
 
 function seqForTestlist(c, n) {
     /* testlist: test (',' test)* [','] */
     assert(n.type === SYM.testlist ||
-            n.type === SYM.listmaker ||
-            n.type === SYM.testlist_gexp ||
-            n.type === SYM.testlist_safe ||
-            n.type === SYM.testlist1);
+        n.type === SYM.listmaker ||
+        n.type === SYM.testlist_gexp ||
+        n.type === SYM.testlist_safe ||
+        n.type === SYM.testlist1);
     var seq = [];
     for (var i = 0; i < NCH(n); i += 2) {
         assert(CHILD(n, i).type === SYM.IfExpr || CHILD(n, i).type === SYM.old_test);
@@ -352,13 +351,16 @@ function astForSuite(c, n): any[] {
         /* simple_stmt always ends with an NEWLINE and may have a trailing
             * SEMI. */
         var end = NCH(n) - 1;
-        if (CHILD(n, end - 1).type === TOK.T_SEMI)
+        if (CHILD(n, end - 1).type === TOK.T_SEMI) {
             end -= 1;
-        for (var i = 0; i < end; i += 2) // by 2 to skip ;
+        }
+        // by 2 to skip
+        for (let i = 0; i < end; i += 2) {
             seq[pos++] = astForStmt(c, CHILD(n, i));
+        }
     }
     else {
-        for (var i = 2; i < NCH(n) - 1; ++i) {
+        for (let i = 2; i < NCH(n) - 1; ++i) {
             ch = CHILD(n, i);
             REQ(ch, SYM.stmt);
             var num = numStmts(ch);
@@ -369,7 +371,7 @@ function astForSuite(c, n): any[] {
             else {
                 ch = CHILD(ch, 0);
                 REQ(ch, SYM.simple_stmt);
-                for (var j = 0; j < NCH(ch); j += 2) {
+                for (let j = 0; j < NCH(ch); j += 2) {
                     if (NCH(CHILD(ch, j)) === 0) {
                         assert(j + 1 === NCH(ch));
                         break;
@@ -383,7 +385,7 @@ function astForSuite(c, n): any[] {
     return seq;
 }
 
-function astForExceptClause(c, exc, body) {
+function astForExceptClause(c, exc, body): ExceptHandler {
     /* except_clause: 'except' [test [(',' | 'as') test]] */
     REQ(exc, SYM.except_clause);
     REQ(body, SYM.suite);
@@ -396,7 +398,9 @@ function astForExceptClause(c, exc, body) {
         setContext(c, e, Store, CHILD(exc, 3));
         return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.lineno, exc.col_offset);
     }
-    fail("wrong number of children for except clause");
+    else {
+        throw new Error("wrong number of children for except clause");
+    }
 }
 
 function astForTryStmt(c, n): TryExcept | TryFinally {
@@ -534,25 +538,25 @@ function astForExecStmt(c, n) {
     return new Exec(expr1, globals, locals, n.lineno, n.col_offset);
 }
 
-function astForIfStmt(c, n) {
+function astForIfStmt(c, n): IfStatement {
     /* if_stmt: 'if' test ':' suite ('elif' test ':' suite)*
         ['else' ':' suite]
     */
     REQ(n, SYM.if_stmt);
     if (NCH(n) === 4)
         return new IfStatement(
-                astForExpr(c, CHILD(n, 1)),
-                astForSuite(c, CHILD(n, 3)),
-                [], n.lineno, n.col_offset);
+            astForExpr(c, CHILD(n, 1)),
+            astForSuite(c, CHILD(n, 3)),
+            [], n.lineno, n.col_offset);
 
     var s = CHILD(n, 4).value;
     var decider = s.charAt(2); // elSe or elIf
     if (decider === 's') {
         return new IfStatement(
-                astForExpr(c, CHILD(n, 1)),
-                astForSuite(c, CHILD(n, 3)),
-                astForSuite(c, CHILD(n, 6)),
-                n.lineno, n.col_offset);
+            astForExpr(c, CHILD(n, 1)),
+            astForSuite(c, CHILD(n, 3)),
+            astForSuite(c, CHILD(n, 6)),
+            n.lineno, n.col_offset);
     }
     else if (decider === 'i') {
         var nElif = NCH(n) - 4;
@@ -588,11 +592,11 @@ function astForIfStmt(c, n) {
                     CHILD(n, off).col_offset)];
         }
         return new IfStatement(
-                astForExpr(c, CHILD(n, 1)),
-                astForSuite(c, CHILD(n, 3)),
-                orelse, n.lineno, n.col_offset);
+            astForExpr(c, CHILD(n, 1)),
+            astForSuite(c, CHILD(n, 3)),
+            orelse, n.lineno, n.col_offset);
     }
-    fail("unexpected token in 'if' statement");
+    throw new Error("unexpected token in 'if' statement");
 }
 
 function astForExprlist(c, n, context) {
@@ -629,14 +633,16 @@ function astForNonLocalStmt(c, n) {
     return new NonLocal(s, n.lineno, n.col_offset);
 }
 
-function astForAssertStmt(c, n) {
+function astForAssertStmt(c, n): Assert {
     /* assert_stmt: 'assert' test [',' test] */
     REQ(n, SYM.assert_stmt);
-    if (NCH(n) === 2)
+    if (NCH(n) === 2) {
         return new Assert(astForExpr(c, CHILD(n, 1)), null, n.lineno, n.col_offset);
-    else if (NCH(n) === 4)
+    }
+    else if (NCH(n) === 4) {
         return new Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.lineno, n.col_offset);
-    fail("improper number of parts to assert stmt");
+    }
+    throw new Error("improper number of parts to assert stmt");
 }
 
 function aliasForImportName(c, n) {
@@ -691,8 +697,8 @@ function astForImportStmt(c, n): ImportStatement | ImportFrom {
     if (n.type === SYM.import_name) {
         n = CHILD(n, 1);
         REQ(n, SYM.dotted_as_names);
-        var aliases = [];
-        for (var i = 0; i < NCH(n); i += 2)
+        const aliases = [];
+        for (let i = 0; i < NCH(n); i += 2)
             aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
         return new ImportStatement(aliases, lineno, col_offset);
     }
@@ -733,12 +739,13 @@ function astForImportStmt(c, n): ImportStatement | ImportFrom {
             default:
                 throw syntaxError("Unexpected node-type in from-import", c.c_filename, n.lineno);
         }
-        var aliases = [];
+        const aliases = [];
         if (n.type === TOK.T_STAR)
             aliases[0] = aliasForImportName(c, n);
         else
-            for (var i = 0; i < NCH(n); i += 2)
+            for (let i = 0; i < NCH(n); i += 2) {
                 aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
+            }
         var modname = mod ? mod.name : "";
         return new ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
     }
@@ -752,8 +759,8 @@ function astForTestlistGexp(c, n) {
     return astForTestlist(c, n);
 }
 
-function astForListcomp(c, n) {
-    function countListFors(c, n) {
+function astForListcomp(c, n): ListComp {
+    function countListFors(c, n): number {
         var nfors = 0;
         var ch = CHILD(n, 1);
         count_list_for: while (true) {
@@ -776,13 +783,15 @@ function astForListcomp(c, n) {
                     else
                         return nfors;
                 }
-            break;
+                break;
             }
-        break;
+            // FIXME: What does a break at the end of a function do?
+            break;
         }
+        throw new Error("TODO: Should this be returning void 0?");
     }
 
-    function countListIfs(c, n: number) {
+    function countListIfs(c, n: number): number {
         var nifs = 0;
         while (true) {
             REQ(n, SYM.list_iter);
@@ -860,7 +869,7 @@ function astForUnaryExpr(c, n) {
         case TOK.T_TILDE: return new UnaryOp(Invert, expression, n.lineno, n.col_offset);
     }
 
-    fail("unhandled UnaryExpr");
+    throw new Error("unhandled UnaryExpr");
 }
 
 function astForForStmt(c, n): ForStatement {
@@ -877,9 +886,9 @@ function astForForStmt(c, n): ForStatement {
         target = new Tuple(_target, Store, n.lineno, n.col_offset);
 
     return new ForStatement(target,
-            astForTestlist(c, CHILD(n, 3)),
-            astForSuite(c, CHILD(n, 5)),
-            seq, n.lineno, n.col_offset);
+        astForTestlist(c, CHILD(n, 3)),
+        astForSuite(c, CHILD(n, 5)),
+        seq, n.lineno, n.col_offset);
 }
 
 function astForCall(c, n, func) {
@@ -892,8 +901,8 @@ function astForCall(c, n, func) {
     var nargs = 0;
     var nkeywords = 0;
     var ngens = 0;
-    for (var i = 0; i < NCH(n); ++i) {
-        var ch = CHILD(n, i);
+    for (let i = 0; i < NCH(n); ++i) {
+        const ch = CHILD(n, i);
         if (ch.type === SYM.argument) {
             if (NCH(ch) === 1) nargs++;
             else if (CHILD(ch, 1).type === SYM.gen_for) ngens++;
@@ -910,8 +919,8 @@ function astForCall(c, n, func) {
     nkeywords = 0;
     var vararg = null;
     var kwarg = null;
-    for (var i = 0; i < NCH(n); ++i) {
-        var ch = CHILD(n, i);
+    for (let i = 0; i < NCH(n); ++i) {
+        const ch = CHILD(n, i);
         if (ch.type === SYM.argument) {
             if (NCH(ch) === 1) {
                 if (nkeywords) throw syntaxError("non-keyword arg after keyword arg", c.c_filename, n.lineno);
@@ -968,7 +977,7 @@ function astForTrailer(c, n, leftExpr): Attribute | Call | Subscript {
             */
             var simple = true;
             var slices = [];
-            for (var j = 0; j < NCH(n); j += 2) {
+            for (let j = 0; j < NCH(n); j += 2) {
                 var slc = astForSlice(c, CHILD(n, j));
                 if (slc.constructor !== Index)
                     simple = false;
@@ -978,7 +987,7 @@ function astForTrailer(c, n, leftExpr): Attribute | Call | Subscript {
                 return new Subscript(leftExpr, new ExtSlice(slices), Load, n.lineno, n.col_offset);
             }
             var elts = [];
-            for (var j = 0; j < slices.length; ++j) {
+            for (let j = 0; j < slices.length; ++j) {
                 let slc = slices[j];
                 assert(slc.constructor === Index && slc.value !== null && slc.value !== undefined);
                 elts[j] = slc.value;
@@ -1003,26 +1012,30 @@ function astForFlowStmt(c, n): BreakStatement | Expr | Raise {
                 return new ReturnStatement(null, n.lineno, n.col_offset);
             else
                 return new ReturnStatement(astForTestlist(c, CHILD(ch, 1)), n.lineno, n.col_offset);
-        case SYM.raise_stmt:
+        case SYM.raise_stmt: {
             if (NCH(ch) === 1)
                 return new Raise(null, null, null, n.lineno, n.col_offset);
             else if (NCH(ch) === 2)
                 return new Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.lineno, n.col_offset);
             else if (NCH(ch) === 4)
                 return new Raise(
-                        astForExpr(c, CHILD(ch, 1)),
-                        astForExpr(c, CHILD(ch, 3)),
-                        null, n.lineno, n.col_offset);
+                    astForExpr(c, CHILD(ch, 1)),
+                    astForExpr(c, CHILD(ch, 3)),
+                    null, n.lineno, n.col_offset);
             else if (NCH(ch) === 6)
                 return new Raise(
-                        astForExpr(c, CHILD(ch, 1)),
-                        astForExpr(c, CHILD(ch, 3)),
-                        astForExpr(c, CHILD(ch, 5)),
-                        n.lineno, n.col_offset);
-        default:
-            fail("unexpected flow_stmt");
+                    astForExpr(c, CHILD(ch, 1)),
+                    astForExpr(c, CHILD(ch, 3)),
+                    astForExpr(c, CHILD(ch, 5)),
+                    n.lineno, n.col_offset);
+            else {
+                throw new Error("unhandled flow statement");
+            }
+        }
+        default: {
+            throw new Error("unexpected flow_stmt");
+        }
     }
-    fail("unhandled flow statement");
 }
 
 function astForArguments(c, n) {
@@ -1094,7 +1107,8 @@ function astForArguments(c, n) {
                     i += 2;
                     if (parenthesized)
                         throw syntaxError("parenthesized argument names are invalid", c.c_filename, n.lineno);
-                break; }
+                    break;
+                }
                 break;
             case TOK.T_STAR:
                 forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.lineno);
@@ -1106,8 +1120,9 @@ function astForArguments(c, n) {
                 kwarg = strobj(CHILD(n, i + 1).value);
                 i += 3;
                 break;
-            default:
-                fail("unexpected node in varargslist");
+            default: {
+                throw new Error("unexpected node in varargslist");
+            }
         }
     }
     return new Arguments(args, vararg, kwarg, defaults);
@@ -1188,9 +1203,11 @@ function astForGenexp(c, n) {
                     else
                         return nfors;
                 }
-            break; }
-        break; }
-        fail("logic error in countGenFors");
+                break;
+            }
+            break;
+        }
+        throw new Error("logic error in countGenFors");
     }
 
     function countGenIfs(c, n: number): number {
@@ -1244,24 +1261,24 @@ function astForGenexp(c, n) {
     return new GeneratorExp(elt, genexps, n.lineno, n.col_offset);
 }
 
-function astForWhileStmt(c, n) {
+function astForWhileStmt(c, n): WhileStatement {
     /* while_stmt: 'while' test ':' suite ['else' ':' suite] */
     REQ(n, SYM.while_stmt);
     if (NCH(n) === 4)
         return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
     else if (NCH(n) === 7)
         return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
-    fail("wrong number of tokens for 'while' stmt");
+    throw new Error("wrong number of tokens for 'while' stmt");
 }
 
-function astForAugassign(c, n) {
+function astForAugassign(c, n): RShift {
     REQ(n, SYM.augassign);
     n = CHILD(n, 0);
     switch (n.value.charAt(0)) {
         case '+': return Add;
         case '-': return Sub;
         case '/': if (n.value.charAt(1) === '/') return FloorDiv;
-                    return Div;
+            return Div;
         case '%': return Mod;
         case '<': return LShift;
         case '>': return RShift;
@@ -1269,8 +1286,10 @@ function astForAugassign(c, n) {
         case '^': return BitXor;
         case '|': return BitOr;
         case '*': if (n.value.charAt(1) === '*') return Pow;
-                    return Mult;
-        default: fail("invalid augassign");
+            return Mult;
+        default: {
+            throw new Error("invalid augassign");
+        }
     }
 }
 
@@ -1280,10 +1299,10 @@ function astForBinop(c, n) {
         BinOp(BinOp(A, op, B), op, C).
     */
     var result = new BinOp(
-            astForExpr(c, CHILD(n, 0)),
-            getOperator(CHILD(n, 1)),
-            astForExpr(c, CHILD(n, 2)),
-            n.lineno, n.col_offset);
+        astForExpr(c, CHILD(n, 0)),
+        getOperator(CHILD(n, 1)),
+        astForExpr(c, CHILD(n, 2)),
+        n.lineno, n.col_offset);
     var nops = (NCH(n) - 1) / 2;
     for (var i = 1; i < nops; ++i) {
         var nextOper = CHILD(n, i * 2 + 1);
@@ -1324,8 +1343,8 @@ function astForExprStmt(c, n) {
     if (NCH(n) === 1)
         return new Expr(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
     else if (CHILD(n, 1).type === SYM.augassign) {
-        var ch = CHILD(n, 0);
-        var expr1 = astForTestlist(c, ch);
+        let ch = CHILD(n, 0);
+        const expr1 = astForTestlist(c, ch);
         switch (expr1.constructor) {
             case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", c.c_filename, n.lineno);
             case Yield: throw syntaxError("augmented assignment to yield expression not possible", c.c_filename, n.lineno);
@@ -1353,9 +1372,9 @@ function astForExprStmt(c, n) {
     else {
         // normal assignment
         REQ(CHILD(n, 1), TOK.T_EQUAL);
-        var targets = [];
-        for (var i = 0; i < NCH(n) - 2; i += 2) {
-            var ch = CHILD(n, i);
+        const targets = [];
+        for (let i = 0; i < NCH(n) - 2; i += 2) {
+            const ch = CHILD(n, i);
             if (ch.type === SYM.YieldExpr) throw syntaxError("assignment to yield expression not possible", c.c_filename, n.lineno);
             var e = astForTestlist(c, ch);
             setContext(c, e, Store, CHILD(n, i));
@@ -1374,10 +1393,10 @@ function astForExprStmt(c, n) {
 function astForIfexpr(c, n) {
     assert(NCH(n) === 5);
     return new IfExp(
-            astForExpr(c, CHILD(n, 2)),
-            astForExpr(c, CHILD(n, 0)),
-            astForExpr(c, CHILD(n, 4)),
-            n.lineno, n.col_offset);
+        astForExpr(c, CHILD(n, 2)),
+        astForExpr(c, CHILD(n, 0)),
+        astForExpr(c, CHILD(n, 4)),
+        n.lineno, n.col_offset);
 }
 
 // escape() was deprecated in JavaScript 1.5. Use encodeURI or encodeURIComponent instead.
@@ -1389,11 +1408,10 @@ function escape(s: string): string {
  * s is a python-style string literal, including quote characters and u/r/b
  * prefixes. Returns decoded string object.
  */
-function parsestr(c: string, s: string) {
-    // 
+function parsestr(c: string, s: string): string {
     // const encodeUtf8 = function(s) { return unescape(encodeURIComponent(s)); };
-    const decodeUtf8 = function(s) { return decodeURIComponent(escape(s)); };
-    const decodeEscape = function(s, quote) {
+    const decodeUtf8 = function (s) { return decodeURIComponent(escape(s)); };
+    const decodeEscape = function (s: string, quote) {
         var len = s.length;
         var ret = '';
         for (var i = 0; i < len; ++i) {
@@ -1411,17 +1429,17 @@ function parsestr(c: string, s: string) {
                 else if (c === '0') ret += "\0";
                 else if (c === '"') ret += '"';
                 else if (c === '\'') ret += '\'';
-                else if (c === '\n') /* escaped newline, join lines */ {/* Do nothing */}
+                else if (c === '\n') /* escaped newline, join lines */ {/* Do nothing */ }
                 else if (c === 'x') {
-                    var d0 = s.charAt(++i);
-                    var d1 = s.charAt(++i);
+                    const d0 = s.charAt(++i);
+                    const d1 = s.charAt(++i);
                     ret += String.fromCharCode(parseInt(d0 + d1, 16));
                 }
                 else if (c === 'u' || c === 'U') {
-                    var d0 = s.charAt(++i);
-                    var d1 = s.charAt(++i);
-                    var d2 = s.charAt(++i);
-                    var d3 = s.charAt(++i);
+                    const d0 = s.charAt(++i);
+                    const d1 = s.charAt(++i);
+                    const d2 = s.charAt(++i);
+                    const d3 = s.charAt(++i);
                     ret += String.fromCharCode(parseInt(d0 + d1, 16), parseInt(d2 + d3, 16));
                 }
                 else {
@@ -1571,10 +1589,10 @@ function parsenumber(c, s, lineno): INumericLiteral {
 function astForSlice(c, n) {
     REQ(n, SYM.subscript);
 
-    var ch = CHILD(n, 0);
-    var lower = null;
-    var upper = null;
-    var step = null;
+    let ch = CHILD(n, 0);
+    let lower = null;
+    let upper = null;
+    let step = null;
     if (ch.type === TOK.T_DOT)
         return new Ellipsis();
     if (NCH(n) === 1 && ch.type === SYM.IfExpr)
@@ -1589,9 +1607,10 @@ function astForSlice(c, n) {
         }
     }
     else if (NCH(n) > 2) {
-        var n2 = CHILD(n, 2);
-        if (n2.type === SYM.IfExpr)
+        const n2 = CHILD(n, 2);
+        if (n2.type === SYM.IfExpr) {
             upper = astForExpr(c, n2);
+        }
     }
 
     ch = CHILD(n, NCH(n) - 1);
@@ -1609,7 +1628,7 @@ function astForSlice(c, n) {
     return new Slice(lower, upper, step);
 }
 
-function astForAtomExpr(c, n) {
+function astForAtomExpr(c, n): Name | Str | Num | Tuple | GeneratorExp | Dict {
     var ch = CHILD(n, 0);
     switch (ch.type) {
         case TOK.T_NAME:
@@ -1618,7 +1637,7 @@ function astForAtomExpr(c, n) {
         case TOK.T_STRING:
             return new Str(parsestrplus(c, n), n.lineno, n.col_offset);
         case TOK.T_NUMBER:
-        return new Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
+            return new Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
         case TOK.T_LPAR: // various uses for parens
             ch = CHILD(n, 1);
             if (ch.type === TOK.T_RPAR)
@@ -1650,14 +1669,15 @@ function astForAtomExpr(c, n) {
             return new Dict(keys, values, n.lineno, n.col_offset);
         case TOK.T_BACKQUOTE:
             throw syntaxError("backquote not supported, use repr()", c.c_filename, n.lineno);
-        default:
-            fail("unhandled atom"/*, ch.type*/);
+        default: {
+            throw new Error("unhandled atom"/*, ch.type*/);
+        }
     }
 }
 
 function astForPowerExpr(c, n) {
     REQ(n, SYM.PowerExpr);
-    var e = astForAtomExpr(c, CHILD(n, 0));
+    var e: any = astForAtomExpr(c, CHILD(n, 0));
     if (NCH(n) === 1) return e;
     for (var i = 1; i < NCH(n); ++i) {
         var ch = CHILD(n, i);
@@ -1684,7 +1704,7 @@ function astForExpr(c, n) {
                     return astForLambdef(c, CHILD(n, 0));
                 else if (NCH(n) > 1)
                     return astForIfexpr(c, n);
-                // fallthrough
+            // fallthrough
             case SYM.OrExpr:
             case SYM.AndExpr:
                 if (NCH(n) === 1) {
@@ -1712,9 +1732,9 @@ function astForExpr(c, n) {
                     continue LOOP;
                 }
                 else {
-                    var ops = [];
-                    var cmps = [];
-                    for (var i = 1; i < NCH(n); i += 2) {
+                    const ops = [];
+                    const cmps = [];
+                    for (let i = 1; i < NCH(n); i += 2) {
                         ops[(i - 1) / 2] = astForCompOp(c, CHILD(n, i));
                         cmps[(i - 1) / 2] = astForExpr(c, CHILD(n, i + 1));
                     }
@@ -1745,10 +1765,11 @@ function astForExpr(c, n) {
                 return astForUnaryExpr(c, n);
             case SYM.PowerExpr:
                 return astForPowerExpr(c, n);
-            default:
-                fail("unhandled expr"/*, "n.type: %d", n.type*/);
+            default: {
+                throw new Error("unhandled expr"/*, "n.type: %d", n.type*/);
+            }
         }
-    break; }
+    }
 }
 
 function astForPrintStmt(c, n) {
@@ -1790,7 +1811,9 @@ function astForStmt(c, n) {
             case SYM.NonLocalStmt: return astForNonLocalStmt(c, n);
             case SYM.exec_stmt: return astForExecStmt(c, n);
             case SYM.assert_stmt: return astForAssertStmt(c, n);
-            default: fail("unhandled small_stmt");
+            default: {
+                throw new Error("unhandled small_stmt");
+            }
         }
     }
     else {
@@ -1805,21 +1828,22 @@ function astForStmt(c, n) {
             case SYM.funcdef: return astForFuncdef(c, ch, []);
             case SYM.classdef: return astForClassdef(c, ch, []);
             case SYM.decorated: return astForDecorated(c, ch);
-            default: fail("unhandled compound_stmt");
+            default: {
+                throw new Error("unhandled compound_stmt");
+            }
         }
     }
 }
 
-export function astFromParse(n, filename) {
-    var c = new Compiling("utf-8", filename);
+export function astFromParse(n, filename): Module {
+    const c = new Compiling("utf-8", filename);
 
-    var stmts = [];
-    var ch;
-    var k = 0;
+    const stmts = [];
+    let k = 0;
     switch (n.type) {
         case SYM.file_input:
             for (var i = 0; i < NCH(n) - 1; ++i) {
-                var ch = CHILD(n, i);
+                let ch = CHILD(n, i);
                 if (n.type === TOK.T_NEWLINE)
                     continue;
                 REQ(ch, SYM.stmt);
@@ -1836,18 +1860,20 @@ export function astFromParse(n, filename) {
                 }
             }
             return new Module(stmts);
-        case SYM.eval_input:
-            fail("todo;");
-        case SYM.single_input:
-            fail("todo;");
-        default:
-            fail("todo;");
+        case SYM.eval_input: {
+            throw new Error("todo;");
+        }
+        case SYM.single_input: {
+            throw new Error("todo;");
+        }
+        default: {
+            throw new Error("todo;");
+        }
     }
-};
+}
 
-export function astDump(node) {
-    var _format = function(node)
-    {
+export function astDump(node): string {
+    var _format = function (node) {
         if (node === null) {
             return "None";
         }
@@ -1856,13 +1882,13 @@ export function astDump(node) {
         }
         else if (node._astname !== undefined) {
             var fields = [];
-            for (var i = 0; i < node._fields.length; i += 2) {
+            for (let i = 0; i < node._fields.length; i += 2) {
                 var a = node._fields[i]; // field name
                 var b = node._fields[i + 1](node); // field getter func
                 fields.push([a, _format(b)]);
             }
             var attrs = [];
-            for (var i = 0; i < fields.length; ++i) {
+            for (let i = 0; i < fields.length; ++i) {
                 var field = fields[i];
                 attrs.push(field[0] + "=" + field[1].replace(/^\s+/, ''));
             }
@@ -1871,7 +1897,7 @@ export function astDump(node) {
         }
         else if (isArrayLike(node)) {
             var elems = [];
-            for (var i = 0; i < node.length; ++i) {
+            for (let i = 0; i < node.length; ++i) {
                 var x = node[i];
                 elems.push(_format(x));
             }
@@ -1882,12 +1908,12 @@ export function astDump(node) {
             var ret;
             if (node === true) ret = "True";
             else if (node === false) ret = "False";
-//          else if (Sk.ffi.isLong(node)) ret = Sk.ffi.remapToJs(node.tp$str());
-//          else if (Sk.builtin.isStringPy(node)) ret = Sk.builtin.stringToJs(node.tp$repr());
+            //          else if (Sk.ffi.isLong(node)) ret = Sk.ffi.remapToJs(node.tp$str());
+            //          else if (Sk.builtin.isStringPy(node)) ret = Sk.builtin.stringToJs(node.tp$repr());
             else ret = "" + node;
             return ret;
         }
     };
 
     return _format(node);
-};
+}

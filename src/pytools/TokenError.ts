@@ -1,26 +1,16 @@
-import {assert} from './asserts';
-import {isNumber, isString} from './base';
+import { assert } from './asserts';
+import { isNumber, isString } from './base';
 
 /**
- * @class TokenError
- * @extends SyntaxError
+ *
  */
-export default class TokenError extends SyntaxError {
+export default class TokenError {
     name: string;
     message: string;
     fileName: string;
     lineNumber: number;
     columnNumber: number;
-    /**
-     * @class TokenError
-     * @constructor
-     * @param {string} message
-     * @param {string} fileName
-     * @param {number} lineNumber
-     * @param {number} columnNumber
-     */
     constructor(message: string, fileName: string, lineNumber: number, columnNumber: number) {
-        super();
         assert(isString(message), "message must be a string");
         assert(isString(fileName), "fileName must be a string");
         assert(isNumber(lineNumber), "lineNumber must be a number");

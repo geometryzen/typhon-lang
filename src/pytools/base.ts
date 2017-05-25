@@ -280,7 +280,7 @@ export function bindJs_(fn, selfObj, var_args) {
 
     if (arguments.length > 2) {
         var boundArgs = Array.prototype.slice.call(arguments, 2);
-        return function() {
+        return function () {
             // Prepend the bound arguments to the current arguments.
             var newArgs = Array.prototype.slice.call(arguments);
             Array.prototype.unshift.apply(newArgs, boundArgs);
@@ -288,7 +288,7 @@ export function bindJs_(fn, selfObj, var_args) {
         };
 
     } else {
-        return function() {
+        return function () {
             return fn.apply(selfObj, arguments);
         };
     }
@@ -307,6 +307,7 @@ export function bindJs_(fn, selfObj, var_args) {
  * @return {!Function} A partially-applied form of the function bind() was
  *     invoked as a method of.
  */
+/*
 export function partial(fn, var_args) {
     var args = Array.prototype.slice.call(arguments, 1);
     return function() {
@@ -316,6 +317,7 @@ export function partial(fn, var_args) {
         return fn.apply(this, newArgs);
     };
 }
+*/
 
 
 /**
@@ -431,7 +433,7 @@ export function exportProperty(object, publicName, symbol) {
  */
 export function inherits(childCtor, parentCtor) {
     /** @constructor */
-    function tempCtor() {/* Do nothing */ };
+    function tempCtor() {/* Do nothing */ }
     tempCtor.prototype = parentCtor.prototype;
     childCtor.superClass_ = parentCtor.prototype;
     childCtor.prototype = new tempCtor();

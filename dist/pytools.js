@@ -461,6 +461,7 @@ define("../manual-deps/almond/almond", function(){});
 
 define('pytools/Tokens',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * FIXME: These may not be synched?
      *
@@ -526,12 +527,12 @@ define('pytools/Tokens',["require", "exports"], function (require, exports) {
         T_N_TOKENS: 56,
         T_NT_OFFSET: 256
     };
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = Tokens;
 });
 
-define('pytools/tables',["require", "exports", './Tokens'], function (require, exports, Tokens_1) {
+define('pytools/tables',["require", "exports", "./Tokens"], function (require, exports, Tokens_1) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var OpMap = {
         "(": Tokens_1.default.T_LPAR,
         ")": Tokens_1.default.T_RPAR,
@@ -803,17 +804,17 @@ define('pytools/tables',["require", "exports", './Tokens'], function (require, e
                     37: 1 }],
             258: [[[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
                 { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
-            259: [[[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
-                    [[0, 1]],
-                    [[41, 7], [42, 1]],
-                    [[43, 1], [44, 8], [45, 8]],
-                    [[46, 9], [47, 1]],
+            259: [[[[18, 1], [8, 2], [32, 5], [29, 4], [9, 3], [14, 6], [21, 2]],
+                    [[18, 1], [0, 1]],
+                    [[0, 2]],
+                    [[41, 7], [42, 2]],
+                    [[43, 2], [44, 8], [45, 8]],
+                    [[46, 9], [47, 2]],
                     [[48, 10]],
-                    [[18, 6], [0, 6]],
-                    [[42, 1]],
-                    [[43, 1]],
-                    [[47, 1]],
-                    [[14, 1]]],
+                    [[42, 2]],
+                    [[43, 2]],
+                    [[47, 2]],
+                    [[14, 2]]],
                 { 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 29: 1, 32: 1 }],
             260: [[[[49, 1]], [[50, 0], [0, 1]]],
                 { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
@@ -1435,7 +1436,7 @@ define('pytools/tables',["require", "exports", './Tokens'], function (require, e
                     [[162, 6]],
                     [[0, 4]],
                     [[43, 4]],
-                    [[42, 4]]],
+                    [[47, 4]]],
                 { 29: 1, 32: 1, 120: 1 }],
             336: [[[[15, 1]],
                     [[70, 2]],
@@ -1483,17 +1484,17 @@ define('pytools/tables',["require", "exports", './Tokens'], function (require, e
         states: [[[[1, 1], [2, 1], [3, 2]], [[0, 1]], [[2, 1]]],
             [[[38, 1]], [[39, 0], [0, 1]]],
             [[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
-            [[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
-                [[0, 1]],
-                [[41, 7], [42, 1]],
-                [[43, 1], [44, 8], [45, 8]],
-                [[46, 9], [47, 1]],
+            [[[18, 1], [8, 2], [32, 5], [29, 4], [9, 3], [14, 6], [21, 2]],
+                [[18, 1], [0, 1]],
+                [[0, 2]],
+                [[41, 7], [42, 2]],
+                [[43, 2], [44, 8], [45, 8]],
+                [[46, 9], [47, 2]],
                 [[48, 10]],
-                [[18, 6], [0, 6]],
-                [[42, 1]],
-                [[43, 1]],
-                [[47, 1]],
-                [[14, 1]]],
+                [[42, 2]],
+                [[43, 2]],
+                [[47, 2]],
+                [[14, 2]]],
             [[[49, 1]], [[50, 0], [0, 1]]],
             [[[51, 1]], [[52, 0], [0, 1]]],
             [[[53, 1]], [[54, 0], [0, 1]]],
@@ -1712,7 +1713,7 @@ define('pytools/tables',["require", "exports", './Tokens'], function (require, e
                 [[162, 6]],
                 [[0, 4]],
                 [[43, 4]],
-                [[42, 4]]],
+                [[47, 4]]],
             [[[15, 1]],
                 [[70, 2]],
                 [[96, 3]],
@@ -1788,13 +1789,13 @@ define('pytools/tables',["require", "exports", './Tokens'], function (require, e
             [271, null],
             [1, 'and'],
             [266, null],
-            [316, null],
-            [10, null],
+            [290, null],
+            [27, null],
             [8, null],
             [333, null],
             [276, null],
-            [290, null],
-            [27, null],
+            [316, null],
+            [10, null],
             [332, null],
             [275, null],
             [19, null],
@@ -1840,9 +1841,9 @@ define('pytools/tables',["require", "exports", './Tokens'], function (require, e
             [37, null],
             [44, null],
             [49, null],
-            [45, null],
-            [38, null],
             [40, null],
+            [38, null],
+            [45, null],
             [330, null],
             [29, null],
             [21, null],
@@ -1895,11 +1896,11 @@ define('pytools/tables',["require", "exports", './Tokens'], function (require, e
             [317, null],
             [326, null],
             [13, null],
+            [270, null],
             [299, null],
-            [267, null],
             [265, null],
             [320, null],
-            [270, null],
+            [267, null],
             [321, null],
             [289, null],
             [297, null],
@@ -1955,7 +1956,7 @@ define('pytools/tables',["require", "exports", './Tokens'], function (require, e
             7: 29,
             8: 43,
             9: 32,
-            10: 42,
+            10: 47,
             11: 70,
             12: 57,
             13: 147,
@@ -1972,7 +1973,7 @@ define('pytools/tables',["require", "exports", './Tokens'], function (require, e
             24: 65,
             25: 14,
             26: 9,
-            27: 47,
+            27: 42,
             28: 99,
             29: 97,
             30: 101,
@@ -1985,12 +1986,12 @@ define('pytools/tables',["require", "exports", './Tokens'], function (require, e
             37: 90,
             38: 94,
             39: 85,
-            40: 95,
+            40: 93,
             41: 86,
             42: 88,
             43: 89,
             44: 91,
-            45: 93,
+            45: 95,
             46: 84,
             47: 87,
             48: 62,
@@ -2002,12 +2003,12 @@ define('pytools/tables',["require", "exports", './Tokens'], function (require, e
         'OpMap': OpMap,
         'ParseTables': ParseTables
     };
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = that;
 });
 
 define('pytools/asserts',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * We're looking for something that is truthy, not just true.
      */
@@ -2025,6 +2026,7 @@ define('pytools/asserts',["require", "exports"], function (require, exports) {
 
 define('pytools/base',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * Null function used for default values of callbacks, etc.
      * @return {void} Nothing.
@@ -2528,13 +2530,19 @@ export function scope(fn) {
 }
 */
 ;
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-define('pytools/TokenError',["require", "exports", './asserts', './base'], function (require, exports, asserts_1, base_1) {
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('pytools/TokenError',["require", "exports", "./asserts", "./base"], function (require, exports, asserts_1, base_1) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * @class TokenError
      * @extends SyntaxError
@@ -2550,25 +2558,26 @@ define('pytools/TokenError',["require", "exports", './asserts', './base'], funct
          * @param {number} columnNumber
          */
         function TokenError(message, fileName, lineNumber, columnNumber) {
-            _super.call(this);
+            var _this = _super.call(this) || this;
             asserts_1.assert(base_1.isString(message), "message must be a string");
             asserts_1.assert(base_1.isString(fileName), "fileName must be a string");
             asserts_1.assert(base_1.isNumber(lineNumber), "lineNumber must be a number");
             asserts_1.assert(base_1.isNumber(columnNumber), "columnNumber must be a number");
-            this.name = "TokenError";
-            this.message = message;
-            this.fileName = fileName;
-            this.lineNumber = lineNumber;
-            this.columnNumber = columnNumber;
+            _this.name = "TokenError";
+            _this.message = message;
+            _this.fileName = fileName;
+            _this.lineNumber = lineNumber;
+            _this.columnNumber = columnNumber;
+            return _this;
         }
         return TokenError;
     }(SyntaxError));
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = TokenError;
 });
 
-define('pytools/Tokenizer',["require", "exports", './asserts', './base', './TokenError', './Tokens'], function (require, exports, asserts_1, base_1, TokenError_1, Tokens_1) {
+define('pytools/Tokenizer',["require", "exports", "./asserts", "./base", "./TokenError", "./Tokens"], function (require, exports, asserts_1, base_1, TokenError_1, Tokens_1) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     /* we have to use string and ctor to be able to build patterns up. + on /.../
         * does something strange. */
     // const Whitespace = "[ \\f\\t]*";
@@ -2894,13 +2903,12 @@ define('pytools/Tokenizer',["require", "exports", './asserts', './base', './Toke
             }
             return false;
         };
-        /**
-         * Not sure who needs this yet.
-         */
-        Tokenizer.Tokens = Tokens_1.default;
         return Tokenizer;
     }());
-    Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Not sure who needs this yet.
+     */
+    Tokenizer.Tokens = Tokens_1.default;
     exports.default = Tokenizer;
     /** @param {...*} x */
     function group(x, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) {
@@ -2954,6 +2962,7 @@ define('pytools/Tokenizer',["require", "exports", './asserts', './base', './Toke
 
 define('pytools/tokenNames',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var tokenNames = {
         0: 'T_ENDMARKER',
         1: 'T_NAME', 2: 'T_NUMBER', 3: 'T_STRING', 4: 'T_NEWLINE',
@@ -2970,12 +2979,12 @@ define('pytools/tokenNames',["require", "exports"], function (require, exports) 
         55: 'T_ERRORTOKEN', 56: 'T_N_TOKENS',
         256: 'T_NT_OFFSET'
     };
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = tokenNames;
 });
 
-define('pytools/parser',["require", "exports", './tables', './asserts', './base', './Tokenizer', './Tokens', './tokenNames'], function (require, exports, tables_1, asserts_1, base_1, Tokenizer_1, Tokens_1, tokenNames_1) {
+define('pytools/parser',["require", "exports", "./tables", "./asserts", "./base", "./Tokenizer", "./Tokens", "./tokenNames"], function (require, exports, tables_1, asserts_1, base_1, Tokenizer_1, Tokens_1, tokenNames_1) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var OpMap = tables_1.default.OpMap;
     var ParseTables = tables_1.default.ParseTables;
     // low level parser to a concrete syntax tree, derived from cpython's lib2to3
@@ -3252,13 +3261,19 @@ define('pytools/parser',["require", "exports", './tables', './asserts', './base'
     exports.parseTreeDump = parseTreeDump;
 });
 
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 define('pytools/types',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var Load = (function () {
         function Load() {
         }
@@ -3474,7 +3489,7 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var AST = (function (_super) {
         __extends(AST, _super);
         function AST() {
-            _super.apply(this, arguments);
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         return AST;
     }(ASTSpan));
@@ -3482,7 +3497,7 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var ModuleElement = (function (_super) {
         __extends(ModuleElement, _super);
         function ModuleElement() {
-            _super.apply(this, arguments);
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         return ModuleElement;
     }(AST));
@@ -3490,7 +3505,7 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var Statement = (function (_super) {
         __extends(Statement, _super);
         function Statement() {
-            _super.apply(this, arguments);
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         return Statement;
     }(ModuleElement));
@@ -3498,7 +3513,7 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var IterationStatement = (function (_super) {
         __extends(IterationStatement, _super);
         function IterationStatement() {
-            _super.apply(this, arguments);
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         return IterationStatement;
     }(Statement));
@@ -3520,8 +3535,9 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var Expression = (function (_super) {
         __extends(Expression, _super);
         function Expression(body) {
-            _super.call(this);
-            this.body = body;
+            var _this = _super.call(this) || this;
+            _this.body = body;
+            return _this;
         }
         return Expression;
     }(Statement));
@@ -3529,7 +3545,7 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var UnaryExpression = (function (_super) {
         __extends(UnaryExpression, _super);
         function UnaryExpression() {
-            _super.apply(this, arguments);
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         return UnaryExpression;
     }(Expression));
@@ -3544,13 +3560,14 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var FunctionDef = (function (_super) {
         __extends(FunctionDef, _super);
         function FunctionDef(name, args, body, decorator_list, lineno, col_offset) {
-            _super.call(this);
-            this.name = name;
-            this.args = args;
-            this.body = body;
-            this.decorator_list = decorator_list;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.name = name;
+            _this.args = args;
+            _this.body = body;
+            _this.decorator_list = decorator_list;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return FunctionDef;
     }(Statement));
@@ -3558,13 +3575,14 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var ClassDef = (function (_super) {
         __extends(ClassDef, _super);
         function ClassDef(name, bases, body, decorator_list, lineno, col_offset) {
-            _super.call(this);
-            this.name = name;
-            this.bases = bases;
-            this.body = body;
-            this.decorator_list = decorator_list;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.name = name;
+            _this.bases = bases;
+            _this.body = body;
+            _this.decorator_list = decorator_list;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return ClassDef;
     }(Statement));
@@ -3572,10 +3590,11 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var ReturnStatement = (function (_super) {
         __extends(ReturnStatement, _super);
         function ReturnStatement(value, lineno, col_offset) {
-            _super.call(this);
-            this.value = value;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.value = value;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return ReturnStatement;
     }(Statement));
@@ -3583,10 +3602,11 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var DeleteExpression = (function (_super) {
         __extends(DeleteExpression, _super);
         function DeleteExpression(targets, lineno, col_offset) {
-            _super.call(this, targets);
-            this.targets = targets;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this, targets) || this;
+            _this.targets = targets;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return DeleteExpression;
     }(UnaryExpression));
@@ -3594,11 +3614,12 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var Assign = (function (_super) {
         __extends(Assign, _super);
         function Assign(targets, value, lineno, col_offset) {
-            _super.call(this);
-            this.targets = targets;
-            this.value = value;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.targets = targets;
+            _this.value = value;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return Assign;
     }(Statement));
@@ -3606,12 +3627,13 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var AugAssign = (function (_super) {
         __extends(AugAssign, _super);
         function AugAssign(target, op, value, lineno, col_offset) {
-            _super.call(this);
-            this.target = target;
-            this.op = op;
-            this.value = value;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.target = target;
+            _this.op = op;
+            _this.value = value;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return AugAssign;
     }(Statement));
@@ -3619,12 +3641,13 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var Print = (function (_super) {
         __extends(Print, _super);
         function Print(dest, values, nl, lineno, col_offset) {
-            _super.call(this);
-            this.dest = dest;
-            this.values = values;
-            this.nl = nl;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.dest = dest;
+            _this.values = values;
+            _this.nl = nl;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return Print;
     }(Statement));
@@ -3632,13 +3655,14 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var ForStatement = (function (_super) {
         __extends(ForStatement, _super);
         function ForStatement(target, iter, body, orelse, lineno, col_offset) {
-            _super.call(this);
-            this.target = target;
-            this.iter = iter;
-            this.body = body;
-            this.orelse = orelse;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.target = target;
+            _this.iter = iter;
+            _this.body = body;
+            _this.orelse = orelse;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return ForStatement;
     }(IterationStatement));
@@ -3646,12 +3670,13 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var WhileStatement = (function (_super) {
         __extends(WhileStatement, _super);
         function WhileStatement(test, body, orelse, lineno, col_offset) {
-            _super.call(this);
-            this.test = test;
-            this.body = body;
-            this.orelse = orelse;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.test = test;
+            _this.body = body;
+            _this.orelse = orelse;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return WhileStatement;
     }(IterationStatement));
@@ -3659,12 +3684,13 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var IfStatement = (function (_super) {
         __extends(IfStatement, _super);
         function IfStatement(test, consequent, alternate, lineno, col_offset) {
-            _super.call(this);
-            this.test = test;
-            this.consequent = consequent;
-            this.alternate = alternate;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.test = test;
+            _this.consequent = consequent;
+            _this.alternate = alternate;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return IfStatement;
     }(Statement));
@@ -3672,12 +3698,13 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var WithStatement = (function (_super) {
         __extends(WithStatement, _super);
         function WithStatement(context_expr, optional_vars, body, lineno, col_offset) {
-            _super.call(this);
-            this.context_expr = context_expr;
-            this.optional_vars = optional_vars;
-            this.body = body;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.context_expr = context_expr;
+            _this.optional_vars = optional_vars;
+            _this.body = body;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return WithStatement;
     }(Statement));
@@ -3685,12 +3712,13 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var Raise = (function (_super) {
         __extends(Raise, _super);
         function Raise(type, inst, tback, lineno, col_offset) {
-            _super.call(this);
-            this.type = type;
-            this.inst = inst;
-            this.tback = tback;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.type = type;
+            _this.inst = inst;
+            _this.tback = tback;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return Raise;
     }(Statement));
@@ -3698,12 +3726,13 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var TryExcept = (function (_super) {
         __extends(TryExcept, _super);
         function TryExcept(body, handlers, orelse, lineno, col_offset) {
-            _super.call(this);
-            this.body = body;
-            this.handlers = handlers;
-            this.orelse = orelse;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.body = body;
+            _this.handlers = handlers;
+            _this.orelse = orelse;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return TryExcept;
     }(Statement));
@@ -3711,11 +3740,12 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var TryFinally = (function (_super) {
         __extends(TryFinally, _super);
         function TryFinally(body, finalbody, lineno, col_offset) {
-            _super.call(this);
-            this.body = body;
-            this.finalbody = finalbody;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.body = body;
+            _this.finalbody = finalbody;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return TryFinally;
     }(Statement));
@@ -3723,11 +3753,12 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var Assert = (function (_super) {
         __extends(Assert, _super);
         function Assert(test, msg, lineno, col_offset) {
-            _super.call(this);
-            this.test = test;
-            this.msg = msg;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.test = test;
+            _this.msg = msg;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return Assert;
     }(Statement));
@@ -3735,10 +3766,11 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var ImportStatement = (function (_super) {
         __extends(ImportStatement, _super);
         function ImportStatement(names, lineno, col_offset) {
-            _super.call(this);
-            this.names = names;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.names = names;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return ImportStatement;
     }(Statement));
@@ -3746,12 +3778,13 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var ImportFrom = (function (_super) {
         __extends(ImportFrom, _super);
         function ImportFrom(module, names, level, lineno, col_offset) {
-            _super.call(this);
-            this.module = module;
-            this.names = names;
-            this.level = level;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.module = module;
+            _this.names = names;
+            _this.level = level;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return ImportFrom;
     }(Statement));
@@ -3788,10 +3821,11 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var Expr = (function (_super) {
         __extends(Expr, _super);
         function Expr(value, lineno, col_offset) {
-            _super.call(this);
-            this.value = value;
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.value = value;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return Expr;
     }(Statement));
@@ -3807,9 +3841,10 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var BreakStatement = (function (_super) {
         __extends(BreakStatement, _super);
         function BreakStatement(lineno, col_offset) {
-            _super.call(this);
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return BreakStatement;
     }(Statement));
@@ -3817,9 +3852,10 @@ define('pytools/types',["require", "exports"], function (require, exports) {
     var ContinueStatement = (function (_super) {
         __extends(ContinueStatement, _super);
         function ContinueStatement(lineno, col_offset) {
-            _super.call(this);
-            this.lineno = lineno;
-            this.col_offset = col_offset;
+            var _this = _super.call(this) || this;
+            _this.lineno = lineno;
+            _this.col_offset = col_offset;
+            return _this;
         }
         return ContinueStatement;
     }(Statement));
@@ -4433,6 +4469,7 @@ define('pytools/types',["require", "exports"], function (require, exports) {
 
 define('pytools/numericLiteral',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * @param {string} s
      */
@@ -4479,8 +4516,9 @@ define('pytools/numericLiteral',["require", "exports"], function (require, expor
     exports.longAST = longAST;
 });
 
-define('pytools/builder',["require", "exports", './asserts', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './base', './tables', './Tokens', './numericLiteral'], function (require, exports, asserts_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, types_51, types_52, types_53, types_54, types_55, types_56, types_57, types_58, types_59, types_60, types_61, types_62, types_63, types_64, types_65, types_66, types_67, types_68, types_69, types_70, types_71, types_72, types_73, types_74, types_75, types_76, types_77, types_78, types_79, types_80, types_81, types_82, types_83, types_84, types_85, types_86, base_1, tables_1, Tokens_1, numericLiteral_1) {
+define('pytools/builder',["require", "exports", "./asserts", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./base", "./tables", "./Tokens", "./numericLiteral"], function (require, exports, asserts_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, types_51, types_52, types_53, types_54, types_55, types_56, types_57, types_58, types_59, types_60, types_61, types_62, types_63, types_64, types_65, types_66, types_67, types_68, types_69, types_70, types_71, types_72, types_73, types_74, types_75, types_76, types_77, types_78, types_79, types_80, types_81, types_82, types_83, types_84, types_85, types_86, base_1, tables_1, Tokens_1, numericLiteral_1) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     //
     // This is pretty much a straight port of ast.c from CPython 2.6.5.
     //
@@ -4918,13 +4956,15 @@ define('pytools/builder',["require", "exports", './asserts', './types', './types
             nElif /= 4;
             if (hasElse) {
                 orelse = [
-                    new types_40.IfStatement(astForExpr(c, CHILD(n, NCH(n) - 6)), astForSuite(c, CHILD(n, NCH(n) - 4)), astForSuite(c, CHILD(n, NCH(n) - 1)), CHILD(n, NCH(n) - 6).lineno, CHILD(n, NCH(n) - 6).col_offset)];
+                    new types_40.IfStatement(astForExpr(c, CHILD(n, NCH(n) - 6)), astForSuite(c, CHILD(n, NCH(n) - 4)), astForSuite(c, CHILD(n, NCH(n) - 1)), CHILD(n, NCH(n) - 6).lineno, CHILD(n, NCH(n) - 6).col_offset)
+                ];
                 nElif--;
             }
             for (var i = 0; i < nElif; ++i) {
                 var off = 5 + (nElif - i - 1) * 4;
                 orelse = [
-                    new types_40.IfStatement(astForExpr(c, CHILD(n, off)), astForSuite(c, CHILD(n, off + 2)), orelse, CHILD(n, off).lineno, CHILD(n, off).col_offset)];
+                    new types_40.IfStatement(astForExpr(c, CHILD(n, off)), astForSuite(c, CHILD(n, off + 2)), orelse, CHILD(n, off).lineno, CHILD(n, off).col_offset)
+                ];
             }
             return new types_40.IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), orelse, n.lineno, n.col_offset);
         }
@@ -6173,6 +6213,7 @@ define('pytools/builder',["require", "exports", './asserts', './types', './types
 
 define('pytools/reservedNames',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * TODO: Reserved for whom?
      */
@@ -6196,12 +6237,12 @@ define('pytools/reservedNames',["require", "exports"], function (require, export
         'watch': true,
         'length': true
     };
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = reservedNames;
 });
 
 define('pytools/reservedWords',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * TODO: Reserved for whom?
      */
@@ -6270,12 +6311,12 @@ define('pytools/reservedWords',["require", "exports"], function (require, export
         'while': true,
         'with': true
     };
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = reservedWords;
 });
 
 define('pytools/dictUpdate',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     function default_1(a, b) {
         for (var kb in b) {
             if (b.hasOwnProperty(kb)) {
@@ -6283,12 +6324,12 @@ define('pytools/dictUpdate',["require", "exports"], function (require, exports) 
             }
         }
     }
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = default_1;
 });
 
 define('pytools/mangleName',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * @param {string|null} priv
      * @param {string} name
@@ -6310,13 +6351,13 @@ define('pytools/mangleName',["require", "exports"], function (require, exports) 
         strpriv = '_' + strpriv + name;
         return strpriv;
     }
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = default_1;
 });
 
 /* Flags for def-use information */
 define('pytools/SymbolConstants',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     exports.DEF_GLOBAL = 1; /* global stmt */
     exports.DEF_LOCAL = 2; /* assignment in code block */
     exports.DEF_PARAM = 2 << 1; /* formal parameter */
@@ -6352,8 +6393,9 @@ define('pytools/SymbolConstants',["require", "exports"], function (require, expo
     exports.ClassBlock = 'class';
 });
 
-define('pytools/Symbol',["require", "exports", './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7, SymbolConstants_8, SymbolConstants_9, SymbolConstants_10) {
+define('pytools/Symbol',["require", "exports", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants"], function (require, exports, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7, SymbolConstants_8, SymbolConstants_9, SymbolConstants_10) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var Symbol = (function () {
         /**
          * @constructor
@@ -6388,12 +6430,12 @@ define('pytools/Symbol',["require", "exports", './SymbolConstants', './SymbolCon
         Symbol.prototype.get_namespaces = function () { return this.__namespaces; };
         return Symbol;
     }());
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = Symbol;
 });
 
-define('pytools/SymbolTableScope',["require", "exports", './asserts', './Symbol', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, Symbol_1, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7, SymbolConstants_8) {
+define('pytools/SymbolTableScope',["require", "exports", "./asserts", "./Symbol", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants"], function (require, exports, asserts_1, Symbol_1, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7, SymbolConstants_8) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var astScopeCounter = 0;
     var SymbolTableScope = (function () {
         /**
@@ -6521,12 +6563,12 @@ define('pytools/SymbolTableScope',["require", "exports", './asserts', './Symbol'
         };
         return SymbolTableScope;
     }());
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = SymbolTableScope;
 });
 
-define('pytools/syntaxError',["require", "exports", './asserts', './base'], function (require, exports, asserts_1, base_1) {
+define('pytools/syntaxError',["require", "exports", "./asserts", "./base"], function (require, exports, asserts_1, base_1) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * @param {string} message
      * @param {string} fileName
@@ -6545,12 +6587,12 @@ define('pytools/syntaxError',["require", "exports", './asserts', './base'], func
         }
         return e;
     }
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = default_1;
 });
 
-define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate', './mangleName', './SymbolTableScope', './syntaxError', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './types', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants', './SymbolConstants'], function (require, exports, asserts_1, dictUpdate_1, mangleName_1, SymbolTableScope_1, syntaxError_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7, SymbolConstants_8, SymbolConstants_9, SymbolConstants_10, SymbolConstants_11, SymbolConstants_12, SymbolConstants_13, SymbolConstants_14, SymbolConstants_15, SymbolConstants_16) {
+define('pytools/SymbolTable',["require", "exports", "./asserts", "./dictUpdate", "./mangleName", "./SymbolTableScope", "./syntaxError", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./types", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants", "./SymbolConstants"], function (require, exports, asserts_1, dictUpdate_1, mangleName_1, SymbolTableScope_1, syntaxError_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, SymbolConstants_7, SymbolConstants_8, SymbolConstants_9, SymbolConstants_10, SymbolConstants_11, SymbolConstants_12, SymbolConstants_13, SymbolConstants_14, SymbolConstants_15, SymbolConstants_16) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var SymbolTable = (function () {
         /**
          * @constructor
@@ -7149,12 +7191,12 @@ define('pytools/SymbolTable',["require", "exports", './asserts', './dictUpdate',
         };
         return SymbolTable;
     }());
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = SymbolTable;
 });
 
-define('pytools/symtable',["require", "exports", './SymbolTable', './SymbolConstants'], function (require, exports, SymbolTable_1, SymbolConstants_1) {
+define('pytools/symtable',["require", "exports", "./SymbolTable", "./SymbolConstants"], function (require, exports, SymbolTable_1, SymbolConstants_1) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * @methdod symbolTable
      * @param {Object} ast
@@ -7245,6 +7287,7 @@ define('pytools/symtable',["require", "exports", './SymbolTable', './SymbolConst
 
 define('pytools/toStringLiteralJS',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
      */
@@ -7278,13 +7321,13 @@ define('pytools/toStringLiteralJS',["require", "exports"], function (require, ex
         ret += quote;
         return ret;
     }
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = default_1;
     ;
 });
 
-define('py-to-sk/sk-compiler',["require", "exports", '../pytools/asserts', '../pytools/parser', '../pytools/builder', '../pytools/reservedNames', '../pytools/reservedWords', '../pytools/symtable', '../pytools/toStringLiteralJS', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants'], function (require, exports, asserts_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, types_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
+define('py-to-sk/sk-compiler',["require", "exports", "../pytools/asserts", "../pytools/parser", "../pytools/builder", "../pytools/reservedNames", "../pytools/reservedWords", "../pytools/symtable", "../pytools/toStringLiteralJS", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/SymbolConstants", "../pytools/SymbolConstants", "../pytools/SymbolConstants", "../pytools/SymbolConstants", "../pytools/SymbolConstants", "../pytools/SymbolConstants"], function (require, exports, asserts_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, types_51, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var OP_FAST = 0;
     var OP_GLOBAL = 1;
     var OP_DEREF = 2;
@@ -7895,6 +7938,9 @@ define('py-to-sk/sk-compiler',["require", "exports", '../pytools/asserts', '../p
                 for (var i = 0; i < blocks.length; ++i) {
                     ret += "case " + i + ": /* --- " + blocks[i]._name + " --- */";
                     ret += blocks[i].join('');
+                    /*
+                    ret += "throw new Sk.builtin.SystemError('internal error: unterminated block');";
+                    */
                 }
                 ret += unit.suffixCode;
             }
@@ -8223,7 +8269,7 @@ define('py-to-sk/sk-compiler',["require", "exports", '../pytools/asserts', '../p
              * @const
              * @type {boolean}
              */
-            var descendantOrSelfHasFree = this.u.ste.hasFree;
+            var descendantOrSelfHasFree = this.u.ste.hasFree /* || this.u.ste.childHasFree*/;
             var entryBlock = this.newBlock('codeobj entry');
             //
             // the header of the function, and arguments
@@ -8913,13 +8959,19 @@ define('py-to-sk/sk-compiler',["require", "exports", '../pytools/asserts', '../p
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 define('estools/esprima',["require", "exports"], function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var source;
     var strict;
     var index;
@@ -10645,7 +10697,7 @@ define('estools/esprima',["require", "exports"], function (require, exports) {
     var Node = (function (_super) {
         __extends(Node, _super);
         function Node() {
-            _super.call(this);
+            var _this = _super.call(this) || this;
             // Skip comment.
             index = lookahead.start;
             if (lookahead.type === Token.StringLiteral) {
@@ -10657,11 +10709,12 @@ define('estools/esprima',["require", "exports"], function (require, exports) {
                 lineStart = lookahead.lineStart;
             }
             if (extra.range) {
-                this.range = [index, 0];
+                _this.range = [index, 0];
             }
             if (extra.loc) {
-                this.loc = new SourceLocation();
+                _this.loc = new SourceLocation();
             }
+            return _this;
         }
         Node.prototype.finish = function () {
             if (extra.range) {
@@ -10683,13 +10736,14 @@ define('estools/esprima',["require", "exports"], function (require, exports) {
     var WrappingNode = (function (_super) {
         __extends(WrappingNode, _super);
         function WrappingNode(startToken) {
-            _super.call(this);
+            var _this = _super.call(this) || this;
             if (extra.range) {
-                this.range = [startToken.start, 0];
+                _this.range = [startToken.start, 0];
             }
             if (extra.loc) {
-                this.loc = new WrappingSourceLocation(startToken);
+                _this.loc = new WrappingSourceLocation(startToken);
             }
+            return _this;
         }
         WrappingNode.prototype.finish = function () {
             if (extra.range) {
@@ -12488,6 +12542,7 @@ define('estools/esprima',["require", "exports"], function (require, exports) {
 */
 define('estools/code',["require", "exports"], function (require, exports) {
     'use strict';
+    Object.defineProperty(exports, "__esModule", { value: true });
     var ES6Regex, ES5Regex, NON_ASCII_WHITESPACES, IDENTIFIER_START, IDENTIFIER_PART, ch;
     // See `tools/generate-identifier-regex.js`.
     ES5Regex = {
@@ -12606,6 +12661,7 @@ define('estools/estraverse',["require", "exports"], function (require, exports) 
     /*jshint indent:4*/
     /*global exports:true*/
     'use strict';
+    Object.defineProperty(exports, "__esModule", { value: true });
     var isArray, VisitorOption, VisitorKeys, objectCreate, objectKeys, BREAK, SKIP, REMOVE;
     var worklist;
     function ignoreJSHintError(what) {
@@ -13324,9 +13380,10 @@ define('estools/estraverse',["require", "exports"], function (require, exports) 
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-define('estools/escodegen',["require", "exports", './code', './code', './estraverse'], function (require, exports, code_1, code_2, estraverse_1) {
+define('estools/escodegen',["require", "exports", "./code", "./code", "./estraverse"], function (require, exports, code_1, code_2, estraverse_1) {
     /*global exports:true, require:true, global:true*/
     'use strict';
+    Object.defineProperty(exports, "__esModule", { value: true });
     // import esutils from './esutils';
     var SourceNode, isArray, base, indent, json, renumber, hexadecimal, quotes, escapeless, newline, space, parentheses, semicolons, safeConcatenation, directive, extra, parse, sourceMap, sourceCode, preserveBlankLines;
     // Generation is done by generateExpression.
@@ -15298,6 +15355,7 @@ define('estools/escodegen',["require", "exports", './code', './code', './estrave
                     }
                 }
                 catch (e) {
+                    // not use raw property
                 }
             }
             if (expr.value === null) {
@@ -15483,8 +15541,9 @@ define('estools/escodegen',["require", "exports", './code', './code', './estrave
     exports.FORMAT_DEFAULTS = getDefaultOptions().format;
 });
 
-define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../pytools/base', '../pytools/parser', '../pytools/builder', '../pytools/reservedNames', '../pytools/reservedWords', '../pytools/symtable', '../pytools/toStringLiteralJS', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/types', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../pytools/SymbolConstants', '../estools/esprima', '../estools/escodegen'], function (require, exports, asserts_1, base_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, esprima_1, escodegen_1) {
+define('py-to-es/transpiler',["require", "exports", "../pytools/asserts", "../pytools/base", "../pytools/parser", "../pytools/builder", "../pytools/reservedNames", "../pytools/reservedWords", "../pytools/symtable", "../pytools/toStringLiteralJS", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/types", "../pytools/SymbolConstants", "../pytools/SymbolConstants", "../pytools/SymbolConstants", "../pytools/SymbolConstants", "../pytools/SymbolConstants", "../pytools/SymbolConstants", "../estools/esprima", "../estools/escodegen"], function (require, exports, asserts_1, base_1, parser_1, builder_1, reservedNames_1, reservedWords_1, symtable_1, toStringLiteralJS_1, types_1, types_2, types_3, types_4, types_5, types_6, types_7, types_8, types_9, types_10, types_11, types_12, types_13, types_14, types_15, types_16, types_17, types_18, types_19, types_20, types_21, types_22, types_23, types_24, types_25, types_26, types_27, types_28, types_29, types_30, types_31, types_32, types_33, types_34, types_35, types_36, types_37, types_38, types_39, types_40, types_41, types_42, types_43, types_44, types_45, types_46, types_47, types_48, types_49, types_50, SymbolConstants_1, SymbolConstants_2, SymbolConstants_3, SymbolConstants_4, SymbolConstants_5, SymbolConstants_6, esprima_1, escodegen_1) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var OP_FAST = 0;
     var OP_GLOBAL = 1;
     var OP_DEREF = 2;
@@ -15707,6 +15766,10 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
                 for (var i = 0; i < col_offset; ++i) {
                     out(" ");
                 }
+                // out("^");
+                // out("\n//");
+                // out('\nSk.currLineNo = ', lineno, ';Sk.currColNo = ', col_offset, ';');
+                // out("\nSk.currFilename = '", this.fileName, "';\n\n");
             }
         };
         Compiler.prototype.gensym = function (hint) {
@@ -15733,6 +15796,7 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
             else if (e.ctx === types_32.Load) {
                 // const items = [];
                 for (var i = 0; i < e.elts.length; ++i) {
+                    // items.push(this.emitArgs('elem', this.vexpr(e.elts[i])));
                 }
             }
         };
@@ -15754,6 +15818,7 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
             this.setBlock(start);
             var n = l.ifs.length;
             for (var i = 0; i < n; ++i) {
+                // var ifres = this.vexpr(l.ifs[i]);
             }
             if (++genIndex < generators.length) {
                 this.clistcompgen(tmpname, generators, genIndex, elt);
@@ -15851,6 +15916,7 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
         };
         Compiler.prototype.chandlesubscr = function (ctx, obj, subs, data) {
             if (ctx === types_32.Load || ctx === types_5.AugLoad) {
+                // TODO
             }
             else if (ctx === types_42.Store || ctx === types_6.AugStore)
                 out("Sk.abstr.objectSetItem(", obj, ",", subs, ",", data, ");");
@@ -15868,6 +15934,7 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
             for (var i = 0; i < n; ++i) {
                 var expres = this.vexpr(s[i]);
                 if (i === 0) {
+                    // TODO
                 }
                 out(retval, " = ", expres, ";");
             }
@@ -16135,6 +16202,9 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
                 for (var i = 0; i < blocks.length; ++i) {
                     // ret += "case " + i + ": /* --- " + blocks[i]._name + " --- */";
                     ret += blocks[i].join('');
+                    /*
+                    ret += "throw new Sk.builtin.SystemError('internal error: unterminated block');";
+                    */
                 }
                 ret += unit.suffixCode;
             }
@@ -16174,6 +16244,13 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
             if (stmt.alternate) {
                 result.push(this.maybeBlock(stmt.consequent, S_TFFF));
                 result = this.maybeBlockSuffix(stmt.consequent, result);
+                /*
+                if (stmt.alternate.type === Syntax.IfStatement) {
+                    result = join(result, ['else ', this.generateStatements(stmt.alternate, bodyFlags)]);
+                } else {
+                    result = join(result, join('else', this.maybeBlock(stmt.alternate, bodyFlags)));
+                }
+                */
             }
             else {
                 result.push(this.maybeBlock(stmt.consequent, bodyFlags));
@@ -16285,6 +16362,12 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
                     throw new SyntaxError("default 'except:' must be last");
                 }
                 if (handler.type) {
+                    // should jump to next handler if err not isinstance of handler.type
+                    // var handlertype = this.vexpr(handler.type);
+                    // var next = (i === n - 1) ? unhandled : handlers[i + 1];
+                    // this check is not right, should use isinstance, but exception objects
+                    // are not yet proper Python objects
+                    // var check = this.emitArgs('instance', "$err instanceof ", handlertype);
                 }
                 if (handler.name) {
                     this.vexpr(handler.name, "$err");
@@ -16447,7 +16530,7 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
              * @const
              * @type {boolean}
              */
-            var descendantOrSelfHasFree = this.u.ste.hasFree;
+            var descendantOrSelfHasFree = this.u.ste.hasFree /* || this.u.ste.childHasFree*/;
             var entryBlock = this.newBlock('codeobj entry');
             //
             // the header of the function, and arguments
@@ -16684,6 +16767,7 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
             // var target = this.vexpr(ge.target, nexti);
             var n = ge.ifs.length;
             for (var i = 0; i < n; ++i) {
+                // var ifres = this.vexpr(ge.ifs[i]);
             }
             if (++genIndex < generators.length) {
                 this.cgenexpgen(generators, genIndex, elt);
@@ -16893,6 +16977,7 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
             // to actual JS stack variables.
             var mangledNoPre = mangled;
             if (this.u.ste.generator || this.u.ste.blockType !== SymbolConstants_6.FunctionBlock) {
+                // No need to change mangled.
             }
             else if (optype === OP_FAST || optype === OP_NAME)
                 this.u.localnames.push(mangled);
@@ -17015,8 +17100,10 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
             }
             var n = s.values.length;
             for (var i = 0; i < n; ++i) {
+                // out("Sk.misceval.print_(Sk.ffi.remapToJs(new Sk.builtins.str(", this.vexpr(s.values[i]), ")));");
             }
             if (s.nl) {
+                // out("Sk.misceval.print_('\\n');");
             }
         };
         Compiler.prototype.cmod = function (mod, flags) {
@@ -17293,8 +17380,9 @@ define('py-to-es/transpiler',["require", "exports", '../pytools/asserts', '../py
     exports.transpile = transpile;
 });
 
-define('mstools/mathscript',["require", "exports", '../estools/esprima', '../estools/escodegen'], function (require, exports, esprima_1, escodegen_1) {
+define('mstools/mathscript',["require", "exports", "../estools/esprima", "../estools/escodegen"], function (require, exports, esprima_1, escodegen_1) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     // import escodegen = require('davinci-mathscript/escodegen');
     // i mport estraverse = require('davinci-mathscript/estraverse');
     // import esutils = require('davinci-mathscript/esutils');
@@ -17694,8 +17782,9 @@ define('mstools/mathscript',["require", "exports", '../estools/esprima', '../est
     exports.tilde = tilde;
 });
 
-define('pytools',["require", "exports", './pytools/parser', './pytools/builder', './py-to-sk/sk-compiler', './py-to-es/transpiler', './mstools/mathscript', './mstools/mathscript', './mstools/mathscript'], function (require, exports, parser_1, builder_1, sk_compiler_1, transpiler_1, mathscript_1, mathscript_2, mathscript_3) {
+define('pytools',["require", "exports", "./pytools/parser", "./pytools/builder", "./py-to-sk/sk-compiler", "./py-to-es/transpiler", "./mstools/mathscript", "./mstools/mathscript", "./mstools/mathscript"], function (require, exports, parser_1, builder_1, sk_compiler_1, transpiler_1, mathscript_1, mathscript_2, mathscript_3) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var pytools = {
         parser: { parse: parser_1.parse, parseTreeDump: parser_1.parseTreeDump },
         builder: { astFromParse: builder_1.astFromParse, astDump: builder_1.astDump },
@@ -17715,7 +17804,6 @@ define('pytools',["require", "exports", './pytools/parser', './pytools/builder',
             tilde: mathscript_3.tilde
         }
     };
-    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = pytools;
 });
 

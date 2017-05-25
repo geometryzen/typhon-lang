@@ -1,13 +1,13 @@
-import {DEF_BOUND} from './SymbolConstants';
-import {DEF_IMPORT} from './SymbolConstants';
-import {DEF_LOCAL} from './SymbolConstants';
-import {DEF_PARAM} from './SymbolConstants';
-import {FREE} from './SymbolConstants';
-import {GLOBAL_EXPLICIT} from './SymbolConstants';
-import {GLOBAL_IMPLICIT} from './SymbolConstants';
-import {SCOPE_MASK} from './SymbolConstants';
-import {SCOPE_OFF} from './SymbolConstants';
-import {USE} from './SymbolConstants';
+import { DEF_BOUND } from './SymbolConstants';
+import { DEF_IMPORT } from './SymbolConstants';
+import { DEF_LOCAL } from './SymbolConstants';
+import { DEF_PARAM } from './SymbolConstants';
+import { FREE } from './SymbolConstants';
+import { GLOBAL_EXPLICIT } from './SymbolConstants';
+import { GLOBAL_IMPLICIT } from './SymbolConstants';
+import { SCOPE_MASK } from './SymbolConstants';
+import { SCOPE_OFF } from './SymbolConstants';
+import { USE } from './SymbolConstants';
 import SymbolTableScope from './SymbolTableScope';
 
 export default class Symbol {

@@ -1,7 +1,7 @@
 /**
  * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
  */
-export default function(value: any): string {
+export function toStringLiteralJS(value: any): string {
     // single is preferred
     var quote = "'";
     if (value.indexOf("'") !== -1 && value.indexOf('"') === -1) {
@@ -29,4 +29,4 @@ export default function(value: any): string {
     }
     ret += quote;
     return ret;
-};
+}

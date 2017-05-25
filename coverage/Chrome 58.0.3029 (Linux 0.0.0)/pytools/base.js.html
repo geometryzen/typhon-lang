@@ -1,0 +1,1574 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for pytools/base.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">pytools/</a> base.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">57.84% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>59/102</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">24.44% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>11/45</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">25% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>6/24</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">57.84% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>59/102</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line medium'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+454
+455
+456
+457
+458
+459
+460
+461
+462
+463
+464
+465
+466
+467
+468
+469
+470
+471
+472
+473
+474
+475
+476
+477
+478
+479
+480
+481
+482
+483
+484
+485
+486
+487
+488
+489
+490
+491
+492
+493
+494
+495
+496
+497
+498
+499
+500
+501
+502
+503
+504</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">119×</span>
+<span class="cline-any cline-yes">119×</span>
+<span class="cline-any cline-yes">70×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">70×</span>
+<span class="cline-any cline-yes">65×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">49×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">49×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">117×</span>
+<span class="cline-any cline-yes">117×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">41×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Null function used for default values of callbacks, etc.
+ * @return {void} Nothing.
+ */
+<span class="fstat-no" title="function not covered" >function nullFunction() {</span> }
+exports.nullFunction = nullFunction;
+/**
+ * When defining a class Foo with an abstract method bar(), you can do:
+ * Foo.prototype.bar = base.abstractMethod
+ *
+ * Now if a subclass of Foo fails to override bar(), an error will be thrown
+ * when bar() is invoked.
+ *
+ * Note: This does not take the name of the function to override as an argument
+ * because that would make it more difficult to obfuscate our JavaScript code.
+ *
+ * @type {!Function}
+ * @throws {Error} when invoked to indicate the method should be overridden.
+ */
+<span class="fstat-no" title="function not covered" >function abstractMethod() {</span>
+<span class="cstat-no" title="statement not covered" >    throw Error('unimplemented abstract method');</span>
+}
+exports.abstractMethod = abstractMethod;
+// ==============================================================================
+// Language Enhancements
+// ==============================================================================
+/**
+ * This is a "fixed" version of the typeof operator.  It differs from the typeof
+ * operator in such a way that null returns 'null' and arrays return 'array'.
+ * @param {*} value The value to get the type of.
+ * @return {string} The name of the type.
+ */
+function typeOf(value) {
+    var s = typeof value;
+    if (s === 'object') {
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (value) {
+            // Check these first, so we can avoid calling Object.prototype.toString if
+            // possible.
+            //
+            // IE improperly marshals tyepof across execution contexts, but a
+            // cross-context object will still return false for "instanceof Object".
+            if (value instanceof Array) {
+                return 'array';
+            }
+            else <span class="missing-if-branch" title="else path not taken" >E</span>if (value instanceof Object) {
+                return s;
+            }
+            // HACK: In order to use an Object prototype method on the arbitrary
+            //   value, the compiler requires the value be cast to type Object,
+            //   even though the ECMA spec explicitly allows it.
+<span class="cstat-no" title="statement not covered" >            var className = Object.prototype.toString.call(</span>
+            /** @type {Object} */ (value));
+            // In Firefox 3.6, attempting to access iframe window objects' length
+            // property throws an NS_ERROR_FAILURE, so we need to special-case it
+            // here.
+<span class="cstat-no" title="statement not covered" >            if (className === '[object Window]') {</span>
+<span class="cstat-no" title="statement not covered" >                return 'object';</span>
+            }
+            // We cannot always use constructor == Array or instanceof Array because
+            // different frames have different Array objects. In IE6, if the iframe
+            // where the array was created is destroyed, the array loses its
+            // prototype. Then dereferencing val.splice here throws an exception, so
+            // we can't use base.isFunction. Calling typeof directly returns 'unknown'
+            // so that will work. In this case, this function will return false and
+            // most array functions will still work because the array is still
+            // array-like (supports length and []) even though it has lost its
+            // prototype.
+            // Mark Miller noticed that Object.prototype.toString
+            // allows access to the unforgeable [[Class]] property.
+            //  15.2.4.2 Object.prototype.toString ( )
+            //  When the toString method is called, the following steps are taken:
+            //      1. Get the [[Class]] property of this object.
+            //      2. Compute a string value by concatenating the three strings
+            //         "[object ", Result(1), and "]".
+            //      3. Return Result(2).
+            // and this behavior survives the destruction of the execution context.
+<span class="cstat-no" title="statement not covered" >            if ((className === '[object Array]' ||</span>
+                // In IE all non value types are wrapped as objects across window
+                // boundaries (not iframe though) so we have to do object detection
+                // for this edge case.
+                typeof value.length === 'number' &amp;&amp;
+                    typeof value.splice !== 'undefined' &amp;&amp;
+                    typeof value.propertyIsEnumerable !== 'undefined' &amp;&amp;
+                    !value.propertyIsEnumerable('splice'))) {
+<span class="cstat-no" title="statement not covered" >                return 'array';</span>
+            }
+            // HACK: There is still an array case that fails.
+            //     function ArrayImpostor() {}
+            //     ArrayImpostor.prototype = [];
+            //     var impostor = new ArrayImpostor;
+            // this can be fixed by getting rid of the fast path
+            // (value instanceof Array) and solely relying on
+            // (value &amp;&amp; Object.prototype.toString.vall(value) === '[object Array]')
+            // but that would require many more function calls and is not warranted
+            // unless closure code is receiving objects from untrusted sources.
+            // IE in cross-window calls does not correctly marshal the function type
+            // (it appears just as an object) so we cannot use just typeof val ==
+            // 'function'. However, if the object has a call property, it is a
+            // function.
+<span class="cstat-no" title="statement not covered" >            if ((className === '[object Function]' ||</span>
+                typeof value.call !== 'undefined' &amp;&amp;
+                    typeof value.propertyIsEnumerable !== 'undefined' &amp;&amp;
+                    !value.propertyIsEnumerable('call'))) {
+<span class="cstat-no" title="statement not covered" >                return 'function';</span>
+            }
+        }
+        else {
+<span class="cstat-no" title="statement not covered" >            return 'null';</span>
+        }
+    }
+    else <span class="missing-if-branch" title="if path not taken" >I</span>if (s === 'function' &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >typeof value.call === 'undefined')</span> {
+        // In Safari typeof nodeList returns 'function', and on Firefox typeof
+        // behaves similarly for HTML{Applet,Embed,Object}, Elements and RegExps. We
+        // would like to return object for those and we can detect an invalid
+        // function by making sure that the function object has a call method.
+<span class="cstat-no" title="statement not covered" >        return 'object';</span>
+    }
+    return s;
+}
+exports.typeOf = typeOf;
+/**
+ * Returns true if the specified value is not undefined.
+ * WARNING: Do not use this to test if an object has a property. Use the in
+ * operator instead.  Additionally, this function assumes that the global
+ * undefined variable has not been redefined.
+ * @param {*} val Variable to test.
+ * @return {boolean} Whether variable is defined.
+ */
+function isDef(val) {
+    return val !== undefined;
+}
+exports.isDef = isDef;
+/**
+ * Returns true if the specified value is null.
+ * @param {*} val Variable to test.
+ * @return {boolean} Whether variable is null.
+ */
+<span class="fstat-no" title="function not covered" >function isNull(val) {</span>
+<span class="cstat-no" title="statement not covered" >    return val === null;</span>
+}
+exports.isNull = isNull;
+/**
+ * Returns true if the specified value is defined and not null.
+ * @param {*} val Variable to test.
+ * @return {boolean} Whether variable is defined and not null.
+ */
+<span class="fstat-no" title="function not covered" >function isDefAndNotNull(val) {</span>
+    // Note that undefined == null.
+<span class="cstat-no" title="statement not covered" >    return val != null;</span>
+}
+exports.isDefAndNotNull = isDefAndNotNull;
+/**
+ * Returns true if the specified value is an array.
+ * @param {*} val Variable to test.
+ * @return {boolean} Whether variable is an array.
+ */
+function isArray(val) {
+    return typeOf(val) === 'array';
+}
+exports.isArray = isArray;
+/**
+ * Returns true if the object looks like an array. To qualify as array like
+ * the value needs to be either a NodeList or an object with a Number length
+ * property.
+ * @param {*} val Variable to test.
+ * @return {boolean} Whether variable is an array.
+ */
+function isArrayLike(val) {
+    var type = typeOf(val);
+    return type === 'array' || type === 'object' &amp;&amp; typeof val.length === 'number';
+}
+exports.isArrayLike = isArrayLike;
+/**
+ * Returns true if the object looks like a Date. To qualify as Date-like the
+ * value needs to be an object and have a getFullYear() function.
+ * @param {*} val Variable to test.
+ * @return {boolean} Whether variable is a like a Date.
+ */
+<span class="fstat-no" title="function not covered" >function isDateLike(val) {</span>
+<span class="cstat-no" title="statement not covered" >    return isObject(val) &amp;&amp; typeof val.getFullYear === 'function';</span>
+}
+exports.isDateLike = isDateLike;
+/**
+ * Returns true if the specified value is a string.
+ * @param {*} val Variable to test.
+ * @return {boolean} Whether variable is a string.
+ */
+function isString(val) {
+    return typeof val === 'string';
+}
+exports.isString = isString;
+/**
+ * Returns true if the specified value is a boolean.
+ * @param {*} val Variable to test.
+ * @return {boolean} Whether variable is boolean.
+ */
+<span class="fstat-no" title="function not covered" >function isBoolean(val) {</span>
+<span class="cstat-no" title="statement not covered" >    return typeof val === 'boolean';</span>
+}
+exports.isBoolean = isBoolean;
+/**
+ * Returns true if the specified value is a number.
+ * @param {*} val Variable to test.
+ * @return {boolean} Whether variable is a number.
+ */
+function isNumber(val) {
+    return typeof val === 'number';
+}
+exports.isNumber = isNumber;
+/**
+ * Returns true if the specified value is a function.
+ * @param {*} val Variable to test.
+ * @return {boolean} Whether variable is a function.
+ */
+<span class="fstat-no" title="function not covered" >function isFunction(val) {</span>
+<span class="cstat-no" title="statement not covered" >    return typeOf(val) === 'function';</span>
+}
+exports.isFunction = isFunction;
+/**
+ * Returns true if the specified value is an object.  This includes arrays and
+ * functions.
+ * @param {*} val Variable to test.
+ * @return {boolean} Whether variable is an object.
+ */
+<span class="fstat-no" title="function not covered" >function isObject(val) {</span>
+<span class="cstat-no" title="statement not covered" >    var type = typeof val;</span>
+<span class="cstat-no" title="statement not covered" >    return type === 'object' &amp;&amp; val !== null || type === 'function';</span>
+    // return Object(val) === val also works, but is slower, especially if val is
+    // not an object.
+}
+exports.isObject = isObject;
+/**
+ * A native implementation of base.bind.
+ * @param {Function} fn A function to partially apply.
+ * @param {Object|undefined} selfObj Specifies the object which this should
+ *     point to when the function is run.
+ * @param {...*} var_args Additional arguments that are partially applied to the
+ *     function.
+ * @return {!Function} A partially-applied form of the function bind() was
+ *     invoked as a method of.
+ * @private
+ * @suppress {deprecated} The compiler thinks that Function.prototype.bind is
+ *     deprecated because some people have declared a pure-JS version.
+ *     Only the pure-JS version is truly deprecated.
+ */
+<span class="fstat-no" title="function not covered" >function bindNative_(fn, selfObj, var_args) {</span>
+<span class="cstat-no" title="statement not covered" >    return (fn.call.apply(fn.bind, arguments));</span>
+}
+exports.bindNative_ = bindNative_;
+/**
+ * A pure-JS implementation of base.bind.
+ * @param {Function} fn A function to partially apply.
+ * @param {Object|undefined} selfObj Specifies the object which this should
+ *     point to when the function is run.
+ * @param {...*} var_args Additional arguments that are partially applied to the
+ *     function.
+ * @return {!Function} A partially-applied form of the function bind() was
+ *     invoked as a method of.
+ * @private
+ */
+<span class="fstat-no" title="function not covered" >function bindJs_(fn, selfObj, var_args) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!fn) {</span>
+<span class="cstat-no" title="statement not covered" >        throw new Error();</span>
+    }
+<span class="cstat-no" title="statement not covered" >    if (arguments.length &gt; 2) {</span>
+<span class="cstat-no" title="statement not covered" >        var boundArgs = Array.prototype.slice.call(arguments, 2);</span>
+<span class="cstat-no" title="statement not covered" >        return <span class="fstat-no" title="function not covered" >function () {</span></span>
+            // Prepend the bound arguments to the current arguments.
+<span class="cstat-no" title="statement not covered" >            var newArgs = Array.prototype.slice.call(arguments);</span>
+<span class="cstat-no" title="statement not covered" >            Array.prototype.unshift.apply(newArgs, boundArgs);</span>
+<span class="cstat-no" title="statement not covered" >            return fn.apply(selfObj, newArgs);</span>
+        };
+    }
+    else {
+<span class="cstat-no" title="statement not covered" >        return <span class="fstat-no" title="function not covered" >function () {</span></span>
+<span class="cstat-no" title="statement not covered" >            return fn.apply(selfObj, arguments);</span>
+        };
+    }
+}
+exports.bindJs_ = bindJs_;
+/**
+ * Like bind(), except that a 'this object' is not required. Useful when the
+ * target function is already bound.
+ *
+ * Usage:
+ * var g = partial(f, arg1, arg2);
+ * g(arg3, arg4);
+ *
+ * @param {Function} fn A function to partially apply.
+ * @param {...*} var_args Additional arguments that are partially applied to fn.
+ * @return {!Function} A partially-applied form of the function bind() was
+ *     invoked as a method of.
+ */
+/*
+export function partial(fn, var_args) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return function() {
+        // Prepend the bound arguments to the current arguments.
+        var newArgs = Array.prototype.slice.call(arguments);
+        newArgs.unshift.apply(newArgs, args);
+        return fn.apply(this, newArgs);
+    };
+}
+*/
+/**
+ * Copies all the members of a source object to a target object. This method
+ * does not work on all browsers for all objects that contain keys such as
+ * toString or hasOwnProperty. Use base.object.extend for this purpose.
+ * @param {Object} target Target.
+ * @param {Object} source Source.
+ */
+<span class="fstat-no" title="function not covered" >function mixin(target, source) {</span>
+<span class="cstat-no" title="statement not covered" >    for (var x in source) {</span>
+<span class="cstat-no" title="statement not covered" >        if (source.hasOwnProperty(x)) {</span>
+<span class="cstat-no" title="statement not covered" >            target[x] = source[x];</span>
+        }
+    }
+    // For IE7 or lower, the for-in-loop does not contain any properties that are
+    // not enumerable on the prototype object (for example, isPrototypeOf from
+    // Object.prototype) but also it will not include 'replace' on objects that
+    // extend String and change 'replace' (not that it is common for anyone to
+    // extend anything except Object).
+}
+exports.mixin = mixin;
+/**
+ * Gets a localized message.
+ *
+ * This function is a compiler primitive. If you give the compiler a localized
+ * message bundle, it will replace the string at compile-time with a localized
+ * version, and expand base.getMsg call to a concatenated string.
+ *
+ * Messages must be initialized in the form:
+ * &lt;code&gt;
+ * var MSG_NAME = base.getMsg('Hello {$placeholder}', {'placeholder': 'world'});
+ * &lt;/code&gt;
+ *
+ * @param {string} str Translatable string, places holders in the form {$foo}.
+ * @param {Object=} opt_values Map of place holder name to value.
+ * @return {string} message with placeholders filled.
+ */
+<span class="fstat-no" title="function not covered" >function getMsg(str, opt_values) {</span>
+<span class="cstat-no" title="statement not covered" >    var values = opt_values || {};</span>
+<span class="cstat-no" title="statement not covered" >    for (var key in values) {</span>
+<span class="cstat-no" title="statement not covered" >        if (values.hasOwnProperty(key)) {</span>
+<span class="cstat-no" title="statement not covered" >            var value = ('' + values[key]).replace(/\$/g, '$$$$');</span>
+<span class="cstat-no" title="statement not covered" >            str = str.replace(new RegExp('\\{\\$' + key + '\\}', 'gi'), value);</span>
+        }
+    }
+<span class="cstat-no" title="statement not covered" >    return str;</span>
+}
+exports.getMsg = getMsg;
+/**
+ * Gets a localized message. If the message does not have a translation, gives a
+ * fallback message.
+ *
+ * This is useful when introducing a new message that has not yet been
+ * translated into all languages.
+ *
+ * This function is a compiler primtive. Must be used in the form:
+ * &lt;code&gt;var x = base.getMsgWithFallback(MSG_A, MSG_B);&lt;/code&gt;
+ * where MSG_A and MSG_B were initialized with base.getMsg.
+ *
+ * @param {string} a The preferred message.
+ * @param {string} b The fallback message.
+ * @return {string} The best translated message.
+ */
+<span class="fstat-no" title="function not covered" >function getMsgWithFallback(a, b) {</span>
+<span class="cstat-no" title="statement not covered" >    return a;</span>
+}
+exports.getMsgWithFallback = getMsgWithFallback;
+/**
+ * Exports a property unobfuscated into the object's namespace.
+ * ex. base.exportProperty(Foo, 'staticFunction', Foo.staticFunction);
+ * ex. base.exportProperty(Foo.prototype, 'myMethod', Foo.prototype.myMethod);
+ * @param {Object} object Object whose static property is being exported.
+ * @param {string} publicName Unobfuscated name to export.
+ * @param {*} symbol Object the name should point to.
+ */
+<span class="fstat-no" title="function not covered" >function exportProperty(object, publicName, symbol) {</span>
+<span class="cstat-no" title="statement not covered" >    object[publicName] = symbol;</span>
+}
+exports.exportProperty = exportProperty;
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * Usage:
+ * &lt;pre&gt;
+ * function ParentClass(a, b) { }
+ * ParentClass.prototype.foo = function(a) { }
+ *
+ * function ChildClass(a, b, c) {
+ *   base.base(this, a, b);
+ * }
+ * base.inherits(ChildClass, ParentClass);
+ *
+ * var child = new ChildClass('a', 'b', 'see');
+ * child.foo(); // This works.
+ * &lt;/pre&gt;
+ *
+ * In addition, a superclass' implementation of a method can be invoked as
+ * follows:
+ *
+ * &lt;pre&gt;
+ * ChildClass.prototype.foo = function(a) {
+ *   ChildClass.superClass_.foo.call(this, a);
+ *   // Other code here.
+ * };
+ * &lt;/pre&gt;
+ *
+ * @param {Function} childCtor Child class.
+ * @param {Function} parentCtor Parent class.
+ */
+<span class="fstat-no" title="function not covered" >function inherits(childCtor, parentCtor) {</span>
+    /** @constructor */
+<span class="fstat-no" title="function not covered" >    function tempCtor() {</span> }
+<span class="cstat-no" title="statement not covered" >    tempCtor.prototype = parentCtor.prototype;</span>
+<span class="cstat-no" title="statement not covered" >    childCtor.superClass_ = parentCtor.prototype;</span>
+<span class="cstat-no" title="statement not covered" >    childCtor.prototype = new tempCtor();</span>
+    /** @override */
+<span class="cstat-no" title="statement not covered" >    childCtor.prototype.constructor = childCtor;</span>
+}
+exports.inherits = inherits;
+/**
+ * Call up to the superclass.
+ *
+ * If this is called from a constructor, then this calls the superclass
+ * contsructor with arguments 1-N.
+ *
+ * If this is called from a prototype method, then you must pass the name of the
+ * method as the second argument to this function. If you do not, you will get a
+ * runtime error. This calls the superclass' method with arguments 2-N.
+ *
+ * This function only works if you use base.inherits to express inheritance
+ * relationships between your classes.
+ *
+ * This function is a compiler primitive. At compile-time, the compiler will do
+ * macro expansion to remove a lot of the extra overhead that this function
+ * introduces. The compiler will also enforce a lot of the assumptions that this
+ * function makes, and treat it as a compiler error if you break them.
+ *
+ * @param {!Object} me Should always be "this".
+ * @param {*=} opt_methodName The method name if calling a super method.
+ * @param {...*} var_args The rest of the arguments.
+ * @return {*} The return value of the superclass method.
+ */
+/*
+export function baseCall(me, opt_methodName, var_args) {
+    var caller = arguments.callee.caller;
+&nbsp;
+    if (base.DEBUG) {
+        if (!caller) {
+            throw Error('arguments.caller not defined.  base.base() expects not ' +
+                'to be running in strict mode. See ' +
+                'http://www.ecma-international.org/ecma-262/5.1/#sec-C');
+        }
+    }
+&nbsp;
+    if (caller['superClass_']) {
+        // This is a constructor. Call the superclass constructor.
+        return caller['superClass_'].constructor.apply(
+            me, Array.prototype.slice.call(arguments, 1));
+    }
+&nbsp;
+    var args = Array.prototype.slice.call(arguments, 2);
+    var foundCaller = false;
+    for (var ctor = me.constructor;
+        ctor; ctor = ctor.superClass_ &amp;&amp; ctor.superClass_.constructor) {
+        if (ctor.prototype[opt_methodName] === caller) {
+            foundCaller = true;
+        } else if (foundCaller) {
+            return ctor.prototype[opt_methodName].apply(me, args);
+        }
+    }
+&nbsp;
+    // If we did not find the caller in the prototype chain, then one of two
+    // things happened:
+    // 1) The caller is an instance method.
+    // 2) This method was not called by the right caller.
+    if (me[opt_methodName] === caller) {
+        return me.constructor.prototype[opt_methodName].apply(me, args);
+    } else {
+        throw Error(
+            'base.base called from a method of one name ' +
+            'to a method of a different name');
+    }
+}
+*/
+/**
+ * Allow for aliasing within scope functions.  This function exists for
+ * uncompiled code - in compiled code the calls will be inlined and the aliases
+ * applied.  In uncompiled code the function is simply run since the aliases as
+ * written are valid JavaScript.
+ * @param {function()} fn Function to call.  This function can contain aliases
+ *     to namespaces (e.g. "var dom = base.dom") or classes
+ *     (e.g. "var Timer = base.Timer").
+ */
+/*
+export function scope(fn) {
+    fn.call(base.global);
+}
+*/
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu May 25 2017 11:53:11 GMT-0400 (EDT)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

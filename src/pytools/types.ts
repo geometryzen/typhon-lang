@@ -1,4 +1,4 @@
-import INumericLiteral from './INumericLiteral';
+import { INumericLiteral } from './INumericLiteral';
 
 export class Load { }
 export class Store { }
@@ -41,7 +41,7 @@ export class NotIn { }
 
 export class ASTSpan {
     public minChar: number = -1;  // -1 = "undefined" or "compiler generated"
-    public limChar: number = -1;  // -1 = "undefined" or "compiler generated"   
+    public limChar: number = -1;  // -1 = "undefined" or "compiler generated"
 }
 
 export class AST extends ASTSpan {
@@ -74,12 +74,12 @@ export class Interactive {
     }
 }
 
-interface TextRange {
+export interface TextRange {
     // pos: number;
     // end: number;
 }
 
-interface Node extends TextRange {
+export interface Node extends TextRange {
 
 }
 
@@ -777,133 +777,133 @@ export class Alias {
 
 Module.prototype['_astname'] = 'Module';
 Module.prototype['_fields'] = [
-    'body', function(n) { return n.body; }
+    'body', function (n) { return n.body; }
 ];
 Interactive.prototype['_astname'] = 'Interactive';
 Interactive.prototype['_fields'] = [
-    'body', function(n) { return n.body; }
+    'body', function (n) { return n.body; }
 ];
 Expression.prototype['_astname'] = 'Expression';
 Expression.prototype['_fields'] = [
-    'body', function(n) { return n.body; }
+    'body', function (n) { return n.body; }
 ];
 Suite.prototype['_astname'] = 'Suite';
 Suite.prototype['_fields'] = [
-    'body', function(n) { return n.body; }
+    'body', function (n) { return n.body; }
 ];
 FunctionDef.prototype['_astname'] = 'FunctionDef';
 FunctionDef.prototype['_fields'] = [
-    'name', function(n) { return n.name; },
-    'args', function(n) { return n.args; },
-    'body', function(n) { return n.body; },
-    'decorator_list', function(n) { return n.decorator_list; }
+    'name', function (n) { return n.name; },
+    'args', function (n) { return n.args; },
+    'body', function (n) { return n.body; },
+    'decorator_list', function (n) { return n.decorator_list; }
 ];
 ClassDef.prototype['_astname'] = 'ClassDef';
 ClassDef.prototype['_fields'] = [
-    'name', function(n) { return n.name; },
-    'bases', function(n) { return n.bases; },
-    'body', function(n) { return n.body; },
-    'decorator_list', function(n) { return n.decorator_list; }
+    'name', function (n) { return n.name; },
+    'bases', function (n) { return n.bases; },
+    'body', function (n) { return n.body; },
+    'decorator_list', function (n) { return n.decorator_list; }
 ];
 ReturnStatement.prototype['_astname'] = 'ReturnStatement';
 ReturnStatement.prototype['_fields'] = [
-    'value', function(n) { return n.value; }
+    'value', function (n) { return n.value; }
 ];
 DeleteExpression.prototype['_astname'] = 'Delete';
 DeleteExpression.prototype['_fields'] = [
-    'targets', function(n) { return n.targets; }
+    'targets', function (n) { return n.targets; }
 ];
 Assign.prototype['_astname'] = 'Assign';
 Assign.prototype['_fields'] = [
-    'targets', function(n) { return n.targets; },
-    'value', function(n) { return n.value; }
+    'targets', function (n) { return n.targets; },
+    'value', function (n) { return n.value; }
 ];
 AugAssign.prototype['_astname'] = 'AugAssign';
 AugAssign.prototype['_fields'] = [
-    'target', function(n) { return n.target; },
-    'op', function(n) { return n.op; },
-    'value', function(n) { return n.value; }
+    'target', function (n) { return n.target; },
+    'op', function (n) { return n.op; },
+    'value', function (n) { return n.value; }
 ];
 Print.prototype['_astname'] = 'Print';
 Print.prototype['_fields'] = [
-    'dest', function(n) { return n.dest; },
-    'values', function(n) { return n.values; },
-    'nl', function(n) { return n.nl; }
+    'dest', function (n) { return n.dest; },
+    'values', function (n) { return n.values; },
+    'nl', function (n) { return n.nl; }
 ];
 ForStatement.prototype['_astname'] = 'ForStatement';
 ForStatement.prototype['_fields'] = [
-    'target', function(n) { return n.target; },
-    'iter', function(n) { return n.iter; },
-    'body', function(n) { return n.body; },
-    'orelse', function(n) { return n.orelse; }
+    'target', function (n) { return n.target; },
+    'iter', function (n) { return n.iter; },
+    'body', function (n) { return n.body; },
+    'orelse', function (n) { return n.orelse; }
 ];
 WhileStatement.prototype['_astname'] = 'WhileStatement';
 WhileStatement.prototype['_fields'] = [
-    'test', function(n) { return n.test; },
-    'body', function(n) { return n.body; },
-    'orelse', function(n) { return n.orelse; }
+    'test', function (n) { return n.test; },
+    'body', function (n) { return n.body; },
+    'orelse', function (n) { return n.orelse; }
 ];
 IfStatement.prototype['_astname'] = 'IfStatement';
 IfStatement.prototype['_fields'] = [
-    'test', function(n: IfStatement) { return n.test; },
-    'consequent', function(n: IfStatement) { return n.consequent; },
-    'alternate', function(n: IfStatement) { return n.alternate; }
+    'test', function (n: IfStatement) { return n.test; },
+    'consequent', function (n: IfStatement) { return n.consequent; },
+    'alternate', function (n: IfStatement) { return n.alternate; }
 ];
 WithStatement.prototype['_astname'] = 'WithStatement';
 WithStatement.prototype['_fields'] = [
-    'context_expr', function(n) { return n.context_expr; },
-    'optional_vars', function(n) { return n.optional_vars; },
-    'body', function(n) { return n.body; }
+    'context_expr', function (n) { return n.context_expr; },
+    'optional_vars', function (n) { return n.optional_vars; },
+    'body', function (n) { return n.body; }
 ];
 Raise.prototype['_astname'] = 'Raise';
 Raise.prototype['_fields'] = [
-    'type', function(n) { return n.type; },
-    'inst', function(n) { return n.inst; },
-    'tback', function(n) { return n.tback; }
+    'type', function (n) { return n.type; },
+    'inst', function (n) { return n.inst; },
+    'tback', function (n) { return n.tback; }
 ];
 TryExcept.prototype['_astname'] = 'TryExcept';
 TryExcept.prototype['_fields'] = [
-    'body', function(n) { return n.body; },
-    'handlers', function(n) { return n.handlers; },
-    'orelse', function(n) { return n.orelse; }
+    'body', function (n) { return n.body; },
+    'handlers', function (n) { return n.handlers; },
+    'orelse', function (n) { return n.orelse; }
 ];
 TryFinally.prototype['_astname'] = 'TryFinally';
 TryFinally.prototype['_fields'] = [
-    'body', function(n) { return n.body; },
-    'finalbody', function(n) { return n.finalbody; }
+    'body', function (n) { return n.body; },
+    'finalbody', function (n) { return n.finalbody; }
 ];
 Assert.prototype['_astname'] = 'Assert';
 Assert.prototype['_fields'] = [
-    'test', function(n) { return n.test; },
-    'msg', function(n) { return n.msg; }
+    'test', function (n) { return n.test; },
+    'msg', function (n) { return n.msg; }
 ];
 ImportStatement.prototype['_astname'] = 'Import';
 ImportStatement.prototype['_fields'] = [
-    'names', function(n) { return n.names; }
+    'names', function (n) { return n.names; }
 ];
 ImportFrom.prototype['_astname'] = 'ImportFrom';
 ImportFrom.prototype['_fields'] = [
-    'module', function(n) { return n.module; },
-    'names', function(n) { return n.names; },
-    'level', function(n) { return n.level; }
+    'module', function (n) { return n.module; },
+    'names', function (n) { return n.names; },
+    'level', function (n) { return n.level; }
 ];
 Exec.prototype['_astname'] = 'Exec';
 Exec.prototype['_fields'] = [
-    'body', function(n) { return n.body; },
-    'globals', function(n) { return n.globals; },
-    'locals', function(n) { return n.locals; }
+    'body', function (n) { return n.body; },
+    'globals', function (n) { return n.globals; },
+    'locals', function (n) { return n.locals; }
 ];
 Global.prototype['_astname'] = 'Global';
 Global.prototype['_fields'] = [
-    'names', function(n) { return n.names; }
+    'names', function (n) { return n.names; }
 ];
 NonLocal.prototype['_astname'] = 'NonLocal';
 NonLocal.prototype['_fields'] = [
-    'names', function(n) { return n.names; }
+    'names', function (n) { return n.names; }
 ];
 Expr.prototype['_astname'] = 'Expr';
 Expr.prototype['_fields'] = [
-    'value', function(n) { return n.value; }
+    'value', function (n) { return n.value; }
 ];
 Pass.prototype['_astname'] = 'Pass';
 Pass.prototype['_fields'] = [
@@ -916,98 +916,98 @@ ContinueStatement.prototype['_fields'] = [
 ];
 BoolOp.prototype['_astname'] = 'BoolOp';
 BoolOp.prototype['_fields'] = [
-    'op', function(n) { return n.op; },
-    'values', function(n) { return n.values; }
+    'op', function (n) { return n.op; },
+    'values', function (n) { return n.values; }
 ];
 BinOp.prototype['_astname'] = 'BinOp';
 BinOp.prototype['_fields'] = [
-    'left', function(n) { return n.left; },
-    'op', function(n) { return n.op; },
-    'right', function(n) { return n.right; }
+    'left', function (n) { return n.left; },
+    'op', function (n) { return n.op; },
+    'right', function (n) { return n.right; }
 ];
 UnaryOp.prototype['_astname'] = 'UnaryOp';
 UnaryOp.prototype['_fields'] = [
-    'op', function(n) { return n.op; },
-    'operand', function(n) { return n.operand; }
+    'op', function (n) { return n.op; },
+    'operand', function (n) { return n.operand; }
 ];
 Lambda.prototype['_astname'] = 'Lambda';
 Lambda.prototype['_fields'] = [
-    'args', function(n) { return n.args; },
-    'body', function(n) { return n.body; }
+    'args', function (n) { return n.args; },
+    'body', function (n) { return n.body; }
 ];
 IfExp.prototype['_astname'] = 'IfExp';
 IfExp.prototype['_fields'] = [
-    'test', function(n) { return n.test; },
-    'body', function(n) { return n.body; },
-    'orelse', function(n) { return n.orelse; }
+    'test', function (n) { return n.test; },
+    'body', function (n) { return n.body; },
+    'orelse', function (n) { return n.orelse; }
 ];
 Dict.prototype['_astname'] = 'Dict';
 Dict.prototype['_fields'] = [
-    'keys', function(n) { return n.keys; },
-    'values', function(n) { return n.values; }
+    'keys', function (n) { return n.keys; },
+    'values', function (n) { return n.values; }
 ];
 ListComp.prototype['_astname'] = 'ListComp';
 ListComp.prototype['_fields'] = [
-    'elt', function(n) { return n.elt; },
-    'generators', function(n) { return n.generators; }
+    'elt', function (n) { return n.elt; },
+    'generators', function (n) { return n.generators; }
 ];
 GeneratorExp.prototype['_astname'] = 'GeneratorExp';
 GeneratorExp.prototype['_fields'] = [
-    'elt', function(n) { return n.elt; },
-    'generators', function(n) { return n.generators; }
+    'elt', function (n) { return n.elt; },
+    'generators', function (n) { return n.generators; }
 ];
 Yield.prototype['_astname'] = 'Yield';
 Yield.prototype['_fields'] = [
-    'value', function(n) { return n.value; }
+    'value', function (n) { return n.value; }
 ];
 Compare.prototype['_astname'] = 'Compare';
 Compare.prototype['_fields'] = [
-    'left', function(n) { return n.left; },
-    'ops', function(n) { return n.ops; },
-    'comparators', function(n) { return n.comparators; }
+    'left', function (n) { return n.left; },
+    'ops', function (n) { return n.ops; },
+    'comparators', function (n) { return n.comparators; }
 ];
 Call.prototype['_astname'] = 'Call';
 Call.prototype['_fields'] = [
-    'func', function(n) { return n.func; },
-    'args', function(n) { return n.args; },
-    'keywords', function(n) { return n.keywords; },
-    'starargs', function(n) { return n.starargs; },
-    'kwargs', function(n) { return n.kwargs; }
+    'func', function (n) { return n.func; },
+    'args', function (n) { return n.args; },
+    'keywords', function (n) { return n.keywords; },
+    'starargs', function (n) { return n.starargs; },
+    'kwargs', function (n) { return n.kwargs; }
 ];
 Num.prototype['_astname'] = 'Num';
 Num.prototype['_fields'] = [
-    'n', function(n) { return n.n; }
+    'n', function (n) { return n.n; }
 ];
 Str.prototype['_astname'] = 'Str';
 Str.prototype['_fields'] = [
-    's', function(n) { return n.s; }
+    's', function (n) { return n.s; }
 ];
 Attribute.prototype['_astname'] = 'Attribute';
 Attribute.prototype['_fields'] = [
-    'value', function(n) { return n.value; },
-    'attr', function(n) { return n.attr; },
-    'ctx', function(n) { return n.ctx; }
+    'value', function (n) { return n.value; },
+    'attr', function (n) { return n.attr; },
+    'ctx', function (n) { return n.ctx; }
 ];
 Subscript.prototype['_astname'] = 'Subscript';
 Subscript.prototype['_fields'] = [
-    'value', function(n) { return n.value; },
-    'slice', function(n) { return n.slice; },
-    'ctx', function(n) { return n.ctx; }
+    'value', function (n) { return n.value; },
+    'slice', function (n) { return n.slice; },
+    'ctx', function (n) { return n.ctx; }
 ];
 Name.prototype['_astname'] = 'Name';
 Name.prototype['_fields'] = [
-    'id', function(n) { return n.id; },
-    'ctx', function(n) { return n.ctx; }
+    'id', function (n) { return n.id; },
+    'ctx', function (n) { return n.ctx; }
 ];
 List.prototype['_astname'] = 'List';
 List.prototype['_fields'] = [
-    'elts', function(n) { return n.elts; },
-    'ctx', function(n) { return n.ctx; }
+    'elts', function (n) { return n.elts; },
+    'ctx', function (n) { return n.ctx; }
 ];
 Tuple.prototype['_astname'] = 'Tuple';
 Tuple.prototype['_fields'] = [
-    'elts', function(n) { return n.elts; },
-    'ctx', function(n) { return n.ctx; }
+    'elts', function (n) { return n.elts; },
+    'ctx', function (n) { return n.ctx; }
 ];
 Load.prototype['_astname'] = 'Load';
 Load.prototype['_isenum'] = true;
@@ -1026,17 +1026,17 @@ Ellipsis.prototype['_fields'] = [
 ];
 Slice.prototype['_astname'] = 'Slice';
 Slice.prototype['_fields'] = [
-    'lower', function(n) { return n.lower; },
-    'upper', function(n) { return n.upper; },
-    'step', function(n) { return n.step; }
+    'lower', function (n) { return n.lower; },
+    'upper', function (n) { return n.upper; },
+    'step', function (n) { return n.step; }
 ];
 ExtSlice.prototype['_astname'] = 'ExtSlice';
 ExtSlice.prototype['_fields'] = [
-    'dims', function(n) { return n.dims; }
+    'dims', function (n) { return n.dims; }
 ];
 Index.prototype['_astname'] = 'Index';
 Index.prototype['_fields'] = [
-    'value', function(n) { return n.value; }
+    'value', function (n) { return n.value; }
 ];
 And.prototype['_astname'] = 'And';
 And.prototype['_isenum'] = true;
@@ -1096,30 +1096,30 @@ NotIn.prototype['_astname'] = 'NotIn';
 NotIn.prototype['_isenum'] = true;
 Comprehension.prototype['_astname'] = 'Comprehension';
 Comprehension.prototype['_fields'] = [
-    'target', function(n) { return n.target; },
-    'iter', function(n) { return n.iter; },
-    'ifs', function(n) { return n.ifs; }
+    'target', function (n) { return n.target; },
+    'iter', function (n) { return n.iter; },
+    'ifs', function (n) { return n.ifs; }
 ];
 ExceptHandler.prototype['_astname'] = 'ExceptHandler';
 ExceptHandler.prototype['_fields'] = [
-    'type', function(n) { return n.type; },
-    'name', function(n) { return n.name; },
-    'body', function(n) { return n.body; }
+    'type', function (n) { return n.type; },
+    'name', function (n) { return n.name; },
+    'body', function (n) { return n.body; }
 ];
 Arguments.prototype['_astname'] = 'Arguments';
 Arguments.prototype['_fields'] = [
-    'args', function(n) { return n.args; },
-    'vararg', function(n) { return n.vararg; },
-    'kwarg', function(n) { return n.kwarg; },
-    'defaults', function(n) { return n.defaults; }
+    'args', function (n) { return n.args; },
+    'vararg', function (n) { return n.vararg; },
+    'kwarg', function (n) { return n.kwarg; },
+    'defaults', function (n) { return n.defaults; }
 ];
 Keyword.prototype['_astname'] = 'Keyword';
 Keyword.prototype['_fields'] = [
-    'arg', function(n) { return n.arg; },
-    'value', function(n) { return n.value; }
+    'arg', function (n) { return n.arg; },
+    'value', function (n) { return n.value; }
 ];
 Alias.prototype['_astname'] = 'Alias';
 Alias.prototype['_fields'] = [
-    'name', function(n) { return n.name; },
-    'asname', function(n) { return n.asname; }
+    'name', function (n) { return n.name; },
+    'asname', function (n) { return n.asname; }
 ];

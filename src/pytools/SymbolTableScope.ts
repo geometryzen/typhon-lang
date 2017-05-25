@@ -1,13 +1,13 @@
-import {assert} from './asserts';
+import { assert } from './asserts';
 import Symbol from './Symbol';
-import {DEF_PARAM} from './SymbolConstants';
-import {DEF_BOUND} from './SymbolConstants';
-import {FREE} from './SymbolConstants';
-import {FunctionBlock} from './SymbolConstants';
-import {GLOBAL_EXPLICIT} from './SymbolConstants';
-import {GLOBAL_IMPLICIT} from './SymbolConstants';
-import {SCOPE_MASK} from './SymbolConstants';
-import {SCOPE_OFF} from './SymbolConstants';
+import { DEF_PARAM } from './SymbolConstants';
+import { DEF_BOUND } from './SymbolConstants';
+import { FREE } from './SymbolConstants';
+import { FunctionBlock } from './SymbolConstants';
+import { GLOBAL_EXPLICIT } from './SymbolConstants';
+import { GLOBAL_IMPLICIT } from './SymbolConstants';
+import { SCOPE_MASK } from './SymbolConstants';
+import { SCOPE_OFF } from './SymbolConstants';
 
 let astScopeCounter = 0;
 
@@ -75,7 +75,7 @@ export default class SymbolTableScope {
     get_lineno() { return this.lineno; }
     is_nested() { return this.isNested; }
     has_children() { return this.children.length > 0; }
-    get_identifiers() { return this._identsMatching(function(x) { return true; }); }
+    get_identifiers() { return this._identsMatching(function (x) { return true; }); }
 
     lookup(name: string) {
         var sym;
@@ -116,21 +116,21 @@ export default class SymbolTableScope {
     get_parameters() {
         assert(this.get_type() === 'function', "get_parameters only valid for function scopes");
         if (!this._funcParams)
-            this._funcParams = this._identsMatching(function(x) { return !!(x & DEF_PARAM); });
+            this._funcParams = this._identsMatching(function (x) { return !!(x & DEF_PARAM); });
         return this._funcParams;
     }
 
     get_locals() {
         assert(this.get_type() === 'function', "get_locals only valid for function scopes");
         if (!this._funcLocals)
-            this._funcLocals = this._identsMatching(function(x) { return !!(x & DEF_BOUND); });
+            this._funcLocals = this._identsMatching(function (x) { return !!(x & DEF_BOUND); });
         return this._funcLocals;
     }
 
     get_globals() {
         assert(this.get_type() === 'function', "get_globals only valid for function scopes");
         if (!this._funcGlobals) {
-            this._funcGlobals = this._identsMatching(function(x) {
+            this._funcGlobals = this._identsMatching(function (x) {
                 const masked = (x >> SCOPE_OFF) & SCOPE_MASK;
                 return masked === GLOBAL_IMPLICIT || masked === GLOBAL_EXPLICIT;
             });
@@ -141,7 +141,7 @@ export default class SymbolTableScope {
     get_frees() {
         assert(this.get_type() === 'function', "get_frees only valid for function scopes");
         if (!this._funcFrees) {
-            this._funcFrees = this._identsMatching(function(x) {
+            this._funcFrees = this._identsMatching(function (x) {
                 var masked = (x >> SCOPE_OFF) & SCOPE_MASK;
                 return masked === FREE;
             });

@@ -1,7 +1,7 @@
-import {assert, fail} from './asserts';
-import {isArray, isDef, isString} from './base';
+import { assert } from './asserts';
+import { isArray, isDef, isString } from './base';
 import TokenError from './TokenError';
-import Tokens from './Tokens';
+import { Tokens } from './Tokens';
 
 /* we have to use string and ctor to be able to build patterns up. + on /.../
     * does something strange. */
@@ -37,18 +37,18 @@ const Triple = group("[ubUB]?[rR]?'''", '[ubUB]?[rR]?"""');
 // longest operators first (e.g., if = came before ==, == would get
 // recognized as two instances of =).
 const Operator = group("\\*\\*=?", ">>=?", "<<=?", "<>", "!=",
-                    "//=?", "->",
-                    "[+\\-*/%&|^=<>]=?",
-                    "~");
+    "//=?", "->",
+    "[+\\-*/%&|^=<>]=?",
+    "~");
 
 const Bracket = '[\\][(){}]';
 const Special = group('\\r?\\n', '[:;.,`@]');
-const Funny  = group(Operator, Bracket, Special);
+const Funny = group(Operator, Bracket, Special);
 
 const ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
-                group("'", '\\\\\\r?\\n'),
-                '[uUbB]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*' +
-                group('"', '\\\\\\r?\\n'));
+    group("'", '\\\\\\r?\\n'),
+    '[uUbB]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*' +
+    group('"', '\\\\\\r?\\n'));
 const PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
 // Need to prefix with "^" as we only want to match what's next
 const PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
@@ -59,28 +59,30 @@ const PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
 // const endprogs = {};
 
 const triple_quoted = {
-"'''": true, '"""': true,
-"r'''": true, 'r"""': true, "R'''": true, 'R"""': true,
-"u'''": true, 'u"""': true, "U'''": true, 'U"""': true,
-"b'''": true, 'b"""': true, "B'''": true, 'B"""': true,
-"ur'''": true, 'ur"""': true, "Ur'''": true, 'Ur"""': true,
-"uR'''": true, 'uR"""': true, "UR'''": true, 'UR"""': true,
-"br'''": true, 'br"""': true, "Br'''": true, 'Br"""': true,
-"bR'''": true, 'bR"""': true, "BR'''": true, 'BR"""': true
+    "'''": true, '"""': true,
+    "r'''": true, 'r"""': true, "R'''": true, 'R"""': true,
+    "u'''": true, 'u"""': true, "U'''": true, 'U"""': true,
+    "b'''": true, 'b"""': true, "B'''": true, 'B"""': true,
+    "ur'''": true, 'ur"""': true, "Ur'''": true, 'Ur"""': true,
+    "uR'''": true, 'uR"""': true, "UR'''": true, 'UR"""': true,
+    "br'''": true, 'br"""': true, "Br'''": true, 'Br"""': true,
+    "bR'''": true, 'bR"""': true, "BR'''": true, 'BR"""': true
 };
 
 const single_quoted = {
-"'": true, '"': true,
-"r'": true, 'r"': true, "R'": true, 'R"': true,
-"u'": true, 'u"': true, "U'": true, 'U"': true,
-"b'": true, 'b"': true, "B'": true, 'B"': true,
-"ur'": true, 'ur"': true, "Ur'": true, 'Ur"': true,
-"uR'": true, 'uR"': true, "UR'": true, 'UR"': true,
-"br'": true, 'br"': true, "Br'": true, 'Br"': true,
-"bR'": true, 'bR"': true, "BR'": true, 'BR"': true
+    "'": true, '"': true,
+    "r'": true, 'r"': true, "R'": true, 'R"': true,
+    "u'": true, 'u"': true, "U'": true, 'U"': true,
+    "b'": true, 'b"': true, "B'": true, 'B"': true,
+    "ur'": true, 'ur"': true, "Ur'": true, 'Ur"': true,
+    "uR'": true, 'uR"': true, "UR'": true, 'UR"': true,
+    "br'": true, 'br"': true, "Br'": true, 'Br"': true,
+    "bR'": true, 'bR"': true, "BR'": true, 'BR"': true
 };
 
 const tabsize = 8;
+
+export type TokenizerCallback = (token: Tokens, text: string, start: number[], end: number[], line: string) => boolean | undefined;
 
 /**
  * This is a port of tokenize.py by Ka-Ping Yee.
@@ -97,10 +99,9 @@ const tabsize = 8;
  *
  * callback can return true to abort.
  */
-// TODO: Make this the default export and rename the file.
-export default class Tokenizer {
+export class Tokenizer {
     fileName: string;
-    callback: any;
+    callback: TokenizerCallback;
     lnum: number;
     parenlev: number;
     continued: boolean;
@@ -112,7 +113,7 @@ export default class Tokenizer {
     indents: number[];
     endprog: RegExp;
     strstart: number[];
-    interactive: any;
+    interactive: boolean;
     doneFunc: () => any;
     /**
      * Not sure who needs this yet.
@@ -123,7 +124,7 @@ export default class Tokenizer {
      * @constructor
      * @param {string} fileName
      */
-    constructor(fileName: string, interactive, callback) {
+    constructor(fileName: string, interactive: boolean, callback: TokenizerCallback) {
         assert(isString(fileName), "fileName must be a string");
         this.fileName = fileName;
         this.callback = callback;
@@ -137,9 +138,9 @@ export default class Tokenizer {
         this.contline = undefined;
         this.indents = [0];
         this.endprog = /.*/;
-        this.strstart = [-1,-1];
+        this.strstart = [-1, -1];
         this.interactive = interactive;
-        this.doneFunc = function() {
+        this.doneFunc = function () {
             for (var i = 1; i < this.indents.length; ++i) {
                 if (this.callback(Tokens.T_DEDENT, '', [this.lnum, 0], [this.lnum, 0], '')) return 'done';
             }
@@ -166,25 +167,26 @@ export default class Tokenizer {
         var single3prog = new RegExp(Single3, "g");
         var double3prog = new RegExp(Double3, "g");
 
-        var endprogs = {     "'": new RegExp(Single, "g"), '"': new RegExp(Double_, "g"),
-        "'''": single3prog, '"""': double3prog,
-        "r'''": single3prog, 'r"""': double3prog,
-        "u'''": single3prog, 'u"""': double3prog,
-        "b'''": single3prog, 'b"""': double3prog,
-        "ur'''": single3prog, 'ur"""': double3prog,
-        "br'''": single3prog, 'br"""': double3prog,
-        "R'''": single3prog, 'R"""': double3prog,
-        "U'''": single3prog, 'U"""': double3prog,
-        "B'''": single3prog, 'B"""': double3prog,
-        "uR'''": single3prog, 'uR"""': double3prog,
-        "Ur'''": single3prog, 'Ur"""': double3prog,
-        "UR'''": single3prog, 'UR"""': double3prog,
-        "bR'''": single3prog, 'bR"""': double3prog,
-        "Br'''": single3prog, 'Br"""': double3prog,
-        "BR'''": single3prog, 'BR"""': double3prog,
-        'r': null, 'R': null,
-        'u': null, 'U': null,
-        'b': null, 'B': null
+        var endprogs = {
+            "'": new RegExp(Single, "g"), '"': new RegExp(Double_, "g"),
+            "'''": single3prog, '"""': double3prog,
+            "r'''": single3prog, 'r"""': double3prog,
+            "u'''": single3prog, 'u"""': double3prog,
+            "b'''": single3prog, 'b"""': double3prog,
+            "ur'''": single3prog, 'ur"""': double3prog,
+            "br'''": single3prog, 'br"""': double3prog,
+            "R'''": single3prog, 'R"""': double3prog,
+            "U'''": single3prog, 'U"""': double3prog,
+            "B'''": single3prog, 'B"""': double3prog,
+            "uR'''": single3prog, 'uR"""': double3prog,
+            "Ur'''": single3prog, 'Ur"""': double3prog,
+            "UR'''": single3prog, 'UR"""': double3prog,
+            "bR'''": single3prog, 'bR"""': double3prog,
+            "Br'''": single3prog, 'Br"""': double3prog,
+            "BR'''": single3prog, 'BR"""': double3prog,
+            'r': null, 'R': null,
+            'u': null, 'U': null,
+            'b': null, 'B': null
         };
 
         if (!line) line = '';
@@ -201,8 +203,8 @@ export default class Tokenizer {
             endmatch = this.endprog.test(line);
             if (endmatch) {
                 pos = end = this.endprog.lastIndex;
-                if (this.callback(Tokens.T_STRING, this.contstr + line.substring(0,end),
-                            this.strstart, [this.lnum, end], this.contline + line))
+                if (this.callback(Tokens.T_STRING, this.contstr + line.substring(0, end),
+                    this.strstart, [this.lnum, end], this.contline + line))
                     return 'done';
                 this.contstr = '';
                 this.needcont = false;
@@ -210,7 +212,7 @@ export default class Tokenizer {
             }
             else if (this.needcont && line.substring(line.length - 2) !== "\\\n" && line.substring(line.length - 3) !== "\\\r\n") {
                 if (this.callback(Tokens.T_ERRORTOKEN, this.contstr + line,
-                            this.strstart, [this.lnum, line.length], this.contline)) {
+                    this.strstart, [this.lnum, line.length], this.contline)) {
                     return 'done';
                 }
                 this.contstr = '';
@@ -239,17 +241,17 @@ export default class Tokenizer {
                 if (line.charAt(pos) === '#') {
                     var comment_token = rstrip(line.substring(pos), '\r\n');
                     var nl_pos = pos + comment_token.length;
-                    if (this.callback(Tokens.T_COMMENT, comment_token,
-                                [this.lnum, pos], [this.lnum, pos + comment_token.length], line))
+                    if (this.callback(Tokens.T_COMMENT, comment_token, [this.lnum, pos], [this.lnum, pos + comment_token.length], line)) {
                         return 'done';
-                    if (this.callback(Tokens.T_NL, line.substring(nl_pos),
-                                [this.lnum, nl_pos], [this.lnum, line.length], line))
+                    }
+                    if (this.callback(Tokens.T_NL, line.substring(nl_pos), [this.lnum, nl_pos], [this.lnum, line.length], line)) {
                         return 'done';
+                    }
                     return false;
                 }
                 else {
                     if (this.callback(Tokens.T_NL, line.substring(pos),
-                                [this.lnum, pos], [this.lnum, line.length], line))
+                        [this.lnum, pos], [this.lnum, line.length], line))
                         return 'done';
                     if (!this.interactive) return false;
                 }
@@ -324,8 +326,8 @@ export default class Tokenizer {
                     }
                 }
                 else if (single_quoted.hasOwnProperty(initial) ||
-                        single_quoted.hasOwnProperty(token.substring(0, 2)) ||
-                        single_quoted.hasOwnProperty(token.substring(0, 3))) {
+                    single_quoted.hasOwnProperty(token.substring(0, 2)) ||
+                    single_quoted.hasOwnProperty(token.substring(0, 3))) {
                     if (token[token.length - 1] === '\n') {
                         this.strstart = [this.lnum, start];
                         this.endprog = endprogs[initial] || endprogs[token[1]] || endprogs[token[2]];
@@ -353,7 +355,7 @@ export default class Tokenizer {
             }
             else {
                 if (this.callback(Tokens.T_ERRORTOKEN, line.charAt(pos),
-                            [this.lnum, pos], [this.lnum, pos + 1], line))
+                    [this.lnum, pos], [this.lnum, pos + 1], line))
                     return 'done';
                 pos += 1;
             }
@@ -401,16 +403,16 @@ function rstrip(input: string, what: string): string {
  */
 function indentationError(message: string, fileName: string, begin: number[], end: number[], text: string) {
     if (!isArray(begin)) {
-        fail("begin must be Array.<number>");
+        throw new Error("begin must be Array.<number>");
     }
     if (!isArray(end)) {
-        fail("end must be Array.<number>");
+        throw new Error("end must be Array.<number>");
     }
     var e = new SyntaxError(message/*, fileName*/);
     e.name = "IndentationError";
     e['fileName'] = fileName;
     if (isDef(begin)) {
-        e['lineNumber']   = begin[0];
+        e['lineNumber'] = begin[0];
         e['columnNumber'] = begin[1];
     }
     return e;

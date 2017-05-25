@@ -26,15 +26,8 @@ try:
 except:
     GIT_MODULE_AVAILABLE = False
 
-def bowerFileName():
-    file = open(".bowerrc")
-    data = json.load(file)
-    fileName = data["json"]
-    file.close()
-    return fileName
-
-def bowerProperty(name):
-    file = open(bowerFileName())
+def packageProperty(name):
+    file = open('package.json')
     data = json.load(file)
     value = data[name]
     file.close()
@@ -45,7 +38,7 @@ DIST_DIR        = 'dist'
 TEST_DIR        = 'test'
 
 # Symbolic constants for the naming of distribution files.
-PRODUCT_NAME    = bowerProperty("name")
+PRODUCT_NAME    = packageProperty("name")
 OUTFILE_REG     = "{0}.js".format(PRODUCT_NAME)
 OUTFILE_MIN     = "{0}.min.js".format(PRODUCT_NAME)
 OUTFILE_LIB     = "{0}-stdlib.js".format(PRODUCT_NAME)
@@ -171,11 +164,11 @@ Options:
     -q, --quiet        Only output important information.
     -s, --silent       Do not output anything, besides errors.
     -v, --verbose      Make output more verbose [default].
-    --version          Returns the version string in Bower configuration file.
+    --version          Returns the version string in package.json file.
 '''.format(program=program)
 
 def main():
-    parser = OptionParser(usageString("%prog"), version="%prog {0}".format(bowerProperty("version")))
+    parser = OptionParser(usageString("%prog"), version="%prog {0}".format(packageProperty("version")))
     parser.add_option("-q", "--quiet",        action="store_false", dest="verbose")
     parser.add_option("-s", "--silent",       action="store_true",  dest="silent",       default=False)
     parser.add_option("-v", "--verbose",
