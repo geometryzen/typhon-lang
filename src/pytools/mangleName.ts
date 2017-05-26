@@ -3,7 +3,7 @@
  * @param {string} name
  */
 export function mangleName(priv: string, name: string): string {
-    var strpriv: string = null;
+    let strpriv: string | null = null;
 
     if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_')
         return name;

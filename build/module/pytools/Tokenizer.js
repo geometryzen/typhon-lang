@@ -118,7 +118,11 @@ var Tokenizer = (function () {
      * @return {boolean | string} 'done' or true?
      */
     Tokenizer.prototype.generateTokens = function (line) {
-        var endmatch, pos, column, end, max;
+        var endmatch;
+        var pos;
+        var column;
+        var end;
+        var max;
         // bnm - Move these definitions in this function otherwise test state is preserved between
         // calls on single3prog and double3prog causing weird errors with having multiple instances
         // of triple quoted strings in the same program.

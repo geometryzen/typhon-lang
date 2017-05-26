@@ -12,6 +12,7 @@ export declare const DEF_IMPORT: number;
 export declare const DEF_BOUND: number;
 export declare const SCOPE_OFF = 11;
 export declare const SCOPE_MASK = 7;
+export declare type DictionaryKind = 1 | 2 | 3 | 4;
 export declare const LOCAL = 1;
 export declare const GLOBAL_EXPLICIT = 2;
 export declare const GLOBAL_IMPLICIT = 3;

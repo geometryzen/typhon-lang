@@ -156,7 +156,11 @@ export class Tokenizer {
      * @return {boolean | string} 'done' or true?
      */
     generateTokens(line: string): boolean | string {
-        var endmatch, pos, column, end, max;
+        var endmatch;
+        let pos: number;
+        let column: number;
+        let end;
+        let max;
 
 
         // bnm - Move these definitions in this function otherwise test state is preserved between
@@ -167,7 +171,7 @@ export class Tokenizer {
         var single3prog = new RegExp(Single3, "g");
         var double3prog = new RegExp(Double3, "g");
 
-        var endprogs = {
+        var endprogs: { [code: string]: RegExp } = {
             "'": new RegExp(Single, "g"), '"': new RegExp(Double_, "g"),
             "'''": single3prog, '"""': double3prog,
             "r'''": single3prog, 'r"""': double3prog,
@@ -366,7 +370,7 @@ export class Tokenizer {
 }
 
 /** @param {...*} x */
-function group(x, arg1?: string, arg2?: string, arg3?: string, arg4?: string, arg5?: string, arg6?: string, arg7?: string, arg8?: string, arg9?: string) {
+function group(x: string, arg1?: string, arg2?: string, arg3?: string, arg4?: string, arg5?: string, arg6?: string, arg7?: string, arg8?: string, arg9?: string) {
     var args = Array.prototype.slice.call(arguments);
     return '(' + args.join('|') + ')';
 }
@@ -375,9 +379,9 @@ function group(x, arg1?: string, arg2?: string, arg3?: string, arg4?: string, ar
 // function any(x) { return group.apply(null, arguments) + "*"; }
 
 /** @param {...*} x */
-function maybe(x) { return group.apply(null, arguments) + "?"; }
+function maybe(x: string) { return group.apply(null, arguments) + "?"; }
 
-function contains(a, obj) {
+function contains<T>(a: T[], obj: T): boolean {
     var i = a.length;
     while (i--) {
         if (a[i] === obj) {

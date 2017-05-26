@@ -11,21 +11,20 @@ import { SCOPE_OFF } from './SymbolConstants';
 var astScopeCounter = 0;
 var SymbolTableScope = (function () {
     /**
-     * @constructor
-     * @param {Object} table
-     * @param {string} name
-     * @param {string} type
-     * @param {number} lineno
+     * @param table
+     * @param name
+     * @param type
+     * @param lineno
      */
-    function SymbolTableScope(table, name, type, ast, lineno) {
+    function SymbolTableScope(table, name, blockType, ast, lineno) {
         this.symFlags = {};
         this.name = name;
         this.varnames = [];
         /**
-         * @type Array.<SymbolTableScope>
+         *
          */
         this.children = [];
-        this.blockType = type;
+        this.blockType = blockType;
         this.isNested = false;
         this.hasFree = false;
         this.childHasFree = false; // true if child block has free vars including free refs to globals
@@ -35,7 +34,7 @@ var SymbolTableScope = (function () {
         this.returnsValue = false;
         this.lineno = lineno;
         this.table = table;
-        if (table.cur && (table.cur.nested || table.cur.blockType === FunctionBlock))
+        if (table.cur && (table.cur.isNested || table.cur.blockType === FunctionBlock))
             this.isNested = true;
         ast.scopeId = astScopeCounter++;
         table.stss[ast.scopeId] = this;

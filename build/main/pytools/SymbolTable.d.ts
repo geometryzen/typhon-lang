@@ -1,16 +1,33 @@
-import { SymbolTableScope } from './SymbolTableScope';
+import { BlockType, SymbolTableScope } from './SymbolTableScope';
+import { Alias } from './types';
+import { Arguments } from './types';
+import { Comprehension } from './types';
+import { Ellipsis } from './types';
+import { ExceptHandler } from './types';
+import { Expression } from './types';
+import { ExtSlice } from './types';
+import { GeneratorExp } from './types';
+import { Index } from './types';
+import { Name } from './types';
+import { Slice } from './types';
+import { Statement } from './types';
+import { DictionaryKind } from './SymbolConstants';
 /**
  * The symbol table uses the abstract synntax tree (not the parse tree).
  */
 export declare class SymbolTable {
     fileName: string;
-    cur: any;
-    top: any;
-    stack: any;
-    global: any;
+    cur: SymbolTableScope;
+    top: SymbolTableScope;
+    stack: SymbolTableScope[];
+    global: {
+        [name: string]: number;
+    };
     curClass: string;
     tmpname: number;
-    stss: any;
+    stss: {
+        [scopeId: number]: SymbolTableScope;
+    };
     /**
      * @param fileName
      */
@@ -18,13 +35,17 @@ export declare class SymbolTable {
     /**
      * Lookup the SymbolTableScope for a scopeId of the AST.
      */
-    getStsForAst(ast: any): any;
-    SEQStmt(nodes: any): void;
-    SEQExpr(nodes: any): void;
-    enterBlock(name: any, blockType: any, ast: any, lineno: any): void;
+    getStsForAst(ast: {
+        scopeId: number;
+    }): SymbolTableScope;
+    SEQStmt(nodes: Statement[]): void;
+    SEQExpr(nodes: Expression[]): void;
+    enterBlock(name: string, blockType: BlockType, ast: {
+        scopeId: number;
+    }, lineno: number): void;
     exitBlock(): void;
-    visitParams(args: any, toplevel: any): void;
-    visitArguments(a: any, lineno: number): void;
+    visitParams(args: Name[], toplevel: boolean): void;
+    visitArguments(a: Arguments, lineno: number): void;
     /**
      * @param {number} lineno
      * @return {void}
@@ -37,29 +58,29 @@ export declare class SymbolTable {
      * @return {void}
      */
     addDef(name: string, flag: number, lineno: number): void;
-    visitSlice(s: any): void;
+    visitSlice(s: Slice | ExtSlice | Index | Ellipsis): void;
     /**
      * @param {Object} s
      */
-    visitStmt(s: any): void;
-    visitExpr(e: any): void;
-    visitComprehension(lcs: any, startAt: any): void;
+    visitStmt(s: Statement): void;
+    visitExpr(e: Expression): void;
+    visitComprehension(lcs: Comprehension[], startAt: number): void;
     /**
      * This is probably not correct for names. What are they?
      * @param {Array.<Object>} names
      * @param {number} lineno
      */
-    visitAlias(names: any, lineno: any): void;
+    visitAlias(names: Alias[], lineno: number): void;
     /**
-     * @param {Object} e
+     *
      */
-    visitGenexp(e: any): void;
-    visitExcepthandlers(handlers: any): void;
+    visitGenexp(e: GeneratorExp): void;
+    visitExcepthandlers(handlers: ExceptHandler[]): void;
     /**
-     * @param {SymbolTableScope} ste The Symbol Table Scope.
+     * @param ste The Symbol Table Scope.
      */
-    analyzeBlock(ste: SymbolTableScope, bound: any, free: any, global: any): void;
-    analyzeChildBlock(entry: any, bound: any, free: any, global: any, childFree: any): void;
+    analyzeBlock(ste: SymbolTableScope, bound: {}, free: {}, global: {}): void;
+    analyzeChildBlock(entry: SymbolTableScope, bound: {}, free: {}, global: {}, childFree: {}): void;
     analyzeCells(scope: {
         [name: string]: number;
     }, free: {
@@ -73,11 +94,13 @@ export declare class SymbolTable {
         [name: string]: number;
     }, scope: {
         [name: string]: number;
-    }, bound: any, free: any, classflag: any): void;
+    }, bound: {}, free: {}, classflag: boolean): void;
     /**
      * @param {Object} ste The Symbol Table Scope.
      * @param {string} name
      */
-    analyzeName(ste: any, dict: any, name: any, flags: any, bound: any, local: any, free: any, global: any): void;
+    analyzeName(ste: SymbolTableScope, dict: {
+        [name: string]: DictionaryKind;
+    }, name: string, flags: number, bound: {}, local: {}, free: {}, global: {}): void;
     analyze(): void;
 }

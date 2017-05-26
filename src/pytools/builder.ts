@@ -67,6 +67,7 @@ import { Not } from './types';
 import { NotEq } from './types';
 import { NotIn } from './types';
 import { Num } from './types';
+import { Operator } from './types';
 import { Or } from './types';
 import { Param } from './types';
 import { Pass } from './types';
@@ -119,7 +120,7 @@ const LONG_THRESHOLD = Math.pow(2, 53);
  * @param fileName
  * @param lineNumber
  */
-function syntaxError(message: string, fileName: string, lineNumber: number): SyntaxError {
+function syntaxError(message: string, fileName: string, lineNumber?: number): SyntaxError {
     assert(isString(message), "message must be a string");
     assert(isString(fileName), "fileName must be a string");
     assert(isNumber(lineNumber), "lineNumber must be a number");
@@ -154,7 +155,12 @@ function NCH(n: PyNode): number {
 function CHILD(n: PyNode, i: number): PyNode {
     assert(n !== undefined);
     assert(i !== undefined);
-    return n.children[i];
+    if (n.children) {
+        return n.children[i];
+    }
+    else {
+        throw new Error("node does not have any children");
+    }
 }
 
 function REQ(n: PyNode, type: TOK): void {
@@ -163,7 +169,7 @@ function REQ(n: PyNode, type: TOK): void {
 
 function strobj(s: string): string {
     assert(typeof s === "string", "expecting string, got " + (typeof s));
-    // This previuosly constructed the runtime representation.
+    // This previously constructed the runtime representation.
     // That may have had an string intern side effect?
     return s;
 }
@@ -206,7 +212,7 @@ function numStmts(n: PyNode): number {
     }
 }
 
-function forbiddenCheck(c: Compiling, n: PyNode, x: string, lineno: number): void {
+function forbiddenCheck(c: Compiling, n: PyNode, x?: string, lineno?: number): void {
     if (x === "None") throw syntaxError("assignment to None", c.c_filename, lineno);
     if (x === "True" || x === "False") throw syntaxError("assignment to True or False is forbidden", c.c_filename, lineno);
 }
@@ -217,64 +223,74 @@ function forbiddenCheck(c: Compiling, n: PyNode, x: string, lineno: number): voi
  * Only sets context for expr kinds that can appear in assignment context as
  * per the asdl file.
  */
-function setContext(c: Compiling, e, ctx, n: PyNode): void {
+function setContext(c: Compiling, e: Expression, ctx: Store, n: PyNode): void {
     assert(ctx !== AugStore && ctx !== AugLoad);
     var s = null;
     var exprName = null;
 
-    switch (e.constructor) {
-        case Attribute:
-        case Name:
-            if (ctx === Store) forbiddenCheck(c, n, e.attr, n.lineno);
-            e.ctx = ctx;
-            break;
-        case Subscript:
-            e.ctx = ctx;
-            break;
-        case List:
-            e.ctx = ctx;
-            s = e.elts;
-            break;
-        case Tuple:
-            if (e.elts.length === 0)
-                throw syntaxError("can't assign to ()", c.c_filename, n.lineno);
-            e.ctx = ctx;
-            s = e.elts;
-            break;
-        case Lambda:
-            exprName = "lambda";
-            break;
-        case Call:
-            exprName = "function call";
-            break;
-        case BoolOp:
-        case BinOp:
-        case UnaryOp:
-            exprName = "operator";
-            break;
-        case GeneratorExp:
-            exprName = "generator expression";
-            break;
-        case Yield:
-            exprName = "yield expression";
-            break;
-        case ListComp:
-            exprName = "list comprehension";
-            break;
-        case Dict:
-        case Num:
-        case Str:
-            exprName = "literal";
-            break;
-        case Compare:
-            exprName = "comparison expression";
-            break;
-        case IfExp:
-            exprName = "conditional expression";
-            break;
-        default: {
-            throw new Error("unhandled expression in assignment");
+    if (e instanceof Attribute) {
+        if (ctx === Store) forbiddenCheck(c, n, e.attr, n.lineno);
+        e.ctx = ctx;
+    }
+    else if (e instanceof Name) {
+        if (ctx === Store) forbiddenCheck(c, n, /*e.attr*/void 0, n.lineno);
+        e.ctx = ctx;
+    }
+    else if (e instanceof Subscript) {
+        e.ctx = ctx;
+    }
+    else if (e instanceof List) {
+        e.ctx = ctx;
+        s = e.elts;
+    }
+    else if (e instanceof Tuple) {
+        if (e.elts.length === 0) {
+            throw syntaxError("can't assign to ()", c.c_filename, n.lineno);
         }
+        e.ctx = ctx;
+        s = e.elts;
+    }
+    else if (e instanceof Lambda) {
+        exprName = "lambda";
+    }
+    else if (e instanceof Call) {
+        exprName = "function call";
+    }
+    else if (e instanceof BoolOp) {
+        exprName = "operator";
+    }
+    else {
+        switch (e.constructor) {
+            case BoolOp:
+            case BinOp:
+            case UnaryOp:
+                exprName = "operator";
+                break;
+            case GeneratorExp:
+                exprName = "generator expression";
+                break;
+            case Yield:
+                exprName = "yield expression";
+                break;
+            case ListComp:
+                exprName = "list comprehension";
+                break;
+            case Dict:
+            case Num:
+            case Str:
+                exprName = "literal";
+                break;
+            case Compare:
+                exprName = "comparison expression";
+                break;
+            case IfExp:
+                exprName = "conditional expression";
+                break;
+            default: {
+                throw new Error("unhandled expression in assignment");
+            }
+        }
+
     }
     if (exprName) {
         throw syntaxError("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, c.c_filename, n.lineno);
@@ -287,7 +303,7 @@ function setContext(c: Compiling, e, ctx, n: PyNode): void {
     }
 }
 
-const operatorMap = {};
+const operatorMap: { [token: number]: Operator } = {};
 (function () {
     operatorMap[TOK.T_VBAR] = BitOr;
     operatorMap[TOK.T_VBAR] = BitOr;
@@ -303,7 +319,7 @@ const operatorMap = {};
     operatorMap[TOK.T_PERCENT] = Mod;
 }());
 
-function getOperator(n: PyNode) {
+function getOperator(n: PyNode): Operator {
     assert(operatorMap[n.type] !== undefined);
     return operatorMap[n.type];
 }
@@ -416,7 +432,7 @@ function astForTryStmt(c: Compiling, n: PyNode): TryExcept | TryFinally {
     const nc = NCH(n);
     let nexcept = (nc - 3) / 3;
     let orelse: Statement[] = [];
-    var finally_: Statement[] = null;
+    var finally_: Statement[] | null = null;
 
     REQ(n, SYM.try_stmt);
     let body = astForSuite(c, CHILD(n, 2));
@@ -459,7 +475,7 @@ function astForTryStmt(c: Compiling, n: PyNode): TryExcept | TryFinally {
     }
 
     assert(finally_ !== null);
-    return new TryFinally(body, finally_, n.lineno, n.col_offset);
+    return new TryFinally(body, finally_ as Statement[], n.lineno, n.col_offset);
 }
 
 
@@ -467,10 +483,10 @@ function astForDottedName(c: Compiling, n: PyNode): Attribute | Name {
     REQ(n, SYM.dotted_name);
     var lineno = n.lineno;
     var col_offset = n.col_offset;
-    var id = strobj(CHILD(n, 0).value);
+    var id = strobj(CHILD(n, 0).value as string);
     var e: Attribute | Name = new Name(id, Load, lineno, col_offset);
     for (var i = 2; i < NCH(n); i += 2) {
-        id = strobj(CHILD(n, i).value);
+        id = strobj(CHILD(n, i).value as string);
         e = new Attribute(e, id, Load, lineno, col_offset);
     }
     return e;
@@ -504,18 +520,21 @@ function astForDecorated(c: Compiling, n: PyNode): FunctionDef | ClassDef {
     const decoratorSeq = astForDecorators(c, CHILD(n, 0));
     assert(CHILD(n, 1).type === SYM.funcdef || CHILD(n, 1).type === SYM.classdef);
 
-    let thing: FunctionDef | ClassDef = null;
+    let thing: FunctionDef | ClassDef | null = null;
     if (CHILD(n, 1).type === SYM.funcdef) {
         thing = astForFuncdef(c, CHILD(n, 1), decoratorSeq);
     }
     else if (CHILD(n, 1).type === SYM.classdef) {
         thing = astForClassdef(c, CHILD(n, 1), decoratorSeq);
     }
+    else {
+        throw new Error("astForDecorated");
+    }
     if (thing) {
         thing.lineno = n.lineno;
         thing.col_offset = n.col_offset;
     }
-    return thing;
+    return thing as (FunctionDef | ClassDef);
 }
 
 function astForWithVar(c: Compiling, n: PyNode): Expression {
@@ -528,7 +547,7 @@ function astForWithStmt(c: Compiling, n: PyNode): WithStatement {
     let suiteIndex = 3; // skip with, test, :
     assert(n.type === SYM.with_stmt);
     const contextExpr = astForExpr(c, CHILD(n, 1));
-    let optionalVars: Expression;
+    let optionalVars: Expression | undefined;
     if (CHILD(n, 2).type === SYM.with_var) {
         optionalVars = astForWithVar(c, CHILD(n, 2));
         setContext(c, optionalVars, Store, n);
@@ -538,8 +557,8 @@ function astForWithStmt(c: Compiling, n: PyNode): WithStatement {
 }
 
 function astForExecStmt(c: Compiling, n: PyNode): Exec {
-    let globals: Expression = null;
-    let locals: Expression = null;
+    let globals: Expression | null = null;
+    let locals: Expression | null = null;
     const nchildren = NCH(n);
     assert(nchildren === 2 || nchildren === 4 || nchildren === 6);
 
@@ -1322,11 +1341,7 @@ function astForBinop(c: Compiling, n: PyNode): BinOp {
         How should A op B op C by represented?
         BinOp(BinOp(A, op, B), op, C).
     */
-    var result = new BinOp(
-        astForExpr(c, CHILD(n, 0)),
-        getOperator(CHILD(n, 1)),
-        astForExpr(c, CHILD(n, 2)),
-        n.lineno, n.col_offset);
+    let result = new BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.lineno, n.col_offset);
     var nops = (NCH(n) - 1) / 2;
     for (var i = 1; i < nops; ++i) {
         var nextOper = CHILD(n, i * 2 + 1);
@@ -1654,7 +1669,7 @@ function astForSlice(c: Compiling, n: PyNode): Ellipsis | Index | Name | Slice {
     return new Slice(lower, upper, step);
 }
 
-function astForAtomExpr(c: Compiling, n: PyNode): Expression {
+function astForAtomExpr(c: Compiling, n: PyNode): Name | Expression {
     let ch = CHILD(n, 0);
     switch (ch.type) {
         case TOK.T_NAME:
@@ -1704,9 +1719,9 @@ function astForAtomExpr(c: Compiling, n: PyNode): Expression {
     }
 }
 
-function astForPowerExpr(c: Compiling, n: PyNode): Expression {
+function astForPowerExpr(c: Compiling, n: PyNode): Name | Expression {
     REQ(n, SYM.PowerExpr);
-    let e: Expression = astForAtomExpr(c, CHILD(n, 0));
+    let e: Name | Expression = astForAtomExpr(c, CHILD(n, 0));
     if (NCH(n) === 1) return e;
     for (let i = 1; i < NCH(n); ++i) {
         const ch = CHILD(n, i);
@@ -1907,7 +1922,7 @@ export function astFromParse(n: PyNode, filename: string): Module {
 }
 
 export function astDump(node: Module): string {
-    var _format = function (node) {
+    var _format = function (node: any): string {
         if (node === null) {
             return "None";
         }

@@ -18,7 +18,7 @@ export function floatAST(s: string): INumericLiteral {
 /**
  * @param n
  */
-export function intAST(n: number) {
+export function intAST(n: number): INumericLiteral {
     const thing: INumericLiteral = {
         value: n,
         isFloat: function () { return false; },
@@ -32,7 +32,7 @@ export function intAST(n: number) {
 /**
  * @param {string} s
  */
-export function longAST(s: string, radix) {
+export function longAST(s: string, radix: number): INumericLiteral {
     const thing: INumericLiteral = {
         text: s,
         radix: radix,

@@ -141,14 +141,19 @@ function NCH(n) {
 function CHILD(n, i) {
     assert(n !== undefined);
     assert(i !== undefined);
-    return n.children[i];
+    if (n.children) {
+        return n.children[i];
+    }
+    else {
+        throw new Error("node does not have any children");
+    }
 }
 function REQ(n, type) {
     assert(n.type === type, "node wasn't expected type");
 }
 function strobj(s) {
     assert(typeof s === "string", "expecting string, got " + (typeof s));
-    // This previuosly constructed the runtime representation.
+    // This previously constructed the runtime representation.
     // That may have had an string intern side effect?
     return s;
 }
@@ -205,59 +210,69 @@ function setContext(c, e, ctx, n) {
     assert(ctx !== AugStore && ctx !== AugLoad);
     var s = null;
     var exprName = null;
-    switch (e.constructor) {
-        case Attribute:
-        case Name:
-            if (ctx === Store)
-                forbiddenCheck(c, n, e.attr, n.lineno);
-            e.ctx = ctx;
-            break;
-        case Subscript:
-            e.ctx = ctx;
-            break;
-        case List:
-            e.ctx = ctx;
-            s = e.elts;
-            break;
-        case Tuple:
-            if (e.elts.length === 0)
-                throw syntaxError("can't assign to ()", c.c_filename, n.lineno);
-            e.ctx = ctx;
-            s = e.elts;
-            break;
-        case Lambda:
-            exprName = "lambda";
-            break;
-        case Call:
-            exprName = "function call";
-            break;
-        case BoolOp:
-        case BinOp:
-        case UnaryOp:
-            exprName = "operator";
-            break;
-        case GeneratorExp:
-            exprName = "generator expression";
-            break;
-        case Yield:
-            exprName = "yield expression";
-            break;
-        case ListComp:
-            exprName = "list comprehension";
-            break;
-        case Dict:
-        case Num:
-        case Str:
-            exprName = "literal";
-            break;
-        case Compare:
-            exprName = "comparison expression";
-            break;
-        case IfExp:
-            exprName = "conditional expression";
-            break;
-        default: {
-            throw new Error("unhandled expression in assignment");
+    if (e instanceof Attribute) {
+        if (ctx === Store)
+            forbiddenCheck(c, n, e.attr, n.lineno);
+        e.ctx = ctx;
+    }
+    else if (e instanceof Name) {
+        if (ctx === Store)
+            forbiddenCheck(c, n, /*e.attr*/ void 0, n.lineno);
+        e.ctx = ctx;
+    }
+    else if (e instanceof Subscript) {
+        e.ctx = ctx;
+    }
+    else if (e instanceof List) {
+        e.ctx = ctx;
+        s = e.elts;
+    }
+    else if (e instanceof Tuple) {
+        if (e.elts.length === 0) {
+            throw syntaxError("can't assign to ()", c.c_filename, n.lineno);
+        }
+        e.ctx = ctx;
+        s = e.elts;
+    }
+    else if (e instanceof Lambda) {
+        exprName = "lambda";
+    }
+    else if (e instanceof Call) {
+        exprName = "function call";
+    }
+    else if (e instanceof BoolOp) {
+        exprName = "operator";
+    }
+    else {
+        switch (e.constructor) {
+            case BoolOp:
+            case BinOp:
+            case UnaryOp:
+                exprName = "operator";
+                break;
+            case GeneratorExp:
+                exprName = "generator expression";
+                break;
+            case Yield:
+                exprName = "yield expression";
+                break;
+            case ListComp:
+                exprName = "list comprehension";
+                break;
+            case Dict:
+            case Num:
+            case Str:
+                exprName = "literal";
+                break;
+            case Compare:
+                exprName = "comparison expression";
+                break;
+            case IfExp:
+                exprName = "conditional expression";
+                break;
+            default: {
+                throw new Error("unhandled expression in assignment");
+            }
         }
     }
     if (exprName) {
@@ -478,6 +493,9 @@ function astForDecorated(c, n) {
     }
     else if (CHILD(n, 1).type === SYM.classdef) {
         thing = astForClassdef(c, CHILD(n, 1), decoratorSeq);
+    }
+    else {
+        throw new Error("astForDecorated");
     }
     if (thing) {
         thing.lineno = n.lineno;

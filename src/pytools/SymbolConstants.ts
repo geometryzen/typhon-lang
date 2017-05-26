@@ -21,6 +21,7 @@ export const DEF_BOUND = (DEF_LOCAL | DEF_PARAM | DEF_IMPORT);
 export const SCOPE_OFF = 11;
 export const SCOPE_MASK = 7;
 
+export type DictionaryKind = 1 | 2 | 3 | 4;
 export const LOCAL = 1;
 export const GLOBAL_EXPLICIT = 2;
 export const GLOBAL_IMPLICIT = 3;

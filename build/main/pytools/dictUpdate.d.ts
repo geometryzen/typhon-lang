@@ -1,1 +1,1 @@
-export declare function dictUpdate(a: any, b: any): void;
+export declare function dictUpdate(a: object, b: object): void;

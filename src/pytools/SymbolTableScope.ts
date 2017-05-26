@@ -1,5 +1,6 @@
 import { assert } from './asserts';
 import { Symbol } from './Symbol';
+import { SymbolTable } from './SymbolTable';
 import { DEF_PARAM } from './SymbolConstants';
 import { DEF_BOUND } from './SymbolConstants';
 import { FREE } from './SymbolConstants';
@@ -11,43 +12,44 @@ import { SCOPE_OFF } from './SymbolConstants';
 
 let astScopeCounter = 0;
 
+export type BlockType = 'class' | 'function' | 'module';
+
 export class SymbolTableScope {
     symFlags: { [name: string]: number };
-    private name;
-    private varnames;
-    children;
-    blockType;
-    private isNested;
+    private name: string;
+    varnames: string[];
+    children: SymbolTableScope[];
+    blockType: BlockType;
+    isNested: boolean;
     hasFree: boolean;
     childHasFree: boolean;
-    generator;
-    private varargs;
-    private varkeywords;
-    private returnsValue;
-    private lineno;
-    private table;
-    private symbols;
-    private _classMethods;
+    generator: boolean;
+    varargs: boolean;
+    varkeywords: boolean;
+    returnsValue: boolean;
+    lineno: number;
+    private table: SymbolTable;
+    private symbols: { [name: string]: Symbol };
+    private _classMethods: string[];
     private _funcParams: string[];
     private _funcLocals: string[];
     private _funcGlobals: string[];
     private _funcFrees: string[];
     /**
-     * @constructor
-     * @param {Object} table
-     * @param {string} name
-     * @param {string} type
-     * @param {number} lineno
+     * @param table
+     * @param name
+     * @param type
+     * @param lineno
      */
-    constructor(table, name, type, ast, lineno) {
+    constructor(table: SymbolTable, name: string, blockType: BlockType, ast: { scopeId: number }, lineno: number) {
         this.symFlags = {};
         this.name = name;
         this.varnames = [];
         /**
-         * @type Array.<SymbolTableScope>
+         *
          */
         this.children = [];
-        this.blockType = type;
+        this.blockType = blockType;
 
         this.isNested = false;
         this.hasFree = false;
@@ -61,7 +63,7 @@ export class SymbolTableScope {
 
         this.table = table;
 
-        if (table.cur && (table.cur.nested || table.cur.blockType === FunctionBlock))
+        if (table.cur && (table.cur.isNested || table.cur.blockType === FunctionBlock))
             this.isNested = true;
 
         ast.scopeId = astScopeCounter++;
@@ -149,11 +151,11 @@ export class SymbolTableScope {
         return this._funcFrees;
     }
 
-    get_methods() {
+    get_methods(): string[] {
         assert(this.get_type() === 'class', "get_methods only valid for class scopes");
         if (!this._classMethods) {
             // todo; uniq?
-            var all = [];
+            const all: string[] = [];
             for (var i = 0; i < this.children.length; ++i)
                 all.push(this.children[i].name);
             all.sort();

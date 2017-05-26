@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+// import { Symbol } from './Symbol';
 var SymbolTable_1 = require("./SymbolTable");
 var SymbolConstants_1 = require("./SymbolConstants");
 /**

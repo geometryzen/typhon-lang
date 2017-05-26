@@ -742,15 +742,18 @@ var Subscript = (function () {
     return Subscript;
 }());
 exports.Subscript = Subscript;
-var Name = (function () {
+var Name = (function (_super) {
+    tslib_1.__extends(Name, _super);
     function Name(id, ctx, lineno, col_offset) {
-        this.id = id;
-        this.ctx = ctx;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this, void 0) || this;
+        _this.id = id;
+        _this.ctx = ctx;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return Name;
-}());
+}(Expression));
 exports.Name = Name;
 var List = (function () {
     function List(elts, ctx, lineno, col_offset) {

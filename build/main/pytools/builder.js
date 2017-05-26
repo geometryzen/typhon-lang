@@ -143,14 +143,19 @@ function NCH(n) {
 function CHILD(n, i) {
     asserts_1.assert(n !== undefined);
     asserts_1.assert(i !== undefined);
-    return n.children[i];
+    if (n.children) {
+        return n.children[i];
+    }
+    else {
+        throw new Error("node does not have any children");
+    }
 }
 function REQ(n, type) {
     asserts_1.assert(n.type === type, "node wasn't expected type");
 }
 function strobj(s) {
     asserts_1.assert(typeof s === "string", "expecting string, got " + (typeof s));
-    // This previuosly constructed the runtime representation.
+    // This previously constructed the runtime representation.
     // That may have had an string intern side effect?
     return s;
 }
@@ -207,59 +212,69 @@ function setContext(c, e, ctx, n) {
     asserts_1.assert(ctx !== types_10.AugStore && ctx !== types_9.AugLoad);
     var s = null;
     var exprName = null;
-    switch (e.constructor) {
-        case types_7.Attribute:
-        case types_59.Name:
-            if (ctx === types_74.Store)
-                forbiddenCheck(c, n, e.attr, n.lineno);
-            e.ctx = ctx;
-            break;
-        case types_77.Subscript:
-            e.ctx = ctx;
-            break;
-        case types_50.List:
-            e.ctx = ctx;
-            s = e.elts;
-            break;
-        case types_80.Tuple:
-            if (e.elts.length === 0)
-                throw syntaxError("can't assign to ()", c.c_filename, n.lineno);
-            e.ctx = ctx;
-            s = e.elts;
-            break;
-        case types_49.Lambda:
-            exprName = "lambda";
-            break;
-        case types_17.Call:
-            exprName = "function call";
-            break;
-        case types_15.BoolOp:
-        case types_11.BinOp:
-        case types_82.UnaryOp:
-            exprName = "operator";
-            break;
-        case types_35.GeneratorExp:
-            exprName = "generator expression";
-            break;
-        case types_86.Yield:
-            exprName = "yield expression";
-            break;
-        case types_51.ListComp:
-            exprName = "list comprehension";
-            break;
-        case types_24.Dict:
-        case types_64.Num:
-        case types_75.Str:
-            exprName = "literal";
-            break;
-        case types_19.Compare:
-            exprName = "comparison expression";
-            break;
-        case types_41.IfExp:
-            exprName = "conditional expression";
-            break;
-        default: {
-            throw new Error("unhandled expression in assignment");
+    if (e instanceof types_7.Attribute) {
+        if (ctx === types_74.Store)
+            forbiddenCheck(c, n, e.attr, n.lineno);
+        e.ctx = ctx;
+    }
+    else if (e instanceof types_59.Name) {
+        if (ctx === types_74.Store)
+            forbiddenCheck(c, n, /*e.attr*/ void 0, n.lineno);
+        e.ctx = ctx;
+    }
+    else if (e instanceof types_77.Subscript) {
+        e.ctx = ctx;
+    }
+    else if (e instanceof types_50.List) {
+        e.ctx = ctx;
+        s = e.elts;
+    }
+    else if (e instanceof types_80.Tuple) {
+        if (e.elts.length === 0) {
+            throw syntaxError("can't assign to ()", c.c_filename, n.lineno);
+        }
+        e.ctx = ctx;
+        s = e.elts;
+    }
+    else if (e instanceof types_49.Lambda) {
+        exprName = "lambda";
+    }
+    else if (e instanceof types_17.Call) {
+        exprName = "function call";
+    }
+    else if (e instanceof types_15.BoolOp) {
+        exprName = "operator";
+    }
+    else {
+        switch (e.constructor) {
+            case types_15.BoolOp:
+            case types_11.BinOp:
+            case types_82.UnaryOp:
+                exprName = "operator";
+                break;
+            case types_35.GeneratorExp:
+                exprName = "generator expression";
+                break;
+            case types_86.Yield:
+                exprName = "yield expression";
+                break;
+            case types_51.ListComp:
+                exprName = "list comprehension";
+                break;
+            case types_24.Dict:
+            case types_64.Num:
+            case types_75.Str:
+                exprName = "literal";
+                break;
+            case types_19.Compare:
+                exprName = "comparison expression";
+                break;
+            case types_41.IfExp:
+                exprName = "conditional expression";
+                break;
+            default: {
+                throw new Error("unhandled expression in assignment");
+            }
         }
     }
     if (exprName) {
@@ -480,6 +495,9 @@ function astForDecorated(c, n) {
     }
     else if (CHILD(n, 1).type === SYM.classdef) {
         thing = astForClassdef(c, CHILD(n, 1), decoratorSeq);
+    }
+    else {
+        throw new Error("astForDecorated");
     }
     if (thing) {
         thing.lineno = n.lineno;

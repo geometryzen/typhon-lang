@@ -1,11 +1,13 @@
+// import { Symbol } from './Symbol';
 import { SymbolTable } from './SymbolTable';
 import { ModuleBlock } from './SymbolConstants';
+import { Module } from './types';
 
 /**
  * @param ast
  * @param fileName
  */
-export function symbolTable(ast, fileName: string): SymbolTable {
+export function symbolTable(ast: Module, fileName: string): SymbolTable {
     const st = new SymbolTable(fileName);
 
     st.enterBlock("top", ModuleBlock, ast, 0);
@@ -23,14 +25,43 @@ export function symbolTable(ast, fileName: string): SymbolTable {
     return st;
 }
 
+export interface SymbolInfo {
+    get_name(): string;
+    is_referenced(): boolean;
+    is_imported(): boolean;
+    is_parameter(): boolean;
+    is_global(): boolean;
+    is_declared_global(): boolean;
+    is_local(): boolean;
+    is_free(): boolean;
+    is_assigned(): boolean;
+    is_namespace(): boolean;
+    get_namespaces(): SymbolObj[];
+}
+
+export interface SymbolObj {
+    get_type(): string;
+    get_name(): string;
+    get_lineno(): number;
+    is_nested(): boolean;
+    has_children(): boolean;
+    get_methods(): string[];
+    get_parameters(): string[];
+    get_locals(): string[];
+    get_globals(): string[];
+    get_frees(): string[];
+    get_identifiers(): string[];
+    lookup(identifier: string): SymbolInfo;
+}
+
 /**
  * @param st
  */
 export function dumpSymbolTable(st: SymbolTable): string {
-    var pyBoolStr = function (b) {
+    const pyBoolStr = function (b: boolean): string {
         return b ? "True" : "False";
     };
-    var pyList = function (l) {
+    const pyList = function (l: string[]) {
         var ret = [];
         for (var i = 0; i < l.length; ++i) {
             // TODO: Originally, this computed the Python repr().
@@ -38,7 +69,7 @@ export function dumpSymbolTable(st: SymbolTable): string {
         }
         return '[' + ret.join(', ') + ']';
     };
-    var getIdents = function (obj, indent) {
+    const getIdents = function (obj: SymbolObj, indent: string): string {
         if (indent === undefined) indent = "";
         var ret = "";
         ret += indent + "Sym_type: " + obj.get_type() + "\n";

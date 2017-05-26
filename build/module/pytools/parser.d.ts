@@ -43,14 +43,14 @@ export declare type ParseContext = [LineColumn, LineColumn, string];
  */
 export interface PyNode {
     type: Tokens;
-    value: string;
+    value: string | null;
     context?: any;
     lineno?: number;
     col_offset?: number;
     used_names?: {
         [name: string]: boolean;
     };
-    children: PyNode[];
+    children: PyNode[] | null;
 }
 export interface StackElement {
     dfa: Dfa;

@@ -198,25 +198,25 @@ var SymbolTable = (function () {
             this.global[mangled] = val;
         }
     };
-    SymbolTable.prototype.visitSlice = function (s /*: Slice | ExtSlice | Index | Ellipsis*/) {
-        switch (s.constructor) {
-            case types_38.Slice:
-                if (s.lower)
-                    this.visitExpr(s.lower);
-                if (s.upper)
-                    this.visitExpr(s.upper);
-                if (s.step)
-                    this.visitExpr(s.step);
-                break;
-            case types_17.ExtSlice:
-                for (var i = 0; i < s.dims.length; ++i)
-                    this.visitSlice(s.dims[i]);
-                break;
-            case types_26.Index:
-                this.visitExpr(s.value);
-                break;
-            case types_14.Ellipsis:
-                break;
+    SymbolTable.prototype.visitSlice = function (s) {
+        if (s instanceof types_38.Slice) {
+            if (s.lower)
+                this.visitExpr(s.lower);
+            if (s.upper)
+                this.visitExpr(s.upper);
+            if (s.step)
+                this.visitExpr(s.step);
+        }
+        else if (s instanceof types_17.ExtSlice) {
+            for (var i = 0; i < s.dims.length; ++i) {
+                this.visitSlice(s.dims[i]);
+            }
+        }
+        else if (s instanceof types_26.Index) {
+            this.visitExpr(s.value);
+        }
+        else if (s instanceof types_14.Ellipsis) {
+            // Do nothing.
         }
     };
     /**
@@ -224,248 +224,231 @@ var SymbolTable = (function () {
      */
     SymbolTable.prototype.visitStmt = function (s) {
         asserts_1.assert(s !== undefined, "visitStmt called with undefined");
-        switch (s.constructor) {
-            case types_19.FunctionDef:
-                this.addDef(s.name, SymbolConstants_7.DEF_LOCAL, s.lineno);
-                if (s.args.defaults)
-                    this.SEQExpr(s.args.defaults);
-                if (s.decorator_list)
-                    this.SEQExpr(s.decorator_list);
-                this.enterBlock(s.name, SymbolConstants_10.FunctionBlock, s, s.lineno);
-                this.visitArguments(s.args, s.lineno);
-                this.SEQStmt(s.body);
-                this.exitBlock();
-                break;
-            case types_9.ClassDef:
-                this.addDef(s.name, SymbolConstants_7.DEF_LOCAL, s.lineno);
-                this.SEQExpr(s.bases);
-                if (s.decorator_list)
-                    this.SEQExpr(s.decorator_list);
-                this.enterBlock(s.name, SymbolConstants_2.ClassBlock, s, s.lineno);
-                var tmp = this.curClass;
-                this.curClass = s.name;
-                this.SEQStmt(s.body);
-                this.curClass = tmp;
-                this.exitBlock();
-                break;
-            case types_37.ReturnStatement: {
-                var rs = s;
-                if (rs.value) {
-                    this.visitExpr(rs.value);
-                    this.cur.returnsValue = true;
-                    if (this.cur.generator) {
-                        throw syntaxError_1.syntaxError("'return' with argument inside generator", this.fileName);
-                    }
-                }
-                break;
-            }
-            case types_12.DeleteExpression:
-                this.SEQExpr(s.targets);
-                break;
-            case types_2.Assign:
-                this.SEQExpr(s.targets);
+        if (s instanceof types_19.FunctionDef) {
+            this.addDef(s.name, SymbolConstants_7.DEF_LOCAL, s.lineno);
+            if (s.args.defaults)
+                this.SEQExpr(s.args.defaults);
+            if (s.decorator_list)
+                this.SEQExpr(s.decorator_list);
+            this.enterBlock(s.name, SymbolConstants_10.FunctionBlock, s, s.lineno);
+            this.visitArguments(s.args, s.lineno);
+            this.SEQStmt(s.body);
+            this.exitBlock();
+        }
+        else if (s instanceof types_9.ClassDef) {
+            this.addDef(s.name, SymbolConstants_7.DEF_LOCAL, s.lineno);
+            this.SEQExpr(s.bases);
+            if (s.decorator_list)
+                this.SEQExpr(s.decorator_list);
+            this.enterBlock(s.name, SymbolConstants_2.ClassBlock, s, s.lineno);
+            var tmp = this.curClass;
+            this.curClass = s.name;
+            this.SEQStmt(s.body);
+            this.curClass = tmp;
+            this.exitBlock();
+        }
+        else if (s instanceof types_37.ReturnStatement) {
+            if (s.value) {
                 this.visitExpr(s.value);
-                break;
-            case types_4.AugAssign:
-                this.visitExpr(s.target);
-                this.visitExpr(s.value);
-                break;
-            case types_35.Print:
-                if (s.dest)
-                    this.visitExpr(s.dest);
-                this.SEQExpr(s.values);
-                break;
-            case types_18.ForStatement: {
-                var fs = s;
-                this.visitExpr(fs.target);
-                this.visitExpr(fs.iter);
-                this.SEQStmt(fs.body);
-                if (fs.orelse)
-                    this.SEQStmt(fs.orelse);
-                break;
-            }
-            case types_46.WhileStatement: {
-                var ws = s;
-                this.visitExpr(ws.test);
-                this.SEQStmt(ws.body);
-                if (ws.orelse)
-                    this.SEQStmt(ws.orelse);
-                break;
-            }
-            case types_22.IfStatement: {
-                var ifs = s;
-                this.visitExpr(ifs.test);
-                this.SEQStmt(ifs.consequent);
-                if (ifs.alternate) {
-                    this.SEQStmt(ifs.alternate);
+                this.cur.returnsValue = true;
+                if (this.cur.generator) {
+                    throw syntaxError_1.syntaxError("'return' with argument inside generator", this.fileName);
                 }
-                break;
             }
-            case types_36.Raise:
-                if (s.type) {
-                    this.visitExpr(s.type);
-                    if (s.inst) {
-                        this.visitExpr(s.inst);
-                        if (s.tback)
-                            this.visitExpr(s.tback);
-                    }
-                }
-                break;
-            case types_42.TryExcept:
-                this.SEQStmt(s.body);
+        }
+        else if (s instanceof types_12.DeleteExpression) {
+            this.SEQExpr(s.targets);
+        }
+        else if (s instanceof types_2.Assign) {
+            this.SEQExpr(s.targets);
+            this.visitExpr(s.value);
+        }
+        else if (s instanceof types_4.AugAssign) {
+            this.visitExpr(s.target);
+            this.visitExpr(s.value);
+        }
+        else if (s instanceof types_35.Print) {
+            if (s.dest)
+                this.visitExpr(s.dest);
+            this.SEQExpr(s.values);
+        }
+        else if (s instanceof types_18.ForStatement) {
+            this.visitExpr(s.target);
+            this.visitExpr(s.iter);
+            this.SEQStmt(s.body);
+            if (s.orelse)
                 this.SEQStmt(s.orelse);
-                this.visitExcepthandlers(s.handlers);
-                break;
-            case types_43.TryFinally:
-                this.SEQStmt(s.body);
-                this.SEQStmt(s.finalbody);
-                break;
-            case types_1.Assert:
-                this.visitExpr(s.test);
-                if (s.msg)
-                    this.visitExpr(s.msg);
-                break;
-            case types_24.ImportStatement: {
-                var imps = s;
-                this.visitAlias(imps.names, imps.lineno);
-                break;
+        }
+        else if (s instanceof types_46.WhileStatement) {
+            this.visitExpr(s.test);
+            this.SEQStmt(s.body);
+            if (s.orelse)
+                this.SEQStmt(s.orelse);
+        }
+        else if (s instanceof types_22.IfStatement) {
+            this.visitExpr(s.test);
+            this.SEQStmt(s.consequent);
+            if (s.alternate) {
+                this.SEQStmt(s.alternate);
             }
-            case types_25.ImportFrom: {
-                var impFrom = s;
-                this.visitAlias(impFrom.names, impFrom.lineno);
-                break;
-            }
-            case types_15.Exec:
-                this.visitExpr(s.body);
-                if (s.globals) {
-                    this.visitExpr(s.globals);
-                    if (s.locals)
-                        this.visitExpr(s.locals);
+        }
+        else if (s instanceof types_36.Raise) {
+            if (s.type) {
+                this.visitExpr(s.type);
+                if (s.inst) {
+                    this.visitExpr(s.inst);
+                    if (s.tback)
+                        this.visitExpr(s.tback);
                 }
-                break;
-            case types_21.Global:
-                var nameslen = s.names.length;
-                for (var i = 0; i < nameslen; ++i) {
-                    var name = mangleName_1.mangleName(this.curClass, s.names[i]);
-                    //              name = fixReservedNames(name);
-                    var cur = this.cur.symFlags[name];
-                    if (cur & (SymbolConstants_7.DEF_LOCAL | SymbolConstants_15.USE)) {
-                        if (cur & SymbolConstants_7.DEF_LOCAL) {
-                            throw syntaxError_1.syntaxError("name '" + name + "' is assigned to before global declaration", this.fileName, s.lineno);
-                        }
-                        else {
-                            throw syntaxError_1.syntaxError("name '" + name + "' is used prior to global declaration", this.fileName, s.lineno);
-                        }
+            }
+        }
+        else if (s instanceof types_42.TryExcept) {
+            this.SEQStmt(s.body);
+            this.SEQStmt(s.orelse);
+            this.visitExcepthandlers(s.handlers);
+        }
+        else if (s instanceof types_43.TryFinally) {
+            this.SEQStmt(s.body);
+            this.SEQStmt(s.finalbody);
+        }
+        else if (s instanceof types_1.Assert) {
+            this.visitExpr(s.test);
+            if (s.msg)
+                this.visitExpr(s.msg);
+        }
+        else if (s instanceof types_24.ImportStatement) {
+            var imps = s;
+            this.visitAlias(imps.names, imps.lineno);
+        }
+        else if (s instanceof types_25.ImportFrom) {
+            var impFrom = s;
+            this.visitAlias(impFrom.names, impFrom.lineno);
+        }
+        else if (s instanceof types_15.Exec) {
+            this.visitExpr(s.body);
+            if (s.globals) {
+                this.visitExpr(s.globals);
+                if (s.locals)
+                    this.visitExpr(s.locals);
+            }
+        }
+        else if (s instanceof types_21.Global) {
+            var nameslen = s.names.length;
+            for (var i = 0; i < nameslen; ++i) {
+                var name = mangleName_1.mangleName(this.curClass, s.names[i]);
+                //              name = fixReservedNames(name);
+                var cur = this.cur.symFlags[name];
+                if (cur & (SymbolConstants_7.DEF_LOCAL | SymbolConstants_15.USE)) {
+                    if (cur & SymbolConstants_7.DEF_LOCAL) {
+                        throw syntaxError_1.syntaxError("name '" + name + "' is assigned to before global declaration", this.fileName, s.lineno);
                     }
-                    this.addDef(name, SymbolConstants_5.DEF_GLOBAL, s.lineno);
+                    else {
+                        throw syntaxError_1.syntaxError("name '" + name + "' is used prior to global declaration", this.fileName, s.lineno);
+                    }
                 }
-                break;
-            case types_16.Expr:
-                this.visitExpr(s.value);
-                break;
-            case types_34.Pass:
-            case types_7.BreakStatement:
-            case types_11.ContinueStatement:
-                // nothing
-                break;
-            case types_47.WithStatement: {
-                var ws = s;
-                this.newTmpname(ws.lineno);
-                this.visitExpr(ws.context_expr);
-                if (ws.optional_vars) {
-                    this.newTmpname(ws.lineno);
-                    this.visitExpr(ws.optional_vars);
-                }
-                this.SEQStmt(ws.body);
-                break;
+                this.addDef(name, SymbolConstants_5.DEF_GLOBAL, s.lineno);
             }
-            default:
-                asserts_1.fail("Unhandled type " + s.constructor.name + " in visitStmt");
+        }
+        else if (s instanceof types_16.Expr) {
+            this.visitExpr(s.value);
+        }
+        else if (s instanceof types_34.Pass || s instanceof types_7.BreakStatement || s instanceof types_11.ContinueStatement) {
+            // Do nothing.
+        }
+        else if (s instanceof types_47.WithStatement) {
+            var ws = s;
+            this.newTmpname(ws.lineno);
+            this.visitExpr(ws.context_expr);
+            if (ws.optional_vars) {
+                this.newTmpname(ws.lineno);
+                this.visitExpr(ws.optional_vars);
+            }
+            this.SEQStmt(ws.body);
+        }
+        else {
+            asserts_1.fail("Unhandled type " + s.constructor.name + " in visitStmt");
         }
     };
     SymbolTable.prototype.visitExpr = function (e) {
         asserts_1.assert(e !== undefined, "visitExpr called with undefined");
-        // print("  e: ", e.constructor.name);
-        switch (e.constructor) {
-            case types_6.BoolOp:
-                this.SEQExpr(e.values);
-                break;
-            case types_5.BinOp:
-                this.visitExpr(e.left);
-                this.visitExpr(e.right);
-                break;
-            case types_45.UnaryOp:
-                this.visitExpr(e.operand);
-                break;
-            case types_27.Lambda:
-                this.addDef("lambda", SymbolConstants_7.DEF_LOCAL, e.lineno);
-                if (e.args.defaults)
-                    this.SEQExpr(e.args.defaults);
-                this.enterBlock("lambda", SymbolConstants_10.FunctionBlock, e, e.lineno);
-                this.visitArguments(e.args, e.lineno);
-                this.visitExpr(e.body);
-                this.exitBlock();
-                break;
-            case types_23.IfExp:
-                this.visitExpr(e.test);
-                this.visitExpr(e.body);
-                this.visitExpr(e.orelse);
-                break;
-            case types_13.Dict:
-                this.SEQExpr(e.keys);
-                this.SEQExpr(e.values);
-                break;
-            case types_30.ListComp:
-                this.newTmpname(e.lineno);
-                this.visitExpr(e.elt);
-                this.visitComprehension(e.generators, 0);
-                break;
-            case types_20.GeneratorExp:
-                this.visitGenexp(e);
-                break;
-            case types_48.Yield:
-                if (e.value)
-                    this.visitExpr(e.value);
-                this.cur.generator = true;
-                if (this.cur.returnsValue) {
-                    throw syntaxError_1.syntaxError("'return' with argument inside generator", this.fileName);
-                }
-                break;
-            case types_10.Compare:
-                this.visitExpr(e.left);
-                this.SEQExpr(e.comparators);
-                break;
-            case types_8.Call:
-                this.visitExpr(e.func);
-                this.SEQExpr(e.args);
-                for (var i = 0; i < e.keywords.length; ++i)
-                    this.visitExpr(e.keywords[i].value);
-                // print(JSON.stringify(e.starargs, null, 2));
-                // print(JSON.stringify(e.kwargs, null,2));
-                if (e.starargs)
-                    this.visitExpr(e.starargs);
-                if (e.kwargs)
-                    this.visitExpr(e.kwargs);
-                break;
-            case types_32.Num:
-            case types_40.Str:
-                break;
-            case types_3.Attribute:
+        if (e instanceof types_6.BoolOp) {
+            this.SEQExpr(e.values);
+        }
+        else if (e instanceof types_5.BinOp) {
+            this.visitExpr(e.left);
+            this.visitExpr(e.right);
+        }
+        else if (e instanceof types_45.UnaryOp) {
+            this.visitExpr(e.operand);
+        }
+        else if (e instanceof types_27.Lambda) {
+            this.addDef("lambda", SymbolConstants_7.DEF_LOCAL, e.lineno);
+            if (e.args.defaults)
+                this.SEQExpr(e.args.defaults);
+            this.enterBlock("lambda", SymbolConstants_10.FunctionBlock, e, e.lineno);
+            this.visitArguments(e.args, e.lineno);
+            this.visitExpr(e.body);
+            this.exitBlock();
+        }
+        else if (e instanceof types_23.IfExp) {
+            this.visitExpr(e.test);
+            this.visitExpr(e.body);
+            this.visitExpr(e.orelse);
+        }
+        else if (e instanceof types_13.Dict) {
+            this.SEQExpr(e.keys);
+            this.SEQExpr(e.values);
+        }
+        else if (e instanceof types_30.ListComp) {
+            this.newTmpname(e.lineno);
+            this.visitExpr(e.elt);
+            this.visitComprehension(e.generators, 0);
+        }
+        else if (e instanceof types_20.GeneratorExp) {
+            this.visitGenexp(e);
+        }
+        else if (e instanceof types_48.Yield) {
+            if (e.value)
                 this.visitExpr(e.value);
-                break;
-            case types_41.Subscript:
-                this.visitExpr(e.value);
-                this.visitSlice(e.slice);
-                break;
-            case types_31.Name:
-                this.addDef(e.id, e.ctx === types_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.lineno);
-                break;
-            case types_29.List:
-            case types_44.Tuple:
-                this.SEQExpr(e.elts);
-                break;
-            default:
-                asserts_1.fail("Unhandled type " + e.constructor.name + " in visitExpr");
+            this.cur.generator = true;
+            if (this.cur.returnsValue) {
+                throw syntaxError_1.syntaxError("'return' with argument inside generator", this.fileName);
+            }
+        }
+        else if (e instanceof types_10.Compare) {
+            this.visitExpr(e.left);
+            this.SEQExpr(e.comparators);
+        }
+        else if (e instanceof types_8.Call) {
+            this.visitExpr(e.func);
+            this.SEQExpr(e.args);
+            for (var i = 0; i < e.keywords.length; ++i)
+                this.visitExpr(e.keywords[i].value);
+            // print(JSON.stringify(e.starargs, null, 2));
+            // print(JSON.stringify(e.kwargs, null,2));
+            if (e.starargs)
+                this.visitExpr(e.starargs);
+            if (e.kwargs)
+                this.visitExpr(e.kwargs);
+        }
+        else if (e instanceof types_32.Num || e instanceof types_40.Str) {
+            // Do nothing.
+        }
+        else if (e instanceof types_3.Attribute) {
+            this.visitExpr(e.value);
+        }
+        else if (e instanceof types_41.Subscript) {
+            this.visitExpr(e.value);
+            this.visitSlice(e.slice);
+        }
+        else if (e instanceof types_31.Name) {
+            this.addDef(e.id, e.ctx === types_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.lineno);
+        }
+        else if (e instanceof types_29.List || e instanceof types_44.Tuple) {
+            this.SEQExpr(e.elts);
+        }
+        else {
+            asserts_1.fail("Unhandled type " + e.constructor.name + " in visitExpr");
         }
     };
     SymbolTable.prototype.visitComprehension = function (lcs, startAt) {
@@ -506,7 +489,7 @@ var SymbolTable = (function () {
         }
     };
     /**
-     * @param {Object} e
+     *
      */
     SymbolTable.prototype.visitGenexp = function (e) {
         var outermost = e.generators[0];
@@ -531,7 +514,7 @@ var SymbolTable = (function () {
         }
     };
     /**
-     * @param {SymbolTableScope} ste The Symbol Table Scope.
+     * @param ste The Symbol Table Scope.
      */
     SymbolTable.prototype.analyzeBlock = function (ste, bound, free, global) {
         var local = {};

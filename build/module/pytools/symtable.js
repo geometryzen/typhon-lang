@@ -1,3 +1,4 @@
+// import { Symbol } from './Symbol';
 import { SymbolTable } from './SymbolTable';
 import { ModuleBlock } from './SymbolConstants';
 /**

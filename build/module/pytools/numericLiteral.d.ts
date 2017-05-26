@@ -10,4 +10,4 @@ export declare function intAST(n: number): INumericLiteral;
 /**
  * @param {string} s
  */
-export declare function longAST(s: string, radix: any): INumericLiteral;
+export declare function longAST(s: string, radix: number): INumericLiteral;

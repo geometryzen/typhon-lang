@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var tables_1 = require("./tables");
 var asserts_1 = require("./asserts");
-var base_1 = require("./base");
 var Tokenizer_1 = require("./Tokenizer");
 var Tokens_1 = require("./Tokens");
 var tokenNames_1 = require("./tokenNames");
@@ -17,7 +16,7 @@ function parseError(message, fileName, begin, end) {
     var e = new SyntaxError(message /*, fileName*/);
     e.name = "ParseError";
     e['fileName'] = fileName;
-    if (base_1.isDef(begin)) {
+    if (Array.isArray(begin)) {
         e['lineNumber'] = begin[0];
         e['columnNumber'] = begin[1];
     }
@@ -131,12 +130,16 @@ var Parser = (function () {
         var ilabel;
         if (type === Tokens_1.Tokens.T_NAME) {
             this.used_names[value] = true;
-            ilabel = this.grammar.keywords.hasOwnProperty(value) && this.grammar.keywords[value];
+            if (this.grammar.keywords.hasOwnProperty(value)) {
+                ilabel = this.grammar.keywords[value];
+            }
             if (ilabel) {
                 return ilabel;
             }
         }
-        ilabel = this.grammar.tokens.hasOwnProperty(type) && this.grammar.tokens[type];
+        if (this.grammar.tokens.hasOwnProperty(type)) {
+            ilabel = this.grammar.tokens[type];
+        }
         if (!ilabel) {
             throw parseError("bad token", this.filename, context[0], context[1]);
         }
@@ -154,7 +157,7 @@ var Parser = (function () {
             col_offset: context[0][1],
             children: null
         };
-        if (newnode) {
+        if (newnode && node.children) {
             node.children.push(newnode);
         }
         this.stack[this.stack.length - 1] = { dfa: dfa, state: newstate, node: node };
@@ -170,15 +173,19 @@ var Parser = (function () {
     // pop a nonterminal
     Parser.prototype.pop = function () {
         var pop = this.stack.pop();
-        var newnode = pop.node;
-        if (newnode) {
-            if (this.stack.length !== 0) {
-                var node = this.stack[this.stack.length - 1].node;
-                node.children.push(newnode);
-            }
-            else {
-                this.rootnode = newnode;
-                this.rootnode.used_names = this.used_names;
+        if (pop) {
+            var newnode = pop.node;
+            if (newnode) {
+                if (this.stack.length !== 0) {
+                    var node = this.stack[this.stack.length - 1].node;
+                    if (node.children) {
+                        node.children.push(newnode);
+                    }
+                }
+                else {
+                    this.rootnode = newnode;
+                    this.rootnode.used_names = this.used_names;
+                }
             }
         }
     };
@@ -268,7 +275,7 @@ function parse(filename, input) {
         input += "\n";
     }
     var lines = input.split("\n");
-    var ret;
+    var ret = false;
     for (var i = 0; i < lines.length; ++i) {
         ret = parseFunc(lines[i] + ((i === lines.length - 1) ? "" : "\n"));
     }
@@ -280,8 +287,10 @@ function parseTreeDump(n) {
     // non-term
     if (n.type >= 256) {
         ret += tables_1.ParseTables.number2symbol[n.type] + "\n";
-        for (var i = 0; i < n.children.length; ++i) {
-            ret += parseTreeDump(n.children[i]);
+        if (n.children) {
+            for (var i = 0; i < n.children.length; ++i) {
+                ret += parseTreeDump(n.children[i]);
+            }
         }
     }
     else {

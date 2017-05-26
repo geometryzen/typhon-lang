@@ -6,6 +6,4 @@ exports.parseTreeDump = parser_1.parseTreeDump;
 var builder_1 = require("./pytools/builder");
 exports.astFromParse = builder_1.astFromParse;
 exports.astDump = builder_1.astDump;
-var transpiler_1 = require("./py-to-es/transpiler");
-exports.tsCompile = transpiler_1.compile;
-exports.tsReset = transpiler_1.resetCompiler;
+// export { compile as tsCompile, resetCompiler as tsReset } from './py-to-es/transpiler';

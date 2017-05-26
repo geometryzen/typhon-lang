@@ -1,6 +1,7 @@
 import { parse, PyNode } from './parser';
 import { astFromParse, astDump } from './builder';
 import { symbolTable } from './symtable';
+// import { dumpSymbolTable } from './symtable';
 import { Module } from './types';
 
 const fileName = '<stdin>';
@@ -13,6 +14,10 @@ describe('AST', function () {
             const ast: Module = astFromParse(cst, fileName);
             const dump = astDump(ast);
             expect(dump).toBe('Module(body=[Expr(value=Num(n=123))])');
+            const st = symbolTable(ast, fileName);
+            expect(st.fileName).toBe(fileName);
+            // const dumpST = dumpSymbolTable(st);
+            // console.log(dumpST);
         }
     });
 
@@ -56,6 +61,10 @@ describe('AST', function () {
         const ast = astFromParse(cst, fileName);
         const dump = astDump(ast);
         expect(dump).toBe('Module(body=[Expr(value=Str(s=Hello))])');
+        const st = symbolTable(ast, fileName);
+        expect(st.fileName).toBe(fileName);
+        // const dumpST = dumpSymbolTable(st);
+        // console.log(dumpST);
     });
 
     it('True', function () {
@@ -224,6 +233,10 @@ describe('AST', function () {
         const ast = astFromParse(cst, fileName);
         const dump = astDump(ast);
         expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
+        const st = symbolTable(ast, fileName);
+        expect(st.fileName).toBe(fileName);
+        // const dumpST = dumpSymbolTable(st);
+        // console.log(dumpST);
     });
 
     it('def foo():\n return a', function () {

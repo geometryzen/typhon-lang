@@ -1,6 +1,5 @@
 import { OpMap, ParseTables } from './tables';
 import { assert } from './asserts';
-import { isDef } from './base';
 import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
 import { tokenNames } from './tokenNames';
@@ -41,12 +40,12 @@ export type ParseContext = [LineColumn, LineColumn, string];
  */
 export interface PyNode {
     type: Tokens;
-    value: string;
+    value: string | null;
     context?: any;
     lineno?: number;
     col_offset?: number;
     used_names?: { [name: string]: boolean };
-    children: PyNode[];
+    children: PyNode[] | null;
 }
 
 export interface StackElement {
@@ -67,7 +66,7 @@ function parseError(message: string, fileName: string, begin?: LineColumn, end?:
     const e = new SyntaxError(message/*, fileName*/);
     e.name = "ParseError";
     e['fileName'] = fileName;
-    if (isDef(begin)) {
+    if (Array.isArray(begin)) {
         e['lineNumber'] = begin[0];
         e['columnNumber'] = begin[1];
     }
@@ -191,15 +190,19 @@ class Parser {
      * @param context [begin, end, line]
      */
     classify(type: Tokens, value: string, context: ParseContext): number {
-        let ilabel: number;
+        let ilabel: number | undefined;
         if (type === Tokens.T_NAME) {
             this.used_names[value] = true;
-            ilabel = this.grammar.keywords.hasOwnProperty(value) && this.grammar.keywords[value];
+            if (this.grammar.keywords.hasOwnProperty(value)) {
+                ilabel = this.grammar.keywords[value];
+            }
             if (ilabel) {
                 return ilabel;
             }
         }
-        ilabel = this.grammar.tokens.hasOwnProperty(type) && this.grammar.tokens[type];
+        if (this.grammar.tokens.hasOwnProperty(type)) {
+            ilabel = this.grammar.tokens[type];
+        }
         if (!ilabel) {
             throw parseError("bad token", this.filename, context[0], context[1]);
         }
@@ -218,7 +221,7 @@ class Parser {
             col_offset: context[0][1],
             children: null
         };
-        if (newnode) {
+        if (newnode && node.children) {
             node.children.push(newnode);
         }
         this.stack[this.stack.length - 1] = { dfa: dfa, state: newstate, node: node };
@@ -231,23 +234,27 @@ class Parser {
 
         this.stack[this.stack.length - 1] = { dfa: dfa, state: newstate, node: node };
 
-        var newnode = { type: type, value: null, lineno: context[0][0], col_offset: context[0][1], children: [] };
+        var newnode: PyNode = { type: type, value: null, lineno: context[0][0], col_offset: context[0][1], children: [] };
 
         this.stack.push({ dfa: newdfa, state: 0, node: newnode });
     }
 
     // pop a nonterminal
     pop(): void {
-        var pop = this.stack.pop();
-        var newnode = pop.node;
-        if (newnode) {
-            if (this.stack.length !== 0) {
-                var node = this.stack[this.stack.length - 1].node;
-                node.children.push(newnode);
-            }
-            else {
-                this.rootnode = newnode;
-                this.rootnode.used_names = this.used_names;
+        const pop = this.stack.pop();
+        if (pop) {
+            const newnode = pop.node;
+            if (newnode) {
+                if (this.stack.length !== 0) {
+                    const node = this.stack[this.stack.length - 1].node;
+                    if (node.children) {
+                        node.children.push(newnode);
+                    }
+                }
+                else {
+                    this.rootnode = newnode;
+                    this.rootnode.used_names = this.used_names;
+                }
             }
         }
     }
@@ -341,7 +348,7 @@ export function parse(filename: string, input: string): boolean | PyNode {
         input += "\n";
     }
     const lines = input.split("\n");
-    let ret: boolean | PyNode;
+    let ret: boolean | PyNode = false;
     for (let i = 0; i < lines.length; ++i) {
         ret = parseFunc(lines[i] + ((i === lines.length - 1) ? "" : "\n"));
     }
@@ -353,8 +360,10 @@ export function parseTreeDump(n: PyNode): string {
     // non-term
     if (n.type >= 256) {
         ret += ParseTables.number2symbol[n.type] + "\n";
-        for (let i = 0; i < n.children.length; ++i) {
-            ret += parseTreeDump(n.children[i]);
+        if (n.children) {
+            for (let i = 0; i < n.children.length; ++i) {
+                ret += parseTreeDump(n.children[i]);
+            }
         }
     }
     else {
