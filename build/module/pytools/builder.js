@@ -1223,20 +1223,28 @@ function astForAugassign(c, n) {
     switch (n.value.charAt(0)) {
         case '+': return Add;
         case '-': return Sub;
-        case '/':
-            if (n.value.charAt(1) === '/')
+        case '/': {
+            if (n.value.charAt(1) === '/') {
                 return FloorDiv;
-            return Div;
+            }
+            else {
+                return Div;
+            }
+        }
         case '%': return Mod;
         case '<': return LShift;
         case '>': return RShift;
         case '&': return BitAnd;
         case '^': return BitXor;
         case '|': return BitOr;
-        case '*':
-            if (n.value.charAt(1) === '*')
+        case '*': {
+            if (n.value.charAt(1) === '*') {
                 return Pow;
-            return Mult;
+            }
+            else {
+                return Mult;
+            }
+        }
         default: {
             throw new Error("invalid augassign");
         }

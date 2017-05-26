@@ -1314,22 +1314,33 @@ function astForWhileStmt(c: Compiling, n: PyNode): WhileStatement {
     throw new Error("wrong number of tokens for 'while' stmt");
 }
 
-function astForAugassign(c: Compiling, n: PyNode): RShift {
+function astForAugassign(c: Compiling, n: PyNode): Add | Sub | FloorDiv | Div | Mod | LShift | RShift | BitAnd | BitXor | BitOr | Pow | Mult {
     REQ(n, SYM.augassign);
     n = CHILD(n, 0);
     switch (n.value.charAt(0)) {
         case '+': return Add;
         case '-': return Sub;
-        case '/': if (n.value.charAt(1) === '/') return FloorDiv;
-            return Div;
+        case '/': {
+            if (n.value.charAt(1) === '/') {
+                return FloorDiv;
+            } else {
+                return Div;
+            }
+        }
         case '%': return Mod;
         case '<': return LShift;
         case '>': return RShift;
         case '&': return BitAnd;
         case '^': return BitXor;
         case '|': return BitOr;
-        case '*': if (n.value.charAt(1) === '*') return Pow;
-            return Mult;
+        case '*': {
+            if (n.value.charAt(1) === '*') {
+                return Pow;
+            }
+            else {
+                return Mult;
+            }
+        }
         default: {
             throw new Error("invalid augassign");
         }

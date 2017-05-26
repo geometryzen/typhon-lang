@@ -1,5 +1,7 @@
 import { INumericLiteral } from './INumericLiteral';
 export declare type Operator = BitOr | BitXor | BitAnd | LShift | RShift | Add | Sub | Mult | Div | FloorDiv | Mod;
+export interface HasAstName {
+}
 export declare class Load {
 }
 export declare class Store {
@@ -16,37 +18,37 @@ export declare class And {
 }
 export declare class Or {
 }
-export declare class Add {
+export declare class Add implements HasAstName {
 }
-export declare class Sub {
+export declare class Sub implements HasAstName {
 }
-export declare class Mult {
+export declare class Mult implements HasAstName {
 }
-export declare class Div {
+export declare class Div implements HasAstName {
 }
-export declare class Mod {
+export declare class Mod implements HasAstName {
 }
-export declare class Pow {
+export declare class Pow implements HasAstName {
 }
-export declare class LShift {
+export declare class LShift implements HasAstName {
 }
-export declare class RShift {
+export declare class RShift implements HasAstName {
 }
-export declare class BitOr {
+export declare class BitOr implements HasAstName {
 }
-export declare class BitXor {
+export declare class BitXor implements HasAstName {
 }
-export declare class BitAnd {
+export declare class BitAnd implements HasAstName {
 }
-export declare class FloorDiv {
+export declare class FloorDiv implements HasAstName {
 }
-export declare class Invert {
+export declare class Invert implements HasAstName {
 }
 export declare class Not {
 }
-export declare class UAdd {
+export declare class UAdd implements HasAstName {
 }
-export declare class USub {
+export declare class USub implements HasAstName {
 }
 export declare class Eq {
 }
@@ -151,13 +153,14 @@ export declare class Assign extends Statement {
     col_offset: number;
     constructor(targets: Target[], value: Target, lineno: number, col_offset: number);
 }
+export declare type AugAssignOperator = Add | Sub | FloorDiv | Div | Mod | LShift | RShift | BitAnd | BitXor | BitOr | Pow | Mult;
 export declare class AugAssign extends Statement {
     target: Expression | Tuple;
-    op: RShift;
+    op: AugAssignOperator;
     value: Expression | Tuple;
     lineno: number;
     col_offset: number;
-    constructor(target: Expression | Tuple, op: RShift, value: Expression | Tuple, lineno: number, col_offset: number);
+    constructor(target: Expression | Tuple, op: AugAssignOperator, value: Expression | Tuple, lineno: number, col_offset: number);
 }
 export declare class Print extends Statement {
     dest: Expression;
@@ -300,7 +303,7 @@ export declare class BinOp {
     col_offset: number;
     constructor(left: Expression, op: Operator, right: Expression, lineno: number, col_offset: number);
 }
-export declare type UnaryOperator = UAdd | USub | Invert;
+export declare type UnaryOperator = UAdd | USub | Invert | Not;
 export declare class UnaryOp {
     op: UnaryOperator;
     operand: Expression;
@@ -391,13 +394,14 @@ export declare class Attribute {
     col_offset?: number;
     constructor(value: Attribute | Name, attr: string, ctx: Load, lineno?: number, col_offset?: number);
 }
+export declare type SubscriptContext = AugLoad | AugStore | Load | Store | Del | Param;
 export declare class Subscript {
     value: Attribute | Name;
     slice: Ellipsis | Index | Name | Slice;
-    ctx: Load;
+    ctx: SubscriptContext;
     lineno: number;
     col_offset: number;
-    constructor(value: Attribute | Name, slice: Ellipsis | Index | Name | Slice, ctx: Load, lineno: number, col_offset: number);
+    constructor(value: Attribute | Name, slice: Ellipsis | Index | Name | Slice, ctx: SubscriptContext, lineno: number, col_offset: number);
 }
 export declare class Name extends Expression {
     id: string;

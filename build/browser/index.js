@@ -1556,6 +1556,9 @@ var ParseTables = {
         throw new Error(message);
     }
 }
+function fail(message) {
+    assert(false, message);
+}
 
 /**
  * Null function used for default values of callbacks, etc.
@@ -4820,20 +4823,28 @@ function astForAugassign(c, n) {
     switch (n.value.charAt(0)) {
         case '+': return Add;
         case '-': return Sub;
-        case '/':
-            if (n.value.charAt(1) === '/')
+        case '/': {
+            if (n.value.charAt(1) === '/') {
                 return FloorDiv;
-            return Div;
+            }
+            else {
+                return Div;
+            }
+        }
         case '%': return Mod;
         case '<': return LShift;
         case '>': return RShift;
         case '&': return BitAnd;
         case '^': return BitXor;
         case '|': return BitOr;
-        case '*':
-            if (n.value.charAt(1) === '*')
+        case '*': {
+            if (n.value.charAt(1) === '*') {
                 return Pow;
-            return Mult;
+            }
+            else {
+                return Mult;
+            }
+        }
         default: {
             throw new Error("invalid augassign");
         }
@@ -5444,12 +5455,1273 @@ function astDump(node) {
     return _format(node);
 }
 
-// export { compile as tsCompile, resetCompiler as tsReset } from './py-to-es/transpiler';
+/**
+ * TODO: Reserved for whom?
+ */
+/**
+ * TODO: Reserved for whom?
+ */ var reservedNames = {
+    '__defineGetter__': true,
+    '__defineSetter__': true,
+    'apply': true,
+    'call': true,
+    'eval': true,
+    'hasOwnProperty': true,
+    'isPrototypeOf': true,
+    '__lookupGetter__': true,
+    '__lookupSetter__': true,
+    '__noSuchMethod__': true,
+    'propertyIsEnumerable': true,
+    'toSource': true,
+    'toLocaleString': true,
+    'toString': true,
+    'unwatch': true,
+    'valueOf': true,
+    'watch': true,
+    'length': true
+};
+
+/**
+ * TODO: Reserved for whom?
+ */
+/**
+ * TODO: Reserved for whom?
+ */ var reservedWords = {
+    'abstract': true,
+    'as': true,
+    'boolean': true,
+    'break': true,
+    'byte': true,
+    'case': true,
+    'catch': true,
+    'char': true,
+    'class': true,
+    'continue': true,
+    'const': true,
+    'debugger': true,
+    'default': true,
+    'delete': true,
+    'do': true,
+    'double': true,
+    'else': true,
+    'enum': true,
+    'export': true,
+    'extends': true,
+    'false': true,
+    'final': true,
+    'finally': true,
+    'float': true,
+    'for': true,
+    'function': true,
+    'goto': true,
+    'if': true,
+    'implements': true,
+    'import': true,
+    'in': true,
+    'instanceof': true,
+    'int': true,
+    'interface': true,
+    'is': true,
+    'long': true,
+    'namespace': true,
+    'native': true,
+    'new': true,
+    'null': true,
+    'package': true,
+    'private': true,
+    'protected': true,
+    'public': true,
+    'return': true,
+    'short': true,
+    'static': true,
+    'super': false,
+    'switch': true,
+    'synchronized': true,
+    'this': true,
+    'throw': true,
+    'throws': true,
+    'transient': true,
+    'true': true,
+    'try': true,
+    'typeof': true,
+    'use': true,
+    'var': true,
+    'void': true,
+    'volatile': true,
+    'while': true,
+    'with': true
+};
+
+function dictUpdate(a, b) {
+    for (var kb in b) {
+        if (b.hasOwnProperty(kb)) {
+            a[kb] = b[kb];
+        }
+    }
+}
+
+/**
+ * @param {string|null} priv
+ * @param {string} name
+ */
+/**
+ * @param {string|null} priv
+ * @param {string} name
+ */ function mangleName$1(priv, name) {
+    var strpriv = null;
+    if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_')
+        return name;
+    // don't mangle __id__
+    if (name.charAt(name.length - 1) === '_' && name.charAt(name.length - 2) === '_')
+        return name;
+    // don't mangle classes that are all _ (obscure much?)
+    strpriv = priv;
+    strpriv.replace(/_/g, '');
+    if (strpriv === '')
+        return name;
+    strpriv = priv;
+    strpriv.replace(/^_*/, '');
+    strpriv = '_' + strpriv + name;
+    return strpriv;
+}
+
+/* Flags for def-use information */
+/* Flags for def-use information */ var DEF_GLOBAL = 1; /* global stmt */
+/* global stmt */ var DEF_LOCAL = 2; /* assignment in code block */
+/* assignment in code block */ var DEF_PARAM = 2 << 1; /* formal parameter */
+/* formal parameter */ var USE = 2 << 2; /* name is used */
+/* name is used */  /* parameter is star arg */
+/* parameter is star arg */  /* parameter is star-star arg */
+/* parameter is star-star arg */  /* name defined in tuple in parameters */
+/* name defined in tuple in parameters */  /* name used but not defined in nested block */
+/* name used but not defined in nested block */  /* free variable is actually implicit global */
+/* free variable is actually implicit global */ var DEF_FREE_CLASS = 2 << 8; /* free variable from class's method */
+/* free variable from class's method */ var DEF_IMPORT = 2 << 9; /* assignment occurred via import */
+/* assignment occurred via import */ var DEF_BOUND = (DEF_LOCAL | DEF_PARAM | DEF_IMPORT);
+/* GLOBAL_EXPLICIT and GLOBAL_IMPLICIT are used internally by the symbol
+   table.  GLOBAL is returned from PyST_GetScope() for either of them.
+   It is stored in ste_symbols at bits 12-14.
+*/
+var SCOPE_OFF = 11;
+var SCOPE_MASK = 7;
+var LOCAL = 1;
+var GLOBAL_EXPLICIT = 2;
+var GLOBAL_IMPLICIT = 3;
+var FREE = 4;
+var CELL = 5;
+/* The following three names are used for the ste_unoptimized bit field */
+
+
+
+ /* top-level names, including eval and exec */
+/* top-level names, including eval and exec */ 
+
+var ModuleBlock = 'module';
+var FunctionBlock = 'function';
+var ClassBlock = 'class';
+
+var Symbol$1 = (function () {
+    /**
+     * @param name
+     * @param flags
+     * @param namespaces
+     */
+    function Symbol(name, flags, namespaces) {
+        this.__name = name;
+        this.__flags = flags;
+        this.__scope = (flags >> SCOPE_OFF) & SCOPE_MASK;
+        this.__namespaces = namespaces || [];
+    }
+    Symbol.prototype.get_name = function () { return this.__name; };
+    Symbol.prototype.is_referenced = function () { return !!(this.__flags & USE); };
+    Symbol.prototype.is_parameter = function () {
+        return !!(this.__flags & DEF_PARAM);
+    };
+    Symbol.prototype.is_global = function () {
+        return this.__scope === GLOBAL_IMPLICIT || this.__scope === GLOBAL_EXPLICIT;
+    };
+    Symbol.prototype.is_declared_global = function () {
+        return this.__scope === GLOBAL_EXPLICIT;
+    };
+    Symbol.prototype.is_local = function () {
+        return !!(this.__flags & DEF_BOUND);
+    };
+    Symbol.prototype.is_free = function () { return this.__scope === FREE; };
+    Symbol.prototype.is_imported = function () { return !!(this.__flags & DEF_IMPORT); };
+    Symbol.prototype.is_assigned = function () { return !!(this.__flags & DEF_LOCAL); };
+    Symbol.prototype.is_namespace = function () { return this.__namespaces && this.__namespaces.length > 0; };
+    Symbol.prototype.get_namespaces = function () { return this.__namespaces; };
+    return Symbol;
+}());
+
+var astScopeCounter = 0;
+var SymbolTableScope = (function () {
+    /**
+     * @param table
+     * @param name
+     * @param type
+     * @param lineno
+     */
+    function SymbolTableScope(table, name, blockType, ast, lineno) {
+        this.symFlags = {};
+        this.name = name;
+        this.varnames = [];
+        /**
+         *
+         */
+        this.children = [];
+        this.blockType = blockType;
+        this.isNested = false;
+        this.hasFree = false;
+        this.childHasFree = false; // true if child block has free vars including free refs to globals
+        this.generator = false;
+        this.varargs = false;
+        this.varkeywords = false;
+        this.returnsValue = false;
+        this.lineno = lineno;
+        this.table = table;
+        if (table.cur && (table.cur.isNested || table.cur.blockType === FunctionBlock))
+            this.isNested = true;
+        ast.scopeId = astScopeCounter++;
+        table.stss[ast.scopeId] = this;
+        // cache of Symbols for returning to other parts of code
+        this.symbols = {};
+    }
+    SymbolTableScope.prototype.get_type = function () { return this.blockType; };
+    SymbolTableScope.prototype.get_name = function () { return this.name; };
+    SymbolTableScope.prototype.get_lineno = function () { return this.lineno; };
+    SymbolTableScope.prototype.is_nested = function () { return this.isNested; };
+    SymbolTableScope.prototype.has_children = function () { return this.children.length > 0; };
+    SymbolTableScope.prototype.get_identifiers = function () { return this._identsMatching(function (x) { return true; }); };
+    SymbolTableScope.prototype.lookup = function (name) {
+        var sym;
+        if (!this.symbols.hasOwnProperty(name)) {
+            var flags = this.symFlags[name];
+            var namespaces = this.__check_children(name);
+            sym = this.symbols[name] = new Symbol$1(name, flags, namespaces);
+        }
+        else {
+            sym = this.symbols[name];
+        }
+        return sym;
+    };
+    SymbolTableScope.prototype.__check_children = function (name) {
+        // print("  check_children:", name);
+        var ret = [];
+        for (var i = 0; i < this.children.length; ++i) {
+            var child = this.children[i];
+            if (child.name === name)
+                ret.push(child);
+        }
+        return ret;
+    };
+    SymbolTableScope.prototype._identsMatching = function (f) {
+        var ret = [];
+        for (var k in this.symFlags) {
+            if (this.symFlags.hasOwnProperty(k)) {
+                if (f(this.symFlags[k]))
+                    ret.push(k);
+            }
+        }
+        ret.sort();
+        return ret;
+    };
+    SymbolTableScope.prototype.get_parameters = function () {
+        assert(this.get_type() === 'function', "get_parameters only valid for function scopes");
+        if (!this._funcParams)
+            this._funcParams = this._identsMatching(function (x) { return !!(x & DEF_PARAM); });
+        return this._funcParams;
+    };
+    SymbolTableScope.prototype.get_locals = function () {
+        assert(this.get_type() === 'function', "get_locals only valid for function scopes");
+        if (!this._funcLocals)
+            this._funcLocals = this._identsMatching(function (x) { return !!(x & DEF_BOUND); });
+        return this._funcLocals;
+    };
+    SymbolTableScope.prototype.get_globals = function () {
+        assert(this.get_type() === 'function', "get_globals only valid for function scopes");
+        if (!this._funcGlobals) {
+            this._funcGlobals = this._identsMatching(function (x) {
+                var masked = (x >> SCOPE_OFF) & SCOPE_MASK;
+                return masked === GLOBAL_IMPLICIT || masked === GLOBAL_EXPLICIT;
+            });
+        }
+        return this._funcGlobals;
+    };
+    SymbolTableScope.prototype.get_frees = function () {
+        assert(this.get_type() === 'function', "get_frees only valid for function scopes");
+        if (!this._funcFrees) {
+            this._funcFrees = this._identsMatching(function (x) {
+                var masked = (x >> SCOPE_OFF) & SCOPE_MASK;
+                return masked === FREE;
+            });
+        }
+        return this._funcFrees;
+    };
+    SymbolTableScope.prototype.get_methods = function () {
+        assert(this.get_type() === 'class', "get_methods only valid for class scopes");
+        if (!this._classMethods) {
+            // todo; uniq?
+            var all = [];
+            for (var i = 0; i < this.children.length; ++i)
+                all.push(this.children[i].name);
+            all.sort();
+            this._classMethods = all;
+        }
+        return this._classMethods;
+    };
+    SymbolTableScope.prototype.getScope = function (name) {
+        // print("getScope");
+        // for (var k in this.symFlags) print(k);
+        var v = this.symFlags[name];
+        if (v === undefined)
+            return 0;
+        return (v >> SCOPE_OFF) & SCOPE_MASK;
+    };
+    return SymbolTableScope;
+}());
+
+/**
+ * @param message
+ * @param fileName
+ * @param lineNumber
+ */
+function syntaxError$1(message, fileName, lineNumber) {
+    assert(isString(message), "message must be a string");
+    assert(isString(fileName), "fileName must be a string");
+    if (isDef(lineNumber)) {
+        assert(isNumber(lineNumber), "lineNumber must be a number");
+    }
+    var e = new SyntaxError(message /*, fileName*/);
+    e['fileName'] = fileName;
+    if (typeof lineNumber === 'number') {
+        e['lineNumber'] = lineNumber;
+    }
+    return e;
+}
+
+/**
+ * The symbol table uses the abstract synntax tree (not the parse tree).
+ */
+var SymbolTable = (function () {
+    /**
+     * @param fileName
+     */
+    function SymbolTable(fileName) {
+        this.fileName = fileName;
+        this.cur = null;
+        this.top = null;
+        this.stack = [];
+        this.global = null; // points at top level module symFlags
+        this.curClass = null; // current class or null
+        this.tmpname = 0;
+        // mapping from ast nodes to their scope if they have one. we add an
+        // id to the ast node when a scope is created for it, and store it in
+        // here for the compiler to lookup later.
+        this.stss = {};
+    }
+    /**
+     * Lookup the SymbolTableScope for a scopeId of the AST.
+     */
+    SymbolTable.prototype.getStsForAst = function (ast) {
+        assert(ast.scopeId !== undefined, "ast wasn't added to st?");
+        var v = this.stss[ast.scopeId];
+        assert(v !== undefined, "unknown sym tab entry");
+        return v;
+    };
+    SymbolTable.prototype.SEQStmt = function (nodes) {
+        var len = nodes.length;
+        for (var i = 0; i < len; ++i) {
+            var val = nodes[i];
+            if (val)
+                this.visitStmt(val);
+        }
+    };
+    SymbolTable.prototype.SEQExpr = function (nodes) {
+        var len = nodes.length;
+        for (var i = 0; i < len; ++i) {
+            var val = nodes[i];
+            if (val)
+                this.visitExpr(val);
+        }
+    };
+    SymbolTable.prototype.enterBlock = function (name, blockType, ast, lineno) {
+        //  name = fixReservedNames(name);
+        var prev = null;
+        if (this.cur) {
+            prev = this.cur;
+            this.stack.push(this.cur);
+        }
+        this.cur = new SymbolTableScope(this, name, blockType, ast, lineno);
+        if (name === 'top') {
+            this.global = this.cur.symFlags;
+        }
+        if (prev) {
+            prev.children.push(this.cur);
+        }
+    };
+    SymbolTable.prototype.exitBlock = function () {
+        // print("exitBlock");
+        this.cur = null;
+        if (this.stack.length > 0)
+            this.cur = this.stack.pop();
+    };
+    SymbolTable.prototype.visitParams = function (args, toplevel) {
+        for (var i = 0; i < args.length; ++i) {
+            var arg = args[i];
+            if (arg.constructor === Name) {
+                assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
+                this.addDef(arg.id, DEF_PARAM, arg.lineno);
+            }
+            else {
+                // Tuple isn't supported
+                throw syntaxError$1("invalid expression in parameter list", this.fileName);
+            }
+        }
+    };
+    SymbolTable.prototype.visitArguments = function (a, lineno) {
+        if (a.args)
+            this.visitParams(a.args, true);
+        if (a.vararg) {
+            this.addDef(a.vararg, DEF_PARAM, lineno);
+            this.cur.varargs = true;
+        }
+        if (a.kwarg) {
+            this.addDef(a.kwarg, DEF_PARAM, lineno);
+            this.cur.varkeywords = true;
+        }
+    };
+    /**
+     * @param {number} lineno
+     * @return {void}
+     */
+    SymbolTable.prototype.newTmpname = function (lineno) {
+        this.addDef("_[" + (++this.tmpname) + "]", DEF_LOCAL, lineno);
+    };
+    /**
+     * @param {string} name
+     * @param {number} flag
+     * @param {number} lineno
+     * @return {void}
+     */
+    SymbolTable.prototype.addDef = function (name, flag, lineno) {
+        var mangled = mangleName$1(this.curClass, name);
+        //  mangled = fixReservedNames(mangled);
+        var val = this.cur.symFlags[mangled];
+        if (val !== undefined) {
+            if ((flag & DEF_PARAM) && (val & DEF_PARAM)) {
+                throw syntaxError$1("duplicate argument '" + name + "' in function definition", this.fileName, lineno);
+            }
+            val |= flag;
+        }
+        else {
+            val = flag;
+        }
+        this.cur.symFlags[mangled] = val;
+        if (flag & DEF_PARAM) {
+            this.cur.varnames.push(mangled);
+        }
+        else if (flag & DEF_GLOBAL) {
+            val = flag;
+            var fromGlobal = this.global[mangled];
+            if (fromGlobal !== undefined)
+                val |= fromGlobal;
+            this.global[mangled] = val;
+        }
+    };
+    SymbolTable.prototype.visitSlice = function (s) {
+        if (s instanceof Slice) {
+            if (s.lower)
+                this.visitExpr(s.lower);
+            if (s.upper)
+                this.visitExpr(s.upper);
+            if (s.step)
+                this.visitExpr(s.step);
+        }
+        else if (s instanceof ExtSlice) {
+            for (var i = 0; i < s.dims.length; ++i) {
+                this.visitSlice(s.dims[i]);
+            }
+        }
+        else if (s instanceof Index) {
+            this.visitExpr(s.value);
+        }
+        else if (s instanceof Ellipsis) {
+            // Do nothing.
+        }
+    };
+    /**
+     * @param {Object} s
+     */
+    SymbolTable.prototype.visitStmt = function (s) {
+        assert(s !== undefined, "visitStmt called with undefined");
+        if (s instanceof FunctionDef) {
+            this.addDef(s.name, DEF_LOCAL, s.lineno);
+            if (s.args.defaults)
+                this.SEQExpr(s.args.defaults);
+            if (s.decorator_list)
+                this.SEQExpr(s.decorator_list);
+            this.enterBlock(s.name, FunctionBlock, s, s.lineno);
+            this.visitArguments(s.args, s.lineno);
+            this.SEQStmt(s.body);
+            this.exitBlock();
+        }
+        else if (s instanceof ClassDef) {
+            this.addDef(s.name, DEF_LOCAL, s.lineno);
+            this.SEQExpr(s.bases);
+            if (s.decorator_list)
+                this.SEQExpr(s.decorator_list);
+            this.enterBlock(s.name, ClassBlock, s, s.lineno);
+            var tmp = this.curClass;
+            this.curClass = s.name;
+            this.SEQStmt(s.body);
+            this.curClass = tmp;
+            this.exitBlock();
+        }
+        else if (s instanceof ReturnStatement) {
+            if (s.value) {
+                this.visitExpr(s.value);
+                this.cur.returnsValue = true;
+                if (this.cur.generator) {
+                    throw syntaxError$1("'return' with argument inside generator", this.fileName);
+                }
+            }
+        }
+        else if (s instanceof DeleteExpression) {
+            this.SEQExpr(s.targets);
+        }
+        else if (s instanceof Assign) {
+            this.SEQExpr(s.targets);
+            this.visitExpr(s.value);
+        }
+        else if (s instanceof AugAssign) {
+            this.visitExpr(s.target);
+            this.visitExpr(s.value);
+        }
+        else if (s instanceof Print) {
+            if (s.dest)
+                this.visitExpr(s.dest);
+            this.SEQExpr(s.values);
+        }
+        else if (s instanceof ForStatement) {
+            this.visitExpr(s.target);
+            this.visitExpr(s.iter);
+            this.SEQStmt(s.body);
+            if (s.orelse)
+                this.SEQStmt(s.orelse);
+        }
+        else if (s instanceof WhileStatement) {
+            this.visitExpr(s.test);
+            this.SEQStmt(s.body);
+            if (s.orelse)
+                this.SEQStmt(s.orelse);
+        }
+        else if (s instanceof IfStatement) {
+            this.visitExpr(s.test);
+            this.SEQStmt(s.consequent);
+            if (s.alternate) {
+                this.SEQStmt(s.alternate);
+            }
+        }
+        else if (s instanceof Raise) {
+            if (s.type) {
+                this.visitExpr(s.type);
+                if (s.inst) {
+                    this.visitExpr(s.inst);
+                    if (s.tback)
+                        this.visitExpr(s.tback);
+                }
+            }
+        }
+        else if (s instanceof TryExcept) {
+            this.SEQStmt(s.body);
+            this.SEQStmt(s.orelse);
+            this.visitExcepthandlers(s.handlers);
+        }
+        else if (s instanceof TryFinally) {
+            this.SEQStmt(s.body);
+            this.SEQStmt(s.finalbody);
+        }
+        else if (s instanceof Assert) {
+            this.visitExpr(s.test);
+            if (s.msg)
+                this.visitExpr(s.msg);
+        }
+        else if (s instanceof ImportStatement) {
+            var imps = s;
+            this.visitAlias(imps.names, imps.lineno);
+        }
+        else if (s instanceof ImportFrom) {
+            var impFrom = s;
+            this.visitAlias(impFrom.names, impFrom.lineno);
+        }
+        else if (s instanceof Exec) {
+            this.visitExpr(s.body);
+            if (s.globals) {
+                this.visitExpr(s.globals);
+                if (s.locals)
+                    this.visitExpr(s.locals);
+            }
+        }
+        else if (s instanceof Global) {
+            var nameslen = s.names.length;
+            for (var i = 0; i < nameslen; ++i) {
+                var name = mangleName$1(this.curClass, s.names[i]);
+                //              name = fixReservedNames(name);
+                var cur = this.cur.symFlags[name];
+                if (cur & (DEF_LOCAL | USE)) {
+                    if (cur & DEF_LOCAL) {
+                        throw syntaxError$1("name '" + name + "' is assigned to before global declaration", this.fileName, s.lineno);
+                    }
+                    else {
+                        throw syntaxError$1("name '" + name + "' is used prior to global declaration", this.fileName, s.lineno);
+                    }
+                }
+                this.addDef(name, DEF_GLOBAL, s.lineno);
+            }
+        }
+        else if (s instanceof Expr) {
+            this.visitExpr(s.value);
+        }
+        else if (s instanceof Pass || s instanceof BreakStatement || s instanceof ContinueStatement) {
+            // Do nothing.
+        }
+        else if (s instanceof WithStatement) {
+            var ws = s;
+            this.newTmpname(ws.lineno);
+            this.visitExpr(ws.context_expr);
+            if (ws.optional_vars) {
+                this.newTmpname(ws.lineno);
+                this.visitExpr(ws.optional_vars);
+            }
+            this.SEQStmt(ws.body);
+        }
+        else {
+            fail("Unhandled type " + s.constructor.name + " in visitStmt");
+        }
+    };
+    SymbolTable.prototype.visitExpr = function (e) {
+        assert(e !== undefined, "visitExpr called with undefined");
+        if (e instanceof BoolOp) {
+            this.SEQExpr(e.values);
+        }
+        else if (e instanceof BinOp) {
+            this.visitExpr(e.left);
+            this.visitExpr(e.right);
+        }
+        else if (e instanceof UnaryOp) {
+            this.visitExpr(e.operand);
+        }
+        else if (e instanceof Lambda) {
+            this.addDef("lambda", DEF_LOCAL, e.lineno);
+            if (e.args.defaults)
+                this.SEQExpr(e.args.defaults);
+            this.enterBlock("lambda", FunctionBlock, e, e.lineno);
+            this.visitArguments(e.args, e.lineno);
+            this.visitExpr(e.body);
+            this.exitBlock();
+        }
+        else if (e instanceof IfExp) {
+            this.visitExpr(e.test);
+            this.visitExpr(e.body);
+            this.visitExpr(e.orelse);
+        }
+        else if (e instanceof Dict) {
+            this.SEQExpr(e.keys);
+            this.SEQExpr(e.values);
+        }
+        else if (e instanceof ListComp) {
+            this.newTmpname(e.lineno);
+            this.visitExpr(e.elt);
+            this.visitComprehension(e.generators, 0);
+        }
+        else if (e instanceof GeneratorExp) {
+            this.visitGenexp(e);
+        }
+        else if (e instanceof Yield) {
+            if (e.value)
+                this.visitExpr(e.value);
+            this.cur.generator = true;
+            if (this.cur.returnsValue) {
+                throw syntaxError$1("'return' with argument inside generator", this.fileName);
+            }
+        }
+        else if (e instanceof Compare) {
+            this.visitExpr(e.left);
+            this.SEQExpr(e.comparators);
+        }
+        else if (e instanceof Call) {
+            this.visitExpr(e.func);
+            this.SEQExpr(e.args);
+            for (var i = 0; i < e.keywords.length; ++i)
+                this.visitExpr(e.keywords[i].value);
+            // print(JSON.stringify(e.starargs, null, 2));
+            // print(JSON.stringify(e.kwargs, null,2));
+            if (e.starargs)
+                this.visitExpr(e.starargs);
+            if (e.kwargs)
+                this.visitExpr(e.kwargs);
+        }
+        else if (e instanceof Num || e instanceof Str) {
+            // Do nothing.
+        }
+        else if (e instanceof Attribute) {
+            this.visitExpr(e.value);
+        }
+        else if (e instanceof Subscript) {
+            this.visitExpr(e.value);
+            this.visitSlice(e.slice);
+        }
+        else if (e instanceof Name) {
+            this.addDef(e.id, e.ctx === Load ? USE : DEF_LOCAL, e.lineno);
+        }
+        else if (e instanceof List || e instanceof Tuple) {
+            this.SEQExpr(e.elts);
+        }
+        else {
+            fail("Unhandled type " + e.constructor.name + " in visitExpr");
+        }
+    };
+    SymbolTable.prototype.visitComprehension = function (lcs, startAt) {
+        var len = lcs.length;
+        for (var i = startAt; i < len; ++i) {
+            var lc = lcs[i];
+            this.visitExpr(lc.target);
+            this.visitExpr(lc.iter);
+            this.SEQExpr(lc.ifs);
+        }
+    };
+    /**
+     * This is probably not correct for names. What are they?
+     * @param {Array.<Object>} names
+     * @param {number} lineno
+     */
+    SymbolTable.prototype.visitAlias = function (names, lineno) {
+        /* Compute store_name, the name actually bound by the import
+            operation.  It is diferent than a->name when a->name is a
+            dotted package name (e.g. spam.eggs)
+        */
+        for (var i = 0; i < names.length; ++i) {
+            var a = names[i];
+            // DGH: The RHS used to be Python strings.
+            var name = a.asname === null ? a.name : a.asname;
+            var storename = name;
+            var dot = name.indexOf('.');
+            if (dot !== -1)
+                storename = name.substr(0, dot);
+            if (name !== "*") {
+                this.addDef(storename, DEF_IMPORT, lineno);
+            }
+            else {
+                if (this.cur.blockType !== ModuleBlock) {
+                    throw syntaxError$1("import * only allowed at module level", this.fileName);
+                }
+            }
+        }
+    };
+    /**
+     *
+     */
+    SymbolTable.prototype.visitGenexp = function (e) {
+        var outermost = e.generators[0];
+        // outermost is evaled in current scope
+        this.visitExpr(outermost.iter);
+        this.enterBlock("genexpr", FunctionBlock, e, e.lineno);
+        this.cur.generator = true;
+        this.addDef(".0", DEF_PARAM, e.lineno);
+        this.visitExpr(outermost.target);
+        this.SEQExpr(outermost.ifs);
+        this.visitComprehension(e.generators, 1);
+        this.visitExpr(e.elt);
+        this.exitBlock();
+    };
+    SymbolTable.prototype.visitExcepthandlers = function (handlers) {
+        for (var i = 0, eh; eh = handlers[i]; ++i) {
+            if (eh.type)
+                this.visitExpr(eh.type);
+            if (eh.name)
+                this.visitExpr(eh.name);
+            this.SEQStmt(eh.body);
+        }
+    };
+    /**
+     * @param ste The Symbol Table Scope.
+     */
+    SymbolTable.prototype.analyzeBlock = function (ste, bound, free, global) {
+        var local = {};
+        var scope = {};
+        var newglobal = {};
+        var newbound = {};
+        var newfree = {};
+        if (ste.blockType === ClassBlock) {
+            dictUpdate(newglobal, global);
+            if (bound)
+                dictUpdate(newbound, bound);
+        }
+        for (var name_1 in ste.symFlags) {
+            if (ste.symFlags.hasOwnProperty(name_1)) {
+                var flags = ste.symFlags[name_1];
+                this.analyzeName(ste, scope, name_1, flags, bound, local, free, global);
+            }
+        }
+        if (ste.blockType !== ClassBlock) {
+            if (ste.blockType === FunctionBlock)
+                dictUpdate(newbound, local);
+            if (bound)
+                dictUpdate(newbound, bound);
+            dictUpdate(newglobal, global);
+        }
+        var allfree = {};
+        var childlen = ste.children.length;
+        for (var i = 0; i < childlen; ++i) {
+            var c = ste.children[i];
+            this.analyzeChildBlock(c, newbound, newfree, newglobal, allfree);
+            if (c.hasFree || c.childHasFree)
+                ste.childHasFree = true;
+        }
+        dictUpdate(newfree, allfree);
+        if (ste.blockType === FunctionBlock)
+            this.analyzeCells(scope, newfree);
+        this.updateSymbols(ste.symFlags, scope, bound, newfree, ste.blockType === ClassBlock);
+        dictUpdate(free, newfree);
+    };
+    SymbolTable.prototype.analyzeChildBlock = function (entry, bound, free, global, childFree) {
+        var tempBound = {};
+        dictUpdate(tempBound, bound);
+        var tempFree = {};
+        dictUpdate(tempFree, free);
+        var tempGlobal = {};
+        dictUpdate(tempGlobal, global);
+        this.analyzeBlock(entry, tempBound, tempFree, tempGlobal);
+        dictUpdate(childFree, tempFree);
+    };
+    SymbolTable.prototype.analyzeCells = function (scope, free) {
+        for (var name_2 in scope) {
+            if (scope.hasOwnProperty(name_2)) {
+                var flags = scope[name_2];
+                if (flags !== LOCAL)
+                    continue;
+                if (free[name_2] === undefined)
+                    continue;
+                scope[name_2] = CELL;
+                delete free[name_2];
+            }
+        }
+    };
+    /**
+     * store scope info back into the st symbols dict. symbols is modified,
+     * others are not.
+     */
+    SymbolTable.prototype.updateSymbols = function (symbols, scope, bound, free, classflag) {
+        for (var name_3 in symbols) {
+            if (symbols.hasOwnProperty(name_3)) {
+                var flags = symbols[name_3];
+                var w = scope[name_3];
+                flags |= w << SCOPE_OFF;
+                symbols[name_3] = flags;
+            }
+        }
+        var freeValue = FREE << SCOPE_OFF;
+        for (var name_4 in free) {
+            if (free.hasOwnProperty(name_4)) {
+                var o = symbols[name_4];
+                if (o !== undefined) {
+                    // it could be a free variable in a method of the class that has
+                    // the same name as a local or global in the class scope
+                    if (classflag && (o & (DEF_BOUND | DEF_GLOBAL))) {
+                        var i = o | DEF_FREE_CLASS;
+                        symbols[name_4] = i;
+                    }
+                    // else it's not free, probably a cell
+                    continue;
+                }
+                if (bound[name_4] === undefined)
+                    continue;
+                symbols[name_4] = freeValue;
+            }
+        }
+    };
+    /**
+     * @param {Object} ste The Symbol Table Scope.
+     * @param {string} name
+     */
+    SymbolTable.prototype.analyzeName = function (ste, dict, name, flags, bound, local, free, global) {
+        if (flags & DEF_GLOBAL) {
+            if (flags & DEF_PARAM)
+                throw syntaxError$1("name '" + name + "' is local and global", this.fileName, ste.lineno);
+            dict[name] = GLOBAL_EXPLICIT;
+            global[name] = null;
+            if (bound && bound[name] !== undefined)
+                delete bound[name];
+            return;
+        }
+        if (flags & DEF_BOUND) {
+            dict[name] = LOCAL;
+            local[name] = null;
+            delete global[name];
+            return;
+        }
+        if (bound && bound[name] !== undefined) {
+            dict[name] = FREE;
+            ste.hasFree = true;
+            free[name] = null;
+        }
+        else if (global && global[name] !== undefined) {
+            dict[name] = GLOBAL_IMPLICIT;
+        }
+        else {
+            if (ste.isNested)
+                ste.hasFree = true;
+            dict[name] = GLOBAL_IMPLICIT;
+        }
+    };
+    SymbolTable.prototype.analyze = function () {
+        var free = {};
+        var global = {};
+        this.analyzeBlock(this.top, null, free, global);
+    };
+    return SymbolTable;
+}());
+
+// import { Symbol } from './Symbol';
+/**
+ * @param ast
+ * @param fileName
+ */
+function symbolTable(ast, fileName) {
+    var st = new SymbolTable(fileName);
+    st.enterBlock("top", ModuleBlock, ast, 0);
+    st.top = st.cur;
+    // This is a good place to dump the AST for debugging.
+    for (var i = 0; i < ast.body.length; ++i) {
+        st.visitStmt(ast.body[i]);
+    }
+    st.exitBlock();
+    st.analyze();
+    return st;
+}
+/**
+ * @param st
+ */
+
+/**
+ * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
+ */
+/**
+ * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
+ */
+
+/// <reference path = "../../node_modules/typescript/lib/typescriptServices.d.ts" />
+// const S_TFFT = F_ALLOW_IN | F_SEMICOLON_OPT;
+// const S_FFFF = 0x00;
+// const S_TFTF = F_ALLOW_IN | F_DIRECTIVE_CTX;
+// const S_TTFF = F_ALLOW_IN | F_FUNC_BODY;
+/**
+ * The output function is scoped at the module level so that it is available without being a parameter.
+ * @param {...*} x
+ */
+var out;
+/**
+ * We keep track of how many time gensym method on the Compiler is called because ... ?
+ */
+var gensymCount = 0;
+/**
+ * FIXME: CompilerUnit is coupled to this module by the out variable.
+ */
+var CompilerUnit = (function () {
+    /**
+     * @constructor
+     *
+     * Stuff that changes on entry/exit of code blocks. must be saved and restored
+     * when returning to a block.
+     *
+     * Corresponds to the body of a module, class, or function.
+     */
+    function CompilerUnit() {
+        /**
+         * @type {?Object}
+         */
+        this.ste = null;
+        this.name = null;
+        this.private_ = null;
+        this.firstlineno = 0;
+        this.lineno = 0;
+        this.linenoSet = false;
+        this.localnames = [];
+        this.blocknum = 0;
+        this.blocks = [];
+        this.curblock = 0;
+        this.scopename = null;
+        this.prefixCode = '';
+        this.varDeclsCode = '';
+        this.switchCode = '';
+        this.suffixCode = '';
+        // stack of where to go on a break
+        this.breakBlocks = [];
+        // stack of where to go on a continue
+        this.continueBlocks = [];
+        this.exceptBlocks = [];
+        this.finallyBlocks = [];
+    }
+    CompilerUnit.prototype.activateScope = function () {
+        // The 'arguments' object cannot be referenced in an arrow function in ES3 and ES5.
+        // That's why we use a standard function expression.
+        var self = this;
+        out = function () {
+            var b = self.blocks[self.curblock];
+            for (var i = 0; i < arguments.length; ++i)
+                b.push(arguments[i]);
+        };
+    };
+    return CompilerUnit;
+}());
+/**
+ * Appends "_$rw$" to any word that is in the list of reserved words.
+ */
+function fixReservedWords(word) {
+    if (reservedWords[word] !== true) {
+        return word;
+    }
+    return word + "_$rw$";
+}
+/**
+ * Appends "_$rn$" to any name that is in the list of reserved names.
+ */
+function fixReservedNames(name) {
+    if (reservedNames[name])
+        return name + "_$rn$";
+    return name;
+}
+/**
+ * @param {string} source the code
+ * @param {string} fileName where it came from
+ *
+ * @return {{code: string}}
+ */
+function compile(source, fileName) {
+    var node = transpile(source, fileName);
+    // TODO: We need a serializer from TypeScript.
+    var code = "Need serializer from TypeScript " + node;
+    //  const code = generate(node, {});
+    return { code: code };
+}
+function resetCompiler() {
+    gensymCount = 0;
+}
+/**
+ * Transpiles from Python to JavaScript.
+ */
+var Transpiler = (function () {
+    function Transpiler(fileName, st, flags, sourceCodeForAnnotation) {
+        this.fileName = fileName;
+        /**
+         * @type {Object}
+         * @private
+         */
+        this.st = st;
+        this.flags = flags;
+        this.interactive = false;
+        this.nestlevel = 0;
+        this.u = null;
+        /**
+         * @type Array.<CompilerUnit>
+         * @private
+         */
+        this.stack = [];
+        this.result = [];
+        // this.gensymcount = 0;
+        /**
+         * @type Array.<CompilerUnit>
+         * @private
+         */
+        this.allUnits = [];
+        this.source = sourceCodeForAnnotation ? sourceCodeForAnnotation.split("\n") : false;
+    }
+    Transpiler.prototype.module = function (ast, flags) {
+        // const node: ts.Node = new Node();
+        // const body = this.statementList(ast.body, flags);
+        // node.finishProgram(body);
+        // return node;
+        throw new Error("TODO: module");
+    };
+    Transpiler.prototype.statementList = function (stmts, flags) {
+        var nodes = [];
+        var iLen = stmts.length;
+        for (var i = 0; i < iLen; i++) {
+            var stmt = stmts[i];
+            nodes.push(this.statement(stmt, flags));
+        }
+        return nodes;
+    };
+    Transpiler.prototype.statement = function (s, flags) {
+        // this.u.lineno = s.lineno;
+        // this.u.linenoSet = false;
+        //        this.annotateSource(s);
+        switch (s.constructor) {
+            case FunctionDef:
+                return this.functionDef(s, flags);
+            case ClassDef:
+                return this.classDef(s, flags);
+            case ReturnStatement: {
+                return this.returnStatement(s, flags);
+            }
+            case DeleteExpression:
+                return this.deleteExpression(s, flags);
+            case Assign: {
+                return this.assign(s, flags);
+            }
+            case AugAssign: {
+                return this.augAssign(s, flags);
+            }
+            case Print: {
+                this.print(s, flags);
+                throw new Error("Print");
+                // break;
+            }
+            case ForStatement: {
+                return this.forStatement(s, flags);
+            }
+            case WhileStatement: {
+                return this.whileStatement(s, flags);
+            }
+            case IfStatement: {
+                return this.ifStatement(s, flags);
+            }
+            case Raise: {
+                return this.raise(s, flags);
+            }
+            case TryExcept: {
+                return this.tryExcept(s, flags);
+            }
+            case TryFinally: {
+                return this.tryFinally(s, flags);
+            }
+            case Assert: {
+                return this.assert(s, flags);
+            }
+            case ImportStatement:
+                return this.importStatement(s, flags);
+            case ImportFrom:
+                return this.importFrom(s, flags);
+            case Global:
+                throw new Error("Gloabl");
+            // break;
+            case Expr:
+                return this.expr(s, flags);
+            case Pass:
+                throw new Error("Pass");
+            // break;
+            case BreakStatement:
+                return this.breakStatement(s, flags);
+            case ContinueStatement:
+                return this.continueStatement(s, flags);
+            default:
+                throw new Error("statement");
+        }
+    };
+    Transpiler.prototype.assert = function (a, flags) {
+        throw new Error("Assert");
+    };
+    Transpiler.prototype.breakStatement = function (b, flags) {
+        /*
+        if (this.u.breakBlocks.length === 0)
+            throw new SyntaxError("'break' outside loop");
+        break;
+        */
+        throw new Error("BreakStatement");
+    };
+    Transpiler.prototype.classDef = function (c, flags) {
+        throw new Error("ClassDef");
+    };
+    Transpiler.prototype.continueStatement = function (c, flags) {
+        throw new Error("ContinueStatement");
+    };
+    Transpiler.prototype.forStatement = function (fs, flags) {
+        throw new Error("ForStatement");
+    };
+    Transpiler.prototype.functionDef = function (f, flags) {
+        throw new Error("FunctionDef");
+    };
+    Transpiler.prototype.ifStatement = function (fs, flags) {
+        throw new Error("IfStatement");
+    };
+    Transpiler.prototype.importFrom = function (i, flags) {
+        // const node = new Node();
+        // node.fi
+        throw new Error("ImportFrom");
+    };
+    Transpiler.prototype.importStatement = function (i, flags) {
+        throw new Error("ImportStatement");
+    };
+    Transpiler.prototype.returnStatement = function (rs, flags) {
+        /*
+        if (this.u.ste.blockType !== FunctionBlock)
+            throw new SyntaxError("'return' outside function");
+        if (rs.value)
+            out("return ", this.vexpr(rs.value), ";");
+        else
+            out("return null;");
+        */
+        throw new Error("ClassDef");
+    };
+    Transpiler.prototype.deleteExpression = function (de, flags) {
+        throw new Error("DeleteExpression");
+    };
+    Transpiler.prototype.assign = function (assign, flags) {
+        // const node = new Node();
+        // node.finishAssignmentExpression(operator, left, right);
+        /*
+        var n = assign.targets.length;
+        var val = this.vexpr(assign.value);
+        for (var i = 0; i < n; ++i)
+            this.vexpr(assign.targets[i], val);
+        */
+        // return node;
+        throw new Error("Assign");
+    };
+    Transpiler.prototype.augAssign = function (aa, flags) {
+        throw new Error("FunctionDef");
+    };
+    Transpiler.prototype.expr = function (expr, flags) {
+        throw new Error("Expr");
+    };
+    Transpiler.prototype.print = function (p, flags) {
+        throw new Error("Print");
+    };
+    Transpiler.prototype.raise = function (raise, flags) {
+        throw new Error("Raise");
+    };
+    Transpiler.prototype.tryExcept = function (te, flags) {
+        throw new Error("TryExcept");
+    };
+    Transpiler.prototype.tryFinally = function (tf, flags) {
+        throw new Error("TryFinally");
+    };
+    Transpiler.prototype.whileStatement = function (ws, flags) {
+        throw new Error("WhileStatement");
+    };
+    return Transpiler;
+}());
+function transpile(source, fileName) {
+    var cst = parse(fileName, source);
+    if (typeof cst === 'object') {
+        var ast = astFromParse(cst, fileName);
+        var st = symbolTable(ast, fileName);
+        var t = new Transpiler(fileName, st, 0, source);
+        var flags = 0;
+        return t.module(ast, flags);
+    }
+    else {
+        throw new Error("Error parsing source for file " + fileName);
+    }
+}
 
 exports.parse = parse;
 exports.parseTreeDump = parseTreeDump;
 exports.astFromParse = astFromParse;
 exports.astDump = astDump;
+exports.tsCompile = compile;
+exports.tsReset = resetCompiler;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 

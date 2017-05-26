@@ -1225,20 +1225,28 @@ function astForAugassign(c, n) {
     switch (n.value.charAt(0)) {
         case '+': return types_1.Add;
         case '-': return types_76.Sub;
-        case '/':
-            if (n.value.charAt(1) === '/')
+        case '/': {
+            if (n.value.charAt(1) === '/') {
                 return types_32.FloorDiv;
-            return types_25.Div;
+            }
+            else {
+                return types_25.Div;
+            }
+        }
         case '%': return types_56.Mod;
         case '<': return types_53.LShift;
         case '>': return types_72.RShift;
         case '&': return types_12.BitAnd;
         case '^': return types_14.BitXor;
         case '|': return types_13.BitOr;
-        case '*':
-            if (n.value.charAt(1) === '*')
+        case '*': {
+            if (n.value.charAt(1) === '*') {
                 return types_68.Pow;
-            return types_58.Mult;
+            }
+            else {
+                return types_58.Mult;
+            }
+        }
         default: {
             throw new Error("invalid augassign");
         }
