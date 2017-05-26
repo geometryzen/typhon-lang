@@ -2,23 +2,42 @@
 import { SymbolTable } from './SymbolTable';
 import { ModuleBlock } from './SymbolConstants';
 import { Module } from './types';
+import { Statement } from './types';
 
 /**
  * @param ast
  * @param fileName
  */
-export function symbolTable(ast: Module): SymbolTable {
+export function symbolTable(mod: Module): SymbolTable {
     const st = new SymbolTable();
 
-    st.enterBlock("top", ModuleBlock, ast, 0);
+    st.enterBlock("top", ModuleBlock, mod, 0);
     st.top = st.cur;
 
     // This is a good place to dump the AST for debugging.
-    for (let i = 0; i < ast.body.length; ++i) {
-        st.visitStmt(ast.body[i]);
+    for (const stmt of mod.body) {
+        st.visitStmt(stmt);
     }
 
     st.exitBlock();
+
+    st.analyze();
+
+    return st;
+}
+
+export function symbolTableFromStatements(stmts: Statement[]): SymbolTable {
+    const st = new SymbolTable();
+
+    // st.enterBlock("top", ModuleBlock, mod, 0);
+    st.top = st.cur;
+
+    // This is a good place to dump the AST for debugging.
+    for (const stmt of stmts) {
+        st.visitStmt(stmt);
+    }
+
+    // st.exitBlock();
 
     st.analyze();
 

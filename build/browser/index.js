@@ -2301,6 +2301,7 @@ var Parser = (function () {
         var ilabel = this.classify(type, value, context);
         OUTERWHILE: while (true) {
             var tp = this.stack[this.stack.length - 1];
+            assert(typeof tp === 'object', "stack element must be a StackElement. stack = " + JSON.stringify(this.stack));
             var states = tp.dfa[0];
             var first = tp.dfa[1];
             var arcs = states[tp.state];
@@ -2448,17 +2449,28 @@ function existsTransition(a, obj) {
  *
  * @param style root of parse tree (optional)
  */
-function makeParser(style) {
-    if (style === undefined)
-        style = "file_input";
+function makeParser(sourceKind) {
+    if (sourceKind === undefined)
+        sourceKind = SourceKind.File;
     // FIXME: Would be nice to get this typing locked down.
     var p = new Parser(ParseTables);
     // TODO: Can we do this over the symbolic constants?
-    if (style === "file_input") {
-        p.setup(ParseTables.sym.file_input);
-    }
-    else {
-        console.warn("TODO: makeParser(style = " + style + ")");
+    switch (sourceKind) {
+        case SourceKind.File: {
+            p.setup(ParseTables.sym.file_input);
+            break;
+        }
+        case SourceKind.Eval: {
+            p.setup(ParseTables.sym.eval_input);
+            break;
+        }
+        case SourceKind.Single: {
+            p.setup(ParseTables.sym.single_input);
+            break;
+        }
+        default: {
+            throw new Error("SourceKind must be one of File, Eval, or Single.");
+        }
     }
     var lineno = 1;
     var column = 0;
@@ -2466,7 +2478,7 @@ function makeParser(style) {
     var T_COMMENT = Tokens.T_COMMENT;
     var T_NL = Tokens.T_NL;
     var T_OP = Tokens.T_OP;
-    var tokenizer = new Tokenizer(style === "single_input", function tokenizerCallback(type, value, start, end, line) {
+    var tokenizer = new Tokenizer(sourceKind === SourceKind.Single, function tokenizerCallback(type, value, start, end, line) {
         // var s_lineno = start[0];
         // var s_column = start[1];
         /*
@@ -2504,15 +2516,34 @@ function makeParser(style) {
         return false;
     };
 }
-function parse(input) {
-    var parseFunc = makeParser();
-    // input.endsWith("\n");
-    // Why do we normalize the input in this manner?
-    if (input.substr(IDXLAST(input), 1) !== "\n") {
-        input += "\n";
+/**
+ * Determines the starting point in the grammar for parsing the source.
+ */
+var SourceKind;
+(function (SourceKind) {
+    /**
+     * Suitable for a module.
+     */
+    SourceKind[SourceKind["File"] = 0] = "File";
+    /**
+     * Suitable for execution.
+     */
+    SourceKind[SourceKind["Eval"] = 1] = "Eval";
+    /**
+     * Suitable for a REPL.
+     */
+    SourceKind[SourceKind["Single"] = 2] = "Single";
+})(SourceKind || (SourceKind = {}));
+function parse(sourceText, sourceKind) {
+    if (sourceKind === void 0) { sourceKind = SourceKind.File; }
+    var parseFunc = makeParser(sourceKind);
+    // sourceText.endsWith("\n");
+    // Why do we normalize the sourceText in this manner?
+    if (sourceText.substr(IDXLAST(sourceText), 1) !== "\n") {
+        sourceText += "\n";
     }
     // Splitting this ay will create a final line that is the zero-length string.
-    var lines = input.split("\n");
+    var lines = sourceText.split("\n");
     // FIXME: Mixing the types this way is awkward for the consumer.
     var ret = false;
     for (var i = 0; i < lines.length; ++i) {
@@ -2782,15 +2813,12 @@ var Interactive = (function () {
     }
     return Interactive;
 }());
-var Expression = (function (_super) {
-    __extends(Expression, _super);
+var Expression = (function () {
     function Expression(body) {
-        var _this = _super.call(this) || this;
-        _this.body = body;
-        return _this;
+        this.body = body;
     }
     return Expression;
-}(Statement));
+}());
 var UnaryExpression = (function (_super) {
     __extends(UnaryExpression, _super);
     function UnaryExpression() {
@@ -3045,16 +3073,16 @@ var NonLocal = (function () {
     }
     return NonLocal;
 }());
-var Expr = (function (_super) {
-    __extends(Expr, _super);
-    function Expr(value, lineno, col_offset) {
+var ExpressionStatement = (function (_super) {
+    __extends(ExpressionStatement, _super);
+    function ExpressionStatement(value, lineno, col_offset) {
         var _this = _super.call(this) || this;
         _this.value = value;
         _this.lineno = lineno;
         _this.col_offset = col_offset;
         return _this;
     }
-    return Expr;
+    return ExpressionStatement;
 }(Statement));
 var Pass = (function () {
     function Pass(lineno, col_offset) {
@@ -3446,8 +3474,8 @@ NonLocal.prototype['_astname'] = 'NonLocal';
 NonLocal.prototype['_fields'] = [
     'names', function (n) { return n.names; }
 ];
-Expr.prototype['_astname'] = 'Expr';
-Expr.prototype['_fields'] = [
+ExpressionStatement.prototype['_astname'] = 'ExpressionStatement';
+ExpressionStatement.prototype['_fields'] = [
     'value', function (n) { return n.value; }
 ];
 Pass.prototype['_astname'] = 'Pass';
@@ -4563,7 +4591,7 @@ function astForFlowStmt(c, n) {
         case SYM.break_stmt: return new BreakStatement(n.lineno, n.col_offset);
         case SYM.continue_stmt: return new ContinueStatement(n.lineno, n.col_offset);
         case SYM.yield_stmt:
-            return new Expr(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
+            return new ExpressionStatement(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
         case SYM.return_stmt:
             if (NCH(ch) === 1)
                 return new ReturnStatement(null, n.lineno, n.col_offset);
@@ -4879,7 +4907,7 @@ function astForTestlist(c, n) {
 function astForExprStmt(c, n) {
     REQ(n, SYM.ExprStmt);
     if (NCH(n) === 1)
-        return new Expr(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
+        return new ExpressionStatement(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
     else if (CHILD(n, 1).type === SYM.augassign) {
         var ch = CHILD(n, 0);
         var expr1 = astForTestlist(c, ch);
@@ -5364,30 +5392,32 @@ function astForStmt(c, n) {
         }
     }
 }
+
 function astFromParse(n) {
     var c = new Compiling("utf-8");
     var stmts = [];
     var k = 0;
+    for (var i = 0; i < NCH(n) - 1; ++i) {
+        var ch = CHILD(n, i);
+        if (n.type === Tokens.T_NEWLINE)
+            continue;
+        REQ(ch, SYM.stmt);
+        var num = numStmts(ch);
+        if (num === 1) {
+            stmts[k++] = astForStmt(c, ch);
+        }
+        else {
+            ch = CHILD(ch, 0);
+            REQ(ch, SYM.simple_stmt);
+            for (var j = 0; j < num; ++j) {
+                stmts[k++] = astForStmt(c, CHILD(ch, j * 2));
+            }
+        }
+    }
+    return stmts;
+    /*
     switch (n.type) {
         case SYM.file_input:
-            for (var i = 0; i < NCH(n) - 1; ++i) {
-                var ch = CHILD(n, i);
-                if (n.type === Tokens.T_NEWLINE)
-                    continue;
-                REQ(ch, SYM.stmt);
-                var num = numStmts(ch);
-                if (num === 1) {
-                    stmts[k++] = astForStmt(c, ch);
-                }
-                else {
-                    ch = CHILD(ch, 0);
-                    REQ(ch, SYM.simple_stmt);
-                    for (var j = 0; j < num; ++j) {
-                        stmts[k++] = astForStmt(c, CHILD(ch, j * 2));
-                    }
-                }
-            }
-            return new Module(stmts);
         case SYM.eval_input: {
             throw new Error("todo;");
         }
@@ -5398,6 +5428,7 @@ function astFromParse(n) {
             throw new Error("todo;");
         }
     }
+    */
 }
 function astDump(node) {
     var _format = function (node) {
@@ -6066,7 +6097,7 @@ var SymbolTable = (function () {
                 this.addDef(name_1, DEF_GLOBAL, s.lineno);
             }
         }
-        else if (s instanceof Expr) {
+        else if (s instanceof ExpressionStatement) {
             this.visitExpr(s.value);
         }
         else if (s instanceof Pass || s instanceof BreakStatement || s instanceof ContinueStatement) {
@@ -6374,18 +6405,20 @@ var SymbolTable = (function () {
  * @param ast
  * @param fileName
  */
-function symbolTable(ast) {
+function symbolTable(mod) {
     var st = new SymbolTable();
-    st.enterBlock("top", ModuleBlock, ast, 0);
+    st.enterBlock("top", ModuleBlock, mod, 0);
     st.top = st.cur;
     // This is a good place to dump the AST for debugging.
-    for (var i = 0; i < ast.body.length; ++i) {
-        st.visitStmt(ast.body[i]);
+    for (var _i = 0, _a = mod.body; _i < _a.length; _i++) {
+        var stmt = _a[_i];
+        st.visitStmt(stmt);
     }
     st.exitBlock();
     st.analyze();
     return st;
 }
+
 /**
  * @param st
  */
@@ -6481,14 +6514,16 @@ function fixReservedNames(name) {
     return name;
 }
 /**
- *
+ * TODO: Rename compileModule
  */
 function compile(source, fileName) {
     var resultFile = ts.createSourceFile(fileName, "", ts.ScriptTarget.Latest, /*setParentNodes*/ false, ts.ScriptKind.TS);
     var printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
-    var code = printer.printNode(ts.EmitHint.Unspecified, transpile(source), resultFile);
+    var code = printer.printNode(ts.EmitHint.Unspecified, transpileModule(source), resultFile);
     return { code: code };
 }
+
+
 function resetCompiler() {
     gensymCount = 0;
 }
@@ -6529,8 +6564,11 @@ var Transpiler = (function () {
         // this.u.lineno = s.lineno;
         // this.u.linenoSet = false;
         // this.annotateSource(s);
-        if (s instanceof Expr) {
-            return ts.createReturn(this.expr(s, flags));
+        if (s instanceof ExpressionStatement) {
+            return ts.createStatement(this.expr(s.value, flags));
+        }
+        else if (s instanceof Assign) {
+            return ts.createStatement(this.assign(s, flags));
         }
         switch (s.constructor) {
             /*
@@ -6648,14 +6686,14 @@ var Transpiler = (function () {
     Transpiler.prototype.assign = function (assign, flags) {
         // const node = new Node();
         // node.finishAssignmentExpression(operator, left, right);
-        /*
+        var right = this.expr(assign.value, flags);
         var n = assign.targets.length;
-        var val = this.vexpr(assign.value);
+        var lhs;
         for (var i = 0; i < n; ++i)
-            this.vexpr(assign.targets[i], val);
-        */
+            lhs = this.expr(assign.targets[i], flags);
         // return node;
-        throw new Error("Assign");
+        return ts.createAssignment(lhs, right);
+        // throw new Error("Assign");
     };
     Transpiler.prototype.augAssign = function (aa, flags) {
         throw new Error("FunctionDef");
@@ -6665,7 +6703,10 @@ var Transpiler = (function () {
         if (expr instanceof Num) {
             return ts.createLiteral(expr.n.value);
         }
-        throw new Error("Expr");
+        else if (expr instanceof Name) {
+            return ts.createIdentifier(expr.id);
+        }
+        throw new Error("" + JSON.stringify(expr));
     };
     Transpiler.prototype.print = function (p, flags) {
         throw new Error("Print");
@@ -6684,14 +6725,21 @@ var Transpiler = (function () {
     };
     return Transpiler;
 }());
-function transpile(source) {
-    var cst = parse(source);
+/**
+ *
+ * @param sourceText
+ * @param sourceKind
+ */
+function transpileModule(sourceText) {
+    var cst = parse(sourceText, SourceKind.File);
     if (typeof cst === 'object') {
-        var ast = astFromParse(cst);
-        var st = symbolTable(ast);
-        var t = new Transpiler(st, 0, source);
+        var stmts = astFromParse(cst);
+        var mod = new Module(stmts);
+        var st = symbolTable(mod);
+        var t = new Transpiler(st, 0, sourceText);
         var flags = 0;
-        return t.module(ast, flags);
+        // FIXME: This should be according to the sourceKind.
+        return t.module(mod, flags);
     }
     else {
         throw new Error("Error parsing source for file.");

@@ -107,12 +107,12 @@ export interface Node extends TextRange {
     col_offset?: number;
 }
 
-export abstract class Expression extends Statement implements Node {
+export abstract class Expression implements Node {
     body?: any;
     id?: string;
+    lineno?: number;
     col_offset?: number;
     constructor(body: any) {
-        super();
         this.body = body;
     }
 }
@@ -435,7 +435,7 @@ export class NonLocal {
     }
 }
 
-export class Expr extends Statement {
+export class ExpressionStatement extends Statement {
     value: Expression | Tuple;
     lineno: number;
     col_offset: number;
@@ -944,9 +944,9 @@ NonLocal.prototype['_astname'] = 'NonLocal';
 NonLocal.prototype['_fields'] = [
     'names', function (n: NonLocal) { return n.names; }
 ];
-Expr.prototype['_astname'] = 'Expr';
-Expr.prototype['_fields'] = [
-    'value', function (n: Expr) { return n.value; }
+ExpressionStatement.prototype['_astname'] = 'ExpressionStatement';
+ExpressionStatement.prototype['_fields'] = [
+    'value', function (n: ExpressionStatement) { return n.value; }
 ];
 Pass.prototype['_astname'] = 'Pass';
 Pass.prototype['_fields'] = [

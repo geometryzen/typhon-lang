@@ -1,10 +1,12 @@
 import { SymbolTable } from './SymbolTable';
 import { Module } from './types';
+import { Statement } from './types';
 /**
  * @param ast
  * @param fileName
  */
-export declare function symbolTable(ast: Module): SymbolTable;
+export declare function symbolTable(mod: Module): SymbolTable;
+export declare function symbolTableFromStatements(stmts: Statement[]): SymbolTable;
 export interface SymbolInfo {
     get_name(): string;
     is_referenced(): boolean;

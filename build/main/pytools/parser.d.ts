@@ -64,5 +64,22 @@ export interface StackElement {
     state: number;
     node: PyNode;
 }
-export declare function parse(input: string): boolean | PyNode;
+/**
+ * Determines the starting point in the grammar for parsing the source.
+ */
+export declare enum SourceKind {
+    /**
+     * Suitable for a module.
+     */
+    File = 0,
+    /**
+     * Suitable for execution.
+     */
+    Eval = 1,
+    /**
+     * Suitable for a REPL.
+     */
+    Single = 2,
+}
+export declare function parse(sourceText: string, sourceKind?: SourceKind): boolean | PyNode;
 export declare function parseTreeDump(n: PyNode): string;

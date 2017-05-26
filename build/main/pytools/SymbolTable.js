@@ -348,7 +348,7 @@ var SymbolTable = (function () {
                 this.addDef(name_1, SymbolConstants_5.DEF_GLOBAL, s.lineno);
             }
         }
-        else if (s instanceof types_16.Expr) {
+        else if (s instanceof types_16.ExpressionStatement) {
             this.visitExpr(s.value);
         }
         else if (s instanceof types_34.Pass || s instanceof types_7.BreakStatement || s instanceof types_11.ContinueStatement) {

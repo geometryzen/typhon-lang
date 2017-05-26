@@ -105,6 +105,7 @@ export declare class Compiler {
     constructor(fileName: string, st: SymbolTable, flags: number, sourceCodeForAnnotation: string);
     getSourceLine(lineno: number): any;
     annotateSource(ast: {
+        lineno?: number;
         col_offset?: number;
     }): void;
     gensym(hint?: string): string;
@@ -205,10 +206,23 @@ export declare class Compiler {
     cmod(mod: Module, flags: number): string;
 }
 /**
- *
+ * TODO: Rename compileModule
  */
 export declare function compile(source: string, fileName: string): {
     code: string;
 };
+export declare function compileExpression(source: string, fileName: string): {
+    code: string;
+};
+export declare function compileSingle(source: string, fileName: string): {
+    code: string;
+};
 export declare function resetCompiler(): void;
-export declare function transpile(source: string): ts.ModuleBlock;
+/**
+ *
+ * @param sourceText
+ * @param sourceKind
+ */
+export declare function transpileModule(sourceText: string): ts.ModuleBlock;
+export declare function transpileExpression(sourceText: string): ts.Expression;
+export declare function transpileSingle(sourceText: string): ts.Statement[];

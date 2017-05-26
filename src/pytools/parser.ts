@@ -124,6 +124,7 @@ class Parser {
         OUTERWHILE:
         while (true) {
             let tp = this.stack[this.stack.length - 1];
+            assert(typeof tp === 'object', `stack element must be a StackElement. stack = ${JSON.stringify(this.stack)}`);
             let states = tp.dfa[0];
             let first = tp.dfa[1];
             const arcs = states[tp.state];
@@ -283,17 +284,28 @@ function existsTransition(a: Arc[], obj: Arc): boolean {
  *
  * @param style root of parse tree (optional)
  */
-function makeParser(style?: string): (line: string) => PyNode | boolean {
-    if (style === undefined) style = "file_input";
+function makeParser(sourceKind: SourceKind): (line: string) => PyNode | boolean {
+    if (sourceKind === undefined) sourceKind = SourceKind.File;
 
     // FIXME: Would be nice to get this typing locked down.
     const p = new Parser(ParseTables as any);
     // TODO: Can we do this over the symbolic constants?
-    if (style === "file_input") {
-        p.setup(ParseTables.sym.file_input);
-    }
-    else {
-        console.warn(`TODO: makeParser(style = ${style})`);
+    switch (sourceKind) {
+        case SourceKind.File: {
+            p.setup(ParseTables.sym.file_input);
+            break;
+        }
+        case SourceKind.Eval: {
+            p.setup(ParseTables.sym.eval_input);
+            break;
+        }
+        case SourceKind.Single: {
+            p.setup(ParseTables.sym.single_input);
+            break;
+        }
+        default: {
+            throw new Error("SourceKind must be one of File, Eval, or Single.");
+        }
     }
     let lineno = 1;
     let column = 0;
@@ -301,7 +313,7 @@ function makeParser(style?: string): (line: string) => PyNode | boolean {
     const T_COMMENT = Tokens.T_COMMENT;
     const T_NL = Tokens.T_NL;
     const T_OP = Tokens.T_OP;
-    const tokenizer = new Tokenizer(style === "single_input", function tokenizerCallback(type: Tokens, value: string, start: [number, number], end: [number, number], line: string): boolean | undefined {
+    const tokenizer = new Tokenizer(sourceKind === SourceKind.Single, function tokenizerCallback(type: Tokens, value: string, start: [number, number], end: [number, number], line: string): boolean | undefined {
         // var s_lineno = start[0];
         // var s_column = start[1];
         /*
@@ -340,15 +352,33 @@ function makeParser(style?: string): (line: string) => PyNode | boolean {
     };
 }
 
-export function parse(input: string): boolean | PyNode {
-    const parseFunc = makeParser();
-    // input.endsWith("\n");
-    // Why do we normalize the input in this manner?
-    if (input.substr(IDXLAST(input), 1) !== "\n") {
-        input += "\n";
+/**
+ * Determines the starting point in the grammar for parsing the source.
+ */
+export enum SourceKind {
+    /**
+     * Suitable for a module.
+     */
+    File = 0,
+    /**
+     * Suitable for execution.
+     */
+    Eval = 1,
+    /**
+     * Suitable for a REPL.
+     */
+    Single = 2
+}
+
+export function parse(sourceText: string, sourceKind: SourceKind = SourceKind.File): boolean | PyNode {
+    const parseFunc = makeParser(sourceKind);
+    // sourceText.endsWith("\n");
+    // Why do we normalize the sourceText in this manner?
+    if (sourceText.substr(IDXLAST(sourceText), 1) !== "\n") {
+        sourceText += "\n";
     }
     // Splitting this ay will create a final line that is the zero-length string.
-    const lines = input.split("\n");
+    const lines = sourceText.split("\n");
     // FIXME: Mixing the types this way is awkward for the consumer.
     let ret: boolean | PyNode = false;
     for (let i = 0; i < lines.length; ++i) {

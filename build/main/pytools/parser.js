@@ -58,6 +58,7 @@ var Parser = (function () {
         var ilabel = this.classify(type, value, context);
         OUTERWHILE: while (true) {
             var tp = this.stack[this.stack.length - 1];
+            asserts_1.assert(typeof tp === 'object', "stack element must be a StackElement. stack = " + JSON.stringify(this.stack));
             var states = tp.dfa[0];
             var first = tp.dfa[1];
             var arcs = states[tp.state];
@@ -205,17 +206,28 @@ function existsTransition(a, obj) {
  *
  * @param style root of parse tree (optional)
  */
-function makeParser(style) {
-    if (style === undefined)
-        style = "file_input";
+function makeParser(sourceKind) {
+    if (sourceKind === undefined)
+        sourceKind = SourceKind.File;
     // FIXME: Would be nice to get this typing locked down.
     var p = new Parser(tables_1.ParseTables);
     // TODO: Can we do this over the symbolic constants?
-    if (style === "file_input") {
-        p.setup(tables_1.ParseTables.sym.file_input);
-    }
-    else {
-        console.warn("TODO: makeParser(style = " + style + ")");
+    switch (sourceKind) {
+        case SourceKind.File: {
+            p.setup(tables_1.ParseTables.sym.file_input);
+            break;
+        }
+        case SourceKind.Eval: {
+            p.setup(tables_1.ParseTables.sym.eval_input);
+            break;
+        }
+        case SourceKind.Single: {
+            p.setup(tables_1.ParseTables.sym.single_input);
+            break;
+        }
+        default: {
+            throw new Error("SourceKind must be one of File, Eval, or Single.");
+        }
     }
     var lineno = 1;
     var column = 0;
@@ -223,7 +235,7 @@ function makeParser(style) {
     var T_COMMENT = Tokens_1.Tokens.T_COMMENT;
     var T_NL = Tokens_1.Tokens.T_NL;
     var T_OP = Tokens_1.Tokens.T_OP;
-    var tokenizer = new Tokenizer_1.Tokenizer(style === "single_input", function tokenizerCallback(type, value, start, end, line) {
+    var tokenizer = new Tokenizer_1.Tokenizer(sourceKind === SourceKind.Single, function tokenizerCallback(type, value, start, end, line) {
         // var s_lineno = start[0];
         // var s_column = start[1];
         /*
@@ -261,15 +273,34 @@ function makeParser(style) {
         return false;
     };
 }
-function parse(input) {
-    var parseFunc = makeParser();
-    // input.endsWith("\n");
-    // Why do we normalize the input in this manner?
-    if (input.substr(tree_1.IDXLAST(input), 1) !== "\n") {
-        input += "\n";
+/**
+ * Determines the starting point in the grammar for parsing the source.
+ */
+var SourceKind;
+(function (SourceKind) {
+    /**
+     * Suitable for a module.
+     */
+    SourceKind[SourceKind["File"] = 0] = "File";
+    /**
+     * Suitable for execution.
+     */
+    SourceKind[SourceKind["Eval"] = 1] = "Eval";
+    /**
+     * Suitable for a REPL.
+     */
+    SourceKind[SourceKind["Single"] = 2] = "Single";
+})(SourceKind = exports.SourceKind || (exports.SourceKind = {}));
+function parse(sourceText, sourceKind) {
+    if (sourceKind === void 0) { sourceKind = SourceKind.File; }
+    var parseFunc = makeParser(sourceKind);
+    // sourceText.endsWith("\n");
+    // Why do we normalize the sourceText in this manner?
+    if (sourceText.substr(tree_1.IDXLAST(sourceText), 1) !== "\n") {
+        sourceText += "\n";
     }
     // Splitting this ay will create a final line that is the zero-length string.
-    var lines = input.split("\n");
+    var lines = sourceText.split("\n");
     // FIXME: Mixing the types this way is awkward for the consumer.
     var ret = false;
     for (var i = 0; i < lines.length; ++i) {

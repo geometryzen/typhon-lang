@@ -280,11 +280,11 @@ var Compiler = (function () {
     };
     Compiler.prototype.annotateSource = function (ast) {
         if (this.source) {
-            // const lineno = ast.lineno;
+            var lineno = ast.lineno;
             var col_offset = ast.col_offset;
-            // out('\n//');
-            // out('\n// line ', lineno, ':');
-            // out('\n// ', this.getSourceLine(lineno));
+            out('\n//');
+            out('\n// line ', lineno, ':');
+            out('\n// ', this.getSourceLine(lineno));
             //
             // out('\n// ');
             for (var i = 0; i < col_offset; ++i) {
@@ -1391,7 +1391,7 @@ var Compiler = (function () {
         else if (s instanceof types_23.Global) {
             return void 0;
         }
-        else if (s instanceof types_18.Expr) {
+        else if (s instanceof types_18.ExpressionStatement) {
             this.vexpr(s.value);
         }
         else if (s instanceof types_37.Pass) {
@@ -1660,15 +1660,29 @@ function mangleName(priv, name) {
     return '_' + strpriv + name;
 }
 /**
- *
+ * TODO: Rename compileModule
  */
 function compile(source, fileName) {
     var resultFile = ts.createSourceFile(fileName, "", ts.ScriptTarget.Latest, /*setParentNodes*/ false, ts.ScriptKind.TS);
     var printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
-    var code = printer.printNode(ts.EmitHint.Unspecified, transpile(source), resultFile);
+    var code = printer.printNode(ts.EmitHint.Unspecified, transpileModule(source), resultFile);
     return { code: code };
 }
 exports.compile = compile;
+function compileExpression(source, fileName) {
+    var resultFile = ts.createSourceFile(fileName, "", ts.ScriptTarget.Latest, /*setParentNodes*/ false, ts.ScriptKind.TS);
+    var printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
+    var code = printer.printNode(ts.EmitHint.Expression, transpileExpression(source), resultFile);
+    return { code: code };
+}
+exports.compileExpression = compileExpression;
+function compileSingle(source, fileName) {
+    var resultFile = ts.createSourceFile(fileName, "", ts.ScriptTarget.Latest, /*setParentNodes*/ false, ts.ScriptKind.TS);
+    var printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
+    var code = printer.printNode(ts.EmitHint.Expression, transpileSingle(source)[0], resultFile);
+    return { code: code };
+}
+exports.compileSingle = compileSingle;
 function resetCompiler() {
     gensymCount = 0;
 }
@@ -1710,8 +1724,11 @@ var Transpiler = (function () {
         // this.u.lineno = s.lineno;
         // this.u.linenoSet = false;
         // this.annotateSource(s);
-        if (s instanceof types_18.Expr) {
-            return ts.createReturn(this.expr(s, flags));
+        if (s instanceof types_18.ExpressionStatement) {
+            return ts.createStatement(this.expr(s.value, flags));
+        }
+        else if (s instanceof types_2.Assign) {
+            return ts.createStatement(this.assign(s, flags));
         }
         switch (s.constructor) {
             /*
@@ -1829,14 +1846,14 @@ var Transpiler = (function () {
     Transpiler.prototype.assign = function (assign, flags) {
         // const node = new Node();
         // node.finishAssignmentExpression(operator, left, right);
-        /*
+        var right = this.expr(assign.value, flags);
         var n = assign.targets.length;
-        var val = this.vexpr(assign.value);
+        var lhs;
         for (var i = 0; i < n; ++i)
-            this.vexpr(assign.targets[i], val);
-        */
+            lhs = this.expr(assign.targets[i], flags);
         // return node;
-        throw new Error("Assign");
+        return ts.createAssignment(lhs, right);
+        // throw new Error("Assign");
     };
     Transpiler.prototype.augAssign = function (aa, flags) {
         throw new Error("FunctionDef");
@@ -1846,7 +1863,10 @@ var Transpiler = (function () {
         if (expr instanceof types_35.Num) {
             return ts.createLiteral(expr.n.value);
         }
-        throw new Error("Expr");
+        else if (expr instanceof types_34.Name) {
+            return ts.createIdentifier(expr.id);
+        }
+        throw new Error("" + JSON.stringify(expr));
     };
     Transpiler.prototype.print = function (p, flags) {
         throw new Error("Print");
@@ -1865,17 +1885,54 @@ var Transpiler = (function () {
     };
     return Transpiler;
 }());
-function transpile(source) {
-    var cst = parser_1.parse(source);
+/**
+ *
+ * @param sourceText
+ * @param sourceKind
+ */
+function transpileModule(sourceText) {
+    var cst = parser_1.parse(sourceText, parser_1.SourceKind.File);
     if (typeof cst === 'object') {
-        var ast = builder_1.astFromParse(cst);
-        var st = symtable_1.symbolTable(ast);
-        var t = new Transpiler(st, 0, source);
+        var stmts = builder_1.astFromParse(cst);
+        var mod = new types_33.Module(stmts);
+        var st = symtable_1.symbolTable(mod);
+        var t = new Transpiler(st, 0, sourceText);
         var flags = 0;
-        return t.module(ast, flags);
+        // FIXME: This should be according to the sourceKind.
+        return t.module(mod, flags);
     }
     else {
         throw new Error("Error parsing source for file.");
     }
 }
-exports.transpile = transpile;
+exports.transpileModule = transpileModule;
+function transpileExpression(sourceText) {
+    var cst = parser_1.parse(sourceText, parser_1.SourceKind.Single);
+    if (typeof cst === 'object') {
+        var expr = builder_1.astFromExpression(cst);
+        // const st = symbolTableFromStatements(stmts);
+        var t = new Transpiler(undefined, 0, sourceText);
+        var flags = 0;
+        // FIXME: This should be according to the sourceKind.
+        return t.expr(expr, flags);
+    }
+    else {
+        throw new Error("Error parsing source for file.");
+    }
+}
+exports.transpileExpression = transpileExpression;
+function transpileSingle(sourceText) {
+    var cst = parser_1.parse(sourceText, parser_1.SourceKind.Single);
+    if (typeof cst === 'object') {
+        var stmts = builder_1.astFromParse(cst);
+        var st = symtable_1.symbolTableFromStatements(stmts);
+        var t = new Transpiler(st, 0, sourceText);
+        var flags = 0;
+        // FIXME: This should be according to the sourceKind.
+        return t.statementList(stmts, flags);
+    }
+    else {
+        throw new Error("Error parsing source for file.");
+    }
+}
+exports.transpileSingle = transpileSingle;

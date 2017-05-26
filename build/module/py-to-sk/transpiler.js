@@ -1,14 +1,10 @@
 import { assert, fail } from '../pytools/asserts';
-import { parse } from '../pytools/parser';
+import { parse, SourceKind } from '../pytools/parser';
 import { astFromParse } from '../pytools/builder';
-import reservedNames from '../pytools/reservedNames';
-import reservedWords from '../pytools/reservedWords';
-import SymbolTable from '../pytools/SymbolTable';
-import SymbolTableScope from '../pytools/SymbolTableScope';
+import { reservedNames } from '../pytools/reservedNames';
+import { reservedWords } from '../pytools/reservedWords';
 import { symbolTable } from '../pytools/symtable';
-import toStringLiteralJS from '../pytools/toStringLiteralJS';
-
-import { Alias } from '../pytools/types';
+import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 import { And } from '../pytools/types';
 import { Assert } from '../pytools/types';
 import { Assign } from '../pytools/types';
@@ -27,7 +23,7 @@ import { Del } from '../pytools/types';
 import { DeleteExpression } from '../pytools/types';
 import { Dict } from '../pytools/types';
 import { Ellipsis } from '../pytools/types';
-import { Expr } from '../pytools/types';
+import { ExpressionStatement } from '../pytools/types';
 import { ExtSlice } from '../pytools/types';
 import { ForStatement } from '../pytools/types';
 import { FunctionDef } from '../pytools/types';
@@ -60,67 +56,32 @@ import { Tuple } from '../pytools/types';
 import { UnaryOp } from '../pytools/types';
 import { WhileStatement } from '../pytools/types';
 import { Yield } from '../pytools/types';
-
 import { LOCAL } from '../pytools/SymbolConstants';
 import { GLOBAL_EXPLICIT } from '../pytools/SymbolConstants';
 import { GLOBAL_IMPLICIT } from '../pytools/SymbolConstants';
 import { FREE } from '../pytools/SymbolConstants';
 import { CELL } from '../pytools/SymbolConstants';
 import { FunctionBlock } from '../pytools/SymbolConstants';
-
-const OP_FAST = 0;
-const OP_GLOBAL = 1;
-const OP_DEREF = 2;
-const OP_NAME = 3;
+var OP_FAST = 0;
+var OP_GLOBAL = 1;
+var OP_DEREF = 2;
+var OP_NAME = 3;
 // const D_NAMES = 0;
 // const D_FREEVARS = 1;
 // const D_CELLVARS = 2;
-
 /**
  * The output function is scoped at the module level so that it is available without being a parameter.
  * @param {...*} x
  */
-let out;
-
+var out;
 /**
  * We keep track of how many time gensym method on the Compiler is called because ... ?
  */
-let gensymCount = 0;
-
+var gensymCount = 0;
 /**
  * FIXME: CompilerUnit is coupled to this module by the out variable.
  */
-class CompilerUnit {
-    ste: SymbolTableScope;
-    name: string;
-    /**
-     * Some sort of private name?
-     */
-    private_: string;
-    firstlineno: number;
-    lineno: number;
-    /**
-     * Has the line number been set?
-     */
-    linenoSet: boolean;
-    localnames: string[];
-    blocknum: number;
-    /**
-     * TODO: What are these blocks?
-     */
-    blocks: any[];
-    curblock: number;
-    scopename: string;
-    prefixCode: string;
-    varDeclsCode: string;
-    switchCode: string;
-    suffixCode: string;
-    breakCode: string;
-    breakBlocks: number[];
-    continueBlocks: number[];
-    exceptBlocks: number[];
-    finallyBlocks: number[];
-    argnames: any[];
+var CompilerUnit = (function () {
     /**
      * @constructor
      *
@@ -129,30 +90,25 @@ class CompilerUnit {
      *
      * Corresponds to the body of a module, class, or function.
      */
-    constructor() {
+    function CompilerUnit() {
         /**
          * @type {?Object}
          */
         this.ste = null;
         this.name = null;
-
         this.private_ = null;
         this.firstlineno = 0;
         this.lineno = 0;
         this.linenoSet = false;
         this.localnames = [];
-
         this.blocknum = 0;
         this.blocks = [];
         this.curblock = 0;
-
         this.scopename = null;
-
         this.prefixCode = '';
         this.varDeclsCode = '';
         this.switchCode = '';
         this.suffixCode = '';
-
         // stack of where to go on a break
         this.breakBlocks = [];
         // stack of where to go on a continue
@@ -160,29 +116,19 @@ class CompilerUnit {
         this.exceptBlocks = [];
         this.finallyBlocks = [];
     }
-    activateScope() {
+    CompilerUnit.prototype.activateScope = function () {
         // The 'arguments' object cannot be referenced in an arrow function in ES3 and ES5.
         // That's why we use a standard function expression.
-        const self = this;
+        var self = this;
         out = function () {
-            const b = self.blocks[self.curblock];
-            for (let i = 0; i < arguments.length; ++i)
+            var b = self.blocks[self.curblock];
+            for (var i = 0; i < arguments.length; ++i)
                 b.push(arguments[i]);
         };
-    }
-}
-
-class Compiler {
-    public result: string[];
-    private fileName: string;
-    private st: SymbolTable;
-    private flags: number;
-    private interactive: boolean;
-    private nestlevel: number;
-    private u: CompilerUnit;
-    private stack: CompilerUnit[];
-    private allUnits: CompilerUnit[];
-    private source: string[] | boolean;
+    };
+    return CompilerUnit;
+}());
+var Compiler = (function () {
     /**
      * @constructor
      * @param fileName {string}
@@ -190,7 +136,7 @@ class Compiler {
      * @param flags {number}
      * @param {string=} sourceCodeForAnnotation used to add original source to listing if desired
      */
-    constructor(fileName: string, st: SymbolTable, flags: number, sourceCodeForAnnotation: string) {
+    function Compiler(fileName, st, flags, sourceCodeForAnnotation) {
         this.fileName = fileName;
         /**
          * @type {Object}
@@ -200,71 +146,58 @@ class Compiler {
         this.flags = flags;
         this.interactive = false;
         this.nestlevel = 0;
-
         this.u = null;
         /**
          * @type Array.<CompilerUnit>
          * @private
          */
         this.stack = [];
-
         this.result = [];
-
         // this.gensymcount = 0;
-
         /**
          * @type Array.<CompilerUnit>
          * @private
          */
         this.allUnits = [];
-
         this.source = sourceCodeForAnnotation ? sourceCodeForAnnotation.split("\n") : false;
     }
-
-    getSourceLine(lineno: number) {
+    Compiler.prototype.getSourceLine = function (lineno) {
         assert(!!this.source);
         return this.source[lineno - 1];
-    }
-
-    annotateSource(ast) {
+    };
+    Compiler.prototype.annotateSource = function (ast) {
         if (this.source) {
             var lineno = ast.lineno;
             var col_offset = ast.col_offset;
             out('\n//');
             out('\n// line ', lineno, ':');
             out('\n// ', this.getSourceLine(lineno));
-
             //
             out('\n// ');
             for (var i = 0; i < col_offset; ++i) {
                 out(" ");
             }
             out("^");
-
             out("\n//");
-
             out('\nSk.currLineNo = ', lineno, ';Sk.currColNo = ', col_offset, ';');
             out("\nSk.currFilename = '", this.fileName, "';\n\n");
         }
-    }
-
-    gensym(hint?: string): string {
+    };
+    Compiler.prototype.gensym = function (hint) {
         hint = hint || '';
         hint = '$' + hint;
         hint += gensymCount++;
         return hint;
-    }
-
-    niceName(roughName: string): string {
+    };
+    Compiler.prototype.niceName = function (roughName) {
         return this.gensym(roughName.replace("<", "").replace(">", "").replace(" ", "_"));
-    }
-
+    };
     /**
      * @method _gr
      * @param {string} hint basename for gensym
      * @param {...*} rest
      */
-    _gr(hint: string, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any, arg9?: any, argA?: any, argB?: any, argC?: any, argD?: any, argE?: any) {
+    Compiler.prototype._gr = function (hint, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, argA, argB, argC, argD, argE) {
         var v = this.gensym(hint);
         out("var ", v, "=");
         for (var i = 1; i < arguments.length; ++i) {
@@ -272,45 +205,40 @@ class Compiler {
         }
         out(";");
         return v;
-    }
-
+    };
     /**
      * Function to test if an interrupt should occur if the program has been running for too long.
      * This function is executed at every test/branch operation.
      */
-    _interruptTest() {
+    Compiler.prototype._interruptTest = function () {
         out("if (typeof Sk.execStart === 'undefined') {Sk.execStart=new Date()}");
         out("if (Sk.execLimit !== null && new Date() - Sk.execStart > Sk.execLimit) {throw new Sk.builtin.TimeLimitError(Sk.timeoutMsg())}");
-    }
-
-    _jumpfalse(test, block) {
+    };
+    Compiler.prototype._jumpfalse = function (test, block) {
         var cond = this._gr('jfalse', "(", test, "===false||!Sk.misceval.isTrue(", test, "))");
         this._interruptTest();
         out("if(", cond, "){/*test failed */$blk=", block, ";continue;}");
-    }
-
-    _jumpundef(test, block) {
+    };
+    Compiler.prototype._jumpundef = function (test, block) {
         this._interruptTest();
         out("if(typeof ", test, " === 'undefined'){$blk=", block, ";continue;}");
-    }
-
-    _jumptrue(test, block) {
+    };
+    Compiler.prototype._jumptrue = function (test, block) {
         var cond = this._gr('jtrue', "(", test, "===true||Sk.misceval.isTrue(", test, "))");
         this._interruptTest();
         out("if(", cond, "){/*test passed */$blk=", block, ";continue;}");
-    }
-
-    _jump(block) {
+    };
+    Compiler.prototype._jump = function (block) {
         this._interruptTest();
         out("$blk=", block, ";/* jump */continue;");
-    }
-
-    ctupleorlist(e, data, tuporlist) {
+    };
+    Compiler.prototype.ctupleorlist = function (e, data, tuporlist) {
         assert(tuporlist === 'tuple' || tuporlist === 'list');
         if (e.ctx === Store) {
             for (var i = 0; i < e.elts.length; ++i) {
                 this.vexpr(e.elts[i], "Sk.abstr.objectGetItem(" + data + "," + i + ")");
             }
+            return void 0;
         }
         else if (e.ctx === Load) {
             var items = [];
@@ -319,9 +247,11 @@ class Compiler {
             }
             return this._gr('load' + tuporlist, "new Sk.builtins['", tuporlist, "']([", items, "])");
         }
-    }
-
-    cdict(e) {
+        else {
+            return void 0;
+        }
+    };
+    Compiler.prototype.cdict = function (e) {
         assert(e.values.length === e.keys.length);
         var items = [];
         for (var i = 0; i < e.values.length; ++i) {
@@ -330,55 +260,44 @@ class Compiler {
             items.push(v);
         }
         return this._gr('loaddict', "new Sk.builtins['dict']([", items, "])");
-    }
-
-    clistcompgen(tmpname, generators, genIndex, elt) {
+    };
+    Compiler.prototype.clistcompgen = function (tmpname, generators, genIndex, elt) {
         var start = this.newBlock('list gen start');
         var skip = this.newBlock('list gen skip');
         var anchor = this.newBlock('list gen anchor');
-
         var l = generators[genIndex];
         var toiter = this.vexpr(l.iter);
         var iter = this._gr("iter", "Sk.abstr.iter(", toiter, ")");
         this._jump(start);
         this.setBlock(start);
-
         // load targets
         var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
         this._jumpundef(nexti, anchor); // todo; this should be handled by StopIteration
         // var target = this.vexpr(l.target, nexti);
-
         var n = l.ifs.length;
         for (var i = 0; i < n; ++i) {
             var ifres = this.vexpr(l.ifs[i]);
             this._jumpfalse(ifres, start);
         }
-
         if (++genIndex < generators.length) {
             this.clistcompgen(tmpname, generators, genIndex, elt);
         }
-
         if (genIndex >= generators.length) {
             var velt = this.vexpr(elt);
             out(tmpname, ".v.push(", velt, ");");
             this._jump(skip);
             this.setBlock(skip);
         }
-
         this._jump(start);
-
         this.setBlock(anchor);
-
         return tmpname;
-    }
-
-    clistcomp(e: ListComp) {
+    };
+    Compiler.prototype.clistcomp = function (e) {
         assert(e instanceof ListComp);
         var tmp = this._gr("_compr", "new Sk.builtins['list']([])");
         return this.clistcompgen(tmp, e.generators, 0, e.elt);
-    }
-
-    cyield(e) {
+    };
+    Compiler.prototype.cyield = function (e) {
         if (this.u.ste.blockType !== FunctionBlock)
             throw new SyntaxError("'yield' outside function");
         var val = 'null';
@@ -389,18 +308,16 @@ class Compiler {
         out("return [/*resume*/", nextBlock, ",/*ret*/", val, "];");
         this.setBlock(nextBlock);
         return '$gen.gi$sentvalue'; // will either be null if none sent, or the value from gen.send(value)
-    }
-
-    ccompare(e) {
+    };
+    Compiler.prototype.ccompare = function (e) {
         assert(e.ops.length === e.comparators.length);
         var cur = this.vexpr(e.left);
         var n = e.ops.length;
         var done = this.newBlock("done");
         var fres = this._gr('compareres', 'null');
-
         for (var i = 0; i < n; ++i) {
             var rhs = this.vexpr(e.comparators[i]);
-            var res = this._gr('compare', "Sk.builtin.bool(Sk.misceval.richCompareBool(", cur, ",", rhs, ",'", e.ops[i].prototype._astname, "'))");
+            var res = this._gr('compare', "Sk.builtin.bool(Sk.misceval.richCompareBool(", cur, ",", rhs, ",'", e.ops[i]['prototype']._astname, "'))");
             out(fres, '=', res, ';');
             this._jumpfalse(res, done);
             cur = rhs;
@@ -408,12 +325,10 @@ class Compiler {
         this._jump(done);
         this.setBlock(done);
         return fres;
-    }
-
-    ccall(e) {
+    };
+    Compiler.prototype.ccall = function (e) {
         var func = this.vexpr(e.func);
         var args = this.vseqexpr(e.args);
-
         if (e.keywords.length > 0 || e.starargs || e.kwargs) {
             var kwarray = [];
             for (var i = 0; i < e.keywords.length; ++i) {
@@ -432,57 +347,59 @@ class Compiler {
         else {
             return this._gr('call', "Sk.misceval.callsim(", func, args.length > 0 ? "," : "", args, ")");
         }
-    }
-
-    cslice(s) {
+    };
+    Compiler.prototype.cslice = function (s) {
         assert(s instanceof Slice);
         var low = s.lower ? this.vexpr(s.lower) : 'null';
         var high = s.upper ? this.vexpr(s.upper) : 'null';
         var step = s.step ? this.vexpr(s.step) : 'null';
         return this._gr('slice', "new Sk.builtins['slice'](", low, ",", high, ",", step, ")");
-    }
-
-    vslicesub(s) {
-        var subs;
-        switch (s.constructor) {
-            case Number:
-            case String:
-                // Already compiled, should only happen for augmented assignments
-                subs = s;
-                break;
-            case Index:
-                subs = this.vexpr(s.value);
-                break;
-            case Slice:
-                subs = this.cslice(s);
-                break;
-            case Ellipsis:
-            case ExtSlice:
-                fail("todo;");
-                break;
-            default:
-                fail("invalid subscript kind");
+    };
+    Compiler.prototype.vslicesub = function (s) {
+        if (s instanceof Number) {
+            // Already compiled, should only happen for augmented assignments
+            return s.valueOf();
         }
-        return subs;
-    }
-
-    vslice(s, ctx, obj, dataToStore) {
+        if (s instanceof String) {
+            // Already compiled, should only happen for augmented assignments
+            return s.toString();
+        }
+        else if (s instanceof Index) {
+            return this.vexpr(s.value);
+        }
+        else if (s instanceof Slice) {
+            return this.cslice(s);
+        }
+        else if (s instanceof Ellipsis) {
+            throw new Error("TODO: Ellipsis");
+        }
+        else if (s instanceof ExtSlice) {
+            throw new Error("TODO: ExtSlice");
+        }
+        else {
+            throw new Error("invalid subscript kind");
+        }
+    };
+    Compiler.prototype.vslice = function (s, ctx, obj, dataToStore) {
         var subs = this.vslicesub(s);
         return this.chandlesubscr(ctx, obj, subs, dataToStore);
-    }
-
-    chandlesubscr(ctx, obj, subs, data) {
+    };
+    Compiler.prototype.chandlesubscr = function (ctx, obj, subs, data) {
         if (ctx === Load || ctx === AugLoad)
             return this._gr('lsubscr', "Sk.abstr.objectGetItem(", obj, ",", subs, ")");
-        else if (ctx === Store || ctx === AugStore)
+        else if (ctx === Store || ctx === AugStore) {
             out("Sk.abstr.objectSetItem(", obj, ",", subs, ",", data, ");");
-        else if (ctx === Del)
+            return void 0;
+        }
+        else if (ctx === Del) {
             out("Sk.abstr.objectDelItem(", obj, ",", subs, ");");
-        else
+            return void 0;
+        }
+        else {
             throw new Error("handlesubscr fail");
-    }
-
-    cboolop(e): string {
+        }
+    };
+    Compiler.prototype.cboolop = function (e) {
         assert(e instanceof BoolOp);
         var jtype;
         if (e.op === And)
@@ -492,7 +409,7 @@ class Compiler {
         var end = this.newBlock('end of boolop');
         var s = e.values;
         var n = s.length;
-        var retval: string;
+        var retval;
         for (var i = 0; i < n; ++i) {
             var expres = this.vexpr(s[i]);
             if (i === 0) {
@@ -504,8 +421,7 @@ class Compiler {
         this._jump(end);
         this.setBlock(end);
         return retval;
-    }
-
+    };
     /**
      *
      * compiles an expression. to 'return' something, it'll gensym a var and store
@@ -517,263 +433,250 @@ class Compiler {
      * @param {Object=} augstoreval value to store to for an aug operation (not
      * vexpr'd yet)
      */
-    vexpr(e, data?, augstoreval?) {
+    Compiler.prototype.vexpr = function (e, data, augstoreval) {
         if (e.lineno > this.u.lineno) {
             this.u.lineno = e.lineno;
             this.u.linenoSet = false;
         }
-        // this.annotateSource(e);
-        switch (e.constructor) {
-            case BoolOp:
-                return this.cboolop(e);
-            case BinOp:
-                return this._gr('binop', "Sk.abstr.numberBinOp(", this.vexpr(e.left), ",", this.vexpr(e.right), ",'", e.op.prototype._astname, "')");
-            case UnaryOp:
-                return this._gr('unaryop', "Sk.abstr.numberUnaryOp(", this.vexpr(e.operand), ",'", e.op.prototype._astname, "')");
-            case Lambda:
-                return this.clambda(e);
-            case IfExp:
-                return this.cifexp(e);
-            case Dict:
-                return this.cdict(e);
-            case ListComp:
-                return this.clistcomp(e);
-            case GeneratorExp:
-                return this.cgenexp(e);
-            case Yield:
-                return this.cyield(e);
-            case Compare:
-                return this.ccompare(e);
-            case Call:
-                var result = this.ccall(e);
-                // After the function call, we've returned to this line
-                this.annotateSource(e);
-                return result;
-            case Num:
-                {
-                    if (e.n.isFloat()) {
-                        return 'Sk.builtin.numberToPy(' + e.n.value + ')';
-                    }
-                    else if (e.n.isInt()) {
-                        return "Sk.ffi.numberToIntPy(" + e.n.value + ")";
-                    }
-                    else if (e.n.isLong()) {
-                        return "Sk.ffi.longFromString('" + e.n.text + "', " + e.n.radix + ")";
-                    }
-                    fail("unhandled Num type");
-                }
-            case Str:
-                {
-                    return this._gr('str', 'Sk.builtin.stringToPy(', toStringLiteralJS(e.s), ')');
-                }
-            case Attribute:
-                var val;
-                if (e.ctx !== AugStore)
-                    val = this.vexpr(e.value);
-                var mangled = toStringLiteralJS(e.attr);
-                mangled = mangled.substring(1, mangled.length - 1);
-                mangled = mangleName(this.u.private_, mangled);
-                mangled = fixReservedWords(mangled);
-                mangled = fixReservedNames(mangled);
-                switch (e.ctx) {
-                    case AugLoad:
-                    case Load:
-                        return this._gr("lattr", "Sk.abstr.gattr(", val, ",'", mangled, "')");
-                    case AugStore:
-                        out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
-                        val = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
-                        out("Sk.abstr.sattr(", val, ",'", mangled, "',", data, ");");
-                        out("}");
-                        break;
-                    case Store:
-                        out("Sk.abstr.sattr(", val, ",'", mangled, "',", data, ");");
-                        break;
-                    case Del:
-                        fail("todo;");
-                        break;
-                    case Param:
-                    default:
-                        fail("invalid attribute expression");
-                }
-                break;
-            case Subscript:
-                switch (e.ctx) {
-                    case AugLoad:
-                    case Load:
-                    case Store:
-                    case Del:
-                        return this.vslice(e.slice, e.ctx, this.vexpr(e.value), data);
-                    case AugStore: {
-                        out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
-                        const val = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
-                        this.vslice(e.slice, e.ctx, val, data);
-                        out("}");
-                        break;
-                    }
-                    case Param:
-                    default:
-                        fail("invalid subscript expression");
-                }
-                break;
-            case Name:
-                return this.nameop(e.id, e.ctx, data);
-            case List:
-                return this.ctupleorlist(e, data, 'list');
-            case Tuple:
-                return this.ctupleorlist(e, data, 'tuple');
-            default:
-                fail("unhandled case in vexpr");
+        this.annotateSource(e);
+        if (e instanceof BoolOp) {
+            return this.cboolop(e);
         }
-    }
-
+        else if (e instanceof BinOp) {
+            return this._gr('binop', "Sk.abstr.numberBinOp(", this.vexpr(e.left), ",", this.vexpr(e.right), ",'", e.op['prototype']._astname, "')");
+        }
+        else if (e instanceof UnaryOp) {
+            return this._gr('unaryop', "Sk.abstr.numberUnaryOp(", this.vexpr(e.operand), ",'", e.op['prototype']._astname, "')");
+        }
+        else if (e instanceof Lambda) {
+            return this.clambda(e);
+        }
+        else if (e instanceof IfExp) {
+            return this.cifexp(e);
+        }
+        else if (e instanceof Dict) {
+            return this.cdict(e);
+        }
+        else if (e instanceof ListComp) {
+            return this.clistcomp(e);
+        }
+        else if (e instanceof GeneratorExp) {
+            return this.cgenexp(e);
+        }
+        else if (e instanceof Yield) {
+            return this.cyield(e);
+        }
+        else if (e instanceof Compare) {
+            return this.ccompare(e);
+        }
+        else if (e instanceof Call) {
+            var result = this.ccall(e);
+            // After the function call, we've returned to this line
+            this.annotateSource(e);
+            return result;
+        }
+        else if (e instanceof Num) {
+            if (e.n.isFloat()) {
+                return 'Sk.builtin.numberToPy(' + e.n.value + ')';
+            }
+            else if (e.n.isInt()) {
+                return "Sk.ffi.numberToIntPy(" + e.n.value + ")";
+            }
+            else if (e.n.isLong()) {
+                return "Sk.ffi.longFromString('" + e.n.text + "', " + e.n.radix + ")";
+            }
+            throw new Error("unhandled Num type");
+        }
+        else if (e instanceof Str) {
+            return this._gr('str', 'Sk.builtin.stringToPy(', toStringLiteralJS(e.s), ')');
+        }
+        else if (e instanceof Attribute) {
+            var val = void 0;
+            if (e.ctx !== AugStore)
+                val = this.vexpr(e.value);
+            var mangled = toStringLiteralJS(e.attr);
+            mangled = mangled.substring(1, mangled.length - 1);
+            mangled = mangleName(this.u.private_, mangled);
+            mangled = fixReservedWords(mangled);
+            mangled = fixReservedNames(mangled);
+            switch (e.ctx) {
+                case AugLoad:
+                case Load:
+                    return this._gr("lattr", "Sk.abstr.gattr(", val, ",'", mangled, "')");
+                case AugStore:
+                    out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
+                    val = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
+                    out("Sk.abstr.sattr(", val, ",'", mangled, "',", data, ");");
+                    out("}");
+                    break;
+                case Store:
+                    out("Sk.abstr.sattr(", val, ",'", mangled, "',", data, ");");
+                    break;
+                case Del:
+                    fail("todo;");
+                    break;
+                case Param:
+                default:
+                    throw new Error("invalid attribute expression");
+            }
+        }
+        else if (e instanceof Subscript) {
+            switch (e.ctx) {
+                case AugLoad:
+                case Load:
+                case Store:
+                case Del:
+                    return this.vslice(e.slice, e.ctx, this.vexpr(e.value), data);
+                case AugStore: {
+                    out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
+                    var val = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
+                    this.vslice(e.slice, e.ctx, val, data);
+                    out("}");
+                    break;
+                }
+                case Param:
+                default:
+                    fail("invalid subscript expression");
+            }
+        }
+        else if (e instanceof Name) {
+            return this.nameop(e.id, e.ctx, data);
+        }
+        else if (e instanceof List) {
+            return this.ctupleorlist(e, data, 'list');
+        }
+        else if (e instanceof Tuple) {
+            return this.ctupleorlist(e, data, 'tuple');
+        }
+        else {
+            throw new Error("unhandled case in vexpr");
+        }
+        return void 0;
+    };
     /**
      * @param {Array.<Object>} exprs
      * @param {Array.<string>=} data
      */
-    vseqexpr(exprs, data?: string[]) {
-        /**
-         * @const
-         * @type {boolean}
-         */
+    Compiler.prototype.vseqexpr = function (exprs, data) {
         var missingData = (typeof data === 'undefined');
-
         assert(missingData || exprs.length === data.length);
         var ret = [];
         for (var i = 0; i < exprs.length; ++i) {
             ret.push(this.vexpr(exprs[i], (missingData ? undefined : data[i])));
         }
         return ret;
-    }
-
-    caugassign(s: AugAssign) {
+    };
+    Compiler.prototype.caugassign = function (s) {
         assert(s instanceof AugAssign);
-        const e = s.target;
-        switch (e.constructor) {
-            case Attribute: {
-                const auge = new Attribute(e.value, e.attr, AugLoad, e.lineno, e.col_offset);
-                const aug = this.vexpr(auge);
-                const val = this.vexpr(s.value);
-                const res = this._gr('inplbinopattr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
-                auge.ctx = AugStore;
-                return this.vexpr(auge, res, e.value);
-            }
-            case Subscript: {
-                // Only compile the subscript value once
-                const augsub = this.vslicesub(e.slice);
-                const auge = new Subscript(e.value, augsub, AugLoad, e.lineno, e.col_offset);
-                const aug = this.vexpr(auge);
-                const val = this.vexpr(s.value);
-                const res = this._gr('inplbinopsubscr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op.prototype._astname, "')");
-                auge.ctx = AugStore;
-                return this.vexpr(auge, res, e.value);
-            }
-            case Name: {
-                const to = this.nameop(e.id, Load);
-                const val = this.vexpr(s.value);
-                const res = this._gr('inplbinop', "Sk.abstr.numberInplaceBinOp(", to, ",", val, ",'", s.op.prototype._astname, "')");
-                return this.nameop(e.id, Store, res);
-            }
-            default:
-                fail("unhandled case in augassign");
+        var e = s.target;
+        if (e instanceof Attribute) {
+            var auge = new Attribute(e.value, e.attr, AugLoad, e.lineno, e.col_offset);
+            var aug = this.vexpr(auge);
+            var val = this.vexpr(s.value);
+            var res = this._gr('inplbinopattr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op['prototype']._astname, "')");
+            auge.ctx = AugStore;
+            return this.vexpr(auge, res, e.value);
         }
-    }
-
+        else if (e instanceof Subscript) {
+            // Only compile the subscript value once
+            var augsub = this.vslicesub(e.slice);
+            var auge = new Subscript(e.value, augsub, AugLoad, e.lineno, e.col_offset);
+            var aug = this.vexpr(auge);
+            var val = this.vexpr(s.value);
+            var res = this._gr('inplbinopsubscr', "Sk.abstr.numberInplaceBinOp(", aug, ",", val, ",'", s.op['prototype']._astname, "')");
+            auge.ctx = AugStore;
+            return this.vexpr(auge, res, e.value);
+        }
+        else if (e instanceof Name) {
+            var to = this.nameop(e.id, Load);
+            var val = this.vexpr(s.value);
+            var res = this._gr('inplbinop', "Sk.abstr.numberInplaceBinOp(", to, ",", val, ",'", s.op['prototype']._astname, "')");
+            return this.nameop(e.id, Store, res);
+        }
+        else {
+            throw new Error("unhandled case in augassign");
+        }
+    };
     /**
      * optimize some constant exprs. returns 0 if always 0, 1 if always 1 or -1 otherwise.
      */
-    exprConstant(e) {
+    Compiler.prototype.exprConstant = function (e) {
         switch (e.constructor) {
             case Num:
-                fail("Trying to call the runtime for Num");
-                // return Sk.misceval.isTrue(e.n);
-                break;
+                throw new Error("Trying to call the runtime for Num");
+            // return Sk.misceval.isTrue(e.n);
             case Str:
-                fail("Trying to call the runtime for Str");
-                // return Sk.misceval.isTrue(e.s);
-                break;
+                throw new Error("Trying to call the runtime for Str");
+            // return Sk.misceval.isTrue(e.s);
             case Name:
             // todo; do __debug__ test here if opt
             default:
                 return -1;
         }
-    }
-
-    newBlock(name: string) {
-        const ret = this.u.blocknum++;
+    };
+    Compiler.prototype.newBlock = function (name) {
+        var ret = this.u.blocknum++;
         this.u.blocks[ret] = [];
         this.u.blocks[ret]._name = name || '<unnamed>';
         return ret;
-    }
-
-    setBlock(n: number) {
+    };
+    Compiler.prototype.setBlock = function (n) {
         assert(n >= 0 && n < this.u.blocknum);
         this.u.curblock = n;
-    }
-
-    pushBreakBlock(n: number) {
+    };
+    Compiler.prototype.pushBreakBlock = function (n) {
         assert(n >= 0 && n < this.u.blocknum);
         this.u.breakBlocks.push(n);
-    }
-
-    popBreakBlock() {
+    };
+    Compiler.prototype.popBreakBlock = function () {
         this.u.breakBlocks.pop();
-    }
-
-    pushContinueBlock(n: number) {
+    };
+    Compiler.prototype.pushContinueBlock = function (n) {
         assert(n >= 0 && n < this.u.blocknum);
         this.u.continueBlocks.push(n);
-    }
-
-    popContinueBlock() {
+    };
+    Compiler.prototype.popContinueBlock = function () {
         this.u.continueBlocks.pop();
-    }
-
-    pushExceptBlock(n) {
+    };
+    Compiler.prototype.pushExceptBlock = function (n) {
         assert(n >= 0 && n < this.u.blocknum);
         this.u.exceptBlocks.push(n);
-    }
-
-    popExceptBlock() {
+    };
+    Compiler.prototype.popExceptBlock = function () {
         this.u.exceptBlocks.pop();
-    }
-
-    pushFinallyBlock(n: number) {
+    };
+    Compiler.prototype.pushFinallyBlock = function (n) {
         assert(n >= 0 && n < this.u.blocknum);
         this.u.finallyBlocks.push(n);
-    }
-
-    popFinallyBlock() {
+    };
+    Compiler.prototype.popFinallyBlock = function () {
         this.u.finallyBlocks.pop();
-    }
-
-    setupExcept(eb) {
+    };
+    Compiler.prototype.setupExcept = function (eb) {
         out("$exc.push(", eb, ");");
         // this.pushExceptBlock(eb);
-    }
-
-    endExcept() {
+    };
+    Compiler.prototype.endExcept = function () {
         out("$exc.pop();");
-    }
-
-    outputLocals(unit) {
+    };
+    Compiler.prototype.outputLocals = function (unit) {
         var have = {};
         for (var i = 0; unit.argnames && i < unit.argnames.length; ++i)
             have[unit.argnames[i]] = true;
         unit.localnames.sort();
         var output = [];
         for (var i = 0; i < unit.localnames.length; ++i) {
-            var name = unit.localnames[i];
-            if (have[name] === undefined) {
-                output.push(name);
-                have[name] = true;
+            var name_1 = unit.localnames[i];
+            if (have[name_1] === undefined) {
+                output.push(name_1);
+                have[name_1] = true;
             }
         }
         if (output.length > 0)
             return "var " + output.join(",") + "; /* locals */";
         return "";
-    }
-
-    outputAllUnits() {
+    };
+    Compiler.prototype.outputAllUnits = function () {
         var ret = '';
         for (var j = 0; j < this.allUnits.length; ++j) {
             var unit = this.allUnits[j];
@@ -792,11 +695,12 @@ class Compiler {
             ret += unit.suffixCode;
         }
         return ret;
-    }
-
-    cif(s: IfStatement) {
+    };
+    Compiler.prototype.cif = function (s) {
         assert(s instanceof IfStatement);
         var constant = this.exprConstant(s.test);
+        // TODO: This looks wierd.
+        var end;
         if (constant === 0) {
             if (s.alternate) {
                 this.vseqstmt(s.alternate);
@@ -806,14 +710,12 @@ class Compiler {
             this.vseqstmt(s.consequent);
         }
         else {
-            var end = this.newBlock('end of if');
+            end = this.newBlock('end of if');
             var next = this.newBlock('next branch of if');
-
             var test = this.vexpr(s.test);
             this._jumpfalse(test, next);
             this.vseqstmt(s.consequent);
             this._jump(end);
-
             this.setBlock(next);
             if (s.alternate) {
                 this.vseqstmt(s.alternate);
@@ -821,55 +723,43 @@ class Compiler {
             this._jump(end);
         }
         this.setBlock(end);
-
-    }
-
-    cwhile(s: WhileStatement) {
+    };
+    Compiler.prototype.cwhile = function (s) {
         var constant = this.exprConstant(s.test);
         if (constant === 0) {
             if (s.orelse)
                 this.vseqstmt(s.orelse);
         }
         else {
-            var top = this.newBlock('while test');
-            this._jump(top);
-            this.setBlock(top);
-
+            var top_1 = this.newBlock('while test');
+            this._jump(top_1);
+            this.setBlock(top_1);
             var next = this.newBlock('after while');
             var orelse = s.orelse.length > 0 ? this.newBlock('while orelse') : null;
             var body = this.newBlock('while body');
-
             this._jumpfalse(this.vexpr(s.test), orelse ? orelse : next);
             this._jump(body);
-
             this.pushBreakBlock(next);
-            this.pushContinueBlock(top);
-
+            this.pushContinueBlock(top_1);
             this.setBlock(body);
             this.vseqstmt(s.body);
-            this._jump(top);
-
+            this._jump(top_1);
             this.popContinueBlock();
             this.popBreakBlock();
-
             if (s.orelse.length > 0) {
                 this.setBlock(orelse);
                 this.vseqstmt(s.orelse);
                 this._jump(next);
             }
-
             this.setBlock(next);
         }
-    }
-
-    cfor(s: ForStatement) {
+    };
+    Compiler.prototype.cfor = function (s) {
         var start = this.newBlock('for start');
         var cleanup = this.newBlock('for cleanup');
         var end = this.newBlock('for end');
-
         this.pushBreakBlock(end);
         this.pushContinueBlock(start);
-
         // get the iterator
         var toiter = this.vexpr(s.iter);
         var iter;
@@ -881,33 +771,24 @@ class Compiler {
         }
         else
             iter = this._gr("iter", "Sk.abstr.iter(", toiter, ")");
-
         this._jump(start);
-
         this.setBlock(start);
-
         // load targets
         var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
         this._jumpundef(nexti, cleanup); // todo; this should be handled by StopIteration
         // var target = this.vexpr(s.target, nexti);
-
         // execute body
         this.vseqstmt(s.body);
-
         // jump to top of loop
         this._jump(start);
-
         this.setBlock(cleanup);
         this.popContinueBlock();
         this.popBreakBlock();
-
         this.vseqstmt(s.orelse);
         this._jump(end);
-
         this.setBlock(end);
-    }
-
-    craise(s: Raise) {
+    };
+    Compiler.prototype.craise = function (s) {
         if (s && s.type && s.type.id && (s.type.id === "StopIteration")) {
             // currently, we only handle StopIteration, and all it does it return
             // undefined which is what our iterator protocol requires.
@@ -923,7 +804,7 @@ class Compiler {
                 out("throw ", this.vexpr(s.type), "(", inst, ");");
             }
             else if (s.type) {
-                if (s.type.func) {
+                if (s.type /*.func*/) {
                     // handles: raise Error(arguments)
                     out("throw ", this.vexpr(s.type), ";");
                 }
@@ -937,79 +818,65 @@ class Compiler {
                 out("throw $err;");
             }
         }
-    }
-
-    ctryexcept(s: TryExcept) {
+    };
+    Compiler.prototype.ctryexcept = function (s) {
         var n = s.handlers.length;
-
         // Create a block for each except clause
         var handlers = [];
         for (var i = 0; i < n; ++i) {
             handlers.push(this.newBlock("except_" + i + "_"));
         }
-
         var unhandled = this.newBlock("unhandled");
         var orelse = this.newBlock("orelse");
         var end = this.newBlock("end");
-
         this.setupExcept(handlers[0]);
         this.vseqstmt(s.body);
         this.endExcept();
         this._jump(orelse);
-
         for (var i = 0; i < n; ++i) {
             this.setBlock(handlers[i]);
             var handler = s.handlers[i];
             if (!handler.type && i < n - 1) {
                 throw new SyntaxError("default 'except:' must be last");
             }
-
             if (handler.type) {
                 // should jump to next handler if err not isinstance of handler.type
                 var handlertype = this.vexpr(handler.type);
                 var next = (i === n - 1) ? unhandled : handlers[i + 1];
-
                 // this check is not right, should use isinstance, but exception objects
                 // are not yet proper Python objects
                 var check = this._gr('instance', "$err instanceof ", handlertype);
                 this._jumpfalse(check, next);
             }
-
             if (handler.name) {
                 this.vexpr(handler.name, "$err");
             }
-
             // Need to execute finally before leaving body if an exception is raised
             this.vseqstmt(handler.body);
-
             // Should jump to finally, but finally is not implemented yet
             this._jump(end);
         }
-
         // If no except clause catches exception, throw it again
         this.setBlock(unhandled);
         // Should execute finally first
         out("throw $err;");
-
         this.setBlock(orelse);
         this.vseqstmt(s.orelse);
         // Should jump to finally, but finally is not implemented yet
         this._jump(end);
         this.setBlock(end);
-    }
-
-    ctryfinally(s: TryFinally) {
+    };
+    Compiler.prototype.ctryfinally = function (s, flags) {
         out("/*todo; tryfinally*/");
         // everything but the finally?
+        // TODO: Is this OK?
         this.ctryexcept(s.body[0]);
-    }
-
-    cassert(s: Assert) {
+    };
+    Compiler.prototype.cassert = function (s) {
         /* todo; warnings method
         if (s.test instanceof Tuple && s.test.elts.length > 0)
             Sk.warn("assertion is always true, perhaps remove parentheses?");
         */
-
         var test = this.vexpr(s.test);
         var end = this.newBlock("end");
         this._jumptrue(test, end);
@@ -1017,14 +884,13 @@ class Compiler {
         // maybe replace with fail?? or just an alert?
         out("throw new Sk.builtin.AssertionError(", s.msg ? this.vexpr(s.msg) : "", ");");
         this.setBlock(end);
-    }
-
+    };
     /**
-     * @param {string} name
-     * @param {string} asname
-     * @param {string=} mod
+     * @param name
+     * @param asname
+     * @param mod
      */
-    cimportas(name, asname, mod) {
+    Compiler.prototype.cimportas = function (name, asname, mod) {
         var src = name;
         var dotLoc = src.indexOf(".");
         var cur = mod;
@@ -1043,13 +909,11 @@ class Compiler {
         }
         return this.nameop(asname, Store, cur);
     };
-
-    cimport(s: ImportStatement) {
-        const n = s.names.length;
-        for (let i = 0; i < n; ++i) {
-            const alias: Alias = s.names[i];
+    Compiler.prototype.cimport = function (s) {
+        var n = s.names.length;
+        for (var i = 0; i < n; ++i) {
+            var alias = s.names[i];
             var mod = this._gr('module', 'Sk.builtin.__import__(', toStringLiteralJS(alias.name), ',$gbl,$loc,[])');
-
             if (alias.asname) {
                 this.cimportas(alias.name, alias.asname, mod);
             }
@@ -1064,10 +928,9 @@ class Compiler {
             }
         }
     };
-
-    cfromimport(s: ImportFrom) {
+    Compiler.prototype.cfromimport = function (s) {
         var n = s.names.length;
-        var names: string[] = [];
+        var names = [];
         for (var i = 0; i < n; ++i) {
             names[i] = s.names[i].name;
         }
@@ -1080,7 +943,6 @@ class Compiler {
                 out("Sk.importStar(", mod, ",$loc, $gbl);");
                 return;
             }
-
             var got = this._gr('item', 'Sk.abstr.gattr(', mod, ',', toStringLiteralJS(alias.name), ')');
             var storeName = alias.name;
             if (alias.asname)
@@ -1088,7 +950,6 @@ class Compiler {
             this.nameop(storeName, Store, got);
         }
     };
-
     /**
      * builds a code object (js function) for various constructs. used by def,
      * lambda, generator expressions. it isn't used for class because it seemed
@@ -1110,12 +971,11 @@ class Compiler {
      * @returns the name of the newly created function or generator object.
      *
      */
-    buildcodeobj(n, coname, decorator_list, args, callback) {
+    Compiler.prototype.buildcodeobj = function (n, coname, decorator_list, args, callback) {
         var decos = [];
         var defaults = [];
         var vararg = null;
         var kwarg = null;
-
         // decorators and defaults have to be evaluated out here before we enter
         // the new scope. we output the defaults and attach them to this code
         // object, but only once we know the name of it (so we do it after we've
@@ -1128,49 +988,21 @@ class Compiler {
             vararg = args.vararg;
         if (args && args.kwarg)
             kwarg = args.kwarg;
-
-        /**
-         * @const
-         * @type {boolean}
-         */
         var containingHasFree = this.u.ste.hasFree;
-        /**
-         * @const
-         * @type {boolean}
-         */
         var containingHasCell = this.u.ste.childHasFree;
-
         /**
          * enter the new scope, and create the first block
-         * @const
-         * @type {string}
          */
         var scopename = this.enterScope(coname, n, n.lineno);
-
         var isGenerator = this.u.ste.generator;
-        /**
-         * @const
-         * @type {boolean}
-         */
         var hasFree = this.u.ste.hasFree;
-        /**
-         * @const
-         * @type {boolean}
-         */
         var hasCell = this.u.ste.childHasFree;
-        /**
-         * @const
-         * @type {boolean}
-         */
-        var descendantOrSelfHasFree = this.u.ste.hasFree/* || this.u.ste.childHasFree*/;
-
-        var entryBlock: number | string = this.newBlock('codeobj entry');
-
+        var descendantOrSelfHasFree = this.u.ste.hasFree /* || this.u.ste.childHasFree*/;
+        var entryBlock = this.newBlock('codeobj entry');
         //
         // the header of the function, and arguments
         //
         this.u.prefixCode = "var " + scopename + "=(function " + this.niceName(coname) + "$(";
-
         var funcArgs = [];
         if (isGenerator) {
             if (kwarg) {
@@ -1191,15 +1023,17 @@ class Compiler {
             funcArgs.push("$free");
         }
         this.u.prefixCode += funcArgs.join(",");
-
         this.u.prefixCode += "){";
-
-        if (isGenerator) this.u.prefixCode += "\n// generator\n";
-        if (containingHasFree) this.u.prefixCode += "\n// containing has free\n";
-        if (containingHasCell) this.u.prefixCode += "\n// containing has cell\n";
-        if (hasFree) this.u.prefixCode += "\n// has free\n";
-        if (hasCell) this.u.prefixCode += "\n// has cell\n";
-
+        if (isGenerator)
+            this.u.prefixCode += "\n// generator\n";
+        if (containingHasFree)
+            this.u.prefixCode += "\n// containing has free\n";
+        if (containingHasCell)
+            this.u.prefixCode += "\n// containing has cell\n";
+        if (hasFree)
+            this.u.prefixCode += "\n// has free\n";
+        if (hasCell)
+            this.u.prefixCode += "\n// has cell\n";
         //
         // set up standard dicts/variables
         //
@@ -1211,11 +1045,9 @@ class Compiler {
         var cells = "";
         if (hasCell)
             cells = ",$cell={}";
-
         // note special usage of 'this' to avoid having to slice globals into
         // all function invocations in call
         this.u.varDeclsCode += "var $blk=" + entryBlock + ",$exc=[],$loc=" + locals + cells + ",$gbl=this,$err;";
-
         //
         // copy all parameters that are also cells into the cells dict. this is so
         // they can be accessed correctly by nested scopes.
@@ -1226,7 +1058,6 @@ class Compiler {
                 this.u.varDeclsCode += "$cell." + id + "=" + id + ";";
             }
         }
-
         //
         // make sure correct number of arguments were passed (generators handled below)
         //
@@ -1238,7 +1069,6 @@ class Compiler {
                 "\", arguments, " + minargs + ", " + maxargs + ", " + kw +
                 ", " + descendantOrSelfHasFree + ");";
         }
-
         //
         // initialize default arguments. we store the values of the defaults to
         // this code object as .$defaults just below after we exit this scope.
@@ -1253,7 +1083,6 @@ class Compiler {
                 this.u.varDeclsCode += "if(typeof " + argname + " === 'undefined')" + argname + "=" + scopename + ".$defaults[" + i + "];";
             }
         }
-
         //
         // initialize vararg, if any
         //
@@ -1261,31 +1090,26 @@ class Compiler {
             var start = funcArgs.length;
             this.u.varDeclsCode += vararg + "=new Sk.builtins['tuple'](Array.prototype.slice.call(arguments," + start + ")); /*vararg*/";
         }
-
         //
         // initialize kwarg, if any
         //
         if (kwarg) {
             this.u.varDeclsCode += kwarg + "=new Sk.builtins['dict']($kwa);";
         }
-
         //
         // finally, set up the block switch that the jump code expects
         //
         // Old switch code
         // this.u.switchCode += "while(true){switch($blk){";
         // this.u.suffixCode = "}break;}});";
-
         // New switch code to catch exceptions
         this.u.switchCode = "while(true){try{switch($blk){";
         this.u.suffixCode = "}}catch(err){if ($exc.length>0) {$err=err;$blk=$exc.pop();continue;} else {throw err;}}}});";
-
         //
         // jump back to the handler so it can do the main actual work of the
         // function
         //
         callback.call(this, scopename);
-
         //
         // get a list of all the argument names (used to attach to the code
         // object, and also to allow us to declare only locals that aren't also
@@ -1296,17 +1120,14 @@ class Compiler {
             for (var i = 0; i < args.args.length; ++i) {
                 argnamesarr.push(args.args[i].id);
             }
-
             argnames = argnamesarr.join("', '");
             // store to unit so we know what local variables not to declare
             this.u.argnames = argnamesarr;
         }
-
         //
         // and exit the code object scope
         //
         this.exitScope();
-
         //
         // attach the default values we evaluated at the beginning to the code
         // object so that it can get at them to set any arguments that are left
@@ -1314,8 +1135,6 @@ class Compiler {
         //
         if (defaults.length > 0)
             out(scopename, ".$defaults=[", defaults.join(','), "];");
-
-
         //
         // attach co_varnames (only the argument names) for keyword argument
         // binding.
@@ -1323,14 +1142,12 @@ class Compiler {
         if (argnames) {
             out(scopename, ".co_varnames=['", argnames, "'];");
         }
-
         //
         // attach flags
         //
         if (kwarg) {
             out(scopename, ".co_kwargs=1;");
         }
-
         //
         // build either a 'function' or 'generator'. the function is just a simple
         // constructor call. the generator is more complicated. it needs to make a
@@ -1357,66 +1174,53 @@ class Compiler {
             // Keyword and variable arguments are not currently supported in generators.
             // The call to pyCheckArgs assumes they can't be true.
             if (args && args.args.length > 0) {
-                return this._gr("gener", "new Sk.builtins['function']((function(){var $origargs=Array.prototype.slice.call(arguments);Sk.builtin.pyCheckArgs(\"",
-                    coname, "\",arguments,", args.args.length - defaults.length, ",", args.args.length,
-                    ");return new Sk.builtins['generator'](", scopename, ",$gbl,$origargs", frees, ");}))");
+                return this._gr("gener", "new Sk.builtins['function']((function(){var $origargs=Array.prototype.slice.call(arguments);Sk.builtin.pyCheckArgs(\"", coname, "\",arguments,", args.args.length - defaults.length, ",", args.args.length, ");return new Sk.builtins['generator'](", scopename, ",$gbl,$origargs", frees, ");}))");
             }
             else {
-                return this._gr("gener", "new Sk.builtins['function']((function(){Sk.builtin.pyCheckArgs(\"", coname,
-                    "\",arguments,0,0);return new Sk.builtins['generator'](", scopename, ",$gbl,[]", frees, ");}))");
+                return this._gr("gener", "new Sk.builtins['function']((function(){Sk.builtin.pyCheckArgs(\"", coname, "\",arguments,0,0);return new Sk.builtins['generator'](", scopename, ",$gbl,[]", frees, ");}))");
             }
         else {
             return this._gr("funcobj", "new Sk.builtins['function'](", scopename, ",$gbl", frees, ")");
         }
-    }
-
-    cfunction(s: FunctionDef) {
+    };
+    Compiler.prototype.cfunction = function (s) {
+        var _this = this;
         assert(s instanceof FunctionDef);
-        var funcorgen = this.buildcodeobj(s, s.name, s.decorator_list, s.args,
-            function (scopename) {
-                this.vseqstmt(s.body);
-                out("return Sk.builtin.none.none$;"); // if we fall off the bottom, we want the ret to be None
-            }
-        );
+        var funcorgen = this.buildcodeobj(s, s.name, s.decorator_list, s.args, function (scopename) {
+            _this.vseqstmt(s.body);
+            out("return Sk.builtin.none.none$;"); // if we fall off the bottom, we want the ret to be None
+        });
         this.nameop(s.name, Store, funcorgen);
-    }
-
-    clambda(e) {
+    };
+    Compiler.prototype.clambda = function (e) {
+        var _this = this;
         assert(e instanceof Lambda);
         var func = this.buildcodeobj(e, "<lambda>", null, e.args, function (scopename) {
-            var val = this.vexpr(e.body);
+            var val = _this.vexpr(e.body);
             out("return ", val, ";");
         });
         return func;
-    }
-
-    cifexp(e) {
+    };
+    Compiler.prototype.cifexp = function (e) {
         var next = this.newBlock('next of ifexp');
         var end = this.newBlock('end of ifexp');
         var ret = this._gr('res', 'null');
-
         var test = this.vexpr(e.test);
         this._jumpfalse(test, next);
-
         out(ret, '=', this.vexpr(e.body), ';');
         this._jump(end);
-
         this.setBlock(next);
         out(ret, '=', this.vexpr(e.orelse), ';');
         this._jump(end);
-
         this.setBlock(end);
         return ret;
-    }
-
-    cgenexpgen(generators, genIndex, elt) {
+    };
+    Compiler.prototype.cgenexpgen = function (generators, genIndex, elt) {
         var start = this.newBlock('start for ' + genIndex);
         var skip = this.newBlock('skip for ' + genIndex);
         // var ifCleanup = this.newBlock('if cleanup for ' + genIndex);
         var end = this.newBlock('end for ' + genIndex);
-
         var ge = generators[genIndex];
-
         var iter;
         if (genIndex === 0) {
             // the outer most iterator is evaluated in the scope outside so we
@@ -1431,42 +1235,33 @@ class Compiler {
         }
         this._jump(start);
         this.setBlock(start);
-
         // load targets
         var nexti = this._gr('next', "Sk.abstr.iternext(", iter, ")");
         this._jumpundef(nexti, end); // todo; this should be handled by StopIteration
         // var target = this.vexpr(ge.target, nexti);
-
         var n = ge.ifs.length;
         for (var i = 0; i < n; ++i) {
             var ifres = this.vexpr(ge.ifs[i]);
             this._jumpfalse(ifres, start);
         }
-
         if (++genIndex < generators.length) {
             this.cgenexpgen(generators, genIndex, elt);
         }
-
         if (genIndex >= generators.length) {
             var velt = this.vexpr(elt);
             out("return [", skip, "/*resume*/,", velt, "/*ret*/];");
             this.setBlock(skip);
         }
-
         this._jump(start);
-
         this.setBlock(end);
-
         if (genIndex === 1)
             out("return null;");
-    }
-
-    cgenexp(e) {
-        var gen = this.buildcodeobj(e, "<genexpr>", null, null,
-            function (scopename) {
-                this.cgenexpgen(e.generators, 0, e.elt);
-            });
-
+    };
+    Compiler.prototype.cgenexp = function (e) {
+        var _this = this;
+        var gen = this.buildcodeobj(e, "<genexpr>", null, null, function (scopename) {
+            _this.cgenexpgen(e.generators, 0, e.elt);
+        });
         // call the generator maker to get the generator. this is kind of dumb,
         // but the code builder builds a wrapper that makes generators for normal
         // function generators, so we just do it outside (even just new'ing it
@@ -1476,64 +1271,46 @@ class Compiler {
         // outside of the function. it's retrieved by the fixed name above.
         out(gener, ".gi$locals.$iter0=Sk.abstr.iter(", this.vexpr(e.generators[0].iter), ");");
         return gener;
-    }
-
-
-
-    cclass(s: ClassDef) {
+    };
+    Compiler.prototype.cclass = function (s) {
         assert(s instanceof ClassDef);
         // var decos = s.decorator_list;
-
         // decorators and bases need to be eval'd out here
         // this.vseqexpr(decos);
-
         var bases = this.vseqexpr(s.bases);
-
         /**
          * @const
          * @type {string}
          */
         var scopename = this.enterScope(s.name, s, s.lineno);
         var entryBlock = this.newBlock('class entry');
-
         this.u.prefixCode = "var " + scopename + "=(function $" + s.name + "$class_outer($globals,$locals,$rest){var $gbl=$globals,$loc=$locals;";
         this.u.switchCode += "return(function " + s.name + "(){";
         this.u.switchCode += "var $blk=" + entryBlock + ",$exc=[];while(true){switch($blk){";
         this.u.suffixCode = "}break;}}).apply(null,$rest);});";
-
         this.u.private_ = s.name;
-
         this.cbody(s.body);
         out("break;");
-
         // build class
-
         // apply decorators
-
         this.exitScope();
-
         var wrapped = this._gr('built', 'Sk.misceval.buildClass($gbl,', scopename, ',', toStringLiteralJS(s.name), ',[', bases, '])');
-
         // store our new class under the right name
         this.nameop(s.name, Store, wrapped);
-    }
-
-    ccontinue(s: ContinueStatement) {
+    };
+    Compiler.prototype.ccontinue = function (s) {
         if (this.u.continueBlocks.length === 0)
             throw new SyntaxError("'continue' outside loop");
         // todo; continue out of exception blocks
         this._jump(this.u.continueBlocks[this.u.continueBlocks.length - 1]);
-    }
-
+    };
     /**
      * compiles a statement
      */
-    vstmt(s) {
+    Compiler.prototype.vstmt = function (s, flags) {
         this.u.lineno = s.lineno;
         this.u.linenoSet = false;
-
         this.annotateSource(s);
-
         switch (s.constructor) {
             case FunctionDef:
                 this.cfunction(s);
@@ -1545,19 +1322,20 @@ class Compiler {
                 if (this.u.ste.blockType !== FunctionBlock)
                     throw new SyntaxError("'return' outside function");
                 if (s.value)
-                    out("return ", this.vexpr((<ReturnStatement>s).value), ";");
+                    out("return ", this.vexpr(s.value), ";");
                 else
                     out("return null;");
                 break;
             }
             case DeleteExpression:
-                this.vseqexpr((<DeleteExpression>s).targets);
+                this.vseqexpr(s.targets);
                 break;
             case Assign:
-                var n = s.targets.length;
-                var val = this.vexpr((<Assign>s).value);
+                var assign = s;
+                var n = assign.targets.length;
+                var val = this.vexpr(s.value);
                 for (var i = 0; i < n; ++i)
-                    this.vexpr(s.targets[i], val);
+                    this.vexpr(assign.targets[i], val);
                 break;
             case AugAssign:
                 return this.caugassign(s);
@@ -1584,8 +1362,8 @@ class Compiler {
                 return this.cfromimport(s);
             case Global:
                 break;
-            case Expr:
-                this.vexpr((<Expr>s).value);
+            case ExpressionStatement:
+                this.vexpr(s.value);
                 break;
             case Pass:
                 break;
@@ -1600,37 +1378,36 @@ class Compiler {
             default:
                 fail("unhandled case in vstmt");
         }
-    }
-
-    vseqstmt(stmts) {
-        for (var i = 0; i < stmts.length; ++i) this.vstmt(stmts[i]);
-    }
-
-    isCell(name: string): boolean {
+    };
+    Compiler.prototype.vseqstmt = function (stmts) {
+        for (var i = 0; i < stmts.length; ++i)
+            this.vstmt(stmts[i]);
+    };
+    Compiler.prototype.isCell = function (name) {
         var mangled = mangleName(this.u.private_, name);
         var scope = this.u.ste.getScope(mangled);
         if (scope === CELL)
             return true;
         return false;
-    }
-
+    };
     /**
      * @param {string} name
      * @param {Object} ctx
      * @param {string=} dataToStore
      */
-    nameop(name: string, ctx, dataToStore?) {
+    Compiler.prototype.nameop = function (name, ctx, dataToStore) {
         if ((ctx === Store || ctx === AugStore || ctx === Del) && name === "__debug__") {
             throw new SyntaxError("can not assign to __debug__");
         }
         if ((ctx === Store || ctx === AugStore || ctx === Del) && name === "None") {
             throw new SyntaxError("can not assign to None");
         }
-
-        if (name === "None") return "Sk.builtin.none.none$";
-        if (name === "True") return "Sk.ffi.bool.True";
-        if (name === "False") return "Sk.ffi.bool.False";
-
+        if (name === "None")
+            return "Sk.builtin.none.none$";
+        if (name === "True")
+            return "Sk.ffi.bool.True";
+        if (name === "False")
+            return "Sk.ffi.bool.False";
         // Have to do this before looking it up in the scope
         var mangled = mangleName(this.u.private_, name);
         var optype = OP_NAME;
@@ -1659,15 +1436,12 @@ class Compiler {
             default:
                 break;
         }
-
         // have to do this after looking it up in the scope
         mangled = fixReservedNames(mangled);
         mangled = fixReservedWords(mangled);
-
         // print("mangled", mangled);
         // TODO TODO TODO todo; import * at global scope failing here
         assert(scope || name.charAt(1) === '_');
-
         // in generator or at module scope, we need to store to $loc, rather that
         // to actual JS stack variables.
         var mangledNoPre = mangled;
@@ -1675,7 +1449,6 @@ class Compiler {
             mangled = "$loc." + mangled;
         else if (optype === OP_FAST || optype === OP_NAME)
             this.u.localnames.push(mangled);
-
         switch (optype) {
             case OP_FAST:
                 switch (ctx) {
@@ -1743,36 +1516,30 @@ class Compiler {
             default:
                 fail("unhandled case");
         }
-    }
-
+        return void 0;
+    };
     /**
      * @method enterScope
      * @param {string} name
      * @return {string} The generated name of the scope, usually $scopeN.
      */
-    enterScope(name: string, key, lineno: number) {
-        const u = new CompilerUnit();
+    Compiler.prototype.enterScope = function (name, key, lineno) {
+        var u = new CompilerUnit();
         u.ste = this.st.getStsForAst(key);
         u.name = name;
         u.firstlineno = lineno;
-
         if (this.u && this.u.private_)
             u.private_ = this.u.private_;
-
         this.stack.push(this.u);
         this.allUnits.push(u);
         var scopeName = this.gensym('scope');
         u.scopename = scopeName;
-
         this.u = u;
         this.u.activateScope();
-
         this.nestlevel++;
-
         return scopeName;
-    }
-
-    exitScope() {
+    };
+    Compiler.prototype.exitScope = function () {
         var prev = this.u;
         this.nestlevel--;
         if (this.stack.length - 1 >= 0)
@@ -1781,28 +1548,24 @@ class Compiler {
             this.u = null;
         if (this.u)
             this.u.activateScope();
-
         if (prev.name !== "<module>") {
             var mangled = prev.name;
             mangled = fixReservedWords(mangled);
             mangled = fixReservedNames(mangled);
             out(prev.scopename, ".co_name=Sk.builtin.stringToPy('", mangled, "');");
         }
-    }
-
-    cbody(stmts) {
+    };
+    Compiler.prototype.cbody = function (stmts, flags) {
         for (var i = 0; i < stmts.length; ++i) {
             this.vstmt(stmts[i]);
         }
-    }
-
-    cprint(s: Print) {
+    };
+    Compiler.prototype.cprint = function (s) {
         assert(s instanceof Print);
         var dest = 'null';
         if (s.dest) {
             dest = this.vexpr(s.dest);
         }
-
         var n = s.values.length;
         for (var i = 0; i < n; ++i) {
             out("Sk.misceval.print_(Sk.ffi.remapToJs(new Sk.builtins.str(", this.vexpr(s.values[i]), ")));");
@@ -1810,22 +1573,14 @@ class Compiler {
         if (s.nl) {
             out("Sk.misceval.print_('\\n');");
         }
-    }
-
-    cmod(mod) {
-        /**
-         * @const
-         * @type {string}
-         */
+    };
+    Compiler.prototype.cmod = function (mod, flags) {
         var modf = this.enterScope("<module>", mod, 0);
-
         var entryBlock = this.newBlock('module entry');
         this.u.prefixCode = "var " + modf + "=(function($modname){";
         this.u.varDeclsCode = "var $blk=" + entryBlock + ",$exc=[],$gbl={},$loc=$gbl,$err;$gbl.__name__=$modname;Sk.globals=$gbl;";
-
         this.u.switchCode = "try {while(true){try{switch($blk){";
         this.u.suffixCode = "}}catch(err){if ($exc.length>0) {$err=err;$blk=$exc.pop();continue;} else {throw err;}}}}catch(err){if (err instanceof Sk.builtin.SystemExit && !Sk.throwSystemExit) { Sk.misceval.print_(err.toString() + '\\n'); return $loc; } else { throw err; } } });";
-
         switch (mod.constructor) {
             case Module:
                 this.cbody(mod.body);
@@ -1835,40 +1590,35 @@ class Compiler {
                 fail("todo; unhandled case in compilerMod");
         }
         this.exitScope();
-
         this.result.push(this.outputAllUnits());
         return modf;
-    }
-
-}
-
+    };
+    return Compiler;
+}());
 /**
  * Appends "_$rw$" to any word that is in the list of reserved words.
  */
-function fixReservedWords(word: string): string {
+function fixReservedWords(word) {
     if (reservedWords[word] !== true) {
         return word;
     }
     return word + "_$rw$";
 }
-
 /**
  * Appends "_$rn$" to any name that is in the list of reserved names.
  */
-function fixReservedNames(name: string): string {
+function fixReservedNames(name) {
     if (reservedNames[name])
         return name + "_$rn$";
     return name;
 }
-
 /**
  * @param {string} priv
  * @param {string} name
  * @return {string} The mangled name.
  */
-function mangleName(priv: string, name: string): string {
+function mangleName(priv, name) {
     var strpriv = null;
-
     if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_')
         return name;
     // don't mangle __id__
@@ -1879,26 +1629,29 @@ function mangleName(priv: string, name: string): string {
     strpriv.replace(/_/g, '');
     if (strpriv === '')
         return name;
-
     strpriv = priv;
     strpriv.replace(/^_*/, '');
     return '_' + strpriv + name;
 }
-
 /**
  * @param {string} source the code
  * @param {string} fileName where it came from
  *
  * @return {{funcname: string, code: string}}
  */
-export function compile(source, fileName) {
-    const cst = parse(fileName, source);
-    const ast = astFromParse(cst, fileName);
-    const st = symbolTable(ast, fileName);
-    const c = new Compiler(fileName, st, 0, source);
-    return { 'funcname': c.cmod(ast), 'code': c.result.join('') };
-};
-
+export function compile(sourceText, fileName) {
+    var cst = parse(sourceText, SourceKind.File);
+    if (typeof cst === 'object') {
+        var stmts = astFromParse(cst);
+        var mod = new Module(stmts);
+        var st = symbolTable(mod);
+        var c = new Compiler(fileName, st, 0, sourceText);
+        return { 'funcname': c.cmod(mod), 'code': c.result.join('') };
+    }
+    else {
+        throw new Error("");
+    }
+}
 export function resetCompiler() {
     gensymCount = 0;
-};
+}

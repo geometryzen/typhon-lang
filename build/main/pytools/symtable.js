@@ -7,19 +7,34 @@ var SymbolConstants_1 = require("./SymbolConstants");
  * @param ast
  * @param fileName
  */
-function symbolTable(ast) {
+function symbolTable(mod) {
     var st = new SymbolTable_1.SymbolTable();
-    st.enterBlock("top", SymbolConstants_1.ModuleBlock, ast, 0);
+    st.enterBlock("top", SymbolConstants_1.ModuleBlock, mod, 0);
     st.top = st.cur;
     // This is a good place to dump the AST for debugging.
-    for (var i = 0; i < ast.body.length; ++i) {
-        st.visitStmt(ast.body[i]);
+    for (var _i = 0, _a = mod.body; _i < _a.length; _i++) {
+        var stmt = _a[_i];
+        st.visitStmt(stmt);
     }
     st.exitBlock();
     st.analyze();
     return st;
 }
 exports.symbolTable = symbolTable;
+function symbolTableFromStatements(stmts) {
+    var st = new SymbolTable_1.SymbolTable();
+    // st.enterBlock("top", ModuleBlock, mod, 0);
+    st.top = st.cur;
+    // This is a good place to dump the AST for debugging.
+    for (var _i = 0, stmts_1 = stmts; _i < stmts_1.length; _i++) {
+        var stmt = stmts_1[_i];
+        st.visitStmt(stmt);
+    }
+    // st.exitBlock();
+    st.analyze();
+    return st;
+}
+exports.symbolTableFromStatements = symbolTableFromStatements;
 /**
  * @param st
  */

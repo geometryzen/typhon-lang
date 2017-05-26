@@ -30,7 +30,7 @@ import { Ellipsis } from './types';
 import { Eq } from './types';
 import { ExceptHandler } from './types';
 import { Exec } from './types';
-import { Expr } from './types';
+import { ExpressionStatement } from './types';
 import { ExtSlice } from './types';
 import { FloorDiv } from './types';
 import { ForStatement } from './types';
@@ -58,7 +58,6 @@ import { LShift } from './types';
 import { Lt } from './types';
 import { LtE } from './types';
 import { Mod } from './types';
-import { Module } from './types';
 import { Mult } from './types';
 import { Name } from './types';
 import { NonLocal } from './types';
@@ -946,7 +945,7 @@ function astForFlowStmt(c, n) {
         case SYM.break_stmt: return new BreakStatement(n.lineno, n.col_offset);
         case SYM.continue_stmt: return new ContinueStatement(n.lineno, n.col_offset);
         case SYM.yield_stmt:
-            return new Expr(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
+            return new ExpressionStatement(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
         case SYM.return_stmt:
             if (NCH(ch) === 1)
                 return new ReturnStatement(null, n.lineno, n.col_offset);
@@ -1262,7 +1261,7 @@ function astForTestlist(c, n) {
 function astForExprStmt(c, n) {
     REQ(n, SYM.ExprStmt);
     if (NCH(n) === 1)
-        return new Expr(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
+        return new ExpressionStatement(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
     else if (CHILD(n, 1).type === SYM.augassign) {
         var ch = CHILD(n, 0);
         var expr1 = astForTestlist(c, ch);
@@ -1747,30 +1746,35 @@ function astForStmt(c, n) {
         }
     }
 }
+export function astFromExpression(n) {
+    var c = new Compiling("utf-8");
+    return astForExpr(c, n);
+}
 export function astFromParse(n) {
     var c = new Compiling("utf-8");
     var stmts = [];
     var k = 0;
+    for (var i = 0; i < NCH(n) - 1; ++i) {
+        var ch = CHILD(n, i);
+        if (n.type === TOK.T_NEWLINE)
+            continue;
+        REQ(ch, SYM.stmt);
+        var num = numStmts(ch);
+        if (num === 1) {
+            stmts[k++] = astForStmt(c, ch);
+        }
+        else {
+            ch = CHILD(ch, 0);
+            REQ(ch, SYM.simple_stmt);
+            for (var j = 0; j < num; ++j) {
+                stmts[k++] = astForStmt(c, CHILD(ch, j * 2));
+            }
+        }
+    }
+    return stmts;
+    /*
     switch (n.type) {
         case SYM.file_input:
-            for (var i = 0; i < NCH(n) - 1; ++i) {
-                var ch = CHILD(n, i);
-                if (n.type === TOK.T_NEWLINE)
-                    continue;
-                REQ(ch, SYM.stmt);
-                var num = numStmts(ch);
-                if (num === 1) {
-                    stmts[k++] = astForStmt(c, ch);
-                }
-                else {
-                    ch = CHILD(ch, 0);
-                    REQ(ch, SYM.simple_stmt);
-                    for (var j = 0; j < num; ++j) {
-                        stmts[k++] = astForStmt(c, CHILD(ch, j * 2));
-                    }
-                }
-            }
-            return new Module(stmts);
         case SYM.eval_input: {
             throw new Error("todo;");
         }
@@ -1781,6 +1785,7 @@ export function astFromParse(n) {
             throw new Error("todo;");
         }
     }
+    */
 }
 export function astDump(node) {
     var _format = function (node) {

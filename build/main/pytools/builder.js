@@ -89,7 +89,6 @@ var types_82 = require("./types");
 var types_83 = require("./types");
 var types_84 = require("./types");
 var types_85 = require("./types");
-var types_86 = require("./types");
 var base_1 = require("./base");
 var tables_1 = require("./tables");
 var Tokens_1 = require("./Tokens");
@@ -188,23 +187,23 @@ function setContext(c, e, ctx, n) {
     var s = null;
     var exprName = null;
     if (e instanceof types_7.Attribute) {
-        if (ctx === types_74.Store)
+        if (ctx === types_73.Store)
             forbiddenCheck(c, n, e.attr, n.lineno);
         e.ctx = ctx;
     }
-    else if (e instanceof types_59.Name) {
-        if (ctx === types_74.Store)
+    else if (e instanceof types_58.Name) {
+        if (ctx === types_73.Store)
             forbiddenCheck(c, n, /*e.attr*/ void 0, n.lineno);
         e.ctx = ctx;
     }
-    else if (e instanceof types_77.Subscript) {
+    else if (e instanceof types_76.Subscript) {
         e.ctx = ctx;
     }
     else if (e instanceof types_50.List) {
         e.ctx = ctx;
         s = e.elts;
     }
-    else if (e instanceof types_80.Tuple) {
+    else if (e instanceof types_79.Tuple) {
         if (e.elts.length === 0) {
             throw syntaxError("can't assign to ()", n.lineno);
         }
@@ -224,21 +223,21 @@ function setContext(c, e, ctx, n) {
         switch (e.constructor) {
             case types_15.BoolOp:
             case types_11.BinOp:
-            case types_82.UnaryOp:
+            case types_81.UnaryOp:
                 exprName = "operator";
                 break;
             case types_35.GeneratorExp:
                 exprName = "generator expression";
                 break;
-            case types_86.Yield:
+            case types_85.Yield:
                 exprName = "yield expression";
                 break;
             case types_51.ListComp:
                 exprName = "list comprehension";
                 break;
             case types_24.Dict:
-            case types_64.Num:
-            case types_75.Str:
+            case types_63.Num:
+            case types_74.Str:
                 exprName = "literal";
                 break;
             case types_19.Compare:
@@ -253,7 +252,7 @@ function setContext(c, e, ctx, n) {
         }
     }
     if (exprName) {
-        throw syntaxError("can't " + (ctx === types_74.Store ? "assign to" : "delete") + " " + exprName, n.lineno);
+        throw syntaxError("can't " + (ctx === types_73.Store ? "assign to" : "delete") + " " + exprName, n.lineno);
     }
     if (s) {
         for (var i = 0; i < s.length; ++i) {
@@ -268,10 +267,10 @@ var operatorMap = {};
     operatorMap[Tokens_1.Tokens.T_CIRCUMFLEX] = types_14.BitXor;
     operatorMap[Tokens_1.Tokens.T_AMPER] = types_12.BitAnd;
     operatorMap[Tokens_1.Tokens.T_LEFTSHIFT] = types_53.LShift;
-    operatorMap[Tokens_1.Tokens.T_RIGHTSHIFT] = types_72.RShift;
+    operatorMap[Tokens_1.Tokens.T_RIGHTSHIFT] = types_71.RShift;
     operatorMap[Tokens_1.Tokens.T_PLUS] = types_1.Add;
-    operatorMap[Tokens_1.Tokens.T_MINUS] = types_76.Sub;
-    operatorMap[Tokens_1.Tokens.T_STAR] = types_58.Mult;
+    operatorMap[Tokens_1.Tokens.T_MINUS] = types_75.Sub;
+    operatorMap[Tokens_1.Tokens.T_STAR] = types_57.Mult;
     operatorMap[Tokens_1.Tokens.T_SLASH] = types_25.Div;
     operatorMap[Tokens_1.Tokens.T_DOUBLESLASH] = types_32.FloorDiv;
     operatorMap[Tokens_1.Tokens.T_PERCENT] = types_56.Mod;
@@ -291,7 +290,7 @@ function astForCompOp(c, n) {
             case Tokens_1.Tokens.T_EQEQUAL: return types_27.Eq;
             case Tokens_1.Tokens.T_LESSEQUAL: return types_55.LtE;
             case Tokens_1.Tokens.T_GREATEREQUAL: return types_38.GtE;
-            case Tokens_1.Tokens.T_NOTEQUAL: return types_62.NotEq;
+            case Tokens_1.Tokens.T_NOTEQUAL: return types_61.NotEq;
             case Tokens_1.Tokens.T_NAME:
                 if (n.value === "in")
                     return types_45.In;
@@ -302,7 +301,7 @@ function astForCompOp(c, n) {
     else if (tree_1.NCH(n) === 2) {
         if (tree_1.CHILD(n, 0).type === Tokens_1.Tokens.T_NAME) {
             if (tree_1.CHILD(n, 1).value === "in")
-                return types_63.NotIn;
+                return types_62.NotIn;
             if (tree_1.CHILD(n, 0).value === "is")
                 return types_48.IsNot;
         }
@@ -377,7 +376,7 @@ function astForExceptClause(c, exc, body) {
         return new types_28.ExceptHandler(astForExpr(c, tree_1.CHILD(exc, 1)), null, astForSuite(c, body), exc.lineno, exc.col_offset);
     else if (tree_1.NCH(exc) === 4) {
         var e = astForExpr(c, tree_1.CHILD(exc, 3));
-        setContext(c, e, types_74.Store, tree_1.CHILD(exc, 3));
+        setContext(c, e, types_73.Store, tree_1.CHILD(exc, 3));
         return new types_28.ExceptHandler(astForExpr(c, tree_1.CHILD(exc, 1)), e, astForSuite(c, body), exc.lineno, exc.col_offset);
     }
     else {
@@ -417,7 +416,7 @@ function astForTryStmt(c, n) {
         var handlers = [];
         for (var i = 0; i < nexcept; ++i)
             handlers[i] = astForExceptClause(c, tree_1.CHILD(n, 3 + i * 3), tree_1.CHILD(n, 5 + i * 3));
-        var exceptSt = new types_78.TryExcept(body, handlers, orelse, n.lineno, n.col_offset);
+        var exceptSt = new types_77.TryExcept(body, handlers, orelse, n.lineno, n.col_offset);
         if (!finally_)
             return exceptSt;
         /* if a 'finally' is present too, we nest the TryExcept within a
@@ -425,14 +424,14 @@ function astForTryStmt(c, n) {
         body = [exceptSt];
     }
     asserts_1.assert(finally_ !== null);
-    return new types_79.TryFinally(body, finally_, n.lineno, n.col_offset);
+    return new types_78.TryFinally(body, finally_, n.lineno, n.col_offset);
 }
 function astForDottedName(c, n) {
     REQ(n, SYM.dotted_name);
     var lineno = n.lineno;
     var col_offset = n.col_offset;
     var id = strobj(tree_1.CHILD(n, 0).value);
-    var e = new types_59.Name(id, types_52.Load, lineno, col_offset);
+    var e = new types_58.Name(id, types_52.Load, lineno, col_offset);
     for (var i = 2; i < tree_1.NCH(n); i += 2) {
         id = strobj(tree_1.CHILD(n, i).value);
         e = new types_7.Attribute(e, id, types_52.Load, lineno, col_offset);
@@ -492,10 +491,10 @@ function astForWithStmt(c, n) {
     var optionalVars;
     if (tree_1.CHILD(n, 2).type === SYM.with_var) {
         optionalVars = astForWithVar(c, tree_1.CHILD(n, 2));
-        setContext(c, optionalVars, types_74.Store, n);
+        setContext(c, optionalVars, types_73.Store, n);
         suiteIndex = 4;
     }
-    return new types_85.WithStatement(contextExpr, optionalVars, astForSuite(c, tree_1.CHILD(n, suiteIndex)), n.lineno, n.col_offset);
+    return new types_84.WithStatement(contextExpr, optionalVars, astForSuite(c, tree_1.CHILD(n, suiteIndex)), n.lineno, n.col_offset);
 }
 function astForExecStmt(c, n) {
     var globals = null;
@@ -581,7 +580,7 @@ function astForNonLocalStmt(c, n) {
     for (var i = 1; i < tree_1.NCH(n); i += 2) {
         s[(i - 1) / 2] = strobj(tree_1.CHILD(n, i).value);
     }
-    return new types_60.NonLocal(s, n.lineno, n.col_offset);
+    return new types_59.NonLocal(s, n.lineno, n.col_offset);
 }
 function astForAssertStmt(c, n) {
     /* assert_stmt: 'assert' test [',' test] */
@@ -755,13 +754,13 @@ function astForListcomp(c, n) {
     for (var i = 0; i < nfors; ++i) {
         REQ(ch, SYM.list_for);
         var forch = tree_1.CHILD(ch, 1);
-        var t = astForExprlist(c, forch, types_74.Store);
+        var t = astForExprlist(c, forch, types_73.Store);
         var expression = astForTestlist(c, tree_1.CHILD(ch, 3));
         var lc = void 0;
         if (tree_1.NCH(forch) === 1)
             lc = new types_20.Comprehension(t[0], expression, []);
         else
-            lc = new types_20.Comprehension(new types_80.Tuple(t, types_74.Store, ch.lineno, ch.col_offset), expression, []);
+            lc = new types_20.Comprehension(new types_79.Tuple(t, types_73.Store, ch.lineno, ch.col_offset), expression, []);
         if (tree_1.NCH(ch) === 5) {
             ch = tree_1.CHILD(ch, 4);
             var nifs = countListIfs(c, ch);
@@ -801,9 +800,9 @@ function astForUnaryExpr(c, n) {
     }
     var expression = astForExpr(c, tree_1.CHILD(n, 1));
     switch (tree_1.CHILD(n, 0).type) {
-        case Tokens_1.Tokens.T_PLUS: return new types_82.UnaryOp(types_81.UAdd, expression, n.lineno, n.col_offset);
-        case Tokens_1.Tokens.T_MINUS: return new types_82.UnaryOp(types_83.USub, expression, n.lineno, n.col_offset);
-        case Tokens_1.Tokens.T_TILDE: return new types_82.UnaryOp(types_46.Invert, expression, n.lineno, n.col_offset);
+        case Tokens_1.Tokens.T_PLUS: return new types_81.UnaryOp(types_80.UAdd, expression, n.lineno, n.col_offset);
+        case Tokens_1.Tokens.T_MINUS: return new types_81.UnaryOp(types_82.USub, expression, n.lineno, n.col_offset);
+        case Tokens_1.Tokens.T_TILDE: return new types_81.UnaryOp(types_46.Invert, expression, n.lineno, n.col_offset);
     }
     throw new Error("unhandled UnaryExpr");
 }
@@ -814,12 +813,12 @@ function astForForStmt(c, n) {
         seq = astForSuite(c, tree_1.CHILD(n, 8));
     }
     var nodeTarget = tree_1.CHILD(n, 1);
-    var _target = astForExprlist(c, nodeTarget, types_74.Store);
+    var _target = astForExprlist(c, nodeTarget, types_73.Store);
     var target;
     if (tree_1.NCH(nodeTarget) === 1)
         target = _target[0];
     else
-        target = new types_80.Tuple(_target, types_74.Store, n.lineno, n.col_offset);
+        target = new types_79.Tuple(_target, types_73.Store, n.lineno, n.col_offset);
     return new types_33.ForStatement(target, astForTestlist(c, tree_1.CHILD(n, 3)), astForSuite(c, tree_1.CHILD(n, 5)), seq, n.lineno, n.col_offset);
 }
 function astForCall(c, n, func) {
@@ -869,7 +868,7 @@ function astForCall(c, n, func) {
                 var e = astForExpr(c, tree_1.CHILD(ch, 0));
                 if (e.constructor === types_49.Lambda)
                     throw syntaxError("lambda cannot contain assignment", n.lineno);
-                else if (e.constructor !== types_59.Name)
+                else if (e.constructor !== types_58.Name)
                     throw syntaxError("keyword can't be an expression", n.lineno);
                 var key = e.id;
                 forbiddenCheck(c, tree_1.CHILD(ch, 0), key, n.lineno);
@@ -907,7 +906,7 @@ function astForTrailer(c, n, leftExpr) {
         REQ(tree_1.CHILD(n, 2), Tokens_1.Tokens.T_RSQB);
         n = tree_1.CHILD(n, 1);
         if (tree_1.NCH(n) === 1)
-            return new types_77.Subscript(leftExpr, astForSlice(c, tree_1.CHILD(n, 0)), types_52.Load, n.lineno, n.col_offset);
+            return new types_76.Subscript(leftExpr, astForSlice(c, tree_1.CHILD(n, 0)), types_52.Load, n.lineno, n.col_offset);
         else {
             /* The grammar is ambiguous here. The ambiguity is resolved
                 by treating the sequence as a tuple literal if there are
@@ -923,7 +922,7 @@ function astForTrailer(c, n, leftExpr) {
                 slices[j / 2] = slc;
             }
             if (!simple) {
-                return new types_77.Subscript(leftExpr, new types_31.ExtSlice(slices), types_52.Load, n.lineno, n.col_offset);
+                return new types_76.Subscript(leftExpr, new types_31.ExtSlice(slices), types_52.Load, n.lineno, n.col_offset);
             }
             var elts = [];
             for (var j = 0; j < slices.length; ++j) {
@@ -936,8 +935,8 @@ function astForTrailer(c, n, leftExpr) {
                     asserts_1.assert(slc instanceof types_44.Index);
                 }
             }
-            var e = new types_80.Tuple(elts, types_52.Load, n.lineno, n.col_offset);
-            return new types_77.Subscript(leftExpr, new types_44.Index(e), types_52.Load, n.lineno, n.col_offset);
+            var e = new types_79.Tuple(elts, types_52.Load, n.lineno, n.col_offset);
+            return new types_76.Subscript(leftExpr, new types_44.Index(e), types_52.Load, n.lineno, n.col_offset);
         }
     }
 }
@@ -948,21 +947,21 @@ function astForFlowStmt(c, n) {
         case SYM.break_stmt: return new types_16.BreakStatement(n.lineno, n.col_offset);
         case SYM.continue_stmt: return new types_21.ContinueStatement(n.lineno, n.col_offset);
         case SYM.yield_stmt:
-            return new types_30.Expr(astForExpr(c, tree_1.CHILD(ch, 0)), n.lineno, n.col_offset);
+            return new types_30.ExpressionStatement(astForExpr(c, tree_1.CHILD(ch, 0)), n.lineno, n.col_offset);
         case SYM.return_stmt:
             if (tree_1.NCH(ch) === 1)
-                return new types_71.ReturnStatement(null, n.lineno, n.col_offset);
+                return new types_70.ReturnStatement(null, n.lineno, n.col_offset);
             else
-                return new types_71.ReturnStatement(astForTestlist(c, tree_1.CHILD(ch, 1)), n.lineno, n.col_offset);
+                return new types_70.ReturnStatement(astForTestlist(c, tree_1.CHILD(ch, 1)), n.lineno, n.col_offset);
         case SYM.raise_stmt: {
             if (tree_1.NCH(ch) === 1)
-                return new types_70.Raise(null, null, null, n.lineno, n.col_offset);
+                return new types_69.Raise(null, null, null, n.lineno, n.col_offset);
             else if (tree_1.NCH(ch) === 2)
-                return new types_70.Raise(astForExpr(c, tree_1.CHILD(ch, 1)), null, null, n.lineno, n.col_offset);
+                return new types_69.Raise(astForExpr(c, tree_1.CHILD(ch, 1)), null, null, n.lineno, n.col_offset);
             else if (tree_1.NCH(ch) === 4)
-                return new types_70.Raise(astForExpr(c, tree_1.CHILD(ch, 1)), astForExpr(c, tree_1.CHILD(ch, 3)), null, n.lineno, n.col_offset);
+                return new types_69.Raise(astForExpr(c, tree_1.CHILD(ch, 1)), astForExpr(c, tree_1.CHILD(ch, 3)), null, n.lineno, n.col_offset);
             else if (tree_1.NCH(ch) === 6)
-                return new types_70.Raise(astForExpr(c, tree_1.CHILD(ch, 1)), astForExpr(c, tree_1.CHILD(ch, 3)), astForExpr(c, tree_1.CHILD(ch, 5)), n.lineno, n.col_offset);
+                return new types_69.Raise(astForExpr(c, tree_1.CHILD(ch, 1)), astForExpr(c, tree_1.CHILD(ch, 3)), astForExpr(c, tree_1.CHILD(ch, 5)), n.lineno, n.col_offset);
             else {
                 throw new Error("unhandled flow statement");
             }
@@ -1033,7 +1032,7 @@ function astForArguments(c, n) {
                     if (tree_1.CHILD(ch, 0).type === Tokens_1.Tokens.T_NAME) {
                         forbiddenCheck(c, n, tree_1.CHILD(ch, 0).value, n.lineno);
                         var id = strobj(tree_1.CHILD(ch, 0).value);
-                        args[k++] = new types_59.Name(id, types_66.Param, ch.lineno, ch.col_offset);
+                        args[k++] = new types_58.Name(id, types_65.Param, ch.lineno, ch.col_offset);
                     }
                     i += 2;
                     if (parenthesized)
@@ -1155,13 +1154,13 @@ function astForGenexp(c, n) {
     for (var i = 0; i < nfors; ++i) {
         REQ(ch, SYM.gen_for);
         var forch = tree_1.CHILD(ch, 1);
-        var t = astForExprlist(c, forch, types_74.Store);
+        var t = astForExprlist(c, forch, types_73.Store);
         var expression = astForExpr(c, tree_1.CHILD(ch, 3));
         var ge = void 0;
         if (tree_1.NCH(forch) === 1)
             ge = new types_20.Comprehension(t[0], expression, []);
         else
-            ge = new types_20.Comprehension(new types_80.Tuple(t, types_74.Store, ch.lineno, ch.col_offset), expression, []);
+            ge = new types_20.Comprehension(new types_79.Tuple(t, types_73.Store, ch.lineno, ch.col_offset), expression, []);
         if (tree_1.NCH(ch) === 5) {
             ch = tree_1.CHILD(ch, 4);
             var nifs = countGenIfs(c, ch);
@@ -1187,9 +1186,9 @@ function astForWhileStmt(c, n) {
     /* while_stmt: 'while' test ':' suite ['else' ':' suite] */
     REQ(n, SYM.while_stmt);
     if (tree_1.NCH(n) === 4)
-        return new types_84.WhileStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), [], n.lineno, n.col_offset);
+        return new types_83.WhileStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), [], n.lineno, n.col_offset);
     else if (tree_1.NCH(n) === 7)
-        return new types_84.WhileStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), astForSuite(c, tree_1.CHILD(n, 6)), n.lineno, n.col_offset);
+        return new types_83.WhileStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), astForSuite(c, tree_1.CHILD(n, 6)), n.lineno, n.col_offset);
     throw new Error("wrong number of tokens for 'while' stmt");
 }
 function astForAugassign(c, n) {
@@ -1197,7 +1196,7 @@ function astForAugassign(c, n) {
     n = tree_1.CHILD(n, 0);
     switch (n.value.charAt(0)) {
         case '+': return types_1.Add;
-        case '-': return types_76.Sub;
+        case '-': return types_75.Sub;
         case '/': {
             if (n.value.charAt(1) === '/') {
                 return types_32.FloorDiv;
@@ -1208,16 +1207,16 @@ function astForAugassign(c, n) {
         }
         case '%': return types_56.Mod;
         case '<': return types_53.LShift;
-        case '>': return types_72.RShift;
+        case '>': return types_71.RShift;
         case '&': return types_12.BitAnd;
         case '^': return types_14.BitXor;
         case '|': return types_13.BitOr;
         case '*': {
             if (n.value.charAt(1) === '*') {
-                return types_68.Pow;
+                return types_67.Pow;
             }
             else {
-                return types_58.Mult;
+                return types_57.Mult;
             }
         }
         default: {
@@ -1258,30 +1257,30 @@ function astForTestlist(c, n) {
         return astForExpr(c, tree_1.CHILD(n, 0));
     }
     else {
-        return new types_80.Tuple(seqForTestlist(c, n), types_52.Load, n.lineno, n.col_offset);
+        return new types_79.Tuple(seqForTestlist(c, n), types_52.Load, n.lineno, n.col_offset);
     }
 }
 function astForExprStmt(c, n) {
     REQ(n, SYM.ExprStmt);
     if (tree_1.NCH(n) === 1)
-        return new types_30.Expr(astForTestlist(c, tree_1.CHILD(n, 0)), n.lineno, n.col_offset);
+        return new types_30.ExpressionStatement(astForTestlist(c, tree_1.CHILD(n, 0)), n.lineno, n.col_offset);
     else if (tree_1.CHILD(n, 1).type === SYM.augassign) {
         var ch = tree_1.CHILD(n, 0);
         var expr1 = astForTestlist(c, ch);
         switch (expr1.constructor) {
             case types_35.GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.lineno);
-            case types_86.Yield: throw syntaxError("augmented assignment to yield expression not possible", n.lineno);
-            case types_59.Name:
+            case types_85.Yield: throw syntaxError("augmented assignment to yield expression not possible", n.lineno);
+            case types_58.Name:
                 var varName = expr1.id;
                 forbiddenCheck(c, ch, varName, n.lineno);
                 break;
             case types_7.Attribute:
-            case types_77.Subscript:
+            case types_76.Subscript:
                 break;
             default:
                 throw syntaxError("illegal expression for augmented assignment", n.lineno);
         }
-        setContext(c, expr1, types_74.Store, ch);
+        setContext(c, expr1, types_73.Store, ch);
         ch = tree_1.CHILD(n, 2);
         var expr2 = void 0;
         if (ch.type === SYM.testlist)
@@ -1299,7 +1298,7 @@ function astForExprStmt(c, n) {
             if (ch.type === SYM.YieldExpr)
                 throw syntaxError("assignment to yield expression not possible", n.lineno);
             var e = astForTestlist(c, ch);
-            setContext(c, e, types_74.Store, tree_1.CHILD(n, i));
+            setContext(c, e, types_73.Store, tree_1.CHILD(n, i));
             targets[i / 2] = e;
         }
         var value = tree_1.CHILD(n, tree_1.NCH(n) - 1);
@@ -1528,7 +1527,7 @@ function astForSlice(c, n) {
     if (ch.type === SYM.sliceop) {
         if (tree_1.NCH(ch) === 1) {
             ch = tree_1.CHILD(ch, 0);
-            step = new types_59.Name(strobj("None"), types_52.Load, ch.lineno, ch.col_offset);
+            step = new types_58.Name(strobj("None"), types_52.Load, ch.lineno, ch.col_offset);
         }
         else {
             ch = tree_1.CHILD(ch, 1);
@@ -1536,22 +1535,22 @@ function astForSlice(c, n) {
                 step = astForExpr(c, ch);
         }
     }
-    return new types_73.Slice(lower, upper, step);
+    return new types_72.Slice(lower, upper, step);
 }
 function astForAtomExpr(c, n) {
     var ch = tree_1.CHILD(n, 0);
     switch (ch.type) {
         case Tokens_1.Tokens.T_NAME:
             // All names start in Load context, but may be changed later
-            return new types_59.Name(strobj(ch.value), types_52.Load, n.lineno, n.col_offset);
+            return new types_58.Name(strobj(ch.value), types_52.Load, n.lineno, n.col_offset);
         case Tokens_1.Tokens.T_STRING:
-            return new types_75.Str(parsestrplus(c, n), n.lineno, n.col_offset);
+            return new types_74.Str(parsestrplus(c, n), n.lineno, n.col_offset);
         case Tokens_1.Tokens.T_NUMBER:
-            return new types_64.Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
+            return new types_63.Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
         case Tokens_1.Tokens.T_LPAR:
             ch = tree_1.CHILD(n, 1);
             if (ch.type === Tokens_1.Tokens.T_RPAR) {
-                return new types_80.Tuple([], types_52.Load, n.lineno, n.col_offset);
+                return new types_79.Tuple([], types_52.Load, n.lineno, n.col_offset);
             }
             if (ch.type === SYM.YieldExpr) {
                 return astForExpr(c, ch);
@@ -1604,7 +1603,7 @@ function astForPowerExpr(c, n) {
     }
     if (tree_1.CHILD(n, tree_1.NCH(n) - 1).type === SYM.UnaryExpr) {
         var f = astForExpr(c, tree_1.CHILD(n, tree_1.NCH(n) - 1));
-        return new types_11.BinOp(e, types_68.Pow, f, n.lineno, n.col_offset);
+        return new types_11.BinOp(e, types_67.Pow, f, n.lineno, n.col_offset);
     }
     else {
         return e;
@@ -1634,14 +1633,14 @@ function astForExpr(c, n) {
                     return new types_15.BoolOp(types_4.And, seq, n.lineno, n.col_offset);
                 }
                 asserts_1.assert(tree_1.CHILD(n, 1).value === "or");
-                return new types_15.BoolOp(types_65.Or, seq, n.lineno, n.col_offset);
+                return new types_15.BoolOp(types_64.Or, seq, n.lineno, n.col_offset);
             case SYM.NotExpr:
                 if (tree_1.NCH(n) === 1) {
                     n = tree_1.CHILD(n, 0);
                     continue LOOP;
                 }
                 else {
-                    return new types_82.UnaryOp(types_61.Not, astForExpr(c, tree_1.CHILD(n, 1)), n.lineno, n.col_offset);
+                    return new types_81.UnaryOp(types_60.Not, astForExpr(c, tree_1.CHILD(n, 1)), n.lineno, n.col_offset);
                 }
             case SYM.ComparisonExpr:
                 if (tree_1.NCH(n) === 1) {
@@ -1673,7 +1672,7 @@ function astForExpr(c, n) {
                 if (tree_1.NCH(n) === 2) {
                     exp = astForTestlist(c, tree_1.CHILD(n, 1));
                 }
-                return new types_86.Yield(exp, n.lineno, n.col_offset);
+                return new types_85.Yield(exp, n.lineno, n.col_offset);
             case SYM.UnaryExpr:
                 if (tree_1.NCH(n) === 1) {
                     n = tree_1.CHILD(n, 0);
@@ -1701,7 +1700,7 @@ function astForPrintStmt(c, n) {
         seq[j] = astForExpr(c, tree_1.CHILD(n, i));
     }
     var nl = (tree_1.CHILD(n, tree_1.NCH(n) - 1)).type === Tokens_1.Tokens.T_COMMA ? false : true;
-    return new types_69.Print(dest, seq, nl, n.lineno, n.col_offset);
+    return new types_68.Print(dest, seq, nl, n.lineno, n.col_offset);
 }
 function astForStmt(c, n) {
     if (n.type === SYM.stmt) {
@@ -1719,7 +1718,7 @@ function astForStmt(c, n) {
             case SYM.ExprStmt: return astForExprStmt(c, n);
             case SYM.print_stmt: return astForPrintStmt(c, n);
             case SYM.del_stmt: return astForDelStmt(c, n);
-            case SYM.pass_stmt: return new types_67.Pass(n.lineno, n.col_offset);
+            case SYM.pass_stmt: return new types_66.Pass(n.lineno, n.col_offset);
             case SYM.flow_stmt: return astForFlowStmt(c, n);
             case SYM.import_stmt: return astForImportStmt(c, n);
             case SYM.GlobalStmt: return astForGlobalStmt(c, n);
@@ -1749,30 +1748,36 @@ function astForStmt(c, n) {
         }
     }
 }
+function astFromExpression(n) {
+    var c = new Compiling("utf-8");
+    return astForExpr(c, n);
+}
+exports.astFromExpression = astFromExpression;
 function astFromParse(n) {
     var c = new Compiling("utf-8");
     var stmts = [];
     var k = 0;
+    for (var i = 0; i < tree_1.NCH(n) - 1; ++i) {
+        var ch = tree_1.CHILD(n, i);
+        if (n.type === Tokens_1.Tokens.T_NEWLINE)
+            continue;
+        REQ(ch, SYM.stmt);
+        var num = numStmts(ch);
+        if (num === 1) {
+            stmts[k++] = astForStmt(c, ch);
+        }
+        else {
+            ch = tree_1.CHILD(ch, 0);
+            REQ(ch, SYM.simple_stmt);
+            for (var j = 0; j < num; ++j) {
+                stmts[k++] = astForStmt(c, tree_1.CHILD(ch, j * 2));
+            }
+        }
+    }
+    return stmts;
+    /*
     switch (n.type) {
         case SYM.file_input:
-            for (var i = 0; i < tree_1.NCH(n) - 1; ++i) {
-                var ch = tree_1.CHILD(n, i);
-                if (n.type === Tokens_1.Tokens.T_NEWLINE)
-                    continue;
-                REQ(ch, SYM.stmt);
-                var num = numStmts(ch);
-                if (num === 1) {
-                    stmts[k++] = astForStmt(c, ch);
-                }
-                else {
-                    ch = tree_1.CHILD(ch, 0);
-                    REQ(ch, SYM.simple_stmt);
-                    for (var j = 0; j < num; ++j) {
-                        stmts[k++] = astForStmt(c, tree_1.CHILD(ch, j * 2));
-                    }
-                }
-            }
-            return new types_57.Module(stmts);
         case SYM.eval_input: {
             throw new Error("todo;");
         }
@@ -1783,6 +1788,7 @@ function astFromParse(n) {
             throw new Error("todo;");
         }
     }
+    */
 }
 exports.astFromParse = astFromParse;
 function astDump(node) {

@@ -18,7 +18,7 @@ import { DeleteExpression } from './types';
 import { Dict } from './types';
 import { Ellipsis } from './types';
 import { Exec } from './types';
-import { Expr } from './types';
+import { ExpressionStatement } from './types';
 import { ExtSlice } from './types';
 import { ForStatement } from './types';
 import { FunctionDef } from './types';
@@ -346,7 +346,7 @@ var SymbolTable = (function () {
                 this.addDef(name_1, DEF_GLOBAL, s.lineno);
             }
         }
-        else if (s instanceof Expr) {
+        else if (s instanceof ExpressionStatement) {
             this.visitExpr(s.value);
         }
         else if (s instanceof Pass || s instanceof BreakStatement || s instanceof ContinueStatement) {

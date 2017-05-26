@@ -97,9 +97,10 @@ export interface TextRange {
 export interface Node extends TextRange {
     col_offset?: number;
 }
-export declare abstract class Expression extends Statement implements Node {
+export declare abstract class Expression implements Node {
     body?: any;
     id?: string;
+    lineno?: number;
     col_offset?: number;
     constructor(body: any);
 }
@@ -267,7 +268,7 @@ export declare class NonLocal {
     col_offset: number;
     constructor(names: string[], lineno: number, col_offset: number);
 }
-export declare class Expr extends Statement {
+export declare class ExpressionStatement extends Statement {
     value: Expression | Tuple;
     lineno: number;
     col_offset: number;

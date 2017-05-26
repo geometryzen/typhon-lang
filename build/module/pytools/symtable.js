@@ -5,15 +5,29 @@ import { ModuleBlock } from './SymbolConstants';
  * @param ast
  * @param fileName
  */
-export function symbolTable(ast) {
+export function symbolTable(mod) {
     var st = new SymbolTable();
-    st.enterBlock("top", ModuleBlock, ast, 0);
+    st.enterBlock("top", ModuleBlock, mod, 0);
     st.top = st.cur;
     // This is a good place to dump the AST for debugging.
-    for (var i = 0; i < ast.body.length; ++i) {
-        st.visitStmt(ast.body[i]);
+    for (var _i = 0, _a = mod.body; _i < _a.length; _i++) {
+        var stmt = _a[_i];
+        st.visitStmt(stmt);
     }
     st.exitBlock();
+    st.analyze();
+    return st;
+}
+export function symbolTableFromStatements(stmts) {
+    var st = new SymbolTable();
+    // st.enterBlock("top", ModuleBlock, mod, 0);
+    st.top = st.cur;
+    // This is a good place to dump the AST for debugging.
+    for (var _i = 0, stmts_1 = stmts; _i < stmts_1.length; _i++) {
+        var stmt = stmts_1[_i];
+        st.visitStmt(stmt);
+    }
+    // st.exitBlock();
     st.analyze();
     return st;
 }

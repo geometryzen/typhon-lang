@@ -31,8 +31,8 @@ import { Ellipsis } from './types';
 import { Eq } from './types';
 import { ExceptHandler } from './types';
 import { Exec } from './types';
-import { Expr } from './types';
 import { Expression } from './types';
+import { ExpressionStatement } from './types';
 import { ExtSlice } from './types';
 import { FloorDiv } from './types';
 import { ForStatement } from './types';
@@ -1010,14 +1010,14 @@ function astForTrailer(c: Compiling, n: PyNode, leftExpr: Attribute | Name): Att
     }
 }
 
-function astForFlowStmt(c: Compiling, n: PyNode): BreakStatement | Expr | Raise {
+function astForFlowStmt(c: Compiling, n: PyNode): BreakStatement | ExpressionStatement | Raise {
     REQ(n, SYM.flow_stmt);
     const ch = CHILD(n, 0);
     switch (ch.type) {
         case SYM.break_stmt: return new BreakStatement(n.lineno, n.col_offset);
         case SYM.continue_stmt: return new ContinueStatement(n.lineno, n.col_offset);
         case SYM.yield_stmt:
-            return new Expr(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
+            return new ExpressionStatement(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
         case SYM.return_stmt:
             if (NCH(ch) === 1)
                 return new ReturnStatement(null, n.lineno, n.col_offset);
@@ -1357,10 +1357,10 @@ function astForTestlist(c: Compiling, n: PyNode): Expression | Tuple {
 
 }
 
-function astForExprStmt(c: Compiling, n: PyNode): Expr {
+function astForExprStmt(c: Compiling, n: PyNode): ExpressionStatement {
     REQ(n, SYM.ExprStmt);
     if (NCH(n) === 1)
-        return new Expr(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
+        return new ExpressionStatement(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
     else if (CHILD(n, 1).type === SYM.augassign) {
         let ch = CHILD(n, 0);
         const expr1 = astForTestlist(c, ch);
@@ -1864,31 +1864,37 @@ function astForStmt(c: Compiling, n: PyNode) {
     }
 }
 
-export function astFromParse(n: PyNode): Module {
+export function astFromExpression(n: PyNode): Expression {
+    const c = new Compiling("utf-8");
+    return astForExpr(c, n);
+}
+
+export function astFromParse(n: PyNode): Statement[] {
     const c = new Compiling("utf-8");
 
-    const stmts = [];
+    const stmts: Statement[] = [];
     let k = 0;
+    for (let i = 0; i < NCH(n) - 1; ++i) {
+        let ch = CHILD(n, i);
+        if (n.type === TOK.T_NEWLINE)
+            continue;
+        REQ(ch, SYM.stmt);
+        const num = numStmts(ch);
+        if (num === 1) {
+            stmts[k++] = astForStmt(c, ch);
+        }
+        else {
+            ch = CHILD(ch, 0);
+            REQ(ch, SYM.simple_stmt);
+            for (let j = 0; j < num; ++j) {
+                stmts[k++] = astForStmt(c, CHILD(ch, j * 2));
+            }
+        }
+    }
+    return stmts;
+    /*
     switch (n.type) {
         case SYM.file_input:
-            for (let i = 0; i < NCH(n) - 1; ++i) {
-                let ch = CHILD(n, i);
-                if (n.type === TOK.T_NEWLINE)
-                    continue;
-                REQ(ch, SYM.stmt);
-                const num = numStmts(ch);
-                if (num === 1) {
-                    stmts[k++] = astForStmt(c, ch);
-                }
-                else {
-                    ch = CHILD(ch, 0);
-                    REQ(ch, SYM.simple_stmt);
-                    for (let j = 0; j < num; ++j) {
-                        stmts[k++] = astForStmt(c, CHILD(ch, j * 2));
-                    }
-                }
-            }
-            return new Module(stmts);
         case SYM.eval_input: {
             throw new Error("todo;");
         }
@@ -1899,6 +1905,7 @@ export function astFromParse(n: PyNode): Module {
             throw new Error("todo;");
         }
     }
+    */
 }
 
 export function astDump(node: Module): string {

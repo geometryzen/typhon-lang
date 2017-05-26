@@ -257,15 +257,12 @@ var Interactive = (function () {
     return Interactive;
 }());
 export { Interactive };
-var Expression = (function (_super) {
-    tslib_1.__extends(Expression, _super);
+var Expression = (function () {
     function Expression(body) {
-        var _this = _super.call(this) || this;
-        _this.body = body;
-        return _this;
+        this.body = body;
     }
     return Expression;
-}(Statement));
+}());
 export { Expression };
 var UnaryExpression = (function (_super) {
     tslib_1.__extends(UnaryExpression, _super);
@@ -543,18 +540,18 @@ var NonLocal = (function () {
     return NonLocal;
 }());
 export { NonLocal };
-var Expr = (function (_super) {
-    tslib_1.__extends(Expr, _super);
-    function Expr(value, lineno, col_offset) {
+var ExpressionStatement = (function (_super) {
+    tslib_1.__extends(ExpressionStatement, _super);
+    function ExpressionStatement(value, lineno, col_offset) {
         var _this = _super.call(this) || this;
         _this.value = value;
         _this.lineno = lineno;
         _this.col_offset = col_offset;
         return _this;
     }
-    return Expr;
+    return ExpressionStatement;
 }(Statement));
-export { Expr };
+export { ExpressionStatement };
 var Pass = (function () {
     function Pass(lineno, col_offset) {
         this.lineno = lineno;
@@ -975,8 +972,8 @@ NonLocal.prototype['_astname'] = 'NonLocal';
 NonLocal.prototype['_fields'] = [
     'names', function (n) { return n.names; }
 ];
-Expr.prototype['_astname'] = 'Expr';
-Expr.prototype['_fields'] = [
+ExpressionStatement.prototype['_astname'] = 'ExpressionStatement';
+ExpressionStatement.prototype['_fields'] = [
     'value', function (n) { return n.value; }
 ];
 Pass.prototype['_astname'] = 'Pass';
