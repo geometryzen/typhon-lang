@@ -16,7 +16,6 @@ import { DictionaryKind } from './SymbolConstants';
  * The symbol table uses the abstract synntax tree (not the parse tree).
  */
 export declare class SymbolTable {
-    fileName: string;
     cur: SymbolTableScope;
     top: SymbolTableScope;
     stack: SymbolTableScope[];
@@ -29,9 +28,9 @@ export declare class SymbolTable {
         [scopeId: number]: SymbolTableScope;
     };
     /**
-     * @param fileName
+     *
      */
-    constructor(fileName: string);
+    constructor();
     /**
      * Lookup the SymbolTableScope for a scopeId of the AST.
      */

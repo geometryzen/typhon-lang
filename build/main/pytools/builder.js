@@ -109,22 +109,18 @@ var SYM = tables_1.ParseTables.sym;
 var LONG_THRESHOLD = Math.pow(2, 53);
 /**
  * @param message
- * @param fileName
  * @param lineNumber
  */
-function syntaxError(message, fileName, lineNumber) {
+function syntaxError(message, lineNumber) {
     asserts_1.assert(base_1.isString(message), "message must be a string");
-    asserts_1.assert(base_1.isString(fileName), "fileName must be a string");
     asserts_1.assert(base_1.isNumber(lineNumber), "lineNumber must be a number");
     var e = new SyntaxError(message /*, fileName*/);
-    e['fileName'] = fileName;
     e['lineNumber'] = lineNumber;
     return e;
 }
 var Compiling = (function () {
-    function Compiling(encoding, filename) {
+    function Compiling(encoding) {
         this.c_encoding = encoding;
-        this.c_filename = filename;
     }
     return Compiling;
 }());
@@ -198,9 +194,9 @@ function numStmts(n) {
 }
 function forbiddenCheck(c, n, x, lineno) {
     if (x === "None")
-        throw syntaxError("assignment to None", c.c_filename, lineno);
+        throw syntaxError("assignment to None", lineno);
     if (x === "True" || x === "False")
-        throw syntaxError("assignment to True or False is forbidden", c.c_filename, lineno);
+        throw syntaxError("assignment to True or False is forbidden", lineno);
 }
 /**
  * Set the context ctx for e, recursively traversing e.
@@ -231,7 +227,7 @@ function setContext(c, e, ctx, n) {
     }
     else if (e instanceof types_80.Tuple) {
         if (e.elts.length === 0) {
-            throw syntaxError("can't assign to ()", c.c_filename, n.lineno);
+            throw syntaxError("can't assign to ()", n.lineno);
         }
         e.ctx = ctx;
         s = e.elts;
@@ -278,7 +274,7 @@ function setContext(c, e, ctx, n) {
         }
     }
     if (exprName) {
-        throw syntaxError("can't " + (ctx === types_74.Store ? "assign to" : "delete") + " " + exprName, c.c_filename, n.lineno);
+        throw syntaxError("can't " + (ctx === types_74.Store ? "assign to" : "delete") + " " + exprName, n.lineno);
     }
     if (s) {
         for (var i = 0; i < s.length; ++i) {
@@ -436,7 +432,7 @@ function astForTryStmt(c, n) {
         }
     }
     else if (CHILD(n, nc - 3).type !== SYM.except_clause) {
-        throw syntaxError("malformed 'try' statement", c.c_filename, n.lineno);
+        throw syntaxError("malformed 'try' statement", n.lineno);
     }
     if (nexcept > 0) {
         var handlers = [];
@@ -657,7 +653,7 @@ function aliasForImportName(c, n) {
             case Tokens_1.Tokens.T_STAR:
                 return new types_2.Alias(strobj("*"), null);
             default:
-                throw syntaxError("unexpected import name", c.c_filename, n.lineno);
+                throw syntaxError("unexpected import name", n.lineno);
         }
     }
 }
@@ -705,10 +701,7 @@ function astForImportStmt(c, n) {
                 n = CHILD(n, idx);
                 nchildren = NCH(n);
                 if (nchildren % 2 === 0)
-                    throw syntaxError("trailing comma not allowed without surrounding parentheses", c.c_filename, n.lineno);
-                break;
-            default:
-                throw syntaxError("Unexpected node-type in from-import", c.c_filename, n.lineno);
+                    throw syntaxError("trailing comma not allowed without surrounding parentheses", n.lineno);
         }
         var aliases = [];
         if (n.type === Tokens_1.Tokens.T_STAR)
@@ -720,7 +713,7 @@ function astForImportStmt(c, n) {
         var modname = mod ? mod.name : "";
         return new types_43.ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
     }
-    throw syntaxError("unknown import statement", c.c_filename, n.lineno);
+    throw syntaxError("unknown import statement", n.lineno);
 }
 function astForTestlistGexp(c, n) {
     asserts_1.assert(n.type === SYM.testlist_gexp || n.type === SYM.argument);
@@ -871,9 +864,9 @@ function astForCall(c, n, func) {
         }
     }
     if (ngens > 1 || (ngens && (nargs || nkeywords)))
-        throw syntaxError("Generator expression must be parenthesized if not sole argument", c.c_filename, n.lineno);
+        throw syntaxError("Generator expression must be parenthesized if not sole argument", n.lineno);
     if (nargs + nkeywords + ngens > 255)
-        throw syntaxError("more than 255 arguments", c.c_filename, n.lineno);
+        throw syntaxError("more than 255 arguments", n.lineno);
     var args = [];
     var keywords = [];
     nargs = 0;
@@ -885,9 +878,9 @@ function astForCall(c, n, func) {
         if (ch.type === SYM.argument) {
             if (NCH(ch) === 1) {
                 if (nkeywords)
-                    throw syntaxError("non-keyword arg after keyword arg", c.c_filename, n.lineno);
+                    throw syntaxError("non-keyword arg after keyword arg", n.lineno);
                 if (vararg)
-                    throw syntaxError("only named arguments may follow *expression", c.c_filename, n.lineno);
+                    throw syntaxError("only named arguments may follow *expression", n.lineno);
                 args[nargs++] = astForExpr(c, CHILD(ch, 0));
             }
             else if (CHILD(ch, 1).type === SYM.gen_for)
@@ -895,15 +888,15 @@ function astForCall(c, n, func) {
             else {
                 var e = astForExpr(c, CHILD(ch, 0));
                 if (e.constructor === types_49.Lambda)
-                    throw syntaxError("lambda cannot contain assignment", c.c_filename, n.lineno);
+                    throw syntaxError("lambda cannot contain assignment", n.lineno);
                 else if (e.constructor !== types_59.Name)
-                    throw syntaxError("keyword can't be an expression", c.c_filename, n.lineno);
+                    throw syntaxError("keyword can't be an expression", n.lineno);
                 var key = e.id;
                 forbiddenCheck(c, CHILD(ch, 0), key, n.lineno);
                 for (var k = 0; k < nkeywords; ++k) {
                     var tmp = keywords[k].arg;
                     if (tmp === key)
-                        throw syntaxError("keyword argument repeated", c.c_filename, n.lineno);
+                        throw syntaxError("keyword argument repeated", n.lineno);
                 }
                 keywords[nkeywords++] = new types_39.Keyword(key, astForExpr(c, CHILD(ch, 2)));
             }
@@ -1038,14 +1031,14 @@ function astForArguments(c, n) {
                         /* def f((x)=4): pass should raise an error.
                             def f((x, (y))): pass will just incur the tuple unpacking warning. */
                         if (parenthesized && !complexArgs)
-                            throw syntaxError("parenthesized arg with default", c.c_filename, n.lineno);
-                        throw syntaxError("non-default argument follows default argument", c.c_filename, n.lineno);
+                            throw syntaxError("parenthesized arg with default", n.lineno);
+                        throw syntaxError("non-default argument follows default argument", n.lineno);
                     }
                     if (NCH(ch) === 3) {
                         ch = CHILD(ch, 1);
                         // def foo((x)): is not complex, special case.
                         if (NCH(ch) !== 1) {
-                            throw syntaxError("tuple parameter unpacking has been removed", c.c_filename, n.lineno);
+                            throw syntaxError("tuple parameter unpacking has been removed", n.lineno);
                         }
                         else {
                             /* def foo((x)): setup for checking NAME below. */
@@ -1064,7 +1057,7 @@ function astForArguments(c, n) {
                     }
                     i += 2;
                     if (parenthesized)
-                        throw syntaxError("parenthesized argument names are invalid", c.c_filename, n.lineno);
+                        throw syntaxError("parenthesized argument names are invalid", n.lineno);
                     break;
                 }
                 break;
@@ -1296,8 +1289,8 @@ function astForExprStmt(c, n) {
         var ch = CHILD(n, 0);
         var expr1 = astForTestlist(c, ch);
         switch (expr1.constructor) {
-            case types_35.GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", c.c_filename, n.lineno);
-            case types_86.Yield: throw syntaxError("augmented assignment to yield expression not possible", c.c_filename, n.lineno);
+            case types_35.GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.lineno);
+            case types_86.Yield: throw syntaxError("augmented assignment to yield expression not possible", n.lineno);
             case types_59.Name:
                 var varName = expr1.id;
                 forbiddenCheck(c, ch, varName, n.lineno);
@@ -1306,7 +1299,7 @@ function astForExprStmt(c, n) {
             case types_77.Subscript:
                 break;
             default:
-                throw syntaxError("illegal expression for augmented assignment", c.c_filename, n.lineno);
+                throw syntaxError("illegal expression for augmented assignment", n.lineno);
         }
         setContext(c, expr1, types_74.Store, ch);
         ch = CHILD(n, 2);
@@ -1324,7 +1317,7 @@ function astForExprStmt(c, n) {
         for (var i = 0; i < NCH(n) - 2; i += 2) {
             var ch = CHILD(n, i);
             if (ch.type === SYM.YieldExpr)
-                throw syntaxError("assignment to yield expression not possible", c.c_filename, n.lineno);
+                throw syntaxError("assignment to yield expression not possible", n.lineno);
             var e = astForTestlist(c, ch);
             setContext(c, e, types_74.Store, CHILD(n, i));
             targets[i / 2] = e;
@@ -1440,7 +1433,7 @@ function parsestrplus(c, n) {
             ret = ret + parsestr(c, child.value);
         }
         catch (x) {
-            throw syntaxError("invalid string (possibly contains a unicode character)", c.c_filename, child.lineno);
+            throw syntaxError("invalid string (possibly contains a unicode character)", child.lineno);
         }
     }
     return ret;
@@ -1448,7 +1441,7 @@ function parsestrplus(c, n) {
 function parsenumber(c, s, lineno) {
     var end = s.charAt(s.length - 1);
     if (end === 'j' || end === 'J') {
-        throw syntaxError("complex numbers are currently unsupported", c.c_filename, lineno);
+        throw syntaxError("complex numbers are currently unsupported", lineno);
     }
     if (s.indexOf('.') !== -1) {
         return numericLiteral_1.floatAST(s);
@@ -1608,7 +1601,7 @@ function astForAtomExpr(c, n) {
             }
             return new types_24.Dict(keys, values, n.lineno, n.col_offset);
         case Tokens_1.Tokens.T_BACKQUOTE:
-            throw syntaxError("backquote not supported, use repr()", c.c_filename, n.lineno);
+            throw syntaxError("backquote not supported, use repr()", n.lineno);
         default: {
             throw new Error("unhandled atom" /*, ch.type*/);
         }
@@ -1776,8 +1769,8 @@ function astForStmt(c, n) {
         }
     }
 }
-function astFromParse(n, filename) {
-    var c = new Compiling("utf-8", filename);
+function astFromParse(n) {
+    var c = new Compiling("utf-8");
     var stmts = [];
     var k = 0;
     switch (n.type) {

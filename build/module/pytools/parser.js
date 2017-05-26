@@ -10,10 +10,9 @@ import { tokenNames } from './tokenNames';
  * @param begin
  * @param end
  */
-function parseError(message, fileName, begin, end) {
-    var e = new SyntaxError(message /*, fileName*/);
+function parseError(message, begin, end) {
+    var e = new SyntaxError(message);
     e.name = "ParseError";
-    e['fileName'] = fileName;
     if (Array.isArray(begin)) {
         e['lineNumber'] = begin[0];
         e['columnNumber'] = begin[1];
@@ -23,17 +22,8 @@ function parseError(message, fileName, begin, end) {
 var Parser = (function () {
     /**
      *
-     * p = new Parser(grammar);
-     * p.setup(start);
-     * foreach input token:
-     *     if p.addtoken(...):
-     *         break
-     * root = p.rootnode
-     *
-     * can throw ParseError
      */
-    function Parser(filename, grammar) {
-        this.filename = filename;
+    function Parser(grammar) {
         this.grammar = grammar;
         return this;
     }
@@ -109,12 +99,12 @@ var Parser = (function () {
                 // an accepting state, pop it and try something else
                 this.pop();
                 if (this.stack.length === 0) {
-                    throw parseError("too much input", this.filename);
+                    throw parseError("too much input");
                 }
             }
             else {
                 // no transition
-                throw parseError("bad input", this.filename, context[0], context[1]);
+                throw parseError("bad input", context[0], context[1]);
             }
         }
     };
@@ -139,7 +129,7 @@ var Parser = (function () {
             ilabel = this.grammar.tokens[type];
         }
         if (!ilabel) {
-            throw parseError("bad token", this.filename, context[0], context[1]);
+            throw parseError("bad token", context[0], context[1]);
         }
         return ilabel;
     };
@@ -209,14 +199,13 @@ function findInDfa(a, obj) {
  * lines of input as they are entered. the function will return false
  * until the input is complete, when it will return the rootnode of the parse.
  *
- * @param filename
  * @param style root of parse tree (optional)
  */
-function makeParser(filename, style) {
+function makeParser(style) {
     if (style === undefined)
         style = "file_input";
     // FIXME: Would be nice to get this typing locked down.
-    var p = new Parser(filename, ParseTables);
+    var p = new Parser(ParseTables);
     // for closure's benefit
     if (style === "file_input")
         p.setup(ParseTables.sym.file_input);
@@ -229,7 +218,7 @@ function makeParser(filename, style) {
     var T_COMMENT = Tokens.T_COMMENT;
     var T_NL = Tokens.T_NL;
     var T_OP = Tokens.T_OP;
-    var tokenizer = new Tokenizer(filename, style === "single_input", function tokenizerCallback(type, value, start, end, line) {
+    var tokenizer = new Tokenizer(style === "single_input", function tokenizerCallback(type, value, start, end, line) {
         // var s_lineno = start[0];
         // var s_column = start[1];
         /*
@@ -260,15 +249,15 @@ function makeParser(filename, style) {
         var ret = tokenizer.generateTokens(line);
         if (ret) {
             if (ret !== "done") {
-                throw parseError("incomplete input", filename);
+                throw parseError("incomplete input");
             }
             return p.rootnode;
         }
         return false;
     };
 }
-export function parse(filename, input) {
-    var parseFunc = makeParser(filename);
+export function parse(input) {
+    var parseFunc = makeParser();
     if (input.substr(input.length - 1, 1) !== "\n") {
         input += "\n";
     }

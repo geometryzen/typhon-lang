@@ -4,7 +4,7 @@ import { Module } from './types';
  * @param ast
  * @param fileName
  */
-export declare function symbolTable(ast: Module, fileName: string): SymbolTable;
+export declare function symbolTable(ast: Module): SymbolTable;
 export interface SymbolInfo {
     get_name(): string;
     is_referenced(): boolean;

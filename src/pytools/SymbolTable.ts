@@ -81,7 +81,6 @@ import { SCOPE_OFF } from './SymbolConstants';
  * The symbol table uses the abstract synntax tree (not the parse tree).
  */
 export class SymbolTable {
-    fileName: string;
     cur: SymbolTableScope;
     top: SymbolTableScope;
     stack: SymbolTableScope[];
@@ -90,10 +89,9 @@ export class SymbolTable {
     tmpname: number;
     stss: { [scopeId: number]: SymbolTableScope };
     /**
-     * @param fileName
+     *
      */
-    constructor(fileName: string) {
-        this.fileName = fileName;
+    constructor() {
         this.cur = null;
         this.top = null;
         this.stack = [];
@@ -165,7 +163,7 @@ export class SymbolTable {
             }
             else {
                 // Tuple isn't supported
-                throw syntaxError("invalid expression in parameter list", this.fileName);
+                throw syntaxError("invalid expression in parameter list");
             }
         }
     }
@@ -202,7 +200,7 @@ export class SymbolTable {
         var val = this.cur.symFlags[mangled];
         if (val !== undefined) {
             if ((flag & DEF_PARAM) && (val & DEF_PARAM)) {
-                throw syntaxError("duplicate argument '" + name + "' in function definition", this.fileName, lineno);
+                throw syntaxError("duplicate argument '" + name + "' in function definition", lineno);
             }
             val |= flag;
         }
@@ -270,7 +268,7 @@ export class SymbolTable {
                 this.visitExpr(s.value);
                 this.cur.returnsValue = true;
                 if (this.cur.generator) {
-                    throw syntaxError("'return' with argument inside generator", this.fileName);
+                    throw syntaxError("'return' with argument inside generator");
                 }
             }
         }
@@ -354,10 +352,10 @@ export class SymbolTable {
                 var cur = this.cur.symFlags[name];
                 if (cur & (DEF_LOCAL | USE)) {
                     if (cur & DEF_LOCAL) {
-                        throw syntaxError("name '" + name + "' is assigned to before global declaration", this.fileName, s.lineno);
+                        throw syntaxError("name '" + name + "' is assigned to before global declaration", s.lineno);
                     }
                     else {
-                        throw syntaxError("name '" + name + "' is used prior to global declaration", this.fileName, s.lineno);
+                        throw syntaxError("name '" + name + "' is used prior to global declaration", s.lineno);
                     }
                 }
                 this.addDef(name, DEF_GLOBAL, s.lineno);
@@ -426,7 +424,7 @@ export class SymbolTable {
             if (e.value) this.visitExpr(e.value);
             this.cur.generator = true;
             if (this.cur.returnsValue) {
-                throw syntaxError("'return' with argument inside generator", this.fileName);
+                throw syntaxError("'return' with argument inside generator");
             }
         }
         else if (e instanceof Compare) {
@@ -497,7 +495,7 @@ export class SymbolTable {
             }
             else {
                 if (this.cur.blockType !== ModuleBlock) {
-                    throw syntaxError("import * only allowed at module level", this.fileName);
+                    throw syntaxError("import * only allowed at module level");
                 }
             }
         }
@@ -639,7 +637,7 @@ export class SymbolTable {
      */
     analyzeName(ste: SymbolTableScope, dict: { [name: string]: DictionaryKind }, name: string, flags: number, bound: {}, local: {}, free: {}, global: {}) {
         if (flags & DEF_GLOBAL) {
-            if (flags & DEF_PARAM) throw syntaxError("name '" + name + "' is local and global", this.fileName, ste.lineno);
+            if (flags & DEF_PARAM) throw syntaxError("name '" + name + "' is local and global", ste.lineno);
             dict[name] = GLOBAL_EXPLICIT;
             global[name] = null;
             if (bound && bound[name] !== undefined) delete bound[name];

@@ -468,17 +468,6 @@ var Compiler = (function () {
         this.setBlock(end);
         return retval;
     };
-    /**
-     *
-     * compiles an expression. to 'return' something, it'll gensym a var and store
-     * into that var so that the calling code doesn't have avoid just pasting the
-     * returned name.
-     *
-     * @param {Object} e
-     * @param {string=} data data to store in a store operation
-     * @param {Object=} augstoreval value to store to for an aug operation (not
-     * vexpr'd yet)
-     */
     Compiler.prototype.vexpr = function (e, data, augstoreval) {
         if (e.lineno > this.u.lineno) {
             this.u.lineno = e.lineno;
@@ -598,10 +587,6 @@ var Compiler = (function () {
             throw new Error("unhandled case in vexpr");
         }
     };
-    /**
-     * @param {Array.<Object>} exprs
-     * @param {Array.<string>=} data
-     */
     Compiler.prototype.vseqexpr = function (exprs, data) {
         var missingData = (typeof data === 'undefined');
         asserts_1.assert(missingData || exprs.length === data.length);
@@ -646,19 +631,17 @@ var Compiler = (function () {
      * optimize some constant exprs. returns 0 if always 0, 1 if always 1 or -1 otherwise.
      */
     Compiler.prototype.exprConstant = function (e) {
-        switch (e.constructor) {
-            case types_35.Num:
-                throw new Error("Trying to call the runtime for Num");
-            // return Sk.misceval.isTrue(e.n);
-            // break;
-            case types_43.Str:
-                throw new Error("Trying to call the runtime for Str");
-            // return Sk.misceval.isTrue(e.s);
-            // break;
-            case types_34.Name:
-            // todo; do __debug__ test here if opt
-            default:
-                return -1;
+        if (e instanceof types_35.Num) {
+            return ts.createLiteral(e.n.value);
+        }
+        else if (e instanceof types_43.Str) {
+            return ts.createLiteral(e.s);
+        }
+        else if (e instanceof types_34.Name) {
+            throw new Error("TODO: exprConstant(Name)");
+        }
+        else {
+            throw new Error("exprConstant");
         }
     };
     Compiler.prototype.newBlock = function (name) {
@@ -791,29 +774,24 @@ var Compiler = (function () {
         return result;
     };
     Compiler.prototype.cwhile = function (s, flags) {
-        var constant = this.exprConstant(s.test);
-        if (constant === 0) {
-            if (s.orelse)
-                this.vseqstmt(s.orelse, flags);
+        // const testExpr = this.exprConstant(s.test);
+        // ts.createWhile(testExpr)
+        var top = this.newBlock('while test');
+        this.setBlock(top);
+        var next = this.newBlock('after while');
+        var orelse = s.orelse.length > 0 ? this.newBlock('while orelse') : null;
+        var body = this.newBlock('while body');
+        this.pushBreakBlock(next);
+        this.pushContinueBlock(top);
+        this.setBlock(body);
+        this.vseqstmt(s.body, flags);
+        this.popContinueBlock();
+        this.popBreakBlock();
+        if (s.orelse.length > 0) {
+            this.setBlock(orelse);
+            this.vseqstmt(s.orelse, flags);
         }
-        else {
-            var top = this.newBlock('while test');
-            this.setBlock(top);
-            var next = this.newBlock('after while');
-            var orelse = s.orelse.length > 0 ? this.newBlock('while orelse') : null;
-            var body = this.newBlock('while body');
-            this.pushBreakBlock(next);
-            this.pushContinueBlock(top);
-            this.setBlock(body);
-            this.vseqstmt(s.body, flags);
-            this.popContinueBlock();
-            this.popBreakBlock();
-            if (s.orelse.length > 0) {
-                this.setBlock(orelse);
-                this.vseqstmt(s.orelse, flags);
-            }
-            this.setBlock(next);
-        }
+        this.setBlock(next);
     };
     Compiler.prototype.cfor = function (s, flags) {
         var start = this.newBlock('for start');
@@ -933,11 +911,6 @@ var Compiler = (function () {
         out("throw new Sk.builtin.AssertionError(", s.msg ? this.vexpr(s.msg) : "", ");");
         this.setBlock(end);
     };
-    /**
-     * @param name
-     * @param asname
-     * @param mod
-     */
     Compiler.prototype.cimportas = function (name, asname, mod) {
         var src = name;
         var dotLoc = src.indexOf(".");
@@ -1354,94 +1327,93 @@ var Compiler = (function () {
         if (this.u.continueBlocks.length === 0)
             throw new SyntaxError("'continue' outside loop");
     };
-    /**
-     * compiles a statement
-     */
     Compiler.prototype.vstmt = function (s, flags) {
         this.u.lineno = s.lineno;
         this.u.linenoSet = false;
         this.annotateSource(s);
-        switch (s.constructor) {
-            case types_21.FunctionDef:
-                this.cfunction(s);
-                break;
-            case types_11.ClassDef:
-                this.cclass(s, flags);
-                break;
-            case types_40.ReturnStatement: {
-                var rs = s;
-                if (this.u.ste.blockType !== SymbolConstants_6.FunctionBlock)
-                    throw new SyntaxError("'return' outside function");
-                if (rs.value)
-                    out("return ", this.vexpr(rs.value), ";");
-                else
-                    out("return null;");
-                break;
+        if (s instanceof types_21.FunctionDef) {
+            return this.cfunction(s);
+        }
+        else if (s instanceof types_11.ClassDef) {
+            return this.cclass(s, flags);
+        }
+        else if (s instanceof types_40.ReturnStatement) {
+            if (this.u.ste.blockType !== SymbolConstants_6.FunctionBlock)
+                throw new SyntaxError("'return' outside function");
+            if (s.value)
+                out("return ", this.vexpr(s.value), ";");
+            else
+                out("return null;");
+        }
+        else if (s instanceof types_15.DeleteExpression) {
+            return this.vseqexpr(s.targets);
+        }
+        else if (s instanceof types_2.Assign) {
+            var assign = s;
+            var n = assign.targets.length;
+            var val = this.vexpr(assign.value);
+            for (var i = 0; i < n; ++i) {
+                this.vexpr(assign.targets[i], val);
             }
-            case types_15.DeleteExpression:
-                this.vseqexpr(s.targets);
-                break;
-            case types_2.Assign: {
-                var assign = s;
-                var n = assign.targets.length;
-                var val = this.vexpr(assign.value);
-                for (var i = 0; i < n; ++i)
-                    this.vexpr(assign.targets[i], val);
-                break;
+        }
+        else if (s instanceof types_4.AugAssign) {
+            return this.caugassign(s);
+        }
+        else if (s instanceof types_38.Print) {
+            return this.cprint(s);
+        }
+        else if (s instanceof types_20.ForStatement) {
+            return this.cfor(s, flags);
+        }
+        else if (s instanceof types_49.WhileStatement) {
+            return this.cwhile(s, flags);
+        }
+        else if (s instanceof types_24.IfStatement) {
+            return this.ifStatement(s, flags);
+        }
+        else if (s instanceof types_39.Raise) {
+            return this.craise(s);
+        }
+        else if (s instanceof types_45.TryExcept) {
+            return this.ctryexcept(s, flags);
+        }
+        else if (s instanceof types_46.TryFinally) {
+            return this.ctryfinally(s, flags);
+        }
+        else if (s instanceof types_1.Assert) {
+            return this.cassert(s);
+        }
+        else if (s instanceof types_26.ImportStatement) {
+            return this.cimport(s);
+        }
+        else if (s instanceof types_27.ImportFrom) {
+            return this.cfromimport(s);
+        }
+        else if (s instanceof types_23.Global) {
+            return void 0;
+        }
+        else if (s instanceof types_18.Expr) {
+            this.vexpr(s.value);
+        }
+        else if (s instanceof types_37.Pass) {
+            return void 0;
+        }
+        else if (s instanceof types_9.BreakStatement) {
+            if (this.u.breakBlocks.length === 0) {
+                throw new SyntaxError("'break' outside loop");
             }
-            case types_4.AugAssign: {
-                return this.caugassign(s);
-            }
-            case types_38.Print: {
-                this.cprint(s);
-                break;
-            }
-            case types_20.ForStatement: {
-                return this.cfor(s, flags);
-            }
-            case types_49.WhileStatement: {
-                return this.cwhile(s, flags);
-            }
-            case types_24.IfStatement: {
-                return this.ifStatement(s, flags);
-            }
-            case types_39.Raise: {
-                return this.craise(s);
-            }
-            case types_45.TryExcept: {
-                return this.ctryexcept(s, flags);
-            }
-            case types_46.TryFinally: {
-                return this.ctryfinally(s, flags);
-            }
-            case types_1.Assert: {
-                return this.cassert(s);
-            }
-            case types_26.ImportStatement:
-                return this.cimport(s);
-            case types_27.ImportFrom:
-                return this.cfromimport(s);
-            case types_23.Global:
-                break;
-            case types_18.Expr:
-                this.vexpr(s.value);
-                break;
-            case types_37.Pass:
-                break;
-            case types_9.BreakStatement:
-                if (this.u.breakBlocks.length === 0)
-                    throw new SyntaxError("'break' outside loop");
-                break;
-            case types_13.ContinueStatement:
-                this.ccontinue(s);
-                break;
-            default:
-                throw new Error("unhandled case in vstmt");
+        }
+        else if (s instanceof types_13.ContinueStatement) {
+            this.ccontinue(s);
+        }
+        else {
+            throw new Error("unhandled case in vstmt");
         }
     };
     Compiler.prototype.vseqstmt = function (stmts, flags) {
-        for (var i = 0; i < stmts.length; ++i)
+        for (var i = 0; i < stmts.length; ++i) {
             this.vstmt(stmts[i], flags);
+        }
     };
     Compiler.prototype.isCell = function (name) {
         var mangled = mangleName(this.u.private_, name);
@@ -1450,11 +1422,6 @@ var Compiler = (function () {
             return true;
         return false;
     };
-    /**
-     * @param {string} name
-     * @param {Object} ctx
-     * @param {string=} dataToStore
-     */
     Compiler.prototype.nameop = function (name, ctx, dataToStore) {
         if ((ctx === types_42.Store || ctx === types_6.AugStore || ctx === types_14.Del) && name === "__debug__") {
             throw new SyntaxError("can not assign to __debug__");
@@ -1577,10 +1544,6 @@ var Compiler = (function () {
         }
         throw new Error("TODO");
     };
-    /**
-     * @param name
-     * @return The generated name of the scope, usually $scopeN.
-     */
     Compiler.prototype.enterScope = function (name, key, lineno) {
         var u = new CompilerUnit();
         u.ste = this.st.getStsForAst(key);
@@ -1697,16 +1660,12 @@ function mangleName(priv, name) {
     return '_' + strpriv + name;
 }
 /**
- * @param {string} source the code
- * @param {string} fileName where it came from
  *
- * @return {{code: string}}
  */
 function compile(source, fileName) {
-    var node = transpile(source, fileName);
-    // TODO: We need a serializer from TypeScript.
-    var code = "Need serializer from TypeScript " + node;
-    //  const code = generate(node, {});
+    var resultFile = ts.createSourceFile(fileName, "", ts.ScriptTarget.Latest, /*setParentNodes*/ false, ts.ScriptKind.TS);
+    var printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
+    var code = printer.printNode(ts.EmitHint.Unspecified, transpile(source), resultFile);
     return { code: code };
 }
 exports.compile = compile;
@@ -1718,37 +1677,25 @@ exports.resetCompiler = resetCompiler;
  * Transpiles from Python to JavaScript.
  */
 var Transpiler = (function () {
-    function Transpiler(fileName, st, flags, sourceCodeForAnnotation) {
-        this.fileName = fileName;
-        /**
-         * @type {Object}
-         * @private
-         */
+    function Transpiler(st, flags, sourceCodeForAnnotation) {
         this.st = st;
         this.flags = flags;
         this.interactive = false;
         this.nestlevel = 0;
         this.u = null;
-        /**
-         * @type Array.<CompilerUnit>
-         * @private
-         */
         this.stack = [];
         this.result = [];
         // this.gensymcount = 0;
-        /**
-         * @type Array.<CompilerUnit>
-         * @private
-         */
         this.allUnits = [];
         this.source = sourceCodeForAnnotation ? sourceCodeForAnnotation.split("\n") : false;
     }
     Transpiler.prototype.module = function (ast, flags) {
         // const node: ts.Node = new Node();
-        // const body = this.statementList(ast.body, flags);
+        var body = this.statementList(ast.body, flags);
+        return ts.createModuleBlock(body);
         // node.finishProgram(body);
         // return node;
-        throw new Error("TODO: module");
+        // throw new Error(`TODO: module`);
     };
     Transpiler.prototype.statementList = function (stmts, flags) {
         var nodes = [];
@@ -1762,67 +1709,73 @@ var Transpiler = (function () {
     Transpiler.prototype.statement = function (s, flags) {
         // this.u.lineno = s.lineno;
         // this.u.linenoSet = false;
-        //        this.annotateSource(s);
+        // this.annotateSource(s);
+        if (s instanceof types_18.Expr) {
+            return ts.createReturn(this.expr(s, flags));
+        }
         switch (s.constructor) {
-            case types_21.FunctionDef:
+            /*
+            case FunctionDef:
                 return this.functionDef(s, flags);
-            case types_11.ClassDef:
+            case ClassDef:
                 return this.classDef(s, flags);
-            case types_40.ReturnStatement: {
-                return this.returnStatement(s, flags);
+            case ReturnStatement: {
+                return this.returnStatement(<ReturnStatement>s, flags);
             }
-            case types_15.DeleteExpression:
-                return this.deleteExpression(s, flags);
-            case types_2.Assign: {
-                return this.assign(s, flags);
+            case DeleteExpression:
+                return this.deleteExpression((<DeleteExpression>s), flags);
+            case Assign: {
+                return this.assign(<Assign>s, flags);
             }
-            case types_4.AugAssign: {
-                return this.augAssign(s, flags);
+            case AugAssign: {
+                return this.augAssign(<AugAssign>s, flags);
             }
-            case types_38.Print: {
-                this.print(s, flags);
+            case Print: {
+                this.print(<Print>s, flags);
                 throw new Error("Print");
                 // break;
             }
-            case types_20.ForStatement: {
-                return this.forStatement(s, flags);
+            case ForStatement: {
+                return this.forStatement(<ForStatement>s, flags);
             }
-            case types_49.WhileStatement: {
-                return this.whileStatement(s, flags);
+            case WhileStatement: {
+                return this.whileStatement(<WhileStatement>s, flags);
             }
-            case types_24.IfStatement: {
-                return this.ifStatement(s, flags);
+            case IfStatement: {
+                return this.ifStatement(<IfStatement>s, flags);
             }
-            case types_39.Raise: {
-                return this.raise(s, flags);
+            case Raise: {
+                return this.raise(<Raise>s, flags);
             }
-            case types_45.TryExcept: {
-                return this.tryExcept(s, flags);
+            case TryExcept: {
+                return this.tryExcept(<TryExcept>s, flags);
             }
-            case types_46.TryFinally: {
-                return this.tryFinally(s, flags);
+            case TryFinally: {
+                return this.tryFinally(<TryFinally>s, flags);
             }
-            case types_1.Assert: {
-                return this.assert(s, flags);
+            case Assert: {
+                return this.assert(<Assert>s, flags);
             }
-            case types_26.ImportStatement:
-                return this.importStatement(s, flags);
-            case types_27.ImportFrom:
-                return this.importFrom(s, flags);
-            case types_23.Global:
+            case ImportStatement:
+                return this.importStatement(<ImportStatement>s, flags);
+            case ImportFrom:
+                return this.importFrom(<ImportFrom>s, flags);
+            case Global:
                 throw new Error("Gloabl");
             // break;
-            case types_18.Expr:
-                return this.expr(s, flags);
-            case types_37.Pass:
+            case Expr:
+                return this.expr((<Expr>s), flags);
+            case Pass:
                 throw new Error("Pass");
             // break;
-            case types_9.BreakStatement:
-                return this.breakStatement(s, flags);
-            case types_13.ContinueStatement:
-                return this.continueStatement(s, flags);
-            default:
-                throw new Error("statement");
+            case BreakStatement:
+                return this.breakStatement((<BreakStatement>s), flags);
+            case ContinueStatement:
+                return this.continueStatement(<ContinueStatement>s, flags);
+            */
+            default: {
+                throw new Error("statement(s = " + JSON.stringify(s) + ", flags = " + flags + ")");
+            }
         }
     };
     Transpiler.prototype.assert = function (a, flags) {
@@ -1889,6 +1842,10 @@ var Transpiler = (function () {
         throw new Error("FunctionDef");
     };
     Transpiler.prototype.expr = function (expr, flags) {
+        console.log("" + JSON.stringify(expr));
+        if (expr instanceof types_35.Num) {
+            return ts.createLiteral(expr.n.value);
+        }
         throw new Error("Expr");
     };
     Transpiler.prototype.print = function (p, flags) {
@@ -1908,17 +1865,17 @@ var Transpiler = (function () {
     };
     return Transpiler;
 }());
-function transpile(source, fileName) {
-    var cst = parser_1.parse(fileName, source);
+function transpile(source) {
+    var cst = parser_1.parse(source);
     if (typeof cst === 'object') {
-        var ast = builder_1.astFromParse(cst, fileName);
-        var st = symtable_1.symbolTable(ast, fileName);
-        var t = new Transpiler(fileName, st, 0, source);
+        var ast = builder_1.astFromParse(cst);
+        var st = symtable_1.symbolTable(ast);
+        var t = new Transpiler(st, 0, source);
         var flags = 0;
         return t.module(ast, flags);
     }
     else {
-        throw new Error("Error parsing source for file " + fileName);
+        throw new Error("Error parsing source for file.");
     }
 }
 exports.transpile = transpile;

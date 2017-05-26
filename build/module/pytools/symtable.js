@@ -5,8 +5,8 @@ import { ModuleBlock } from './SymbolConstants';
  * @param ast
  * @param fileName
  */
-export function symbolTable(ast, fileName) {
-    var st = new SymbolTable(fileName);
+export function symbolTable(ast) {
+    var st = new SymbolTable();
     st.enterBlock("top", ModuleBlock, ast, 0);
     st.top = st.cur;
     // This is a good place to dump the AST for debugging.

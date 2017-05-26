@@ -32,6 +32,8 @@ module.exports = function (config) {
             //
             { pattern: 'systemjs.config.js', included: false, watched: false },
 
+            'node_modules/typescript/lib/typescript.js',
+
             'karma-test-shim.js',
 
             { pattern: 'test/**/*.js', included: false, watched: true },

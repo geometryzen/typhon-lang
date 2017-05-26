@@ -57,5 +57,5 @@ export interface StackElement {
     state: number;
     node: PyNode;
 }
-export declare function parse(filename: string, input: string): boolean | PyNode;
+export declare function parse(input: string): boolean | PyNode;
 export declare function parseTreeDump(n: PyNode): string;

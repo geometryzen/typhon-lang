@@ -62,10 +62,9 @@ export interface StackElement {
  * @param begin
  * @param end
  */
-function parseError(message: string, fileName: string, begin?: LineColumn, end?: LineColumn): SyntaxError {
-    const e = new SyntaxError(message/*, fileName*/);
+function parseError(message: string, begin?: LineColumn, end?: LineColumn): SyntaxError {
+    const e = new SyntaxError(message);
     e.name = "ParseError";
-    e['fileName'] = fileName;
     if (Array.isArray(begin)) {
         e['lineNumber'] = begin[0];
         e['columnNumber'] = begin[1];
@@ -74,24 +73,14 @@ function parseError(message: string, fileName: string, begin?: LineColumn, end?:
 }
 
 class Parser {
-    filename: string;
     grammar: Grammar;
     stack: StackElement[];
     used_names: { [name: string]: boolean };
     rootnode: PyNode;
     /**
      *
-     * p = new Parser(grammar);
-     * p.setup(start);
-     * foreach input token:
-     *     if p.addtoken(...):
-     *         break
-     * root = p.rootnode
-     *
-     * can throw ParseError
      */
-    constructor(filename: string, grammar: Grammar) {
-        this.filename = filename;
+    constructor(grammar: Grammar) {
         this.grammar = grammar;
         return this;
     }
@@ -173,12 +162,12 @@ class Parser {
                 // an accepting state, pop it and try something else
                 this.pop();
                 if (this.stack.length === 0) {
-                    throw parseError("too much input", this.filename);
+                    throw parseError("too much input");
                 }
             }
             else {
                 // no transition
-                throw parseError("bad input", this.filename, context[0], context[1]);
+                throw parseError("bad input", context[0], context[1]);
             }
         }
     }
@@ -204,7 +193,7 @@ class Parser {
             ilabel = this.grammar.tokens[type];
         }
         if (!ilabel) {
-            throw parseError("bad token", this.filename, context[0], context[1]);
+            throw parseError("bad token", context[0], context[1]);
         }
         return ilabel;
     }
@@ -283,14 +272,13 @@ function findInDfa(a: Arc[], obj: Arc): boolean {
  * lines of input as they are entered. the function will return false
  * until the input is complete, when it will return the rootnode of the parse.
  *
- * @param filename
  * @param style root of parse tree (optional)
  */
-function makeParser(filename: string, style?: string): (line: string) => PyNode | boolean {
+function makeParser(style?: string): (line: string) => PyNode | boolean {
     if (style === undefined) style = "file_input";
 
     // FIXME: Would be nice to get this typing locked down.
-    const p = new Parser(filename, ParseTables as any);
+    const p = new Parser(ParseTables as any);
     // for closure's benefit
     if (style === "file_input")
         p.setup(ParseTables.sym.file_input);
@@ -303,7 +291,7 @@ function makeParser(filename: string, style?: string): (line: string) => PyNode 
     const T_COMMENT = Tokens.T_COMMENT;
     const T_NL = Tokens.T_NL;
     const T_OP = Tokens.T_OP;
-    const tokenizer = new Tokenizer(filename, style === "single_input", function tokenizerCallback(type: Tokens, value: string, start: [number, number], end: [number, number], line: string): boolean | undefined {
+    const tokenizer = new Tokenizer(style === "single_input", function tokenizerCallback(type: Tokens, value: string, start: [number, number], end: [number, number], line: string): boolean | undefined {
         // var s_lineno = start[0];
         // var s_column = start[1];
         /*
@@ -334,7 +322,7 @@ function makeParser(filename: string, style?: string): (line: string) => PyNode 
         var ret = tokenizer.generateTokens(line);
         if (ret) {
             if (ret !== "done") {
-                throw parseError("incomplete input", filename);
+                throw parseError("incomplete input");
             }
             return p.rootnode;
         }
@@ -342,8 +330,8 @@ function makeParser(filename: string, style?: string): (line: string) => PyNode 
     };
 }
 
-export function parse(filename: string, input: string): boolean | PyNode {
-    const parseFunc = makeParser(filename);
+export function parse(input: string): boolean | PyNode {
+    const parseFunc = makeParser();
     if (input.substr(input.length - 1, 1) !== "\n") {
         input += "\n";
     }

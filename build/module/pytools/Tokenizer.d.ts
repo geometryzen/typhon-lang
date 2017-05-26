@@ -16,7 +16,6 @@ export declare type TokenizerCallback = (token: Tokens, text: string, start: num
  * callback can return true to abort.
  */
 export declare class Tokenizer {
-    fileName: string;
     callback: TokenizerCallback;
     lnum: number;
     parenlev: number;
@@ -39,7 +38,7 @@ export declare class Tokenizer {
      * @constructor
      * @param {string} fileName
      */
-    constructor(fileName: string, interactive: boolean, callback: TokenizerCallback);
+    constructor(interactive: boolean, callback: TokenizerCallback);
     /**
      * @method generateTokens
      * @param line {string}

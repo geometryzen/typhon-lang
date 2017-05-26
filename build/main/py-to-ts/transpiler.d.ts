@@ -122,28 +122,13 @@ export declare class Compiler {
     vslice(s: Number | String | Index | Slice | Ellipsis | ExtSlice, ctx: SubscriptContext, obj: any, dataToStore: string): void;
     chandlesubscr(ctx: SubscriptContext, obj: any, subs: String | Number, data: string): void;
     cboolop(e: BoolOp): undefined;
-    /**
-     *
-     * compiles an expression. to 'return' something, it'll gensym a var and store
-     * into that var so that the calling code doesn't have avoid just pasting the
-     * returned name.
-     *
-     * @param {Object} e
-     * @param {string=} data data to store in a store operation
-     * @param {Object=} augstoreval value to store to for an aug operation (not
-     * vexpr'd yet)
-     */
     vexpr(e: Expression, data?: string | undefined, augstoreval?: object): any;
-    /**
-     * @param {Array.<Object>} exprs
-     * @param {Array.<string>=} data
-     */
     vseqexpr(exprs: Expression[], data?: string[]): any[];
     caugassign(s: AugAssign): any;
     /**
      * optimize some constant exprs. returns 0 if always 0, 1 if always 1 or -1 otherwise.
      */
-    exprConstant(e: Expression): number;
+    exprConstant(e: Expression): ts.LiteralExpression;
     newBlock(name: string): number;
     setBlock(n: number): void;
     pushBreakBlock(n: number): void;
@@ -169,11 +154,6 @@ export declare class Compiler {
     ctryexcept(s: TryExcept, flags: number): void;
     ctryfinally(s: TryFinally, flags: number): void;
     cassert(s: Assert): void;
-    /**
-     * @param name
-     * @param asname
-     * @param mod
-     */
     cimportas(name: string, asname: string, mod?: string): string;
     cimport(s: ImportStatement): void;
     cfromimport(s: ImportFrom): void;
@@ -209,22 +189,10 @@ export declare class Compiler {
     cgenexp(e: GeneratorExp): string;
     cclass(s: ClassDef, flags: number): void;
     ccontinue(s: ContinueStatement): void;
-    /**
-     * compiles a statement
-     */
     vstmt(s: Statement, flags: number): any;
     vseqstmt(stmts: Statement[], flags?: number): void;
     isCell(name: string): boolean;
-    /**
-     * @param {string} name
-     * @param {Object} ctx
-     * @param {string=} dataToStore
-     */
     nameop(name: string, ctx: AugStore | Store | Del, dataToStore?: string): string;
-    /**
-     * @param name
-     * @return The generated name of the scope, usually $scopeN.
-     */
     enterScope(name: string, key: {
         scopeId: number;
     }, lineno: number): string;
@@ -237,13 +205,10 @@ export declare class Compiler {
     cmod(mod: Module, flags: number): string;
 }
 /**
- * @param {string} source the code
- * @param {string} fileName where it came from
  *
- * @return {{code: string}}
  */
 export declare function compile(source: string, fileName: string): {
     code: string;
 };
 export declare function resetCompiler(): void;
-export declare function transpile(source: string, fileName: string): ts.Node;
+export declare function transpile(source: string): ts.ModuleBlock;

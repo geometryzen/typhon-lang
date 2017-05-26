@@ -117,25 +117,20 @@ const LONG_THRESHOLD = Math.pow(2, 53);
 
 /**
  * @param message
- * @param fileName
  * @param lineNumber
  */
-function syntaxError(message: string, fileName: string, lineNumber?: number): SyntaxError {
+function syntaxError(message: string, lineNumber?: number): SyntaxError {
     assert(isString(message), "message must be a string");
-    assert(isString(fileName), "fileName must be a string");
     assert(isNumber(lineNumber), "lineNumber must be a number");
     var e = new SyntaxError(message/*, fileName*/);
-    e['fileName'] = fileName;
     e['lineNumber'] = lineNumber;
     return e;
 }
 
 class Compiling {
     c_encoding: string;
-    c_filename: string;
-    constructor(encoding: 'utf-8', filename: string) {
+    constructor(encoding: 'utf-8') {
         this.c_encoding = encoding;
-        this.c_filename = filename;
     }
 }
 
@@ -213,8 +208,8 @@ function numStmts(n: PyNode): number {
 }
 
 function forbiddenCheck(c: Compiling, n: PyNode, x?: string, lineno?: number): void {
-    if (x === "None") throw syntaxError("assignment to None", c.c_filename, lineno);
-    if (x === "True" || x === "False") throw syntaxError("assignment to True or False is forbidden", c.c_filename, lineno);
+    if (x === "None") throw syntaxError("assignment to None", lineno);
+    if (x === "True" || x === "False") throw syntaxError("assignment to True or False is forbidden", lineno);
 }
 
 /**
@@ -245,7 +240,7 @@ function setContext(c: Compiling, e: Expression, ctx: Store, n: PyNode): void {
     }
     else if (e instanceof Tuple) {
         if (e.elts.length === 0) {
-            throw syntaxError("can't assign to ()", c.c_filename, n.lineno);
+            throw syntaxError("can't assign to ()", n.lineno);
         }
         e.ctx = ctx;
         s = e.elts;
@@ -293,7 +288,7 @@ function setContext(c: Compiling, e: Expression, ctx: Store, n: PyNode): void {
 
     }
     if (exprName) {
-        throw syntaxError("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, c.c_filename, n.lineno);
+        throw syntaxError("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, n.lineno);
     }
 
     if (s) {
@@ -457,7 +452,7 @@ function astForTryStmt(c: Compiling, n: PyNode): TryExcept | TryFinally {
         }
     }
     else if (CHILD(n, nc - 3).type !== SYM.except_clause) {
-        throw syntaxError("malformed 'try' statement", c.c_filename, n.lineno);
+        throw syntaxError("malformed 'try' statement", n.lineno);
     }
 
     if (nexcept > 0) {
@@ -720,7 +715,7 @@ function aliasForImportName(c: Compiling, n: PyNode): Alias {
             case TOK.T_STAR:
                 return new Alias(strobj("*"), null);
             default:
-                throw syntaxError("unexpected import name", c.c_filename, n.lineno);
+                throw syntaxError("unexpected import name", n.lineno);
         }
     }
 }
@@ -770,10 +765,7 @@ function astForImportStmt(c: Compiling, n: PyNode): ImportStatement | ImportFrom
                 n = CHILD(n, idx);
                 nchildren = NCH(n);
                 if (nchildren % 2 === 0)
-                    throw syntaxError("trailing comma not allowed without surrounding parentheses", c.c_filename, n.lineno);
-                break;
-            default:
-                throw syntaxError("Unexpected node-type in from-import", c.c_filename, n.lineno);
+                    throw syntaxError("trailing comma not allowed without surrounding parentheses", n.lineno);
         }
         const aliases = [];
         if (n.type === TOK.T_STAR)
@@ -785,7 +777,7 @@ function astForImportStmt(c: Compiling, n: PyNode): ImportStatement | ImportFrom
         var modname = mod ? mod.name : "";
         return new ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
     }
-    throw syntaxError("unknown import statement", c.c_filename, n.lineno);
+    throw syntaxError("unknown import statement", n.lineno);
 }
 
 function astForTestlistGexp(c: Compiling, n: PyNode): Expression | Tuple {
@@ -947,9 +939,9 @@ function astForCall(c: Compiling, n: PyNode, func: Attribute | Name): Call {
         }
     }
     if (ngens > 1 || (ngens && (nargs || nkeywords)))
-        throw syntaxError("Generator expression must be parenthesized if not sole argument", c.c_filename, n.lineno);
+        throw syntaxError("Generator expression must be parenthesized if not sole argument", n.lineno);
     if (nargs + nkeywords + ngens > 255)
-        throw syntaxError("more than 255 arguments", c.c_filename, n.lineno);
+        throw syntaxError("more than 255 arguments", n.lineno);
     var args = [];
     var keywords = [];
     nargs = 0;
@@ -960,21 +952,21 @@ function astForCall(c: Compiling, n: PyNode, func: Attribute | Name): Call {
         const ch = CHILD(n, i);
         if (ch.type === SYM.argument) {
             if (NCH(ch) === 1) {
-                if (nkeywords) throw syntaxError("non-keyword arg after keyword arg", c.c_filename, n.lineno);
-                if (vararg) throw syntaxError("only named arguments may follow *expression", c.c_filename, n.lineno);
+                if (nkeywords) throw syntaxError("non-keyword arg after keyword arg", n.lineno);
+                if (vararg) throw syntaxError("only named arguments may follow *expression", n.lineno);
                 args[nargs++] = astForExpr(c, CHILD(ch, 0));
             }
             else if (CHILD(ch, 1).type === SYM.gen_for)
                 args[nargs++] = astForGenexp(c, ch);
             else {
                 var e = astForExpr(c, CHILD(ch, 0));
-                if (e.constructor === Lambda) throw syntaxError("lambda cannot contain assignment", c.c_filename, n.lineno);
-                else if (e.constructor !== Name) throw syntaxError("keyword can't be an expression", c.c_filename, n.lineno);
+                if (e.constructor === Lambda) throw syntaxError("lambda cannot contain assignment", n.lineno);
+                else if (e.constructor !== Name) throw syntaxError("keyword can't be an expression", n.lineno);
                 var key = e.id;
                 forbiddenCheck(c, CHILD(ch, 0), key, n.lineno);
                 for (var k = 0; k < nkeywords; ++k) {
                     var tmp = keywords[k].arg;
-                    if (tmp === key) throw syntaxError("keyword argument repeated", c.c_filename, n.lineno);
+                    if (tmp === key) throw syntaxError("keyword argument repeated", n.lineno);
                 }
                 keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
             }
@@ -1121,15 +1113,15 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
                         /* def f((x)=4): pass should raise an error.
                             def f((x, (y))): pass will just incur the tuple unpacking warning. */
                         if (parenthesized && !complexArgs)
-                            throw syntaxError("parenthesized arg with default", c.c_filename, n.lineno);
-                        throw syntaxError("non-default argument follows default argument", c.c_filename, n.lineno);
+                            throw syntaxError("parenthesized arg with default", n.lineno);
+                        throw syntaxError("non-default argument follows default argument", n.lineno);
                     }
 
                     if (NCH(ch) === 3) {
                         ch = CHILD(ch, 1);
                         // def foo((x)): is not complex, special case.
                         if (NCH(ch) !== 1) {
-                            throw syntaxError("tuple parameter unpacking has been removed", c.c_filename, n.lineno);
+                            throw syntaxError("tuple parameter unpacking has been removed", n.lineno);
                         }
                         else {
                             /* def foo((x)): setup for checking NAME below. */
@@ -1148,7 +1140,7 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
                     }
                     i += 2;
                     if (parenthesized)
-                        throw syntaxError("parenthesized argument names are invalid", c.c_filename, n.lineno);
+                        throw syntaxError("parenthesized argument names are invalid", n.lineno);
                     break;
                 }
                 break;
@@ -1396,8 +1388,8 @@ function astForExprStmt(c: Compiling, n: PyNode): Expr {
         let ch = CHILD(n, 0);
         const expr1 = astForTestlist(c, ch);
         switch (expr1.constructor) {
-            case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", c.c_filename, n.lineno);
-            case Yield: throw syntaxError("augmented assignment to yield expression not possible", c.c_filename, n.lineno);
+            case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.lineno);
+            case Yield: throw syntaxError("augmented assignment to yield expression not possible", n.lineno);
             case Name:
                 var varName = expr1.id;
                 forbiddenCheck(c, ch, varName, n.lineno);
@@ -1406,7 +1398,7 @@ function astForExprStmt(c: Compiling, n: PyNode): Expr {
             case Subscript:
                 break;
             default:
-                throw syntaxError("illegal expression for augmented assignment", c.c_filename, n.lineno);
+                throw syntaxError("illegal expression for augmented assignment", n.lineno);
         }
         setContext(c, expr1, Store, ch);
 
@@ -1425,7 +1417,7 @@ function astForExprStmt(c: Compiling, n: PyNode): Expr {
         const targets = [];
         for (let i = 0; i < NCH(n) - 2; i += 2) {
             const ch = CHILD(n, i);
-            if (ch.type === SYM.YieldExpr) throw syntaxError("assignment to yield expression not possible", c.c_filename, n.lineno);
+            if (ch.type === SYM.YieldExpr) throw syntaxError("assignment to yield expression not possible", n.lineno);
             var e = astForTestlist(c, ch);
             setContext(c, e, Store, CHILD(n, i));
             targets[i / 2] = e;
@@ -1544,7 +1536,7 @@ function parsestrplus(c: Compiling, n: PyNode): string {
             ret = ret + parsestr(c, child.value);
         }
         catch (x) {
-            throw syntaxError("invalid string (possibly contains a unicode character)", c.c_filename, child.lineno);
+            throw syntaxError("invalid string (possibly contains a unicode character)", child.lineno);
         }
     }
     return ret;
@@ -1554,7 +1546,7 @@ function parsenumber(c: Compiling, s: string, lineno: number): INumericLiteral {
     var end = s.charAt(s.length - 1);
 
     if (end === 'j' || end === 'J') {
-        throw syntaxError("complex numbers are currently unsupported", c.c_filename, lineno);
+        throw syntaxError("complex numbers are currently unsupported", lineno);
     }
 
     if (s.indexOf('.') !== -1) {
@@ -1723,7 +1715,7 @@ function astForAtomExpr(c: Compiling, n: PyNode): Name | Expression {
             }
             return new Dict(keys, values, n.lineno, n.col_offset);
         case TOK.T_BACKQUOTE:
-            throw syntaxError("backquote not supported, use repr()", c.c_filename, n.lineno);
+            throw syntaxError("backquote not supported, use repr()", n.lineno);
         default: {
             throw new Error("unhandled atom"/*, ch.type*/);
         }
@@ -1895,8 +1887,8 @@ function astForStmt(c: Compiling, n: PyNode) {
     }
 }
 
-export function astFromParse(n: PyNode, filename: string): Module {
-    const c = new Compiling("utf-8", filename);
+export function astFromParse(n: PyNode): Module {
+    const c = new Compiling("utf-8");
 
     const stmts = [];
     let k = 0;

@@ -6,14 +6,12 @@ var base_1 = require("./base");
  *
  */
 var TokenError = (function () {
-    function TokenError(message, fileName, lineNumber, columnNumber) {
+    function TokenError(message, lineNumber, columnNumber) {
         asserts_1.assert(base_1.isString(message), "message must be a string");
-        asserts_1.assert(base_1.isString(fileName), "fileName must be a string");
         asserts_1.assert(base_1.isNumber(lineNumber), "lineNumber must be a number");
         asserts_1.assert(base_1.isNumber(columnNumber), "columnNumber must be a number");
         this.name = "TokenError";
         this.message = message;
-        this.fileName = fileName;
         this.lineNumber = lineNumber;
         this.columnNumber = columnNumber;
     }

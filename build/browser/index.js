@@ -519,8 +519,8 @@ var ParseTables = {
         283: [[[[97, 1],
                     [98, 1],
                     [7, 2],
-                    [99, 1],
                     [97, 1],
+                    [99, 1],
                     [100, 1],
                     [101, 1],
                     [102, 3],
@@ -1102,8 +1102,8 @@ var ParseTables = {
         [[[97, 1],
                 [98, 1],
                 [7, 2],
-                [99, 1],
                 [97, 1],
+                [99, 1],
                 [100, 1],
                 [101, 1],
                 [102, 3],
@@ -1766,14 +1766,12 @@ function isNumber(val) {
  *
  */
 var TokenError = (function () {
-    function TokenError(message, fileName, lineNumber, columnNumber) {
+    function TokenError(message, lineNumber, columnNumber) {
         assert(isString(message), "message must be a string");
-        assert(isString(fileName), "fileName must be a string");
         assert(isNumber(lineNumber), "lineNumber must be a number");
         assert(isNumber(columnNumber), "columnNumber must be a number");
         this.name = "TokenError";
         this.message = message;
-        this.fileName = fileName;
         this.lineNumber = lineNumber;
         this.columnNumber = columnNumber;
     }
@@ -1864,9 +1862,7 @@ var Tokenizer = (function () {
      * @constructor
      * @param {string} fileName
      */
-    function Tokenizer(fileName, interactive, callback) {
-        assert(isString(fileName), "fileName must be a string");
-        this.fileName = fileName;
+    function Tokenizer(interactive, callback) {
         this.callback = callback;
         this.lnum = 0;
         this.parenlev = 0;
@@ -1935,7 +1931,7 @@ var Tokenizer = (function () {
         max = line.length;
         if (this.contstr.length > 0) {
             if (!line) {
-                throw new TokenError("EOF in multi-line string", this.fileName, this.strstart[0], this.strstart[1]);
+                throw new TokenError("EOF in multi-line string", this.strstart[0], this.strstart[1]);
             }
             this.endprog.lastIndex = 0;
             endmatch = this.endprog.test(line);
@@ -2004,7 +2000,7 @@ var Tokenizer = (function () {
             }
             while (column < this.indents[this.indents.length - 1]) {
                 if (!contains(this.indents, column)) {
-                    throw indentationError("unindent does not match any outer indentation level", this.fileName, [this.lnum, 0], [this.lnum, pos], line);
+                    throw indentationError("unindent does not match any outer indentation level", [this.lnum, 0], [this.lnum, pos], line);
                 }
                 this.indents.splice(this.indents.length - 1, 1);
                 if (this.callback(Tokens.T_DEDENT, '', [this.lnum, pos], [this.lnum, pos], line)) {
@@ -2014,7 +2010,7 @@ var Tokenizer = (function () {
         }
         else {
             if (!line) {
-                throw new TokenError("EOF in multi-line statement", this.fileName, this.lnum, 0);
+                throw new TokenError("EOF in multi-line statement", this.lnum, 0);
             }
             this.continued = false;
         }
@@ -2143,13 +2139,12 @@ function rstrip(input, what) {
     return input.substring(0, i);
 }
 /**
- * @param {string} message
- * @param {string} fileName
- * @param {Array.<number>} begin
- * @param {Array.<number>} end
+ * @param message
+ * @param begin
+ * @param end
  * @param {string|undefined} text
  */
-function indentationError(message, fileName, begin, end, text) {
+function indentationError(message, begin, end, text) {
     if (!isArray(begin)) {
         throw new Error("begin must be Array.<number>");
     }
@@ -2158,7 +2153,6 @@ function indentationError(message, fileName, begin, end, text) {
     }
     var e = new SyntaxError(message /*, fileName*/);
     e.name = "IndentationError";
-    e['fileName'] = fileName;
     if (isDef(begin)) {
         e['lineNumber'] = begin[0];
         e['columnNumber'] = begin[1];
@@ -2235,10 +2229,9 @@ tokenNames[Tokens.T_VBAREQUAL] = 'T_VBAREQUAL';
  * @param begin
  * @param end
  */
-function parseError(message, fileName, begin, end) {
-    var e = new SyntaxError(message /*, fileName*/);
+function parseError(message, begin, end) {
+    var e = new SyntaxError(message);
     e.name = "ParseError";
-    e['fileName'] = fileName;
     if (Array.isArray(begin)) {
         e['lineNumber'] = begin[0];
         e['columnNumber'] = begin[1];
@@ -2248,17 +2241,8 @@ function parseError(message, fileName, begin, end) {
 var Parser = (function () {
     /**
      *
-     * p = new Parser(grammar);
-     * p.setup(start);
-     * foreach input token:
-     *     if p.addtoken(...):
-     *         break
-     * root = p.rootnode
-     *
-     * can throw ParseError
      */
-    function Parser(filename, grammar) {
-        this.filename = filename;
+    function Parser(grammar) {
         this.grammar = grammar;
         return this;
     }
@@ -2334,12 +2318,12 @@ var Parser = (function () {
                 // an accepting state, pop it and try something else
                 this.pop();
                 if (this.stack.length === 0) {
-                    throw parseError("too much input", this.filename);
+                    throw parseError("too much input");
                 }
             }
             else {
                 // no transition
-                throw parseError("bad input", this.filename, context[0], context[1]);
+                throw parseError("bad input", context[0], context[1]);
             }
         }
     };
@@ -2364,7 +2348,7 @@ var Parser = (function () {
             ilabel = this.grammar.tokens[type];
         }
         if (!ilabel) {
-            throw parseError("bad token", this.filename, context[0], context[1]);
+            throw parseError("bad token", context[0], context[1]);
         }
         return ilabel;
     };
@@ -2434,14 +2418,13 @@ function findInDfa(a, obj) {
  * lines of input as they are entered. the function will return false
  * until the input is complete, when it will return the rootnode of the parse.
  *
- * @param filename
  * @param style root of parse tree (optional)
  */
-function makeParser(filename, style) {
+function makeParser(style) {
     if (style === undefined)
         style = "file_input";
     // FIXME: Would be nice to get this typing locked down.
-    var p = new Parser(filename, ParseTables);
+    var p = new Parser(ParseTables);
     // for closure's benefit
     if (style === "file_input")
         p.setup(ParseTables.sym.file_input);
@@ -2454,7 +2437,7 @@ function makeParser(filename, style) {
     var T_COMMENT = Tokens.T_COMMENT;
     var T_NL = Tokens.T_NL;
     var T_OP = Tokens.T_OP;
-    var tokenizer = new Tokenizer(filename, style === "single_input", function tokenizerCallback(type, value, start, end, line) {
+    var tokenizer = new Tokenizer(style === "single_input", function tokenizerCallback(type, value, start, end, line) {
         // var s_lineno = start[0];
         // var s_column = start[1];
         /*
@@ -2485,15 +2468,15 @@ function makeParser(filename, style) {
         var ret = tokenizer.generateTokens(line);
         if (ret) {
             if (ret !== "done") {
-                throw parseError("incomplete input", filename);
+                throw parseError("incomplete input");
             }
             return p.rootnode;
         }
         return false;
     };
 }
-function parse(filename, input) {
-    var parseFunc = makeParser(filename);
+function parse(input) {
+    var parseFunc = makeParser();
     if (input.substr(input.length - 1, 1) !== "\n") {
         input += "\n";
     }
@@ -3707,22 +3690,18 @@ var SYM = ParseTables.sym;
 var LONG_THRESHOLD = Math.pow(2, 53);
 /**
  * @param message
- * @param fileName
  * @param lineNumber
  */
-function syntaxError(message, fileName, lineNumber) {
+function syntaxError(message, lineNumber) {
     assert(isString(message), "message must be a string");
-    assert(isString(fileName), "fileName must be a string");
     assert(isNumber(lineNumber), "lineNumber must be a number");
     var e = new SyntaxError(message /*, fileName*/);
-    e['fileName'] = fileName;
     e['lineNumber'] = lineNumber;
     return e;
 }
 var Compiling = (function () {
-    function Compiling(encoding, filename) {
+    function Compiling(encoding) {
         this.c_encoding = encoding;
-        this.c_filename = filename;
     }
     return Compiling;
 }());
@@ -3796,9 +3775,9 @@ function numStmts(n) {
 }
 function forbiddenCheck(c, n, x, lineno) {
     if (x === "None")
-        throw syntaxError("assignment to None", c.c_filename, lineno);
+        throw syntaxError("assignment to None", lineno);
     if (x === "True" || x === "False")
-        throw syntaxError("assignment to True or False is forbidden", c.c_filename, lineno);
+        throw syntaxError("assignment to True or False is forbidden", lineno);
 }
 /**
  * Set the context ctx for e, recursively traversing e.
@@ -3829,7 +3808,7 @@ function setContext(c, e, ctx, n) {
     }
     else if (e instanceof Tuple) {
         if (e.elts.length === 0) {
-            throw syntaxError("can't assign to ()", c.c_filename, n.lineno);
+            throw syntaxError("can't assign to ()", n.lineno);
         }
         e.ctx = ctx;
         s = e.elts;
@@ -3876,7 +3855,7 @@ function setContext(c, e, ctx, n) {
         }
     }
     if (exprName) {
-        throw syntaxError("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, c.c_filename, n.lineno);
+        throw syntaxError("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, n.lineno);
     }
     if (s) {
         for (var i = 0; i < s.length; ++i) {
@@ -4034,7 +4013,7 @@ function astForTryStmt(c, n) {
         }
     }
     else if (CHILD(n, nc - 3).type !== SYM.except_clause) {
-        throw syntaxError("malformed 'try' statement", c.c_filename, n.lineno);
+        throw syntaxError("malformed 'try' statement", n.lineno);
     }
     if (nexcept > 0) {
         var handlers = [];
@@ -4255,7 +4234,7 @@ function aliasForImportName(c, n) {
             case Tokens.T_STAR:
                 return new Alias(strobj("*"), null);
             default:
-                throw syntaxError("unexpected import name", c.c_filename, n.lineno);
+                throw syntaxError("unexpected import name", n.lineno);
         }
     }
 }
@@ -4303,10 +4282,7 @@ function astForImportStmt(c, n) {
                 n = CHILD(n, idx);
                 nchildren = NCH(n);
                 if (nchildren % 2 === 0)
-                    throw syntaxError("trailing comma not allowed without surrounding parentheses", c.c_filename, n.lineno);
-                break;
-            default:
-                throw syntaxError("Unexpected node-type in from-import", c.c_filename, n.lineno);
+                    throw syntaxError("trailing comma not allowed without surrounding parentheses", n.lineno);
         }
         var aliases = [];
         if (n.type === Tokens.T_STAR)
@@ -4318,7 +4294,7 @@ function astForImportStmt(c, n) {
         var modname = mod ? mod.name : "";
         return new ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
     }
-    throw syntaxError("unknown import statement", c.c_filename, n.lineno);
+    throw syntaxError("unknown import statement", n.lineno);
 }
 function astForTestlistGexp(c, n) {
     assert(n.type === SYM.testlist_gexp || n.type === SYM.argument);
@@ -4469,9 +4445,9 @@ function astForCall(c, n, func) {
         }
     }
     if (ngens > 1 || (ngens && (nargs || nkeywords)))
-        throw syntaxError("Generator expression must be parenthesized if not sole argument", c.c_filename, n.lineno);
+        throw syntaxError("Generator expression must be parenthesized if not sole argument", n.lineno);
     if (nargs + nkeywords + ngens > 255)
-        throw syntaxError("more than 255 arguments", c.c_filename, n.lineno);
+        throw syntaxError("more than 255 arguments", n.lineno);
     var args = [];
     var keywords = [];
     nargs = 0;
@@ -4483,9 +4459,9 @@ function astForCall(c, n, func) {
         if (ch.type === SYM.argument) {
             if (NCH(ch) === 1) {
                 if (nkeywords)
-                    throw syntaxError("non-keyword arg after keyword arg", c.c_filename, n.lineno);
+                    throw syntaxError("non-keyword arg after keyword arg", n.lineno);
                 if (vararg)
-                    throw syntaxError("only named arguments may follow *expression", c.c_filename, n.lineno);
+                    throw syntaxError("only named arguments may follow *expression", n.lineno);
                 args[nargs++] = astForExpr(c, CHILD(ch, 0));
             }
             else if (CHILD(ch, 1).type === SYM.gen_for)
@@ -4493,15 +4469,15 @@ function astForCall(c, n, func) {
             else {
                 var e = astForExpr(c, CHILD(ch, 0));
                 if (e.constructor === Lambda)
-                    throw syntaxError("lambda cannot contain assignment", c.c_filename, n.lineno);
+                    throw syntaxError("lambda cannot contain assignment", n.lineno);
                 else if (e.constructor !== Name)
-                    throw syntaxError("keyword can't be an expression", c.c_filename, n.lineno);
+                    throw syntaxError("keyword can't be an expression", n.lineno);
                 var key = e.id;
                 forbiddenCheck(c, CHILD(ch, 0), key, n.lineno);
                 for (var k = 0; k < nkeywords; ++k) {
                     var tmp = keywords[k].arg;
                     if (tmp === key)
-                        throw syntaxError("keyword argument repeated", c.c_filename, n.lineno);
+                        throw syntaxError("keyword argument repeated", n.lineno);
                 }
                 keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
             }
@@ -4636,14 +4612,14 @@ function astForArguments(c, n) {
                         /* def f((x)=4): pass should raise an error.
                             def f((x, (y))): pass will just incur the tuple unpacking warning. */
                         if (parenthesized && !complexArgs)
-                            throw syntaxError("parenthesized arg with default", c.c_filename, n.lineno);
-                        throw syntaxError("non-default argument follows default argument", c.c_filename, n.lineno);
+                            throw syntaxError("parenthesized arg with default", n.lineno);
+                        throw syntaxError("non-default argument follows default argument", n.lineno);
                     }
                     if (NCH(ch) === 3) {
                         ch = CHILD(ch, 1);
                         // def foo((x)): is not complex, special case.
                         if (NCH(ch) !== 1) {
-                            throw syntaxError("tuple parameter unpacking has been removed", c.c_filename, n.lineno);
+                            throw syntaxError("tuple parameter unpacking has been removed", n.lineno);
                         }
                         else {
                             /* def foo((x)): setup for checking NAME below. */
@@ -4662,7 +4638,7 @@ function astForArguments(c, n) {
                     }
                     i += 2;
                     if (parenthesized)
-                        throw syntaxError("parenthesized argument names are invalid", c.c_filename, n.lineno);
+                        throw syntaxError("parenthesized argument names are invalid", n.lineno);
                     break;
                 }
                 break;
@@ -4894,8 +4870,8 @@ function astForExprStmt(c, n) {
         var ch = CHILD(n, 0);
         var expr1 = astForTestlist(c, ch);
         switch (expr1.constructor) {
-            case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", c.c_filename, n.lineno);
-            case Yield: throw syntaxError("augmented assignment to yield expression not possible", c.c_filename, n.lineno);
+            case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.lineno);
+            case Yield: throw syntaxError("augmented assignment to yield expression not possible", n.lineno);
             case Name:
                 var varName = expr1.id;
                 forbiddenCheck(c, ch, varName, n.lineno);
@@ -4904,7 +4880,7 @@ function astForExprStmt(c, n) {
             case Subscript:
                 break;
             default:
-                throw syntaxError("illegal expression for augmented assignment", c.c_filename, n.lineno);
+                throw syntaxError("illegal expression for augmented assignment", n.lineno);
         }
         setContext(c, expr1, Store, ch);
         ch = CHILD(n, 2);
@@ -4922,7 +4898,7 @@ function astForExprStmt(c, n) {
         for (var i = 0; i < NCH(n) - 2; i += 2) {
             var ch = CHILD(n, i);
             if (ch.type === SYM.YieldExpr)
-                throw syntaxError("assignment to yield expression not possible", c.c_filename, n.lineno);
+                throw syntaxError("assignment to yield expression not possible", n.lineno);
             var e = astForTestlist(c, ch);
             setContext(c, e, Store, CHILD(n, i));
             targets[i / 2] = e;
@@ -5038,7 +5014,7 @@ function parsestrplus(c, n) {
             ret = ret + parsestr(c, child.value);
         }
         catch (x) {
-            throw syntaxError("invalid string (possibly contains a unicode character)", c.c_filename, child.lineno);
+            throw syntaxError("invalid string (possibly contains a unicode character)", child.lineno);
         }
     }
     return ret;
@@ -5046,7 +5022,7 @@ function parsestrplus(c, n) {
 function parsenumber(c, s, lineno) {
     var end = s.charAt(s.length - 1);
     if (end === 'j' || end === 'J') {
-        throw syntaxError("complex numbers are currently unsupported", c.c_filename, lineno);
+        throw syntaxError("complex numbers are currently unsupported", lineno);
     }
     if (s.indexOf('.') !== -1) {
         return floatAST(s);
@@ -5206,7 +5182,7 @@ function astForAtomExpr(c, n) {
             }
             return new Dict(keys, values, n.lineno, n.col_offset);
         case Tokens.T_BACKQUOTE:
-            throw syntaxError("backquote not supported, use repr()", c.c_filename, n.lineno);
+            throw syntaxError("backquote not supported, use repr()", n.lineno);
         default: {
             throw new Error("unhandled atom" /*, ch.type*/);
         }
@@ -5374,8 +5350,8 @@ function astForStmt(c, n) {
         }
     }
 }
-function astFromParse(n, filename) {
-    var c = new Compiling("utf-8", filename);
+function astFromParse(n) {
+    var c = new Compiling("utf-8");
     var stmts = [];
     var k = 0;
     switch (n.type) {
@@ -5783,17 +5759,14 @@ var SymbolTableScope = (function () {
 
 /**
  * @param message
- * @param fileName
  * @param lineNumber
  */
-function syntaxError$1(message, fileName, lineNumber) {
+function syntaxError$1(message, lineNumber) {
     assert(isString(message), "message must be a string");
-    assert(isString(fileName), "fileName must be a string");
     if (isDef(lineNumber)) {
         assert(isNumber(lineNumber), "lineNumber must be a number");
     }
     var e = new SyntaxError(message /*, fileName*/);
-    e['fileName'] = fileName;
     if (typeof lineNumber === 'number') {
         e['lineNumber'] = lineNumber;
     }
@@ -5805,10 +5778,9 @@ function syntaxError$1(message, fileName, lineNumber) {
  */
 var SymbolTable = (function () {
     /**
-     * @param fileName
+     *
      */
-    function SymbolTable(fileName) {
-        this.fileName = fileName;
+    function SymbolTable() {
         this.cur = null;
         this.top = null;
         this.stack = [];
@@ -5875,7 +5847,7 @@ var SymbolTable = (function () {
             }
             else {
                 // Tuple isn't supported
-                throw syntaxError$1("invalid expression in parameter list", this.fileName);
+                throw syntaxError$1("invalid expression in parameter list");
             }
         }
     };
@@ -5910,7 +5882,7 @@ var SymbolTable = (function () {
         var val = this.cur.symFlags[mangled];
         if (val !== undefined) {
             if ((flag & DEF_PARAM) && (val & DEF_PARAM)) {
-                throw syntaxError$1("duplicate argument '" + name + "' in function definition", this.fileName, lineno);
+                throw syntaxError$1("duplicate argument '" + name + "' in function definition", lineno);
             }
             val |= flag;
         }
@@ -5983,7 +5955,7 @@ var SymbolTable = (function () {
                 this.visitExpr(s.value);
                 this.cur.returnsValue = true;
                 if (this.cur.generator) {
-                    throw syntaxError$1("'return' with argument inside generator", this.fileName);
+                    throw syntaxError$1("'return' with argument inside generator");
                 }
             }
         }
@@ -6071,10 +6043,10 @@ var SymbolTable = (function () {
                 var cur = this.cur.symFlags[name];
                 if (cur & (DEF_LOCAL | USE)) {
                     if (cur & DEF_LOCAL) {
-                        throw syntaxError$1("name '" + name + "' is assigned to before global declaration", this.fileName, s.lineno);
+                        throw syntaxError$1("name '" + name + "' is assigned to before global declaration", s.lineno);
                     }
                     else {
-                        throw syntaxError$1("name '" + name + "' is used prior to global declaration", this.fileName, s.lineno);
+                        throw syntaxError$1("name '" + name + "' is used prior to global declaration", s.lineno);
                     }
                 }
                 this.addDef(name, DEF_GLOBAL, s.lineno);
@@ -6143,7 +6115,7 @@ var SymbolTable = (function () {
                 this.visitExpr(e.value);
             this.cur.generator = true;
             if (this.cur.returnsValue) {
-                throw syntaxError$1("'return' with argument inside generator", this.fileName);
+                throw syntaxError$1("'return' with argument inside generator");
             }
         }
         else if (e instanceof Compare) {
@@ -6214,7 +6186,7 @@ var SymbolTable = (function () {
             }
             else {
                 if (this.cur.blockType !== ModuleBlock) {
-                    throw syntaxError$1("import * only allowed at module level", this.fileName);
+                    throw syntaxError$1("import * only allowed at module level");
                 }
             }
         }
@@ -6348,7 +6320,7 @@ var SymbolTable = (function () {
     SymbolTable.prototype.analyzeName = function (ste, dict, name, flags, bound, local, free, global) {
         if (flags & DEF_GLOBAL) {
             if (flags & DEF_PARAM)
-                throw syntaxError$1("name '" + name + "' is local and global", this.fileName, ste.lineno);
+                throw syntaxError$1("name '" + name + "' is local and global", ste.lineno);
             dict[name] = GLOBAL_EXPLICIT;
             global[name] = null;
             if (bound && bound[name] !== undefined)
@@ -6388,8 +6360,8 @@ var SymbolTable = (function () {
  * @param ast
  * @param fileName
  */
-function symbolTable(ast, fileName) {
-    var st = new SymbolTable(fileName);
+function symbolTable(ast) {
+    var st = new SymbolTable();
     st.enterBlock("top", ModuleBlock, ast, 0);
     st.top = st.cur;
     // This is a good place to dump the AST for debugging.
@@ -6493,16 +6465,12 @@ function fixReservedNames(name) {
     return name;
 }
 /**
- * @param {string} source the code
- * @param {string} fileName where it came from
  *
- * @return {{code: string}}
  */
 function compile(source, fileName) {
-    var node = transpile(source, fileName);
-    // TODO: We need a serializer from TypeScript.
-    var code = "Need serializer from TypeScript " + node;
-    //  const code = generate(node, {});
+    var resultFile = ts.createSourceFile(fileName, "", ts.ScriptTarget.Latest, /*setParentNodes*/ false, ts.ScriptKind.TS);
+    var printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
+    var code = printer.printNode(ts.EmitHint.Unspecified, transpile(source), resultFile);
     return { code: code };
 }
 function resetCompiler() {
@@ -6512,37 +6480,25 @@ function resetCompiler() {
  * Transpiles from Python to JavaScript.
  */
 var Transpiler = (function () {
-    function Transpiler(fileName, st, flags, sourceCodeForAnnotation) {
-        this.fileName = fileName;
-        /**
-         * @type {Object}
-         * @private
-         */
+    function Transpiler(st, flags, sourceCodeForAnnotation) {
         this.st = st;
         this.flags = flags;
         this.interactive = false;
         this.nestlevel = 0;
         this.u = null;
-        /**
-         * @type Array.<CompilerUnit>
-         * @private
-         */
         this.stack = [];
         this.result = [];
         // this.gensymcount = 0;
-        /**
-         * @type Array.<CompilerUnit>
-         * @private
-         */
         this.allUnits = [];
         this.source = sourceCodeForAnnotation ? sourceCodeForAnnotation.split("\n") : false;
     }
     Transpiler.prototype.module = function (ast, flags) {
         // const node: ts.Node = new Node();
-        // const body = this.statementList(ast.body, flags);
+        var body = this.statementList(ast.body, flags);
+        return ts.createModuleBlock(body);
         // node.finishProgram(body);
         // return node;
-        throw new Error("TODO: module");
+        // throw new Error(`TODO: module`);
     };
     Transpiler.prototype.statementList = function (stmts, flags) {
         var nodes = [];
@@ -6556,67 +6512,73 @@ var Transpiler = (function () {
     Transpiler.prototype.statement = function (s, flags) {
         // this.u.lineno = s.lineno;
         // this.u.linenoSet = false;
-        //        this.annotateSource(s);
+        // this.annotateSource(s);
+        if (s instanceof Expr) {
+            return ts.createReturn(this.expr(s, flags));
+        }
         switch (s.constructor) {
+            /*
             case FunctionDef:
                 return this.functionDef(s, flags);
             case ClassDef:
                 return this.classDef(s, flags);
             case ReturnStatement: {
-                return this.returnStatement(s, flags);
+                return this.returnStatement(<ReturnStatement>s, flags);
             }
             case DeleteExpression:
-                return this.deleteExpression(s, flags);
+                return this.deleteExpression((<DeleteExpression>s), flags);
             case Assign: {
-                return this.assign(s, flags);
+                return this.assign(<Assign>s, flags);
             }
             case AugAssign: {
-                return this.augAssign(s, flags);
+                return this.augAssign(<AugAssign>s, flags);
             }
             case Print: {
-                this.print(s, flags);
+                this.print(<Print>s, flags);
                 throw new Error("Print");
                 // break;
             }
             case ForStatement: {
-                return this.forStatement(s, flags);
+                return this.forStatement(<ForStatement>s, flags);
             }
             case WhileStatement: {
-                return this.whileStatement(s, flags);
+                return this.whileStatement(<WhileStatement>s, flags);
             }
             case IfStatement: {
-                return this.ifStatement(s, flags);
+                return this.ifStatement(<IfStatement>s, flags);
             }
             case Raise: {
-                return this.raise(s, flags);
+                return this.raise(<Raise>s, flags);
             }
             case TryExcept: {
-                return this.tryExcept(s, flags);
+                return this.tryExcept(<TryExcept>s, flags);
             }
             case TryFinally: {
-                return this.tryFinally(s, flags);
+                return this.tryFinally(<TryFinally>s, flags);
             }
             case Assert: {
-                return this.assert(s, flags);
+                return this.assert(<Assert>s, flags);
             }
             case ImportStatement:
-                return this.importStatement(s, flags);
+                return this.importStatement(<ImportStatement>s, flags);
             case ImportFrom:
-                return this.importFrom(s, flags);
+                return this.importFrom(<ImportFrom>s, flags);
             case Global:
                 throw new Error("Gloabl");
             // break;
             case Expr:
-                return this.expr(s, flags);
+                return this.expr((<Expr>s), flags);
             case Pass:
                 throw new Error("Pass");
             // break;
             case BreakStatement:
-                return this.breakStatement(s, flags);
+                return this.breakStatement((<BreakStatement>s), flags);
             case ContinueStatement:
-                return this.continueStatement(s, flags);
-            default:
-                throw new Error("statement");
+                return this.continueStatement(<ContinueStatement>s, flags);
+            */
+            default: {
+                throw new Error("statement(s = " + JSON.stringify(s) + ", flags = " + flags + ")");
+            }
         }
     };
     Transpiler.prototype.assert = function (a, flags) {
@@ -6683,6 +6645,10 @@ var Transpiler = (function () {
         throw new Error("FunctionDef");
     };
     Transpiler.prototype.expr = function (expr, flags) {
+        console.log("" + JSON.stringify(expr));
+        if (expr instanceof Num) {
+            return ts.createLiteral(expr.n.value);
+        }
         throw new Error("Expr");
     };
     Transpiler.prototype.print = function (p, flags) {
@@ -6702,17 +6668,17 @@ var Transpiler = (function () {
     };
     return Transpiler;
 }());
-function transpile(source, fileName) {
-    var cst = parse(fileName, source);
+function transpile(source) {
+    var cst = parse(source);
     if (typeof cst === 'object') {
-        var ast = astFromParse(cst, fileName);
-        var st = symbolTable(ast, fileName);
-        var t = new Transpiler(fileName, st, 0, source);
+        var ast = astFromParse(cst);
+        var st = symbolTable(ast);
+        var t = new Transpiler(st, 0, source);
         var flags = 0;
         return t.module(ast, flags);
     }
     else {
-        throw new Error("Error parsing source for file " + fileName);
+        throw new Error("Error parsing source for file.");
     }
 }
 

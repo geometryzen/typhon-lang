@@ -7,8 +7,8 @@ var SymbolConstants_1 = require("./SymbolConstants");
  * @param ast
  * @param fileName
  */
-function symbolTable(ast, fileName) {
-    var st = new SymbolTable_1.SymbolTable(fileName);
+function symbolTable(ast) {
+    var st = new SymbolTable_1.SymbolTable();
     st.enterBlock("top", SymbolConstants_1.ModuleBlock, ast, 0);
     st.top = st.cur;
     // This is a good place to dump the AST for debugging.

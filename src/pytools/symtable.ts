@@ -7,8 +7,8 @@ import { Module } from './types';
  * @param ast
  * @param fileName
  */
-export function symbolTable(ast: Module, fileName: string): SymbolTable {
-    const st = new SymbolTable(fileName);
+export function symbolTable(ast: Module): SymbolTable {
+    const st = new SymbolTable();
 
     st.enterBlock("top", ModuleBlock, ast, 0);
     st.top = st.cur;

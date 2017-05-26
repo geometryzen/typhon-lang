@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var asserts_1 = require("./asserts");
 var base_1 = require("./base");
 var TokenError_1 = require("./TokenError");
 var Tokens_1 = require("./Tokens");
@@ -88,9 +87,7 @@ var Tokenizer = (function () {
      * @constructor
      * @param {string} fileName
      */
-    function Tokenizer(fileName, interactive, callback) {
-        asserts_1.assert(base_1.isString(fileName), "fileName must be a string");
-        this.fileName = fileName;
+    function Tokenizer(interactive, callback) {
         this.callback = callback;
         this.lnum = 0;
         this.parenlev = 0;
@@ -159,7 +156,7 @@ var Tokenizer = (function () {
         max = line.length;
         if (this.contstr.length > 0) {
             if (!line) {
-                throw new TokenError_1.TokenError("EOF in multi-line string", this.fileName, this.strstart[0], this.strstart[1]);
+                throw new TokenError_1.TokenError("EOF in multi-line string", this.strstart[0], this.strstart[1]);
             }
             this.endprog.lastIndex = 0;
             endmatch = this.endprog.test(line);
@@ -228,7 +225,7 @@ var Tokenizer = (function () {
             }
             while (column < this.indents[this.indents.length - 1]) {
                 if (!contains(this.indents, column)) {
-                    throw indentationError("unindent does not match any outer indentation level", this.fileName, [this.lnum, 0], [this.lnum, pos], line);
+                    throw indentationError("unindent does not match any outer indentation level", [this.lnum, 0], [this.lnum, pos], line);
                 }
                 this.indents.splice(this.indents.length - 1, 1);
                 if (this.callback(Tokens_1.Tokens.T_DEDENT, '', [this.lnum, pos], [this.lnum, pos], line)) {
@@ -238,7 +235,7 @@ var Tokenizer = (function () {
         }
         else {
             if (!line) {
-                throw new TokenError_1.TokenError("EOF in multi-line statement", this.fileName, this.lnum, 0);
+                throw new TokenError_1.TokenError("EOF in multi-line statement", this.lnum, 0);
             }
             this.continued = false;
         }
@@ -368,13 +365,12 @@ function rstrip(input, what) {
     return input.substring(0, i);
 }
 /**
- * @param {string} message
- * @param {string} fileName
- * @param {Array.<number>} begin
- * @param {Array.<number>} end
+ * @param message
+ * @param begin
+ * @param end
  * @param {string|undefined} text
  */
-function indentationError(message, fileName, begin, end, text) {
+function indentationError(message, begin, end, text) {
     if (!base_1.isArray(begin)) {
         throw new Error("begin must be Array.<number>");
     }
@@ -383,7 +379,6 @@ function indentationError(message, fileName, begin, end, text) {
     }
     var e = new SyntaxError(message /*, fileName*/);
     e.name = "IndentationError";
-    e['fileName'] = fileName;
     if (base_1.isDef(begin)) {
         e['lineNumber'] = begin[0];
         e['columnNumber'] = begin[1];

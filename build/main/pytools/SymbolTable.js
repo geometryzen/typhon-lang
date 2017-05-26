@@ -74,10 +74,9 @@ var SymbolConstants_16 = require("./SymbolConstants");
  */
 var SymbolTable = (function () {
     /**
-     * @param fileName
+     *
      */
-    function SymbolTable(fileName) {
-        this.fileName = fileName;
+    function SymbolTable() {
         this.cur = null;
         this.top = null;
         this.stack = [];
@@ -144,7 +143,7 @@ var SymbolTable = (function () {
             }
             else {
                 // Tuple isn't supported
-                throw syntaxError_1.syntaxError("invalid expression in parameter list", this.fileName);
+                throw syntaxError_1.syntaxError("invalid expression in parameter list");
             }
         }
     };
@@ -179,7 +178,7 @@ var SymbolTable = (function () {
         var val = this.cur.symFlags[mangled];
         if (val !== undefined) {
             if ((flag & SymbolConstants_8.DEF_PARAM) && (val & SymbolConstants_8.DEF_PARAM)) {
-                throw syntaxError_1.syntaxError("duplicate argument '" + name + "' in function definition", this.fileName, lineno);
+                throw syntaxError_1.syntaxError("duplicate argument '" + name + "' in function definition", lineno);
             }
             val |= flag;
         }
@@ -252,7 +251,7 @@ var SymbolTable = (function () {
                 this.visitExpr(s.value);
                 this.cur.returnsValue = true;
                 if (this.cur.generator) {
-                    throw syntaxError_1.syntaxError("'return' with argument inside generator", this.fileName);
+                    throw syntaxError_1.syntaxError("'return' with argument inside generator");
                 }
             }
         }
@@ -340,10 +339,10 @@ var SymbolTable = (function () {
                 var cur = this.cur.symFlags[name];
                 if (cur & (SymbolConstants_7.DEF_LOCAL | SymbolConstants_15.USE)) {
                     if (cur & SymbolConstants_7.DEF_LOCAL) {
-                        throw syntaxError_1.syntaxError("name '" + name + "' is assigned to before global declaration", this.fileName, s.lineno);
+                        throw syntaxError_1.syntaxError("name '" + name + "' is assigned to before global declaration", s.lineno);
                     }
                     else {
-                        throw syntaxError_1.syntaxError("name '" + name + "' is used prior to global declaration", this.fileName, s.lineno);
+                        throw syntaxError_1.syntaxError("name '" + name + "' is used prior to global declaration", s.lineno);
                     }
                 }
                 this.addDef(name, SymbolConstants_5.DEF_GLOBAL, s.lineno);
@@ -412,7 +411,7 @@ var SymbolTable = (function () {
                 this.visitExpr(e.value);
             this.cur.generator = true;
             if (this.cur.returnsValue) {
-                throw syntaxError_1.syntaxError("'return' with argument inside generator", this.fileName);
+                throw syntaxError_1.syntaxError("'return' with argument inside generator");
             }
         }
         else if (e instanceof types_10.Compare) {
@@ -483,7 +482,7 @@ var SymbolTable = (function () {
             }
             else {
                 if (this.cur.blockType !== SymbolConstants_14.ModuleBlock) {
-                    throw syntaxError_1.syntaxError("import * only allowed at module level", this.fileName);
+                    throw syntaxError_1.syntaxError("import * only allowed at module level");
                 }
             }
         }
@@ -617,7 +616,7 @@ var SymbolTable = (function () {
     SymbolTable.prototype.analyzeName = function (ste, dict, name, flags, bound, local, free, global) {
         if (flags & SymbolConstants_5.DEF_GLOBAL) {
             if (flags & SymbolConstants_8.DEF_PARAM)
-                throw syntaxError_1.syntaxError("name '" + name + "' is local and global", this.fileName, ste.lineno);
+                throw syntaxError_1.syntaxError("name '" + name + "' is local and global", ste.lineno);
             dict[name] = SymbolConstants_11.GLOBAL_EXPLICIT;
             global[name] = null;
             if (bound && bound[name] !== undefined)
