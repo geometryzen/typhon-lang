@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var tables_1 = require("./tables");
+var tree_1 = require("./tree");
 var asserts_1 = require("./asserts");
 var Tokenizer_1 = require("./Tokenizer");
 var Tokens_1 = require("./Tokens");
@@ -21,6 +22,8 @@ function parseError(message, begin, end) {
     }
     return e;
 }
+// TODO: The parser does not report whitespace nodes.
+// It would be nice if there were an ignoreWhitespace option.
 var Parser = (function () {
     /**
      *
@@ -97,7 +100,8 @@ var Parser = (function () {
                     }
                 }
             }
-            if (findInDfa(arcs, [0, tp.state])) {
+            // TODO: What is the zeroth state? Does it have a symbolic name?
+            if (existsTransition(arcs, [0, tp.state])) {
                 // an accepting state, pop it and try something else
                 this.pop();
                 if (this.stack.length === 0) {
@@ -105,7 +109,6 @@ var Parser = (function () {
                 }
             }
             else {
-                // no transition
                 throw parseError("bad input", context[0], context[1]);
             }
         }
@@ -182,12 +185,11 @@ var Parser = (function () {
     return Parser;
 }());
 /**
- * TODO: Rename to existsInDfa.
  * Finds the specified
  * @param a An array of arrays where each element is an array of two integers.
  * @param obj An array containing two integers.
  */
-function findInDfa(a, obj) {
+function existsTransition(a, obj) {
     var i = a.length;
     while (i--) {
         if (a[i][0] === obj[0] && a[i][1] === obj[1]) {
@@ -208,9 +210,10 @@ function makeParser(style) {
         style = "file_input";
     // FIXME: Would be nice to get this typing locked down.
     var p = new Parser(tables_1.ParseTables);
-    // for closure's benefit
-    if (style === "file_input")
+    // TODO: Can we do this over the symbolic constants?
+    if (style === "file_input") {
         p.setup(tables_1.ParseTables.sym.file_input);
+    }
     else {
         console.warn("TODO: makeParser(style = " + style + ")");
     }
@@ -260,13 +263,19 @@ function makeParser(style) {
 }
 function parse(input) {
     var parseFunc = makeParser();
-    if (input.substr(input.length - 1, 1) !== "\n") {
+    // input.endsWith("\n");
+    // Why do we normalize the input in this manner?
+    if (input.substr(tree_1.IDXLAST(input), 1) !== "\n") {
         input += "\n";
     }
+    // Splitting this ay will create a final line that is the zero-length string.
     var lines = input.split("\n");
+    // FIXME: Mixing the types this way is awkward for the consumer.
     var ret = false;
     for (var i = 0; i < lines.length; ++i) {
-        ret = parseFunc(lines[i] + ((i === lines.length - 1) ? "" : "\n"));
+        // FIXME: Lots of string creation going on here. Why?
+        // We're adding back newline characters for all but the last line.
+        ret = parseFunc(lines[i] + ((i === tree_1.IDXLAST(lines)) ? "" : "\n"));
     }
     return ret;
 }

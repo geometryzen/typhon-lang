@@ -1,4 +1,5 @@
 import { assert } from './asserts';
+import { NCH, CHILD } from './tree';
 import { Add } from './types';
 // TODO: Conventions
 import { Alias } from './types';
@@ -122,28 +123,6 @@ var Compiling = (function () {
     }
     return Compiling;
 }());
-/**
- * Returns the number of children in the specified node.
- */
-function NCH(n) {
-    assert(n !== undefined);
-    if (Array.isArray(n.children)) {
-        return n.children.length;
-    }
-    else {
-        return 0;
-    }
-}
-function CHILD(n, i) {
-    assert(n !== undefined);
-    assert(i !== undefined);
-    if (n.children) {
-        return n.children[i];
-    }
-    else {
-        throw new Error("node does not have any children");
-    }
-}
 function REQ(n, type) {
     assert(n.type === type, "node wasn't expected type");
 }
@@ -671,8 +650,9 @@ function astForImportStmt(c, n) {
     else if (n.type === SYM.import_from) {
         var mod = null;
         var ndots = 0;
-        var nchildren;
-        for (var idx = 1; idx < NCH(n); ++idx) {
+        var nchildren = void 0;
+        var idx = void 0;
+        for (idx = 1; idx < NCH(n); ++idx) {
             if (CHILD(n, idx).type === SYM.dotted_name) {
                 mod = aliasForImportName(c, CHILD(n, idx));
                 idx++;
@@ -775,7 +755,7 @@ function astForListcomp(c, n) {
         var forch = CHILD(ch, 1);
         var t = astForExprlist(c, forch, Store);
         var expression = astForTestlist(c, CHILD(ch, 3));
-        var lc;
+        var lc = void 0;
         if (NCH(forch) === 1)
             lc = new Comprehension(t[0], expression, []);
         else
@@ -945,13 +925,13 @@ function astForTrailer(c, n, leftExpr) {
             }
             var elts = [];
             for (var j = 0; j < slices.length; ++j) {
-                var slc_1 = slices[j];
-                if (slc_1 instanceof Index) {
-                    assert(slc_1.value !== null && slc_1.value !== undefined);
-                    elts[j] = slc_1.value;
+                var slc = slices[j];
+                if (slc instanceof Index) {
+                    assert(slc.value !== null && slc.value !== undefined);
+                    elts[j] = slc.value;
                 }
                 else {
-                    assert(slc_1 instanceof Index);
+                    assert(slc instanceof Index);
                 }
             }
             var e = new Tuple(elts, Load, n.lineno, n.col_offset);
@@ -1175,7 +1155,7 @@ function astForGenexp(c, n) {
         var forch = CHILD(ch, 1);
         var t = astForExprlist(c, forch, Store);
         var expression = astForExpr(c, CHILD(ch, 3));
-        var ge;
+        var ge = void 0;
         if (NCH(forch) === 1)
             ge = new Comprehension(t[0], expression, []);
         else
@@ -1301,7 +1281,7 @@ function astForExprStmt(c, n) {
         }
         setContext(c, expr1, Store, ch);
         ch = CHILD(n, 2);
-        var expr2;
+        var expr2 = void 0;
         if (ch.type === SYM.testlist)
             expr2 = astForTestlist(c, ch);
         else
@@ -1321,7 +1301,7 @@ function astForExprStmt(c, n) {
             targets[i / 2] = e;
         }
         var value = CHILD(n, NCH(n) - 1);
-        var expression;
+        var expression = void 0;
         if (value.type === SYM.testlist)
             expression = astForTestlist(c, value);
         else
@@ -1348,37 +1328,37 @@ function parsestr(c, s) {
         var len = s.length;
         var ret = '';
         for (var i = 0; i < len; ++i) {
-            var c = s.charAt(i);
-            if (c === '\\') {
+            var c_1 = s.charAt(i);
+            if (c_1 === '\\') {
                 ++i;
-                c = s.charAt(i);
-                if (c === 'n')
+                c_1 = s.charAt(i);
+                if (c_1 === 'n')
                     ret += "\n";
-                else if (c === '\\')
+                else if (c_1 === '\\')
                     ret += "\\";
-                else if (c === 't')
+                else if (c_1 === 't')
                     ret += "\t";
-                else if (c === 'r')
+                else if (c_1 === 'r')
                     ret += "\r";
-                else if (c === 'b')
+                else if (c_1 === 'b')
                     ret += "\b";
-                else if (c === 'f')
+                else if (c_1 === 'f')
                     ret += "\f";
-                else if (c === 'v')
+                else if (c_1 === 'v')
                     ret += "\v";
-                else if (c === '0')
+                else if (c_1 === '0')
                     ret += "\0";
-                else if (c === '"')
+                else if (c_1 === '"')
                     ret += '"';
-                else if (c === '\'')
+                else if (c_1 === '\'')
                     ret += '\'';
-                else if (c === '\n') { }
-                else if (c === 'x') {
+                else if (c_1 === '\n') { }
+                else if (c_1 === 'x') {
                     var d0 = s.charAt(++i);
                     var d1 = s.charAt(++i);
                     ret += String.fromCharCode(parseInt(d0 + d1, 16));
                 }
-                else if (c === 'u' || c === 'U') {
+                else if (c_1 === 'u' || c_1 === 'U') {
                     var d0 = s.charAt(++i);
                     var d1 = s.charAt(++i);
                     var d2 = s.charAt(++i);
@@ -1387,11 +1367,11 @@ function parsestr(c, s) {
                 }
                 else {
                     // Leave it alone
-                    ret += "\\" + c;
+                    ret += "\\" + c_1;
                 }
             }
             else {
-                ret += c;
+                ret += c_1;
             }
         }
         return ret;
@@ -1537,9 +1517,9 @@ function astForSlice(c, n) {
         }
     }
     else if (NCH(n) > 2) {
-        var n2_1 = CHILD(n, 2);
-        if (n2_1.type === SYM.IfExpr) {
-            upper = astForExpr(c, n2_1);
+        var n2 = CHILD(n, 2);
+        if (n2.type === SYM.IfExpr) {
+            upper = astForExpr(c, n2);
         }
     }
     ch = CHILD(n, NCH(n) - 1);
@@ -1835,7 +1815,7 @@ export function astDump(node) {
             return "[" + elemsstr.replace(/^\s+/, '') + "]";
         }
         else {
-            var ret;
+            var ret = void 0;
             if (node === true)
                 ret = "True";
             else if (node === false)

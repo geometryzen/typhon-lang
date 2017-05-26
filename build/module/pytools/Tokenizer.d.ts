@@ -28,21 +28,18 @@ export declare class Tokenizer {
     indents: number[];
     endprog: RegExp;
     strstart: number[];
-    interactive: boolean;
-    doneFunc: () => any;
     /**
-     * Not sure who needs this yet.
+     * Probably used for REPL support.
      */
-    static Tokens: typeof Tokens;
+    interactive: boolean;
+    doneFunc: () => 'done' | 'failed';
     /**
-     * @constructor
-     * @param {string} fileName
+     *
      */
     constructor(interactive: boolean, callback: TokenizerCallback);
     /**
-     * @method generateTokens
-     * @param line {string}
-     * @return {boolean | string} 'done' or true?
+     * @param line
+     * @return 'done' or 'failed' or true?
      */
-    generateTokens(line: string): boolean | string;
+    generateTokens(line: string): boolean | 'done' | 'failed';
 }

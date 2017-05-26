@@ -1,16 +1,17 @@
 /**
  * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
+ * May be a bug when comparing to 0x7f below.
  */
 export function toStringLiteralJS(value: any): string {
     // single is preferred
-    var quote = "'";
+    let quote = "'";
     if (value.indexOf("'") !== -1 && value.indexOf('"') === -1) {
         quote = '"';
     }
-    var len = value.length;
-    var ret = quote;
-    for (var i = 0; i < len; ++i) {
-        var c = value.charAt(i);
+    const len = value.length;
+    let ret = quote;
+    for (let i = 0; i < len; ++i) {
+        const c = value.charAt(i);
         if (c === quote || c === '\\')
             ret += '\\' + c;
         else if (c === '\t')
@@ -20,7 +21,7 @@ export function toStringLiteralJS(value: any): string {
         else if (c === '\r')
             ret += '\\r';
         else if (c < ' ' || c >= 0x7f) {
-            var ashex = c.charCodeAt(0).toString(16);
+            let ashex = c.charCodeAt(0).toString(16);
             if (ashex.length < 2) ashex = "0" + ashex;
             ret += "\\x" + ashex;
         }

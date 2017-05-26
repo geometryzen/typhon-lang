@@ -4,8 +4,6 @@ import { symbolTable } from './symtable';
 // import { dumpSymbolTable } from './symtable';
 import { Module } from './types';
 
-// const fileName = '<stdin>';
-
 describe('AST', function () {
 
     it('123', function () {
@@ -287,7 +285,7 @@ describe('AST', function () {
         }
         catch (e) {
             expect(e.name).toBe('ParseError');
-            var message = 'bad input';
+            const message = 'bad input';
             expect(e.message).toBe(message);
             //      console.log("expect: " + JSON.stringify(message));
             //      console.log("actual: " + JSON.stringify(e.message));
@@ -306,7 +304,7 @@ describe('AST', function () {
         }
         catch (e) {
             expect(e.name).toBe('IndentationError');
-            var message = 'unindent does not match any outer indentation level';
+            const message = 'unindent does not match any outer indentation level';
             expect(e.message).toBe(message);
             //      console.log("expect: " + JSON.stringify(message));
             //      console.log("actual: " + JSON.stringify(e.message));
@@ -325,7 +323,7 @@ describe('AST', function () {
         }
         catch (e) {
             expect(e.name).toBe('SyntaxError');
-            var message = "can't assign to ()";
+            const message = "can't assign to ()";
             expect(e.message).toBe(message);
             //      console.log("expect: " + JSON.stringify(message));
             //      console.log("actual: " + JSON.stringify(e.message));
@@ -367,7 +365,7 @@ describe('AST', function () {
         }
         catch (e) {
             expect(e.name).toBe('TokenError');
-            var message = "EOF in multi-line string";
+            const message = "EOF in multi-line string";
             // expect(e.message).toBe(message);
             //      console.log("expect: " + JSON.stringify(message));
             //      console.log("actual: " + JSON.stringify(e.message));

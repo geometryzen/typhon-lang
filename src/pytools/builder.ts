@@ -1,4 +1,5 @@
 import { assert } from './asserts';
+import { NCH, CHILD } from './tree';
 
 import { Add } from './types';
 // TODO: Conventions
@@ -122,7 +123,7 @@ const LONG_THRESHOLD = Math.pow(2, 53);
 function syntaxError(message: string, lineNumber?: number): SyntaxError {
     assert(isString(message), "message must be a string");
     assert(isNumber(lineNumber), "lineNumber must be a number");
-    var e = new SyntaxError(message/*, fileName*/);
+    const e = new SyntaxError(message/*, fileName*/);
     e['lineNumber'] = lineNumber;
     return e;
 }
@@ -131,30 +132,6 @@ class Compiling {
     c_encoding: string;
     constructor(encoding: 'utf-8') {
         this.c_encoding = encoding;
-    }
-}
-
-/**
- * Returns the number of children in the specified node.
- */
-function NCH(n: PyNode): number {
-    assert(n !== undefined);
-    if (Array.isArray(n.children)) {
-        return n.children.length;
-    }
-    else {
-        return 0;
-    }
-}
-
-function CHILD(n: PyNode, i: number): PyNode {
-    assert(n !== undefined);
-    assert(i !== undefined);
-    if (n.children) {
-        return n.children[i];
-    }
-    else {
-        throw new Error("node does not have any children");
     }
 }
 
@@ -220,8 +197,8 @@ function forbiddenCheck(c: Compiling, n: PyNode, x?: string, lineno?: number): v
  */
 function setContext(c: Compiling, e: Expression, ctx: Store, n: PyNode): void {
     assert(ctx !== AugStore && ctx !== AugLoad);
-    var s = null;
-    var exprName = null;
+    let s: Expression[] = null;
+    let exprName: string = null;
 
     if (e instanceof Attribute) {
         if (ctx === Store) forbiddenCheck(c, n, e.attr, n.lineno);
@@ -292,7 +269,7 @@ function setContext(c: Compiling, e: Expression, ctx: Store, n: PyNode): void {
     }
 
     if (s) {
-        for (var i = 0; i < s.length; ++i) {
+        for (let i = 0; i < s.length; ++i) {
             setContext(c, s[i], ctx, n);
         }
     }
@@ -352,8 +329,8 @@ function seqForTestlist(c: Compiling, n: PyNode) {
         n.type === SYM.testlist_gexp ||
         n.type === SYM.testlist_safe ||
         n.type === SYM.testlist1);
-    var seq = [];
-    for (var i = 0; i < NCH(n); i += 2) {
+    const seq: Expression[] = [];
+    for (let i = 0; i < NCH(n); i += 2) {
         assert(CHILD(n, i).type === SYM.IfExpr || CHILD(n, i).type === SYM.old_test);
         seq[i / 2] = astForExpr(c, CHILD(n, i));
     }
@@ -363,14 +340,14 @@ function seqForTestlist(c: Compiling, n: PyNode) {
 function astForSuite(c: Compiling, n: PyNode): Statement[] {
     /* suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT */
     REQ(n, SYM.suite);
-    var seq = [];
-    var pos = 0;
-    var ch;
+    const seq: Statement[] = [];
+    let pos = 0;
+    let ch: PyNode;
     if (CHILD(n, 0).type === SYM.simple_stmt) {
         n = CHILD(n, 0);
         /* simple_stmt always ends with an NEWLINE and may have a trailing
             * SEMI. */
-        var end = NCH(n) - 1;
+        let end = NCH(n) - 1;
         if (CHILD(n, end - 1).type === TOK.T_SEMI) {
             end -= 1;
         }
@@ -383,7 +360,7 @@ function astForSuite(c: Compiling, n: PyNode): Statement[] {
         for (let i = 2; i < NCH(n) - 1; ++i) {
             ch = CHILD(n, i);
             REQ(ch, SYM.stmt);
-            var num = numStmts(ch);
+            let num = numStmts(ch);
             if (num === 1) {
                 // small_stmt or compound_stmt w/ only 1 child
                 seq[pos++] = astForStmt(c, ch);
@@ -414,7 +391,7 @@ function astForExceptClause(c: Compiling, exc: PyNode, body: PyNode): ExceptHand
     else if (NCH(exc) === 2)
         return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.lineno, exc.col_offset);
     else if (NCH(exc) === 4) {
-        var e = astForExpr(c, CHILD(exc, 3));
+        const e = astForExpr(c, CHILD(exc, 3));
         setContext(c, e, Store, CHILD(exc, 3));
         return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.lineno, exc.col_offset);
     }
@@ -427,7 +404,7 @@ function astForTryStmt(c: Compiling, n: PyNode): TryExcept | TryFinally {
     const nc = NCH(n);
     let nexcept = (nc - 3) / 3;
     let orelse: Statement[] = [];
-    var finally_: Statement[] | null = null;
+    let finally_: Statement[] | null = null;
 
     REQ(n, SYM.try_stmt);
     let body = astForSuite(c, CHILD(n, 2));
@@ -456,10 +433,10 @@ function astForTryStmt(c: Compiling, n: PyNode): TryExcept | TryFinally {
     }
 
     if (nexcept > 0) {
-        var handlers = [];
-        for (var i = 0; i < nexcept; ++i)
+        const handlers: ExceptHandler[] = [];
+        for (let i = 0; i < nexcept; ++i)
             handlers[i] = astForExceptClause(c, CHILD(n, 3 + i * 3), CHILD(n, 5 + i * 3));
-        var exceptSt = new TryExcept(body, handlers, orelse, n.lineno, n.col_offset);
+        const exceptSt = new TryExcept(body, handlers, orelse, n.lineno, n.col_offset);
 
         if (!finally_)
             return exceptSt;
@@ -476,11 +453,11 @@ function astForTryStmt(c: Compiling, n: PyNode): TryExcept | TryFinally {
 
 function astForDottedName(c: Compiling, n: PyNode): Attribute | Name {
     REQ(n, SYM.dotted_name);
-    var lineno = n.lineno;
-    var col_offset = n.col_offset;
-    var id = strobj(CHILD(n, 0).value as string);
-    var e: Attribute | Name = new Name(id, Load, lineno, col_offset);
-    for (var i = 2; i < NCH(n); i += 2) {
+    const lineno = n.lineno;
+    const col_offset = n.col_offset;
+    let id = strobj(CHILD(n, 0).value as string);
+    let e: Attribute | Name = new Name(id, Load, lineno, col_offset);
+    for (let i = 2; i < NCH(n); i += 2) {
         id = strobj(CHILD(n, i).value as string);
         e = new Attribute(e, id, Load, lineno, col_offset);
     }
@@ -580,8 +557,8 @@ function astForIfStmt(c: Compiling, n: PyNode): IfStatement {
             astForSuite(c, CHILD(n, 3)),
             [], n.lineno, n.col_offset);
 
-    var s = CHILD(n, 4).value;
-    var decider = s.charAt(2); // elSe or elIf
+    const s = CHILD(n, 4).value;
+    const decider = s.charAt(2); // elSe or elIf
     if (decider === 's') {
         return new IfStatement(
             astForExpr(c, CHILD(n, 1)),
@@ -590,9 +567,9 @@ function astForIfStmt(c: Compiling, n: PyNode): IfStatement {
             n.lineno, n.col_offset);
     }
     else if (decider === 'i') {
-        var nElif = NCH(n) - 4;
-        var hasElse = false;
-        var orelse: IfStatement[] = [];
+        let nElif = NCH(n) - 4;
+        let hasElse = false;
+        let orelse: IfStatement[] = [];
         /* must reference the child nElif+1 since 'else' token is third, not
             * fourth child from the end. */
         if (CHILD(n, nElif + 1).type === TOK.T_NAME && CHILD(n, nElif + 1).value.charAt(2) === 's') {
@@ -612,8 +589,8 @@ function astForIfStmt(c: Compiling, n: PyNode): IfStatement {
             nElif--;
         }
 
-        for (var i = 0; i < nElif; ++i) {
-            var off = 5 + (nElif - i - 1) * 4;
+        for (let i = 0; i < nElif; ++i) {
+            const off = 5 + (nElif - i - 1) * 4;
             orelse = [
                 new IfStatement(
                     astForExpr(c, CHILD(n, off)),
@@ -649,7 +626,7 @@ function astForDelStmt(c: Compiling, n: PyNode): DeleteExpression {
 function astForGlobalStmt(c: Compiling, n: PyNode): Global {
     REQ(n, SYM.GlobalStmt);
     const s: string[] = [];
-    for (var i = 1; i < NCH(n); i += 2) {
+    for (let i = 1; i < NCH(n); i += 2) {
         s[(i - 1) / 2] = strobj(CHILD(n, i).value);
     }
     return new Global(s, n.lineno, n.col_offset);
@@ -697,7 +674,7 @@ function aliasForImportName(c: Compiling, n: PyNode): Alias {
                     continue loop;
                 }
                 else {
-                    var a = aliasForImportName(c, CHILD(n, 0));
+                    const a = aliasForImportName(c, CHILD(n, 0));
                     assert(!a.asname);
                     a.asname = strobj(CHILD(n, 2).value);
                     return a;
@@ -708,7 +685,7 @@ function aliasForImportName(c: Compiling, n: PyNode): Alias {
                 else {
                     // create a string of the form a.b.c
                     let str = '';
-                    for (var i = 0; i < NCH(n); i += 2)
+                    for (let i = 0; i < NCH(n); i += 2)
                         str += CHILD(n, i).value + ".";
                     return new Alias(strobj(str.substr(0, str.length - 1)), null);
                 }
@@ -722,8 +699,8 @@ function aliasForImportName(c: Compiling, n: PyNode): Alias {
 
 function astForImportStmt(c: Compiling, n: PyNode): ImportStatement | ImportFrom {
     REQ(n, SYM.import_stmt);
-    var lineno = n.lineno;
-    var col_offset = n.col_offset;
+    let lineno = n.lineno;
+    const col_offset = n.col_offset;
     n = CHILD(n, 0);
     if (n.type === SYM.import_name) {
         n = CHILD(n, 1);
@@ -734,11 +711,11 @@ function astForImportStmt(c: Compiling, n: PyNode): ImportStatement | ImportFrom
         return new ImportStatement(aliases, lineno, col_offset);
     }
     else if (n.type === SYM.import_from) {
-        var mod = null;
-        var ndots = 0;
-        var nchildren;
-
-        for (var idx = 1; idx < NCH(n); ++idx) {
+        let mod: Alias = null;
+        let ndots = 0;
+        let nchildren: number;
+        let idx: number;
+        for (idx = 1; idx < NCH(n); ++idx) {
             if (CHILD(n, idx).type === SYM.dotted_name) {
                 mod = aliasForImportName(c, CHILD(n, idx));
                 idx++;
@@ -774,7 +751,7 @@ function astForImportStmt(c: Compiling, n: PyNode): ImportStatement | ImportFrom
             for (let i = 0; i < NCH(n); i += 2) {
                 aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
             }
-        var modname = mod ? mod.name : "";
+        const modname = mod ? mod.name : "";
         return new ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
     }
     throw syntaxError("unknown import statement", n.lineno);
@@ -789,8 +766,8 @@ function astForTestlistGexp(c: Compiling, n: PyNode): Expression | Tuple {
 
 function astForListcomp(c: Compiling, n: PyNode): ListComp {
     function countListFors(c: Compiling, n: PyNode): number {
-        var nfors = 0;
-        var ch = CHILD(n, 1);
+        let nfors = 0;
+        let ch = CHILD(n, 1);
         count_list_for: while (true) {
             nfors++;
             REQ(ch, SYM.list_for);
@@ -820,7 +797,7 @@ function astForListcomp(c: Compiling, n: PyNode): ListComp {
     }
 
     function countListIfs(c: Compiling, n: PyNode): number {
-        var nifs = 0;
+        let nifs = 0;
         while (true) {
             REQ(n, SYM.list_iter);
             if (CHILD(n, 0).type === SYM.list_for)
@@ -836,16 +813,16 @@ function astForListcomp(c: Compiling, n: PyNode): ListComp {
 
     REQ(n, SYM.listmaker);
     assert(NCH(n) > 1);
-    var elt = astForExpr(c, CHILD(n, 0));
-    var nfors = countListFors(c, n);
-    var listcomps = [];
-    var ch = CHILD(n, 1);
-    for (var i = 0; i < nfors; ++i) {
+    const elt = astForExpr(c, CHILD(n, 0));
+    const nfors = countListFors(c, n);
+    const listcomps: Comprehension[] = [];
+    let ch = CHILD(n, 1);
+    for (let i = 0; i < nfors; ++i) {
         REQ(ch, SYM.list_for);
-        var forch = CHILD(ch, 1);
-        var t = astForExprlist(c, forch, Store);
-        var expression = astForTestlist(c, CHILD(ch, 3));
-        var lc;
+        const forch = CHILD(ch, 1);
+        const t = astForExprlist(c, forch, Store);
+        const expression = astForTestlist(c, CHILD(ch, 3));
+        let lc: Comprehension;
         if (NCH(forch) === 1)
             lc = new Comprehension(t[0], expression, []);
         else
@@ -853,9 +830,9 @@ function astForListcomp(c: Compiling, n: PyNode): ListComp {
 
         if (NCH(ch) === 5) {
             ch = CHILD(ch, 4);
-            var nifs = countListIfs(c, ch);
-            var ifs = [];
-            for (var j = 0; j < nifs; ++j) {
+            const nifs = countListIfs(c, ch);
+            const ifs: Expression[] = [];
+            for (let j = 0; j < nifs; ++j) {
                 REQ(ch, SYM.list_iter);
                 ch = CHILD(ch, 0);
                 REQ(ch, SYM.list_if);
@@ -927,9 +904,9 @@ function astForCall(c: Compiling, n: PyNode, func: Attribute | Name): Call {
         argument: [test '='] test [gen_for]        # Really [keyword '='] test
     */
     REQ(n, SYM.arglist);
-    var nargs = 0;
-    var nkeywords = 0;
-    var ngens = 0;
+    let nargs = 0;
+    let nkeywords = 0;
+    let ngens = 0;
     for (let i = 0; i < NCH(n); ++i) {
         const ch = CHILD(n, i);
         if (ch.type === SYM.argument) {
@@ -942,12 +919,12 @@ function astForCall(c: Compiling, n: PyNode, func: Attribute | Name): Call {
         throw syntaxError("Generator expression must be parenthesized if not sole argument", n.lineno);
     if (nargs + nkeywords + ngens > 255)
         throw syntaxError("more than 255 arguments", n.lineno);
-    var args = [];
-    var keywords = [];
+    const args: Expression[] = [];
+    const keywords: Keyword[] = [];
     nargs = 0;
     nkeywords = 0;
-    var vararg = null;
-    var kwarg = null;
+    let vararg: Expression = null;
+    let kwarg: Expression = null;
     for (let i = 0; i < NCH(n); ++i) {
         const ch = CHILD(n, i);
         if (ch.type === SYM.argument) {
@@ -959,13 +936,13 @@ function astForCall(c: Compiling, n: PyNode, func: Attribute | Name): Call {
             else if (CHILD(ch, 1).type === SYM.gen_for)
                 args[nargs++] = astForGenexp(c, ch);
             else {
-                var e = astForExpr(c, CHILD(ch, 0));
+                const e = astForExpr(c, CHILD(ch, 0));
                 if (e.constructor === Lambda) throw syntaxError("lambda cannot contain assignment", n.lineno);
                 else if (e.constructor !== Name) throw syntaxError("keyword can't be an expression", n.lineno);
-                var key = e.id;
+                const key = e.id;
                 forbiddenCheck(c, CHILD(ch, 0), key, n.lineno);
-                for (var k = 0; k < nkeywords; ++k) {
-                    var tmp = keywords[k].arg;
+                for (let k = 0; k < nkeywords; ++k) {
+                    const tmp = keywords[k].arg;
                     if (tmp === key) throw syntaxError("keyword argument repeated", n.lineno);
                 }
                 keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
@@ -1004,10 +981,10 @@ function astForTrailer(c: Compiling, n: PyNode, leftExpr: Attribute | Name): Att
                 by treating the sequence as a tuple literal if there are
                 no slice features.
             */
-            var simple = true;
-            var slices: (Ellipsis | Index | Name | Slice)[] = [];
+            let simple = true;
+            const slices: (Ellipsis | Index | Name | Slice)[] = [];
             for (let j = 0; j < NCH(n); j += 2) {
-                var slc = astForSlice(c, CHILD(n, j));
+                const slc = astForSlice(c, CHILD(n, j));
                 if (slc.constructor !== Index) {
                     simple = false;
                 }
@@ -1016,7 +993,7 @@ function astForTrailer(c: Compiling, n: PyNode, leftExpr: Attribute | Name): Att
             if (!simple) {
                 return new Subscript(leftExpr, new ExtSlice(slices), Load, n.lineno, n.col_offset);
             }
-            var elts = [];
+            const elts: Tuple[] = [];
             for (let j = 0; j < slices.length; ++j) {
                 let slc = slices[j];
                 if (slc instanceof Index) {
@@ -1077,9 +1054,9 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
         varargslist: (fpdef ['=' test] ',')* ('*' NAME [',' '**' NAME]
             | '**' NAME) | fpdef ['=' test] (',' fpdef ['=' test])* [',']
     */
-    var ch;
-    var vararg = null;
-    var kwarg = null;
+    let ch: PyNode;
+    let vararg: string = null;
+    let kwarg: string = null;
     if (n.type === SYM.parameters) {
         if (NCH(n) === 2) // () as arglist
             return new Arguments([], null, null, []);
@@ -1087,21 +1064,21 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
     }
     REQ(n, SYM.varargslist);
 
-    var args = [];
-    var defaults = [];
+    const args: Name[] = [];
+    const defaults: Expression[] = [];
 
     /* fpdef: NAME | '(' fplist ')'
         fplist: fpdef (',' fpdef)* [',']
     */
-    var foundDefault = false;
-    var i = 0;
-    var j = 0; // index for defaults
-    var k = 0; // index for args
+    let foundDefault = false;
+    let i = 0;
+    let j = 0; // index for defaults
+    let k = 0; // index for args
     while (i < NCH(n)) {
         ch = CHILD(n, i);
         switch (ch.type) {
             case SYM.fpdef:
-                var complexArgs = 0;
+                let complexArgs = 0;
                 let parenthesized = false;
                 handle_fpdef: while (true) {
                     if (i + 1 < NCH(n) && CHILD(n, i + 1).type === TOK.T_EQUAL) {
@@ -1135,7 +1112,7 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
                     }
                     if (CHILD(ch, 0).type === TOK.T_NAME) {
                         forbiddenCheck(c, n, CHILD(ch, 0).value, n.lineno);
-                        var id = strobj(CHILD(ch, 0).value);
+                        const id = strobj(CHILD(ch, 0).value);
                         args[k++] = new Name(id, Param, ch.lineno, ch.col_offset);
                     }
                     i += 2;
@@ -1184,20 +1161,20 @@ function astForClassBases(c: Compiling, n: PyNode): Expression[] {
 function astForClassdef(c: Compiling, n: PyNode, decoratorSeq: (Attribute | Call | Name)[]) {
     REQ(n, SYM.classdef);
     forbiddenCheck(c, n, CHILD(n, 1).value, n.lineno);
-    var classname = strobj(CHILD(n, 1).value);
+    const classname = strobj(CHILD(n, 1).value);
     if (NCH(n) === 4)
         return new ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.lineno, n.col_offset);
     if (CHILD(n, 3).type === TOK.T_RPAR)
         return new ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.lineno, n.col_offset);
 
-    var bases = astForClassBases(c, CHILD(n, 3));
-    var s = astForSuite(c, CHILD(n, 6));
+    const bases = astForClassBases(c, CHILD(n, 3));
+    const s = astForSuite(c, CHILD(n, 6));
     return new ClassDef(classname, bases, s, decoratorSeq, n.lineno, n.col_offset);
 }
 
 function astForLambdef(c: Compiling, n: PyNode): Lambda {
-    var args;
-    var expression;
+    let args: Arguments;
+    let expression: Expression;
     if (NCH(n) === 3) {
         args = new Arguments([], null, null, []);
         expression = astForExpr(c, CHILD(n, 2));
@@ -1216,8 +1193,8 @@ function astForGenexp(c: Compiling, n: PyNode): GeneratorExp {
     assert(NCH(n) > 1);
 
     function countGenFors(c: Compiling, n: PyNode): number {
-        var nfors = 0;
-        var ch = CHILD(n, 1);
+        let nfors = 0;
+        let ch = CHILD(n, 1);
         count_gen_for: while (true) {
             nfors++;
             REQ(ch, SYM.gen_for);
@@ -1246,7 +1223,7 @@ function astForGenexp(c: Compiling, n: PyNode): GeneratorExp {
     }
 
     function countGenIfs(c: Compiling, n: PyNode): number {
-        var nifs = 0;
+        let nifs = 0;
         while (true) {
             REQ(n, SYM.gen_iter);
             if (CHILD(n, 0).type === SYM.gen_for)
@@ -1260,25 +1237,25 @@ function astForGenexp(c: Compiling, n: PyNode): GeneratorExp {
         }
     }
 
-    var elt = astForExpr(c, CHILD(n, 0));
-    var nfors = countGenFors(c, n);
-    var genexps = [];
-    var ch = CHILD(n, 1);
-    for (var i = 0; i < nfors; ++i) {
+    const elt = astForExpr(c, CHILD(n, 0));
+    const nfors = countGenFors(c, n);
+    const genexps: Comprehension[] = [];
+    let ch = CHILD(n, 1);
+    for (let i = 0; i < nfors; ++i) {
         REQ(ch, SYM.gen_for);
-        var forch = CHILD(ch, 1);
-        var t = astForExprlist(c, forch, Store);
-        var expression = astForExpr(c, CHILD(ch, 3));
-        var ge;
+        const forch = CHILD(ch, 1);
+        const t = astForExprlist(c, forch, Store);
+        let expression = astForExpr(c, CHILD(ch, 3));
+        let ge: Comprehension;
         if (NCH(forch) === 1)
             ge = new Comprehension(t[0], expression, []);
         else
             ge = new Comprehension(new Tuple(t, Store, ch.lineno, ch.col_offset), expression, []);
         if (NCH(ch) === 5) {
             ch = CHILD(ch, 4);
-            var nifs = countGenIfs(c, ch);
-            var ifs = [];
-            for (var j = 0; j < nifs; ++j) {
+            const nifs = countGenIfs(c, ch);
+            const ifs: Expression[] = [];
+            for (let j = 0; j < nifs; ++j) {
                 REQ(ch, SYM.gen_iter);
                 ch = CHILD(ch, 0);
                 REQ(ch, SYM.gen_if);
@@ -1345,11 +1322,11 @@ function astForBinop(c: Compiling, n: PyNode): BinOp {
         BinOp(BinOp(A, op, B), op, C).
     */
     let result = new BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.lineno, n.col_offset);
-    var nops = (NCH(n) - 1) / 2;
-    for (var i = 1; i < nops; ++i) {
-        var nextOper = CHILD(n, i * 2 + 1);
-        var newoperator = getOperator(nextOper);
-        var tmp = astForExpr(c, CHILD(n, i * 2 + 2));
+    const nops = (NCH(n) - 1) / 2;
+    for (let i = 1; i < nops; ++i) {
+        const nextOper = CHILD(n, i * 2 + 1);
+        const newoperator = getOperator(nextOper);
+        const tmp = astForExpr(c, CHILD(n, i * 2 + 2));
         result = new BinOp(result, newoperator, tmp, nextOper.lineno, nextOper.col_offset);
     }
     return result;
@@ -1391,7 +1368,7 @@ function astForExprStmt(c: Compiling, n: PyNode): Expr {
             case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.lineno);
             case Yield: throw syntaxError("augmented assignment to yield expression not possible", n.lineno);
             case Name:
-                var varName = expr1.id;
+                const varName = expr1.id;
                 forbiddenCheck(c, ch, varName, n.lineno);
                 break;
             case Attribute:
@@ -1403,7 +1380,7 @@ function astForExprStmt(c: Compiling, n: PyNode): Expr {
         setContext(c, expr1, Store, ch);
 
         ch = CHILD(n, 2);
-        var expr2;
+        let expr2: Expression;
         if (ch.type === SYM.testlist)
             expr2 = astForTestlist(c, ch);
         else
@@ -1418,12 +1395,12 @@ function astForExprStmt(c: Compiling, n: PyNode): Expr {
         for (let i = 0; i < NCH(n) - 2; i += 2) {
             const ch = CHILD(n, i);
             if (ch.type === SYM.YieldExpr) throw syntaxError("assignment to yield expression not possible", n.lineno);
-            var e = astForTestlist(c, ch);
+            const e = astForTestlist(c, ch);
             setContext(c, e, Store, CHILD(n, i));
             targets[i / 2] = e;
         }
-        var value = CHILD(n, NCH(n) - 1);
-        var expression;
+        const value = CHILD(n, NCH(n) - 1);
+        let expression: Expression;
         if (value.type === SYM.testlist)
             expression = astForTestlist(c, value);
         else
@@ -1454,10 +1431,10 @@ function parsestr(c: Compiling, s: string): string {
     // const encodeUtf8 = function(s) { return unescape(encodeURIComponent(s)); };
     const decodeUtf8 = function (s: string) { return decodeURIComponent(escape(s)); };
     const decodeEscape = function (s: string, quote: string) {
-        var len = s.length;
-        var ret = '';
-        for (var i = 0; i < len; ++i) {
-            var c = s.charAt(i);
+        const len = s.length;
+        let ret = '';
+        for (let i = 0; i < len; ++i) {
+            let c = s.charAt(i);
             if (c === '\\') {
                 ++i;
                 c = s.charAt(i);
@@ -1496,8 +1473,8 @@ function parsestr(c: Compiling, s: string): string {
         return ret;
     };
 
-    var quote = s.charAt(0);
-    var rawmode = false;
+    let quote = s.charAt(0);
+    let rawmode = false;
 
     if (quote === 'u' || quote === 'U') {
         s = s.substr(1);
@@ -1543,7 +1520,7 @@ function parsestrplus(c: Compiling, n: PyNode): string {
 }
 
 function parsenumber(c: Compiling, s: string, lineno: number): INumericLiteral {
-    var end = s.charAt(s.length - 1);
+    const end = s.charAt(s.length - 1);
 
     if (end === 'j' || end === 'J') {
         throw syntaxError("complex numbers are currently unsupported", lineno);
@@ -1554,10 +1531,10 @@ function parsenumber(c: Compiling, s: string, lineno: number): INumericLiteral {
     }
 
     // Handle integers of various bases
-    var tmp = s;
-    var value;
-    var radix = 10;
-    var neg = false;
+    let tmp = s;
+    let value: number;
+    let radix = 10;
+    let neg = false;
     if (s.charAt(0) === '-') {
         tmp = s.substr(1);
         neg = true;
@@ -1645,7 +1622,7 @@ function astForSlice(c: Compiling, n: PyNode): Ellipsis | Index | Name | Slice {
         lower = astForExpr(c, ch);
     if (ch.type === TOK.T_COLON) {
         if (NCH(n) > 1) {
-            var n2 = CHILD(n, 1);
+            const n2 = CHILD(n, 1);
             if (n2.type === SYM.IfExpr)
                 upper = astForExpr(c, n2);
         }
@@ -1707,9 +1684,9 @@ function astForAtomExpr(c: Compiling, n: PyNode): Name | Expression {
             /* dictmaker: test ':' test (',' test ':' test)* [','] */
             ch = CHILD(n, 1);
             // var size = Math.floor((NCH(ch) + 1) / 4); // + 1 for no trailing comma case
-            var keys = [];
-            var values = [];
-            for (var i = 0; i < NCH(ch); i += 4) {
+            const keys: Expression[] = [];
+            const values: Expression[] = [];
+            for (let i = 0; i < NCH(ch); i += 4) {
                 keys[i / 4] = astForExpr(c, CHILD(ch, i));
                 values[i / 4] = astForExpr(c, CHILD(ch, i + 2));
             }
@@ -1737,7 +1714,7 @@ function astForPowerExpr(c: Compiling, n: PyNode): Name | Expression {
         e = tmp;
     }
     if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr) {
-        var f = astForExpr(c, CHILD(n, NCH(n) - 1));
+        const f = astForExpr(c, CHILD(n, NCH(n) - 1));
         return new BinOp(e, Pow, f, n.lineno, n.col_offset);
     }
     else {
@@ -1804,7 +1781,7 @@ function astForExpr(c: Compiling, n: PyNode): Expression {
                 }
                 return astForBinop(c, n);
             case SYM.YieldExpr:
-                var exp = null;
+                let exp: Expression = null;
                 if (NCH(n) === 2) {
                     exp = astForTestlist(c, CHILD(n, 1));
                 }
@@ -1825,18 +1802,18 @@ function astForExpr(c: Compiling, n: PyNode): Expression {
 }
 
 function astForPrintStmt(c: Compiling, n: PyNode): Print {
-    var start = 1;
-    var dest = null;
+    let start = 1;
+    let dest: Expression = null;
     REQ(n, SYM.print_stmt);
     if (NCH(n) >= 2 && CHILD(n, 1).type === TOK.T_RIGHTSHIFT) {
         dest = astForExpr(c, CHILD(n, 2));
         start = 4;
     }
-    var seq = [];
-    for (var i = start, j = 0; i < NCH(n); i += 2, ++j) {
+    const seq: Expression[] = [];
+    for (let i = start, j = 0; i < NCH(n); i += 2, ++j) {
         seq[j] = astForExpr(c, CHILD(n, i));
     }
-    var nl = (CHILD(n, NCH(n) - 1)).type === TOK.T_COMMA ? false : true;
+    const nl = (CHILD(n, NCH(n) - 1)).type === TOK.T_COMMA ? false : true;
     return new Print(dest, seq, nl, n.lineno, n.col_offset);
 }
 
@@ -1869,7 +1846,7 @@ function astForStmt(c: Compiling, n: PyNode) {
         }
     }
     else {
-        var ch = CHILD(n, 0);
+        const ch = CHILD(n, 0);
         REQ(n, SYM.compound_stmt);
         switch (ch.type) {
             case SYM.if_stmt: return astForIfStmt(c, ch);
@@ -1894,19 +1871,19 @@ export function astFromParse(n: PyNode): Module {
     let k = 0;
     switch (n.type) {
         case SYM.file_input:
-            for (var i = 0; i < NCH(n) - 1; ++i) {
+            for (let i = 0; i < NCH(n) - 1; ++i) {
                 let ch = CHILD(n, i);
                 if (n.type === TOK.T_NEWLINE)
                     continue;
                 REQ(ch, SYM.stmt);
-                var num = numStmts(ch);
+                const num = numStmts(ch);
                 if (num === 1) {
                     stmts[k++] = astForStmt(c, ch);
                 }
                 else {
                     ch = CHILD(ch, 0);
                     REQ(ch, SYM.simple_stmt);
-                    for (var j = 0; j < num; ++j) {
+                    for (let j = 0; j < num; ++j) {
                         stmts[k++] = astForStmt(c, CHILD(ch, j * 2));
                     }
                 }
@@ -1925,7 +1902,7 @@ export function astFromParse(n: PyNode): Module {
 }
 
 export function astDump(node: Module): string {
-    var _format = function (node: any): string {
+    const _format = function (node: any): string {
         if (node === null) {
             return "None";
         }
@@ -1933,31 +1910,31 @@ export function astDump(node: Module): string {
             return node.prototype._astname + "()";
         }
         else if (node._astname !== undefined) {
-            var fields = [];
+            const fields = [];
             for (let i = 0; i < node._fields.length; i += 2) {
-                var a = node._fields[i]; // field name
-                var b = node._fields[i + 1](node); // field getter func
+                const a = node._fields[i]; // field name
+                const b = node._fields[i + 1](node); // field getter func
                 fields.push([a, _format(b)]);
             }
-            var attrs = [];
+            const attrs: string[] = [];
             for (let i = 0; i < fields.length; ++i) {
-                var field = fields[i];
+                const field = fields[i];
                 attrs.push(field[0] + "=" + field[1].replace(/^\s+/, ''));
             }
-            var fieldstr = attrs.join(',');
+            const fieldstr = attrs.join(',');
             return node._astname + "(" + fieldstr + ")";
         }
         else if (isArrayLike(node)) {
-            var elems = [];
+            const elems = [];
             for (let i = 0; i < node.length; ++i) {
-                var x = node[i];
+                const x = node[i];
                 elems.push(_format(x));
             }
-            var elemsstr = elems.join(',');
+            const elemsstr = elems.join(',');
             return "[" + elemsstr.replace(/^\s+/, '') + "]";
         }
         else {
-            var ret;
+            let ret: string;
             if (node === true) ret = "True";
             else if (node === false) ret = "False";
             //          else if (Sk.ffi.isLong(node)) ret = Sk.ffi.remapToJs(node.tp$str());

@@ -9,7 +9,7 @@ export function syntaxError(message: string, lineNumber?: number) {
     if (isDef(lineNumber)) {
         assert(isNumber(lineNumber), "lineNumber must be a number");
     }
-    var e = new SyntaxError(message/*, fileName*/);
+    const e = new SyntaxError(message/*, fileName*/);
     if (typeof lineNumber === 'number') {
         e['lineNumber'] = lineNumber;
     }

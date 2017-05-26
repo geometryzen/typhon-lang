@@ -151,13 +151,12 @@ var indent;
  */
 var space;
 function updateDeeply(target, override) {
-    var key, val;
     function isHashObject(target) {
         return typeof target === 'object' && target instanceof Object && !(target instanceof RegExp);
     }
-    for (key in override) {
+    for (var key in override) {
         if (override.hasOwnProperty(key)) {
-            val = override[key];
+            var val = override[key];
             if (isHashObject(val)) {
                 if (isHashObject(target[key])) {
                     updateDeeply(target[key], val);
@@ -526,7 +525,7 @@ var Compiler = (function () {
             return toStringLiteralJS_1.toStringLiteralJS(e.s);
         }
         else if (e instanceof types_3.Attribute) {
-            var val;
+            var val = void 0;
             if (e.ctx !== types_6.AugStore)
                 val = this.vexpr(e.value);
             var mangled = toStringLiteralJS_1.toStringLiteralJS(e.attr);
@@ -564,8 +563,8 @@ var Compiler = (function () {
                     return this.vslice(e.slice, e.ctx, this.vexpr(e.value), data);
                 case types_6.AugStore: {
                     out("if(typeof ", data, " !== 'undefined'){"); // special case to avoid re-store if inplace worked
-                    var val_1 = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
-                    this.vslice(e.slice, e.ctx, val_1, data);
+                    var val = this.vexpr(augstoreval || null); // the || null can never happen, but closure thinks we can get here with it being undef
+                    this.vslice(e.slice, e.ctx, val, data);
                     out("}");
                     break;
                 }
@@ -696,10 +695,10 @@ var Compiler = (function () {
         unit.localnames.sort();
         var output = [];
         for (var i = 0; i < unit.localnames.length; ++i) {
-            var name = unit.localnames[i];
-            if (have[name] === undefined) {
-                output.push(name);
-                have[name] = true;
+            var name_1 = unit.localnames[i];
+            if (have[name_1] === undefined) {
+                output.push(name_1);
+                have[name_1] = true;
             }
         }
         if (output.length > 0)
@@ -956,9 +955,9 @@ var Compiler = (function () {
             names[i] = s.names[i].name;
         }
         // const namesString = names.map(function(name) { return toStringLiteralJS(name); }).join(', ');
-        for (var i_1 = 0; i_1 < n; ++i_1) {
-            var alias = s.names[i_1];
-            if (i_1 === 0 && alias.name === "*") {
+        for (var i = 0; i < n; ++i) {
+            var alias = s.names[i];
+            if (i === 0 && alias.name === "*") {
                 asserts_1.assert(n === 1);
                 out("import * from " + toStringLiteralJS_1.toStringLiteralJS(s.module) + ";");
                 return;
@@ -1085,8 +1084,8 @@ var Compiler = (function () {
         // copy all parameters that are also cells into the cells dict. this is so
         // they can be accessed correctly by nested scopes.
         //
-        for (var i_2 = 0; args && i_2 < args.args.length; ++i_2) {
-            var id = args.args[i_2].id;
+        for (var i = 0; args && i < args.args.length; ++i) {
+            var id = args.args[i].id;
             if (this.isCell(id)) {
                 this.u.varDeclsCode += "$cell." + id + " = " + id + ";";
             }
@@ -1111,9 +1110,9 @@ var Compiler = (function () {
             // than args we offset to make them match up (we don't need another
             // correlation in the ast)
             var offset = args.args.length - defaults.length;
-            for (var i_3 = 0; i_3 < defaults.length; ++i_3) {
-                var argname = this.nameop(args.args[i_3 + offset].id, types_36.Param);
-                this.u.varDeclsCode += "if(typeof " + argname + " === 'undefined')" + argname + " = " + scopename + ".$defaults[" + i_3 + "];";
+            for (var i = 0; i < defaults.length; ++i) {
+                var argname = this.nameop(args.args[i + offset].id, types_36.Param);
+                this.u.varDeclsCode += "if(typeof " + argname + " === 'undefined')" + argname + " = " + scopename + ".$defaults[" + i + "];";
             }
         }
         //
@@ -1150,8 +1149,8 @@ var Compiler = (function () {
         var argnames;
         if (args && args.args.length > 0) {
             var argnamesarr = [];
-            for (var i_4 = 0; i_4 < args.args.length; ++i_4) {
-                argnamesarr.push(args.args[i_4].id);
+            for (var i = 0; i < args.args.length; ++i) {
+                argnamesarr.push(args.args[i].id);
             }
             argnames = argnamesarr.join("', '");
             // store to unit so we know what local variables not to declare
@@ -1300,7 +1299,7 @@ var Compiler = (function () {
     };
     Compiler.prototype.cclass = function (s, flags) {
         asserts_1.assert(s instanceof types_11.ClassDef);
-        // var decos = s.decorator_list;
+        // const decos = s.decorator_list;
         // decorators and bases need to be eval'd out here
         // this.vseqexpr(decos);
         var bases = this.vseqexpr(s.bases);
@@ -1418,8 +1417,9 @@ var Compiler = (function () {
     Compiler.prototype.isCell = function (name) {
         var mangled = mangleName(this.u.private_, name);
         var scope = this.u.ste.getScope(mangled);
-        if (scope === SymbolConstants_5.CELL)
+        if (scope === SymbolConstants_5.CELL) {
             return true;
+        }
         return false;
     };
     Compiler.prototype.nameop = function (name, ctx, dataToStore) {
@@ -1639,9 +1639,9 @@ function fixReservedNames(name) {
     return name;
 }
 /**
- * @param {string} priv
- * @param {string} name
- * @return {string} The mangled name.
+ * @param priv
+ * @param name
+ * @return The mangled name.
  */
 function mangleName(priv, name) {
     var strpriv = null;

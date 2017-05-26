@@ -80,10 +80,10 @@ export class SymbolTableScope {
     get_identifiers() { return this._identsMatching(function (x) { return true; }); }
 
     lookup(name: string) {
-        var sym;
+        let sym: Symbol;
         if (!this.symbols.hasOwnProperty(name)) {
             const flags = this.symFlags[name];
-            var namespaces = this.__check_children(name);
+            const namespaces = this.__check_children(name);
             sym = this.symbols[name] = new Symbol(name, flags, namespaces);
         }
         else {
@@ -92,11 +92,11 @@ export class SymbolTableScope {
         return sym;
     }
 
-    __check_children(name: string): any[] {
+    __check_children(name: string): SymbolTableScope[] {
         // print("  check_children:", name);
-        var ret = [];
-        for (var i = 0; i < this.children.length; ++i) {
-            var child = this.children[i];
+        const ret: SymbolTableScope[] = [];
+        for (let i = 0; i < this.children.length; ++i) {
+            const child = this.children[i];
             if (child.name === name)
                 ret.push(child);
         }
@@ -105,7 +105,7 @@ export class SymbolTableScope {
 
     _identsMatching(f: (flags: number) => boolean): string[] {
         const ret: string[] = [];
-        for (var k in this.symFlags) {
+        for (let k in this.symFlags) {
             if (this.symFlags.hasOwnProperty(k)) {
                 if (f(this.symFlags[k]))
                     ret.push(k);
@@ -129,7 +129,7 @@ export class SymbolTableScope {
         return this._funcLocals;
     }
 
-    get_globals() {
+    get_globals(): string[] {
         assert(this.get_type() === 'function', "get_globals only valid for function scopes");
         if (!this._funcGlobals) {
             this._funcGlobals = this._identsMatching(function (x) {
@@ -140,11 +140,11 @@ export class SymbolTableScope {
         return this._funcGlobals;
     }
 
-    get_frees() {
+    get_frees(): string[] {
         assert(this.get_type() === 'function', "get_frees only valid for function scopes");
         if (!this._funcFrees) {
             this._funcFrees = this._identsMatching(function (x) {
-                var masked = (x >> SCOPE_OFF) & SCOPE_MASK;
+                const masked = (x >> SCOPE_OFF) & SCOPE_MASK;
                 return masked === FREE;
             });
         }
@@ -156,7 +156,7 @@ export class SymbolTableScope {
         if (!this._classMethods) {
             // todo; uniq?
             const all: string[] = [];
-            for (var i = 0; i < this.children.length; ++i)
+            for (let i = 0; i < this.children.length; ++i)
                 all.push(this.children[i].name);
             all.sort();
             this._classMethods = all;
@@ -167,7 +167,7 @@ export class SymbolTableScope {
     getScope(name: string): number {
         // print("getScope");
         // for (var k in this.symFlags) print(k);
-        var v = this.symFlags[name];
+        const v = this.symFlags[name];
         if (v === undefined) return 0;
         return (v >> SCOPE_OFF) & SCOPE_MASK;
     }

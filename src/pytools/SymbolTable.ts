@@ -110,30 +110,30 @@ export class SymbolTable {
      */
     getStsForAst(ast: { scopeId: number }) {
         assert(ast.scopeId !== undefined, "ast wasn't added to st?");
-        var v = this.stss[ast.scopeId];
+        const v = this.stss[ast.scopeId];
         assert(v !== undefined, "unknown sym tab entry");
         return v;
     }
 
     SEQStmt(nodes: Statement[]): void {
-        var len = nodes.length;
-        for (var i = 0; i < len; ++i) {
-            var val = nodes[i];
+        const len = nodes.length;
+        for (let i = 0; i < len; ++i) {
+            const val = nodes[i];
             if (val) this.visitStmt(val);
         }
     }
 
     SEQExpr(nodes: Expression[]): void {
-        var len = nodes.length;
-        for (var i = 0; i < len; ++i) {
-            var val = nodes[i];
+        const len = nodes.length;
+        for (let i = 0; i < len; ++i) {
+            const val = nodes[i];
             if (val) this.visitExpr(val);
         }
     }
 
     enterBlock(name: string, blockType: BlockType, ast: { scopeId: number }, lineno: number) {
         //  name = fixReservedNames(name);
-        var prev = null;
+        let prev: SymbolTableScope = null;
         if (this.cur) {
             prev = this.cur;
             this.stack.push(this.cur);
@@ -195,9 +195,9 @@ export class SymbolTable {
      * @return {void}
      */
     addDef(name: string, flag: number, lineno: number): void {
-        var mangled = mangleName(this.curClass, name);
+        const mangled = mangleName(this.curClass, name);
         //  mangled = fixReservedNames(mangled);
-        var val = this.cur.symFlags[mangled];
+        let val = this.cur.symFlags[mangled];
         if (val !== undefined) {
             if ((flag & DEF_PARAM) && (val & DEF_PARAM)) {
                 throw syntaxError("duplicate argument '" + name + "' in function definition", lineno);
@@ -213,7 +213,7 @@ export class SymbolTable {
         }
         else if (flag & DEF_GLOBAL) {
             val = flag;
-            var fromGlobal = this.global[mangled];
+            const fromGlobal = this.global[mangled];
             if (fromGlobal !== undefined) val |= fromGlobal;
             this.global[mangled] = val;
         }
@@ -226,7 +226,7 @@ export class SymbolTable {
             if (s.step) this.visitExpr(s.step);
         }
         else if (s instanceof ExtSlice) {
-            for (var i = 0; i < s.dims.length; ++i) {
+            for (let i = 0; i < s.dims.length; ++i) {
                 this.visitSlice(s.dims[i]);
             }
         }
@@ -257,7 +257,7 @@ export class SymbolTable {
             this.SEQExpr(s.bases);
             if (s.decorator_list) this.SEQExpr(s.decorator_list);
             this.enterBlock(s.name, ClassBlock, s, s.lineno);
-            var tmp = this.curClass;
+            const tmp = this.curClass;
             this.curClass = s.name;
             this.SEQStmt(s.body);
             this.curClass = tmp;
@@ -345,11 +345,11 @@ export class SymbolTable {
             }
         }
         else if (s instanceof Global) {
-            var nameslen = s.names.length;
-            for (var i = 0; i < nameslen; ++i) {
-                var name = mangleName(this.curClass, s.names[i]);
+            const nameslen = s.names.length;
+            for (let i = 0; i < nameslen; ++i) {
+                const name = mangleName(this.curClass, s.names[i]);
                 //              name = fixReservedNames(name);
-                var cur = this.cur.symFlags[name];
+                const cur = this.cur.symFlags[name];
                 if (cur & (DEF_LOCAL | USE)) {
                     if (cur & DEF_LOCAL) {
                         throw syntaxError("name '" + name + "' is assigned to before global declaration", s.lineno);
@@ -434,7 +434,7 @@ export class SymbolTable {
         else if (e instanceof Call) {
             this.visitExpr(e.func);
             this.SEQExpr(e.args);
-            for (var i = 0; i < e.keywords.length; ++i)
+            for (let i = 0; i < e.keywords.length; ++i)
                 this.visitExpr(e.keywords[i].value);
             // print(JSON.stringify(e.starargs, null, 2));
             // print(JSON.stringify(e.kwargs, null,2));
@@ -463,9 +463,9 @@ export class SymbolTable {
     }
 
     visitComprehension(lcs: Comprehension[], startAt: number) {
-        var len = lcs.length;
-        for (var i = startAt; i < len; ++i) {
-            var lc = lcs[i];
+        const len = lcs.length;
+        for (let i = startAt; i < len; ++i) {
+            const lc = lcs[i];
             this.visitExpr(lc.target);
             this.visitExpr(lc.iter);
             this.SEQExpr(lc.ifs);
@@ -482,12 +482,12 @@ export class SymbolTable {
             operation.  It is diferent than a->name when a->name is a
             dotted package name (e.g. spam.eggs)
         */
-        for (var i = 0; i < names.length; ++i) {
-            var a = names[i];
+        for (let i = 0; i < names.length; ++i) {
+            const a = names[i];
             // DGH: The RHS used to be Python strings.
-            var name = a.asname === null ? a.name : a.asname;
-            var storename = name;
-            var dot = name.indexOf('.');
+            const name = a.asname === null ? a.name : a.asname;
+            let storename = name;
+            const dot = name.indexOf('.');
             if (dot !== -1)
                 storename = name.substr(0, dot);
             if (name !== "*") {
@@ -505,7 +505,7 @@ export class SymbolTable {
      *
      */
     visitGenexp(e: GeneratorExp) {
-        var outermost = e.generators[0];
+        const outermost = e.generators[0];
         // outermost is evaled in current scope
         this.visitExpr(outermost.iter);
         this.enterBlock("genexpr", FunctionBlock, e, e.lineno);
@@ -519,7 +519,7 @@ export class SymbolTable {
     }
 
     visitExcepthandlers(handlers: ExceptHandler[]) {
-        for (var i = 0, eh; eh = handlers[i]; ++i) {
+        for (let i = 0, eh; eh = handlers[i]; ++i) {
             if (eh.type) this.visitExpr(eh.type);
             if (eh.name) this.visitExpr(eh.name);
             this.SEQStmt(eh.body);
@@ -530,11 +530,11 @@ export class SymbolTable {
      * @param ste The Symbol Table Scope.
      */
     analyzeBlock(ste: SymbolTableScope, bound: {}, free: {}, global: {}) {
-        var local = {};
-        var scope: { [name: string]: DictionaryKind } = {};
-        var newglobal = {};
-        var newbound = {};
-        var newfree = {};
+        const local = {};
+        const scope: { [name: string]: DictionaryKind } = {};
+        const newglobal = {};
+        const newbound = {};
+        const newfree = {};
 
         if (ste.blockType === ClassBlock) {
             dictUpdate(newglobal, global);
@@ -557,10 +557,10 @@ export class SymbolTable {
             dictUpdate(newglobal, global);
         }
 
-        var allfree = {};
-        var childlen = ste.children.length;
-        for (var i = 0; i < childlen; ++i) {
-            var c = ste.children[i];
+        const allfree = {};
+        const childlen = ste.children.length;
+        for (let i = 0; i < childlen; ++i) {
+            const c = ste.children[i];
             this.analyzeChildBlock(c, newbound, newfree, newglobal, allfree);
             if (c.hasFree || c.childHasFree)
                 ste.childHasFree = true;
@@ -574,11 +574,11 @@ export class SymbolTable {
     }
 
     analyzeChildBlock(entry: SymbolTableScope, bound: {}, free: {}, global: {}, childFree: {}) {
-        var tempBound = {};
+        const tempBound = {};
         dictUpdate(tempBound, bound);
-        var tempFree = {};
+        const tempFree = {};
         dictUpdate(tempFree, free);
-        var tempGlobal = {};
+        const tempGlobal = {};
         dictUpdate(tempGlobal, global);
 
         this.analyzeBlock(entry, tempBound, tempFree, tempGlobal);
@@ -665,9 +665,9 @@ export class SymbolTable {
         }
     }
 
-    analyze() {
-        var free = {};
-        var global = {};
+    analyze(): void {
+        const free = {};
+        const global = {};
         this.analyzeBlock(this.top, null, free, global);
     }
 }

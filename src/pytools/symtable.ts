@@ -62,8 +62,8 @@ export function dumpSymbolTable(st: SymbolTable): string {
         return b ? "True" : "False";
     };
     const pyList = function (l: string[]) {
-        var ret = [];
-        for (var i = 0; i < l.length; ++i) {
+        const ret: string[] = [];
+        for (let i = 0; i < l.length; ++i) {
             // TODO: Originally, this computed the Python repr().
             ret.push(l[i]);
         }
@@ -71,7 +71,7 @@ export function dumpSymbolTable(st: SymbolTable): string {
     };
     const getIdents = function (obj: SymbolObj, indent: string): string {
         if (indent === undefined) indent = "";
-        var ret = "";
+        let ret = "";
         ret += indent + "Sym_type: " + obj.get_type() + "\n";
         ret += indent + "Sym_name: " + obj.get_name() + "\n";
         ret += indent + "Sym_lineno: " + obj.get_lineno() + "\n";
@@ -87,10 +87,10 @@ export function dumpSymbolTable(st: SymbolTable): string {
             ret += indent + "Func_frees: " + pyList(obj.get_frees()) + "\n";
         }
         ret += indent + "-- Identifiers --\n";
-        var objidents = obj.get_identifiers();
-        var objidentslen = objidents.length;
-        for (var i = 0; i < objidentslen; ++i) {
-            var info = obj.lookup(objidents[i]);
+        const objidents = obj.get_identifiers();
+        const objidentslen = objidents.length;
+        for (let i = 0; i < objidentslen; ++i) {
+            const info = obj.lookup(objidents[i]);
             ret += indent + "name: " + info.get_name() + "\n";
             ret += indent + "  is_referenced: " + pyBoolStr(info.is_referenced()) + "\n";
             ret += indent + "  is_imported: " + pyBoolStr(info.is_imported()) + "\n";
@@ -101,12 +101,12 @@ export function dumpSymbolTable(st: SymbolTable): string {
             ret += indent + "  is_free: " + pyBoolStr(info.is_free()) + "\n";
             ret += indent + "  is_assigned: " + pyBoolStr(info.is_assigned()) + "\n";
             ret += indent + "  is_namespace: " + pyBoolStr(info.is_namespace()) + "\n";
-            var nss = info.get_namespaces();
-            var nsslen = nss.length;
+            const nss = info.get_namespaces();
+            const nsslen = nss.length;
             ret += indent + "  namespaces: [\n";
-            var sub = [];
-            for (var j = 0; j < nsslen; ++j) {
-                var ns = nss[j];
+            const sub: string[] = [];
+            for (let j = 0; j < nsslen; ++j) {
+                const ns = nss[j];
                 sub.push(getIdents(ns, indent + "    "));
             }
             ret += sub.join('\n');

@@ -111,16 +111,14 @@ export class Tokenizer {
     indents: number[];
     endprog: RegExp;
     strstart: number[];
-    interactive: boolean;
-    doneFunc: () => any;
     /**
-     * Not sure who needs this yet.
+     * Probably used for REPL support.
      */
-    static Tokens = Tokens;
+    interactive: boolean;
+    doneFunc: () => 'done' | 'failed';
 
     /**
-     * @constructor
-     * @param {string} fileName
+     *
      */
     constructor(interactive: boolean, callback: TokenizerCallback) {
         this.callback = callback;
@@ -136,8 +134,8 @@ export class Tokenizer {
         this.endprog = /.*/;
         this.strstart = [-1, -1];
         this.interactive = interactive;
-        this.doneFunc = function () {
-            for (var i = 1; i < this.indents.length; ++i) {
+        this.doneFunc = function doneOrFailed(): 'done' | 'failed' {
+            for (let i = 1; i < this.indents.length; ++i) {
                 if (this.callback(Tokens.T_DEDENT, '', [this.lnum, 0], [this.lnum, 0], '')) return 'done';
             }
             if (this.callback(Tokens.T_ENDMARKER, '', [this.lnum, 0], [this.lnum, 0], '')) return 'done';
@@ -147,27 +145,26 @@ export class Tokenizer {
     }
 
     /**
-     * @method generateTokens
-     * @param line {string}
-     * @return {boolean | string} 'done' or true?
+     * @param line
+     * @return 'done' or 'failed' or true?
      */
-    generateTokens(line: string): boolean | string {
-        var endmatch;
+    generateTokens(line: string): boolean | 'done' | 'failed' {
+        let endmatch: boolean;
         let pos: number;
         let column: number;
-        let end;
-        let max;
+        let end: number;
+        let max: number;
 
 
         // bnm - Move these definitions in this function otherwise test state is preserved between
         // calls on single3prog and double3prog causing weird errors with having multiple instances
         // of triple quoted strings in the same program.
 
-        var pseudoprog = new RegExp(PseudoToken);
-        var single3prog = new RegExp(Single3, "g");
-        var double3prog = new RegExp(Double3, "g");
+        const pseudoprog = new RegExp(PseudoToken);
+        const single3prog = new RegExp(Single3, "g");
+        const double3prog = new RegExp(Double3, "g");
 
-        var endprogs: { [code: string]: RegExp } = {
+        const endprogs: { [code: string]: RegExp } = {
             "'": new RegExp(Single, "g"), '"': new RegExp(Double_, "g"),
             "'''": single3prog, '"""': double3prog,
             "r'''": single3prog, 'r"""': double3prog,
@@ -239,8 +236,8 @@ export class Tokenizer {
 
             if ("#\r\n".indexOf(line.charAt(pos)) !== -1) {
                 if (line.charAt(pos) === '#') {
-                    var comment_token = rstrip(line.substring(pos), '\r\n');
-                    var nl_pos = pos + comment_token.length;
+                    const comment_token = rstrip(line.substring(pos), '\r\n');
+                    const nl_pos = pos + comment_token.length;
                     if (this.callback(Tokens.T_COMMENT, comment_token, [this.lnum, pos], [this.lnum, pos + comment_token.length], line)) {
                         return 'done';
                     }
@@ -283,26 +280,26 @@ export class Tokenizer {
             // js regexes don't return any info about matches, other than the
             // content. we'd like to put a \w+ before pseudomatch, but then we
             // can't get any data
-            var capos = line.charAt(pos);
+            let capos = line.charAt(pos);
             while (capos === ' ' || capos === '\f' || capos === '\t') {
                 pos += 1;
                 capos = line.charAt(pos);
             }
             pseudoprog.lastIndex = 0;
-            var pseudomatch = pseudoprog.exec(line.substring(pos));
+            const pseudomatch = pseudoprog.exec(line.substring(pos));
             if (pseudomatch) {
-                var start = pos;
+                const start = pos;
                 end = start + pseudomatch[1].length;
-                var spos = [this.lnum, start];
-                var epos = [this.lnum, end];
+                const spos = [this.lnum, start];
+                const epos = [this.lnum, end];
                 pos = end;
-                var token = line.substring(start, end);
-                var initial = line.charAt(start);
+                const token = line.substring(start, end);
+                const initial = line.charAt(start);
                 if (this.numchars.indexOf(initial) !== -1 || (initial === '.' && token !== '.')) {
                     if (this.callback(Tokens.T_NUMBER, token, spos, epos, line)) return 'done';
                 }
                 else if (initial === '\r' || initial === '\n') {
-                    var newl = Tokens.T_NEWLINE;
+                    let newl = Tokens.T_NEWLINE;
                     if (this.parenlev > 0) newl = Tokens.T_NL;
                     if (this.callback(newl, token, spos, epos, line)) return 'done';
                 }
@@ -315,7 +312,7 @@ export class Tokenizer {
                     endmatch = this.endprog.test(line.substring(pos));
                     if (endmatch) {
                         pos = this.endprog.lastIndex + pos;
-                        token = line.substring(start, pos);
+                        const token = line.substring(start, pos);
                         if (this.callback(Tokens.T_STRING, token, spos, [this.lnum, pos], line)) return 'done';
                     }
                     else {
@@ -367,7 +364,7 @@ export class Tokenizer {
 
 /** @param {...*} x */
 function group(x: string, arg1?: string, arg2?: string, arg3?: string, arg4?: string, arg5?: string, arg6?: string, arg7?: string, arg8?: string, arg9?: string) {
-    var args = Array.prototype.slice.call(arguments);
+    const args = Array.prototype.slice.call(arguments);
     return '(' + args.join('|') + ')';
 }
 
@@ -378,7 +375,7 @@ function group(x: string, arg1?: string, arg2?: string, arg3?: string, arg4?: st
 function maybe(x: string) { return group.apply(null, arguments) + "?"; }
 
 function contains<T>(a: T[], obj: T): boolean {
-    var i = a.length;
+    let i = a.length;
     while (i--) {
         if (a[i] === obj) {
             return true;
@@ -388,7 +385,8 @@ function contains<T>(a: T[], obj: T): boolean {
 }
 
 function rstrip(input: string, what: string): string {
-    for (var i = input.length; i > 0; --i) {
+    let i: number;
+    for (i = input.length; i > 0; --i) {
         if (what.indexOf(input.charAt(i - 1)) === -1) break;
     }
     return input.substring(0, i);
@@ -407,7 +405,7 @@ function indentationError(message: string, begin: number[], end: number[], text:
     if (!isArray(end)) {
         throw new Error("end must be Array.<number>");
     }
-    var e = new SyntaxError(message/*, fileName*/);
+    const e = new SyntaxError(message/*, fileName*/);
     e.name = "IndentationError";
     if (isDef(begin)) {
         e['lineNumber'] = begin[0];

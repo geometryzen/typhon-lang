@@ -28,6 +28,9 @@ export interface Grammar {
     sym: {
         [name: string]: number;
     };
+    /**
+     * A lookup table for converting the value in the `sym` mapping back to a string.
+     */
     number2symbol: {
         [value: number]: string;
     };
@@ -42,6 +45,10 @@ export declare type ParseContext = [LineColumn, LineColumn, string];
  * The parse tree (not the abstract syntax tree).
  */
 export interface PyNode {
+    /**
+     * For terminals, the type is defined in the Tokens enumeration.
+     * For non-terminals, the type is defined in the generated ParseTables.
+     */
     type: Tokens;
     value: string | null;
     context?: any;

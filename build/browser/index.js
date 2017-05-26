@@ -349,17 +349,17 @@ var ParseTables = {
                 37: 1 }],
         258: [[[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
-        259: [[[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
-                [[0, 1]],
-                [[41, 7], [42, 1]],
-                [[43, 1], [44, 8], [45, 8]],
-                [[46, 9], [47, 1]],
+        259: [[[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
+                [[18, 1], [0, 1]],
+                [[0, 2]],
+                [[41, 7], [42, 2]],
+                [[43, 2], [44, 8], [45, 8]],
+                [[46, 9], [47, 2]],
                 [[48, 10]],
-                [[18, 6], [0, 6]],
-                [[42, 1]],
-                [[43, 1]],
-                [[47, 1]],
-                [[14, 1]]],
+                [[42, 2]],
+                [[43, 2]],
+                [[47, 2]],
+                [[14, 2]]],
             { 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 29: 1, 32: 1 }],
         260: [[[[49, 1]], [[50, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
@@ -519,8 +519,8 @@ var ParseTables = {
         283: [[[[97, 1],
                     [98, 1],
                     [7, 2],
-                    [97, 1],
                     [99, 1],
+                    [97, 1],
                     [100, 1],
                     [101, 1],
                     [102, 3],
@@ -1029,17 +1029,17 @@ var ParseTables = {
     states: [[[[1, 1], [2, 1], [3, 2]], [[0, 1]], [[2, 1]]],
         [[[38, 1]], [[39, 0], [0, 1]]],
         [[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
-        [[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
-            [[0, 1]],
-            [[41, 7], [42, 1]],
-            [[43, 1], [44, 8], [45, 8]],
-            [[46, 9], [47, 1]],
+        [[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
+            [[18, 1], [0, 1]],
+            [[0, 2]],
+            [[41, 7], [42, 2]],
+            [[43, 2], [44, 8], [45, 8]],
+            [[46, 9], [47, 2]],
             [[48, 10]],
-            [[18, 6], [0, 6]],
-            [[42, 1]],
-            [[43, 1]],
-            [[47, 1]],
-            [[14, 1]]],
+            [[42, 2]],
+            [[43, 2]],
+            [[47, 2]],
+            [[14, 2]]],
         [[[49, 1]], [[50, 0], [0, 1]]],
         [[[51, 1]], [[52, 0], [0, 1]]],
         [[[53, 1]], [[54, 0], [0, 1]]],
@@ -1102,8 +1102,8 @@ var ParseTables = {
         [[[97, 1],
                 [98, 1],
                 [7, 2],
-                [97, 1],
                 [99, 1],
+                [97, 1],
                 [100, 1],
                 [101, 1],
                 [102, 3],
@@ -1561,6 +1561,38 @@ function fail(message) {
 }
 
 /**
+ * Returns the number of children in the specified node.
+ */
+function NCH(n) {
+    assert(n !== undefined);
+    if (Array.isArray(n.children)) {
+        return n.children.length;
+    }
+    else {
+        return 0;
+    }
+}
+function CHILD(n, i) {
+    assert(i !== undefined);
+    return CHILDREN(n)[i];
+}
+function CHILDREN(n) {
+    assert(n !== undefined);
+    if (n.children) {
+        return n.children;
+    }
+    else {
+        throw new Error("node does not have any children");
+    }
+}
+function IDXLAST(xs) {
+    return xs.length - 1;
+}
+/**
+ * Returns the terminal nodes of the tree.
+ */
+
+/**
  * Null function used for default values of callbacks, etc.
  * @return {void} Nothing.
  */
@@ -1859,8 +1891,7 @@ var tabsize = 8;
  */
 var Tokenizer = (function () {
     /**
-     * @constructor
-     * @param {string} fileName
+     *
      */
     function Tokenizer(interactive, callback) {
         this.callback = callback;
@@ -1876,7 +1907,7 @@ var Tokenizer = (function () {
         this.endprog = /.*/;
         this.strstart = [-1, -1];
         this.interactive = interactive;
-        this.doneFunc = function () {
+        this.doneFunc = function doneOrFailed() {
             for (var i = 1; i < this.indents.length; ++i) {
                 if (this.callback(Tokens.T_DEDENT, '', [this.lnum, 0], [this.lnum, 0], ''))
                     return 'done';
@@ -1887,9 +1918,8 @@ var Tokenizer = (function () {
         };
     }
     /**
-     * @method generateTokens
-     * @param line {string}
-     * @return {boolean | string} 'done' or true?
+     * @param line
+     * @return 'done' or 'failed' or true?
      */
     Tokenizer.prototype.generateTokens = function (line) {
         var endmatch;
@@ -2054,8 +2084,8 @@ var Tokenizer = (function () {
                     endmatch = this.endprog.test(line.substring(pos));
                     if (endmatch) {
                         pos = this.endprog.lastIndex + pos;
-                        token = line.substring(start, pos);
-                        if (this.callback(Tokens.T_STRING, token, spos, [this.lnum, pos], line))
+                        var token_1 = line.substring(start, pos);
+                        if (this.callback(Tokens.T_STRING, token_1, spos, [this.lnum, pos], line))
                             return 'done';
                     }
                     else {
@@ -2109,10 +2139,6 @@ var Tokenizer = (function () {
     };
     return Tokenizer;
 }());
-/**
- * Not sure who needs this yet.
- */
-Tokenizer.Tokens = Tokens;
 /** @param {...*} x */
 function group(x, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) {
     var args = Array.prototype.slice.call(arguments);
@@ -2132,7 +2158,8 @@ function contains(a, obj) {
     return false;
 }
 function rstrip(input, what) {
-    for (var i = input.length; i > 0; --i) {
+    var i;
+    for (i = input.length; i > 0; --i) {
         if (what.indexOf(input.charAt(i - 1)) === -1)
             break;
     }
@@ -2238,6 +2265,8 @@ function parseError(message, begin, end) {
     }
     return e;
 }
+// TODO: The parser does not report whitespace nodes.
+// It would be nice if there were an ignoreWhitespace option.
 var Parser = (function () {
     /**
      *
@@ -2314,7 +2343,8 @@ var Parser = (function () {
                     }
                 }
             }
-            if (findInDfa(arcs, [0, tp.state])) {
+            // TODO: What is the zeroth state? Does it have a symbolic name?
+            if (existsTransition(arcs, [0, tp.state])) {
                 // an accepting state, pop it and try something else
                 this.pop();
                 if (this.stack.length === 0) {
@@ -2322,7 +2352,6 @@ var Parser = (function () {
                 }
             }
             else {
-                // no transition
                 throw parseError("bad input", context[0], context[1]);
             }
         }
@@ -2399,12 +2428,11 @@ var Parser = (function () {
     return Parser;
 }());
 /**
- * TODO: Rename to existsInDfa.
  * Finds the specified
  * @param a An array of arrays where each element is an array of two integers.
  * @param obj An array containing two integers.
  */
-function findInDfa(a, obj) {
+function existsTransition(a, obj) {
     var i = a.length;
     while (i--) {
         if (a[i][0] === obj[0] && a[i][1] === obj[1]) {
@@ -2425,9 +2453,10 @@ function makeParser(style) {
         style = "file_input";
     // FIXME: Would be nice to get this typing locked down.
     var p = new Parser(ParseTables);
-    // for closure's benefit
-    if (style === "file_input")
+    // TODO: Can we do this over the symbolic constants?
+    if (style === "file_input") {
         p.setup(ParseTables.sym.file_input);
+    }
     else {
         console.warn("TODO: makeParser(style = " + style + ")");
     }
@@ -2477,13 +2506,19 @@ function makeParser(style) {
 }
 function parse(input) {
     var parseFunc = makeParser();
-    if (input.substr(input.length - 1, 1) !== "\n") {
+    // input.endsWith("\n");
+    // Why do we normalize the input in this manner?
+    if (input.substr(IDXLAST(input), 1) !== "\n") {
         input += "\n";
     }
+    // Splitting this ay will create a final line that is the zero-length string.
     var lines = input.split("\n");
+    // FIXME: Mixing the types this way is awkward for the consumer.
     var ret = false;
     for (var i = 0; i < lines.length; ++i) {
-        ret = parseFunc(lines[i] + ((i === lines.length - 1) ? "" : "\n"));
+        // FIXME: Lots of string creation going on here. Why?
+        // We're adding back newline characters for all but the last line.
+        ret = parseFunc(lines[i] + ((i === IDXLAST(lines)) ? "" : "\n"));
     }
     return ret;
 }
@@ -3705,28 +3740,6 @@ var Compiling = (function () {
     }
     return Compiling;
 }());
-/**
- * Returns the number of children in the specified node.
- */
-function NCH(n) {
-    assert(n !== undefined);
-    if (Array.isArray(n.children)) {
-        return n.children.length;
-    }
-    else {
-        return 0;
-    }
-}
-function CHILD(n, i) {
-    assert(n !== undefined);
-    assert(i !== undefined);
-    if (n.children) {
-        return n.children[i];
-    }
-    else {
-        throw new Error("node does not have any children");
-    }
-}
 function REQ(n, type) {
     assert(n.type === type, "node wasn't expected type");
 }
@@ -4254,8 +4267,9 @@ function astForImportStmt(c, n) {
     else if (n.type === SYM.import_from) {
         var mod = null;
         var ndots = 0;
-        var nchildren;
-        for (var idx = 1; idx < NCH(n); ++idx) {
+        var nchildren = void 0;
+        var idx = void 0;
+        for (idx = 1; idx < NCH(n); ++idx) {
             if (CHILD(n, idx).type === SYM.dotted_name) {
                 mod = aliasForImportName(c, CHILD(n, idx));
                 idx++;
@@ -4358,7 +4372,7 @@ function astForListcomp(c, n) {
         var forch = CHILD(ch, 1);
         var t = astForExprlist(c, forch, Store);
         var expression = astForTestlist(c, CHILD(ch, 3));
-        var lc;
+        var lc = void 0;
         if (NCH(forch) === 1)
             lc = new Comprehension(t[0], expression, []);
         else
@@ -4528,13 +4542,13 @@ function astForTrailer(c, n, leftExpr) {
             }
             var elts = [];
             for (var j = 0; j < slices.length; ++j) {
-                var slc_1 = slices[j];
-                if (slc_1 instanceof Index) {
-                    assert(slc_1.value !== null && slc_1.value !== undefined);
-                    elts[j] = slc_1.value;
+                var slc = slices[j];
+                if (slc instanceof Index) {
+                    assert(slc.value !== null && slc.value !== undefined);
+                    elts[j] = slc.value;
                 }
                 else {
-                    assert(slc_1 instanceof Index);
+                    assert(slc instanceof Index);
                 }
             }
             var e = new Tuple(elts, Load, n.lineno, n.col_offset);
@@ -4758,7 +4772,7 @@ function astForGenexp(c, n) {
         var forch = CHILD(ch, 1);
         var t = astForExprlist(c, forch, Store);
         var expression = astForExpr(c, CHILD(ch, 3));
-        var ge;
+        var ge = void 0;
         if (NCH(forch) === 1)
             ge = new Comprehension(t[0], expression, []);
         else
@@ -4884,7 +4898,7 @@ function astForExprStmt(c, n) {
         }
         setContext(c, expr1, Store, ch);
         ch = CHILD(n, 2);
-        var expr2;
+        var expr2 = void 0;
         if (ch.type === SYM.testlist)
             expr2 = astForTestlist(c, ch);
         else
@@ -4904,7 +4918,7 @@ function astForExprStmt(c, n) {
             targets[i / 2] = e;
         }
         var value = CHILD(n, NCH(n) - 1);
-        var expression;
+        var expression = void 0;
         if (value.type === SYM.testlist)
             expression = astForTestlist(c, value);
         else
@@ -4931,37 +4945,37 @@ function parsestr(c, s) {
         var len = s.length;
         var ret = '';
         for (var i = 0; i < len; ++i) {
-            var c = s.charAt(i);
-            if (c === '\\') {
+            var c_1 = s.charAt(i);
+            if (c_1 === '\\') {
                 ++i;
-                c = s.charAt(i);
-                if (c === 'n')
+                c_1 = s.charAt(i);
+                if (c_1 === 'n')
                     ret += "\n";
-                else if (c === '\\')
+                else if (c_1 === '\\')
                     ret += "\\";
-                else if (c === 't')
+                else if (c_1 === 't')
                     ret += "\t";
-                else if (c === 'r')
+                else if (c_1 === 'r')
                     ret += "\r";
-                else if (c === 'b')
+                else if (c_1 === 'b')
                     ret += "\b";
-                else if (c === 'f')
+                else if (c_1 === 'f')
                     ret += "\f";
-                else if (c === 'v')
+                else if (c_1 === 'v')
                     ret += "\v";
-                else if (c === '0')
+                else if (c_1 === '0')
                     ret += "\0";
-                else if (c === '"')
+                else if (c_1 === '"')
                     ret += '"';
-                else if (c === '\'')
+                else if (c_1 === '\'')
                     ret += '\'';
-                else if (c === '\n') { }
-                else if (c === 'x') {
+                else if (c_1 === '\n') { }
+                else if (c_1 === 'x') {
                     var d0 = s.charAt(++i);
                     var d1 = s.charAt(++i);
                     ret += String.fromCharCode(parseInt(d0 + d1, 16));
                 }
-                else if (c === 'u' || c === 'U') {
+                else if (c_1 === 'u' || c_1 === 'U') {
                     var d0 = s.charAt(++i);
                     var d1 = s.charAt(++i);
                     var d2 = s.charAt(++i);
@@ -4970,11 +4984,11 @@ function parsestr(c, s) {
                 }
                 else {
                     // Leave it alone
-                    ret += "\\" + c;
+                    ret += "\\" + c_1;
                 }
             }
             else {
-                ret += c;
+                ret += c_1;
             }
         }
         return ret;
@@ -5120,9 +5134,9 @@ function astForSlice(c, n) {
         }
     }
     else if (NCH(n) > 2) {
-        var n2_1 = CHILD(n, 2);
-        if (n2_1.type === SYM.IfExpr) {
-            upper = astForExpr(c, n2_1);
+        var n2 = CHILD(n, 2);
+        if (n2.type === SYM.IfExpr) {
+            upper = astForExpr(c, n2);
         }
     }
     ch = CHILD(n, NCH(n) - 1);
@@ -5418,7 +5432,7 @@ function astDump(node) {
             return "[" + elemsstr.replace(/^\s+/, '') + "]";
         }
         else {
-            var ret;
+            var ret = void 0;
             if (node === true)
                 ret = "True";
             else if (node === false)
@@ -6038,18 +6052,18 @@ var SymbolTable = (function () {
         else if (s instanceof Global) {
             var nameslen = s.names.length;
             for (var i = 0; i < nameslen; ++i) {
-                var name = mangleName$1(this.curClass, s.names[i]);
+                var name_1 = mangleName$1(this.curClass, s.names[i]);
                 //              name = fixReservedNames(name);
-                var cur = this.cur.symFlags[name];
+                var cur = this.cur.symFlags[name_1];
                 if (cur & (DEF_LOCAL | USE)) {
                     if (cur & DEF_LOCAL) {
-                        throw syntaxError$1("name '" + name + "' is assigned to before global declaration", s.lineno);
+                        throw syntaxError$1("name '" + name_1 + "' is assigned to before global declaration", s.lineno);
                     }
                     else {
-                        throw syntaxError$1("name '" + name + "' is used prior to global declaration", s.lineno);
+                        throw syntaxError$1("name '" + name_1 + "' is used prior to global declaration", s.lineno);
                     }
                 }
-                this.addDef(name, DEF_GLOBAL, s.lineno);
+                this.addDef(name_1, DEF_GLOBAL, s.lineno);
             }
         }
         else if (s instanceof Expr) {
@@ -6176,12 +6190,12 @@ var SymbolTable = (function () {
         for (var i = 0; i < names.length; ++i) {
             var a = names[i];
             // DGH: The RHS used to be Python strings.
-            var name = a.asname === null ? a.name : a.asname;
-            var storename = name;
-            var dot = name.indexOf('.');
+            var name_2 = a.asname === null ? a.name : a.asname;
+            var storename = name_2;
+            var dot = name_2.indexOf('.');
             if (dot !== -1)
-                storename = name.substr(0, dot);
-            if (name !== "*") {
+                storename = name_2.substr(0, dot);
+            if (name_2 !== "*") {
                 this.addDef(storename, DEF_IMPORT, lineno);
             }
             else {
@@ -6208,7 +6222,7 @@ var SymbolTable = (function () {
         this.exitBlock();
     };
     SymbolTable.prototype.visitExcepthandlers = function (handlers) {
-        for (var i = 0, eh; eh = handlers[i]; ++i) {
+        for (var i = 0, eh = void 0; eh = handlers[i]; ++i) {
             if (eh.type)
                 this.visitExpr(eh.type);
             if (eh.name)
@@ -6230,10 +6244,10 @@ var SymbolTable = (function () {
             if (bound)
                 dictUpdate(newbound, bound);
         }
-        for (var name_1 in ste.symFlags) {
-            if (ste.symFlags.hasOwnProperty(name_1)) {
-                var flags = ste.symFlags[name_1];
-                this.analyzeName(ste, scope, name_1, flags, bound, local, free, global);
+        for (var name_3 in ste.symFlags) {
+            if (ste.symFlags.hasOwnProperty(name_3)) {
+                var flags = ste.symFlags[name_3];
+                this.analyzeName(ste, scope, name_3, flags, bound, local, free, global);
             }
         }
         if (ste.blockType !== ClassBlock) {
@@ -6268,15 +6282,15 @@ var SymbolTable = (function () {
         dictUpdate(childFree, tempFree);
     };
     SymbolTable.prototype.analyzeCells = function (scope, free) {
-        for (var name_2 in scope) {
-            if (scope.hasOwnProperty(name_2)) {
-                var flags = scope[name_2];
+        for (var name_4 in scope) {
+            if (scope.hasOwnProperty(name_4)) {
+                var flags = scope[name_4];
                 if (flags !== LOCAL)
                     continue;
-                if (free[name_2] === undefined)
+                if (free[name_4] === undefined)
                     continue;
-                scope[name_2] = CELL;
-                delete free[name_2];
+                scope[name_4] = CELL;
+                delete free[name_4];
             }
         }
     };
@@ -6285,31 +6299,31 @@ var SymbolTable = (function () {
      * others are not.
      */
     SymbolTable.prototype.updateSymbols = function (symbols, scope, bound, free, classflag) {
-        for (var name_3 in symbols) {
-            if (symbols.hasOwnProperty(name_3)) {
-                var flags = symbols[name_3];
-                var w = scope[name_3];
+        for (var name_5 in symbols) {
+            if (symbols.hasOwnProperty(name_5)) {
+                var flags = symbols[name_5];
+                var w = scope[name_5];
                 flags |= w << SCOPE_OFF;
-                symbols[name_3] = flags;
+                symbols[name_5] = flags;
             }
         }
         var freeValue = FREE << SCOPE_OFF;
-        for (var name_4 in free) {
-            if (free.hasOwnProperty(name_4)) {
-                var o = symbols[name_4];
+        for (var name_6 in free) {
+            if (free.hasOwnProperty(name_6)) {
+                var o = symbols[name_6];
                 if (o !== undefined) {
                     // it could be a free variable in a method of the class that has
                     // the same name as a local or global in the class scope
                     if (classflag && (o & (DEF_BOUND | DEF_GLOBAL))) {
                         var i = o | DEF_FREE_CLASS;
-                        symbols[name_4] = i;
+                        symbols[name_6] = i;
                     }
                     // else it's not free, probably a cell
                     continue;
                 }
-                if (bound[name_4] === undefined)
+                if (bound[name_6] === undefined)
                     continue;
-                symbols[name_4] = freeValue;
+                symbols[name_6] = freeValue;
             }
         }
     };
@@ -6378,9 +6392,11 @@ function symbolTable(ast) {
 
 /**
  * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
+ * May be a bug when comparing to 0x7f below.
  */
 /**
  * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
+ * May be a bug when comparing to 0x7f below.
  */
 
 /// <reference path = "../../node_modules/typescript/lib/typescriptServices.d.ts" />

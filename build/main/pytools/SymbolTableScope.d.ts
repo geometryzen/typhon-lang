@@ -40,7 +40,7 @@ export declare class SymbolTableScope {
     has_children(): boolean;
     get_identifiers(): string[];
     lookup(name: string): Symbol;
-    __check_children(name: string): any[];
+    __check_children(name: string): SymbolTableScope[];
     _identsMatching(f: (flags: number) => boolean): string[];
     get_parameters(): string[];
     get_locals(): string[];

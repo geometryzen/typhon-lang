@@ -82,8 +82,7 @@ var tabsize = 8;
  */
 var Tokenizer = (function () {
     /**
-     * @constructor
-     * @param {string} fileName
+     *
      */
     function Tokenizer(interactive, callback) {
         this.callback = callback;
@@ -99,7 +98,7 @@ var Tokenizer = (function () {
         this.endprog = /.*/;
         this.strstart = [-1, -1];
         this.interactive = interactive;
-        this.doneFunc = function () {
+        this.doneFunc = function doneOrFailed() {
             for (var i = 1; i < this.indents.length; ++i) {
                 if (this.callback(Tokens.T_DEDENT, '', [this.lnum, 0], [this.lnum, 0], ''))
                     return 'done';
@@ -110,9 +109,8 @@ var Tokenizer = (function () {
         };
     }
     /**
-     * @method generateTokens
-     * @param line {string}
-     * @return {boolean | string} 'done' or true?
+     * @param line
+     * @return 'done' or 'failed' or true?
      */
     Tokenizer.prototype.generateTokens = function (line) {
         var endmatch;
@@ -277,8 +275,8 @@ var Tokenizer = (function () {
                     endmatch = this.endprog.test(line.substring(pos));
                     if (endmatch) {
                         pos = this.endprog.lastIndex + pos;
-                        token = line.substring(start, pos);
-                        if (this.callback(Tokens.T_STRING, token, spos, [this.lnum, pos], line))
+                        var token_1 = line.substring(start, pos);
+                        if (this.callback(Tokens.T_STRING, token_1, spos, [this.lnum, pos], line))
                             return 'done';
                     }
                     else {
@@ -333,10 +331,6 @@ var Tokenizer = (function () {
     return Tokenizer;
 }());
 export { Tokenizer };
-/**
- * Not sure who needs this yet.
- */
-Tokenizer.Tokens = Tokens;
 /** @param {...*} x */
 function group(x, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) {
     var args = Array.prototype.slice.call(arguments);
@@ -356,7 +350,8 @@ function contains(a, obj) {
     return false;
 }
 function rstrip(input, what) {
-    for (var i = input.length; i > 0; --i) {
+    var i;
+    for (i = input.length; i > 0; --i) {
         if (what.indexOf(input.charAt(i - 1)) === -1)
             break;
     }

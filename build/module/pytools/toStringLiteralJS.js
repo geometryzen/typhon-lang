@@ -1,8 +1,10 @@
 /**
  * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
+ * May be a bug when comparing to 0x7f below.
  */
 /**
  * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
+ * May be a bug when comparing to 0x7f below.
  */ export function toStringLiteralJS(value) {
     // single is preferred
     var quote = "'";

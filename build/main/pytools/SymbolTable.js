@@ -334,18 +334,18 @@ var SymbolTable = (function () {
         else if (s instanceof types_21.Global) {
             var nameslen = s.names.length;
             for (var i = 0; i < nameslen; ++i) {
-                var name = mangleName_1.mangleName(this.curClass, s.names[i]);
+                var name_1 = mangleName_1.mangleName(this.curClass, s.names[i]);
                 //              name = fixReservedNames(name);
-                var cur = this.cur.symFlags[name];
+                var cur = this.cur.symFlags[name_1];
                 if (cur & (SymbolConstants_7.DEF_LOCAL | SymbolConstants_15.USE)) {
                     if (cur & SymbolConstants_7.DEF_LOCAL) {
-                        throw syntaxError_1.syntaxError("name '" + name + "' is assigned to before global declaration", s.lineno);
+                        throw syntaxError_1.syntaxError("name '" + name_1 + "' is assigned to before global declaration", s.lineno);
                     }
                     else {
-                        throw syntaxError_1.syntaxError("name '" + name + "' is used prior to global declaration", s.lineno);
+                        throw syntaxError_1.syntaxError("name '" + name_1 + "' is used prior to global declaration", s.lineno);
                     }
                 }
-                this.addDef(name, SymbolConstants_5.DEF_GLOBAL, s.lineno);
+                this.addDef(name_1, SymbolConstants_5.DEF_GLOBAL, s.lineno);
             }
         }
         else if (s instanceof types_16.Expr) {
@@ -472,12 +472,12 @@ var SymbolTable = (function () {
         for (var i = 0; i < names.length; ++i) {
             var a = names[i];
             // DGH: The RHS used to be Python strings.
-            var name = a.asname === null ? a.name : a.asname;
-            var storename = name;
-            var dot = name.indexOf('.');
+            var name_2 = a.asname === null ? a.name : a.asname;
+            var storename = name_2;
+            var dot = name_2.indexOf('.');
             if (dot !== -1)
-                storename = name.substr(0, dot);
-            if (name !== "*") {
+                storename = name_2.substr(0, dot);
+            if (name_2 !== "*") {
                 this.addDef(storename, SymbolConstants_6.DEF_IMPORT, lineno);
             }
             else {
@@ -504,7 +504,7 @@ var SymbolTable = (function () {
         this.exitBlock();
     };
     SymbolTable.prototype.visitExcepthandlers = function (handlers) {
-        for (var i = 0, eh; eh = handlers[i]; ++i) {
+        for (var i = 0, eh = void 0; eh = handlers[i]; ++i) {
             if (eh.type)
                 this.visitExpr(eh.type);
             if (eh.name)
@@ -526,10 +526,10 @@ var SymbolTable = (function () {
             if (bound)
                 dictUpdate_1.dictUpdate(newbound, bound);
         }
-        for (var name_1 in ste.symFlags) {
-            if (ste.symFlags.hasOwnProperty(name_1)) {
-                var flags = ste.symFlags[name_1];
-                this.analyzeName(ste, scope, name_1, flags, bound, local, free, global);
+        for (var name_3 in ste.symFlags) {
+            if (ste.symFlags.hasOwnProperty(name_3)) {
+                var flags = ste.symFlags[name_3];
+                this.analyzeName(ste, scope, name_3, flags, bound, local, free, global);
             }
         }
         if (ste.blockType !== SymbolConstants_2.ClassBlock) {
@@ -564,15 +564,15 @@ var SymbolTable = (function () {
         dictUpdate_1.dictUpdate(childFree, tempFree);
     };
     SymbolTable.prototype.analyzeCells = function (scope, free) {
-        for (var name_2 in scope) {
-            if (scope.hasOwnProperty(name_2)) {
-                var flags = scope[name_2];
+        for (var name_4 in scope) {
+            if (scope.hasOwnProperty(name_4)) {
+                var flags = scope[name_4];
                 if (flags !== SymbolConstants_13.LOCAL)
                     continue;
-                if (free[name_2] === undefined)
+                if (free[name_4] === undefined)
                     continue;
-                scope[name_2] = SymbolConstants_1.CELL;
-                delete free[name_2];
+                scope[name_4] = SymbolConstants_1.CELL;
+                delete free[name_4];
             }
         }
     };
@@ -581,31 +581,31 @@ var SymbolTable = (function () {
      * others are not.
      */
     SymbolTable.prototype.updateSymbols = function (symbols, scope, bound, free, classflag) {
-        for (var name_3 in symbols) {
-            if (symbols.hasOwnProperty(name_3)) {
-                var flags = symbols[name_3];
-                var w = scope[name_3];
+        for (var name_5 in symbols) {
+            if (symbols.hasOwnProperty(name_5)) {
+                var flags = symbols[name_5];
+                var w = scope[name_5];
                 flags |= w << SymbolConstants_16.SCOPE_OFF;
-                symbols[name_3] = flags;
+                symbols[name_5] = flags;
             }
         }
         var freeValue = SymbolConstants_9.FREE << SymbolConstants_16.SCOPE_OFF;
-        for (var name_4 in free) {
-            if (free.hasOwnProperty(name_4)) {
-                var o = symbols[name_4];
+        for (var name_6 in free) {
+            if (free.hasOwnProperty(name_6)) {
+                var o = symbols[name_6];
                 if (o !== undefined) {
                     // it could be a free variable in a method of the class that has
                     // the same name as a local or global in the class scope
                     if (classflag && (o & (SymbolConstants_3.DEF_BOUND | SymbolConstants_5.DEF_GLOBAL))) {
                         var i = o | SymbolConstants_4.DEF_FREE_CLASS;
-                        symbols[name_4] = i;
+                        symbols[name_6] = i;
                     }
                     // else it's not free, probably a cell
                     continue;
                 }
-                if (bound[name_4] === undefined)
+                if (bound[name_6] === undefined)
                     continue;
-                symbols[name_4] = freeValue;
+                symbols[name_6] = freeValue;
             }
         }
     };

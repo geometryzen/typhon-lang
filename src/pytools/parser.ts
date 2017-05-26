@@ -1,4 +1,5 @@
 import { OpMap, ParseTables } from './tables';
+import { IDXLAST } from './tree';
 import { assert } from './asserts';
 import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
@@ -24,6 +25,9 @@ export interface Grammar {
      * Actually maps from the node constructor name.
      */
     sym: { [name: string]: number };
+    /**
+     * A lookup table for converting the value in the `sym` mapping back to a string.
+     */
     number2symbol: { [value: number]: string };
     states: any;
 }
@@ -39,6 +43,10 @@ export type ParseContext = [LineColumn, LineColumn, string];
  * The parse tree (not the abstract syntax tree).
  */
 export interface PyNode {
+    /**
+     * For terminals, the type is defined in the Tokens enumeration.
+     * For non-terminals, the type is defined in the generated ParseTables.
+     */
     type: Tokens;
     value: string | null;
     context?: any;
@@ -72,6 +80,8 @@ function parseError(message: string, begin?: LineColumn, end?: LineColumn): Synt
     return e;
 }
 
+// TODO: The parser does not report whitespace nodes.
+// It would be nice if there were an ignoreWhitespace option.
 class Parser {
     grammar: Grammar;
     stack: StackElement[];
@@ -158,7 +168,8 @@ class Parser {
                 }
             }
 
-            if (findInDfa(arcs, [0, tp.state])) {
+            // TODO: What is the zeroth state? Does it have a symbolic name?
+            if (existsTransition(arcs, [0, tp.state])) {
                 // an accepting state, pop it and try something else
                 this.pop();
                 if (this.stack.length === 0) {
@@ -166,7 +177,6 @@ class Parser {
                 }
             }
             else {
-                // no transition
                 throw parseError("bad input", context[0], context[1]);
             }
         }
@@ -218,12 +228,12 @@ class Parser {
 
     // push a nonterminal
     push(type: Tokens, newdfa: Dfa, newstate: number, context: ParseContext): void {
-        var dfa = this.stack[this.stack.length - 1].dfa;
-        var node = this.stack[this.stack.length - 1].node;
+        const dfa = this.stack[this.stack.length - 1].dfa;
+        const node = this.stack[this.stack.length - 1].node;
 
         this.stack[this.stack.length - 1] = { dfa: dfa, state: newstate, node: node };
 
-        var newnode: PyNode = { type: type, value: null, lineno: context[0][0], col_offset: context[0][1], children: [] };
+        const newnode: PyNode = { type: type, value: null, lineno: context[0][0], col_offset: context[0][1], children: [] };
 
         this.stack.push({ dfa: newdfa, state: 0, node: newnode });
     }
@@ -252,12 +262,11 @@ class Parser {
 
 
 /**
- * TODO: Rename to existsInDfa.
  * Finds the specified
  * @param a An array of arrays where each element is an array of two integers.
  * @param obj An array containing two integers.
  */
-function findInDfa(a: Arc[], obj: Arc): boolean {
+function existsTransition(a: Arc[], obj: Arc): boolean {
     let i = a.length;
     while (i--) {
         if (a[i][0] === obj[0] && a[i][1] === obj[1]) {
@@ -279,9 +288,10 @@ function makeParser(style?: string): (line: string) => PyNode | boolean {
 
     // FIXME: Would be nice to get this typing locked down.
     const p = new Parser(ParseTables as any);
-    // for closure's benefit
-    if (style === "file_input")
+    // TODO: Can we do this over the symbolic constants?
+    if (style === "file_input") {
         p.setup(ParseTables.sym.file_input);
+    }
     else {
         console.warn(`TODO: makeParser(style = ${style})`);
     }
@@ -319,7 +329,7 @@ function makeParser(style?: string): (line: string) => PyNode | boolean {
         return undefined;
     });
     return function parseFunc(line: string): PyNode | boolean {
-        var ret = tokenizer.generateTokens(line);
+        const ret = tokenizer.generateTokens(line);
         if (ret) {
             if (ret !== "done") {
                 throw parseError("incomplete input");
@@ -332,13 +342,19 @@ function makeParser(style?: string): (line: string) => PyNode | boolean {
 
 export function parse(input: string): boolean | PyNode {
     const parseFunc = makeParser();
-    if (input.substr(input.length - 1, 1) !== "\n") {
+    // input.endsWith("\n");
+    // Why do we normalize the input in this manner?
+    if (input.substr(IDXLAST(input), 1) !== "\n") {
         input += "\n";
     }
+    // Splitting this ay will create a final line that is the zero-length string.
     const lines = input.split("\n");
+    // FIXME: Mixing the types this way is awkward for the consumer.
     let ret: boolean | PyNode = false;
     for (let i = 0; i < lines.length; ++i) {
-        ret = parseFunc(lines[i] + ((i === lines.length - 1) ? "" : "\n"));
+        // FIXME: Lots of string creation going on here. Why?
+        // We're adding back newline characters for all but the last line.
+        ret = parseFunc(lines[i] + ((i === IDXLAST(lines)) ? "" : "\n"));
     }
     return ret;
 }

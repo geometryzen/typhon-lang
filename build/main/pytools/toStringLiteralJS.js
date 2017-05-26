@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
+ * May be a bug when comparing to 0x7f below.
  */
 function toStringLiteralJS(value) {
     // single is preferred

@@ -170,22 +170,23 @@ let indent: number;
 let space: string;
 
 function updateDeeply(target: any, override: any) {
-    var key, val;
 
     function isHashObject(target: any) {
         return typeof target === 'object' && target instanceof Object && !(target instanceof RegExp);
     }
 
-    for (key in override) {
+    for (let key in override) {
         if (override.hasOwnProperty(key)) {
-            val = override[key];
+            const val = override[key];
             if (isHashObject(val)) {
                 if (isHashObject(target[key])) {
                     updateDeeply(target[key], val);
-                } else {
+                }
+                else {
                     target[key] = updateDeeply({}, val);
                 }
-            } else {
+            }
+            else {
                 target[key] = val;
             }
         }
@@ -198,7 +199,7 @@ function updateDeeply(target: any, override: any) {
  * either strings or nested arrays
  */
 function flattenToString(arr: any): string {
-    var result = '';
+    let result = '';
     for (let i = 0, iz = arr.length; i < iz; ++i) {
         const elem = arr[i];
         result += isArray(elem) ? flattenToString(elem) : elem;
@@ -362,7 +363,7 @@ export class Compiler {
 
             //
             // out('\n// ');
-            for (var i = 0; i < col_offset; ++i) {
+            for (let i = 0; i < col_offset; ++i) {
                 out(" ");
             }
             // out("^");
@@ -410,24 +411,24 @@ export class Compiler {
     cdict(e: Dict) {
         assert(e.values.length === e.keys.length);
         const items = [];
-        for (var i = 0; i < e.values.length; ++i) {
-            var v = this.vexpr(e.values[i]); // "backwards" to match order in cpy
+        for (let i = 0; i < e.values.length; ++i) {
+            const v = this.vexpr(e.values[i]); // "backwards" to match order in cpy
             items.push(this.vexpr(e.keys[i]));
             items.push(v);
         }
     }
 
     clistcompgen(tmpname: string, generators: Comprehension[], genIndex: number, elt: Expression): string {
-        var start = this.newBlock('list gen start');
-        var skip = this.newBlock('list gen skip');
-        var anchor = this.newBlock('list gen anchor');
+        const start = this.newBlock('list gen start');
+        const skip = this.newBlock('list gen skip');
+        const anchor = this.newBlock('list gen anchor');
 
-        var l = generators[genIndex];
+        const l = generators[genIndex];
         // const toiter = this.vexpr(l.iter);
         this.setBlock(start);
 
-        var n = l.ifs.length;
-        for (var i = 0; i < n; ++i) {
+        const n = l.ifs.length;
+        for (let i = 0; i < n; ++i) {
             // var ifres = this.vexpr(l.ifs[i]);
         }
 
@@ -436,7 +437,7 @@ export class Compiler {
         }
 
         if (genIndex >= generators.length) {
-            var velt = this.vexpr(elt);
+            const velt = this.vexpr(elt);
             out(tmpname, ".v.push(", velt, ");");
             this.setBlock(skip);
         }
@@ -454,10 +455,10 @@ export class Compiler {
     cyield(e: Yield) {
         if (this.u.ste.blockType !== FunctionBlock)
             throw new SyntaxError("'yield' outside function");
-        var val = 'null';
+        let val = 'null';
         if (e.value)
             val = this.vexpr(e.value);
-        var nextBlock = this.newBlock('after yield');
+        const nextBlock = this.newBlock('after yield');
         // return a pair: resume target block and yielded value
         out("return [/*resume*/", nextBlock, ",/*ret*/", val, "];");
         this.setBlock(nextBlock);
@@ -466,12 +467,12 @@ export class Compiler {
 
     ccompare(e: Compare) {
         assert(e.ops.length === e.comparators.length);
-        var cur = this.vexpr(e.left);
-        var n = e.ops.length;
-        var done = this.newBlock("done");
+        let cur = this.vexpr(e.left);
+        const n = e.ops.length;
+        const done = this.newBlock("done");
 
-        for (var i = 0; i < n; ++i) {
-            var rhs = this.vexpr(e.comparators[i]);
+        for (let i = 0; i < n; ++i) {
+            const rhs = this.vexpr(e.comparators[i]);
             cur = rhs;
         }
         this.setBlock(done);
@@ -553,12 +554,12 @@ export class Compiler {
 
     cboolop(e: BoolOp) {
         assert(e instanceof BoolOp);
-        var end = this.newBlock('end of boolop');
-        var s = e.values;
-        var n = s.length;
-        var retval;
-        for (var i = 0; i < n; ++i) {
-            var expres = this.vexpr(s[i]);
+        const end = this.newBlock('end of boolop');
+        const s = e.values;
+        const n = s.length;
+        let retval;
+        for (let i = 0; i < n; ++i) {
+            const expres = this.vexpr(s[i]);
             if (i === 0) {
                 // TODO
             }
@@ -626,10 +627,10 @@ export class Compiler {
             return toStringLiteralJS(e.s);
         }
         else if (e instanceof Attribute) {
-            var val;
+            let val;
             if (e.ctx !== AugStore)
                 val = this.vexpr(e.value);
-            var mangled = toStringLiteralJS(e.attr);
+            let mangled = toStringLiteralJS(e.attr);
             mangled = mangled.substring(1, mangled.length - 1);
             mangled = mangleName(this.u.private_, mangled);
             mangled = fixReservedWords(mangled);
@@ -693,7 +694,7 @@ export class Compiler {
 
         assert(missingData || exprs.length === data.length);
         const ret = [];
-        for (var i = 0; i < exprs.length; ++i) {
+        for (let i = 0; i < exprs.length; ++i) {
             ret.push(this.vexpr(exprs[i], (missingData ? undefined : data[i])));
         }
         return ret;
@@ -807,13 +808,13 @@ export class Compiler {
     }
 
     outputLocals(unit: CompilerUnit) {
-        var have = {};
+        const have: { [name: string]: boolean } = {};
         for (let i = 0; unit.argnames && i < unit.argnames.length; ++i)
             have[unit.argnames[i]] = true;
         unit.localnames.sort();
-        var output = [];
+        const output: string[] = [];
         for (let i = 0; i < unit.localnames.length; ++i) {
-            var name = unit.localnames[i];
+            const name = unit.localnames[i];
             if (have[name] === undefined) {
                 output.push(name);
                 have[name] = true;
@@ -902,9 +903,9 @@ export class Compiler {
         const top = this.newBlock('while test');
         this.setBlock(top);
 
-        var next = this.newBlock('after while');
-        var orelse = s.orelse.length > 0 ? this.newBlock('while orelse') : null;
-        var body = this.newBlock('while body');
+        const next = this.newBlock('after while');
+        const orelse = s.orelse.length > 0 ? this.newBlock('while orelse') : null;
+        const body = this.newBlock('while body');
 
         this.pushBreakBlock(next);
         this.pushContinueBlock(top);
@@ -924,16 +925,16 @@ export class Compiler {
     }
 
     cfor(s: ForStatement, flags: number) {
-        var start = this.newBlock('for start');
-        var cleanup = this.newBlock('for cleanup');
-        var end = this.newBlock('for end');
+        const start = this.newBlock('for start');
+        const cleanup = this.newBlock('for cleanup');
+        const end = this.newBlock('for end');
 
         this.pushBreakBlock(end);
         this.pushContinueBlock(start);
 
         // get the iterator
-        var toiter = this.vexpr(s.iter);
-        var iter;
+        const toiter = this.vexpr(s.iter);
+        let iter: string;
         if (this.u.ste.generator) {
             // if we're in a generator, we have to store the iterator to a local
             // so it's preserved (as we cross blocks here and assume it survives)
@@ -970,7 +971,7 @@ export class Compiler {
             out("return undefined;");
         }
         else {
-            var inst = '';
+            let inst = '';
             if (s.inst) {
                 // handles: raise Error, arguments
                 inst = this.vexpr(s.inst);
@@ -994,17 +995,17 @@ export class Compiler {
     }
 
     ctryexcept(s: TryExcept, flags: number) {
-        var n = s.handlers.length;
+        const n = s.handlers.length;
 
         // Create a block for each except clause
-        var handlers = [];
+        const handlers: number[] = [];
         for (let i = 0; i < n; ++i) {
             handlers.push(this.newBlock("except_" + i + "_"));
         }
 
-        var unhandled = this.newBlock("unhandled");
-        var orelse = this.newBlock("orelse");
-        var end = this.newBlock("end");
+        const unhandled = this.newBlock("unhandled");
+        const orelse = this.newBlock("orelse");
+        const end = this.newBlock("end");
 
         this.setupExcept(handlers[0]);
         this.vseqstmt(s.body, flags);
@@ -1012,7 +1013,7 @@ export class Compiler {
 
         for (let i = 0; i < n; ++i) {
             this.setBlock(handlers[i]);
-            var handler = s.handlers[i];
+            const handler = s.handlers[i];
             if (!handler.type && i < n - 1) {
                 throw new SyntaxError("default 'except:' must be last");
             }
@@ -1058,7 +1059,7 @@ export class Compiler {
         */
 
         // var test = this.vexpr(s.test);
-        var end = this.newBlock("end");
+        const end = this.newBlock("end");
         // todo; exception handling
         // maybe replace with fail?? or just an alert?
         out("throw new Sk.builtin.AssertionError(", s.msg ? this.vexpr(s.msg) : "", ");");
@@ -1066,9 +1067,9 @@ export class Compiler {
     }
 
     cimportas(name: string, asname: string, mod?: string) {
-        var src = name;
-        var dotLoc = src.indexOf(".");
-        var cur = mod;
+        let src = name;
+        let dotLoc = src.indexOf(".");
+        let cur = mod;
         if (dotLoc !== -1) {
             // if there's dots in the module name, __import__ will have returned
             // the top-level module. so, we need to extract the actual module by
@@ -1087,15 +1088,15 @@ export class Compiler {
 
     cimport(s: ImportStatement) {
         const n = s.names.length;
-        for (var i = 0; i < n; ++i) {
-            var alias = s.names[i];
-            var mod = this.emitArgs('module', 'Sk.builtin.__import__(', toStringLiteralJS(alias.name), ',$gbl,$loc,[])');
+        for (let i = 0; i < n; ++i) {
+            const alias = s.names[i];
+            const mod = this.emitArgs('module', 'Sk.builtin.__import__(', toStringLiteralJS(alias.name), ',$gbl,$loc,[])');
 
             if (alias.asname) {
                 this.cimportas(alias.name, alias.asname, mod);
             }
             else {
-                var lastDot = alias.name.indexOf('../pytools');
+                const lastDot = alias.name.indexOf('../pytools');
                 if (lastDot !== -1) {
                     this.nameop(alias.name.substr(0, lastDot), Store, mod);
                 }
@@ -1109,7 +1110,7 @@ export class Compiler {
     cfromimport(s: ImportFrom) {
         const n = s.names.length;
         const names: string[] = [];
-        for (var i = 0; i < n; ++i) {
+        for (let i = 0; i < n; ++i) {
             names[i] = s.names[i].name;
         }
         // const namesString = names.map(function(name) { return toStringLiteralJS(name); }).join(', ');
@@ -1145,10 +1146,10 @@ export class Compiler {
      *
      */
     buildcodeobj(n: { scopeId: number, lineno: number }, coname: string, decorator_list: Decorator[], args: Arguments, callback: (scopename: string) => void) {
-        var decos = [];
-        var defaults = [];
-        var vararg = null;
-        var kwarg = null;
+        let decos = [];
+        let defaults = [];
+        let vararg = null;
+        let kwarg = null;
 
         // decorators and defaults have to be evaluated out here before we enter
         // the new scope. we output the defaults and attach them to this code
@@ -1218,7 +1219,7 @@ export class Compiler {
         else {
             if (kwarg)
                 funcArgs.push("$kwa");
-            for (var i = 0; args && i < args.args.length; ++i)
+            for (let i = 0; args && i < args.args.length; ++i)
                 funcArgs.push(this.nameop(args.args[i].id, Param));
         }
         if (descendantOrSelfHasFree) {
@@ -1237,12 +1238,12 @@ export class Compiler {
         //
         // set up standard dicts/variables
         //
-        var locals = "{}";
+        let locals = "{}";
         if (isGenerator) {
             entryBlock = "$gen.gi$resumeat";
             locals = "$gen.gi$locals";
         }
-        var cells = "";
+        let cells = "";
         if (hasCell)
             cells = ",$cell={}";
 
@@ -1255,7 +1256,7 @@ export class Compiler {
         // they can be accessed correctly by nested scopes.
         //
         for (let i = 0; args && i < args.args.length; ++i) {
-            var id = args.args[i].id;
+            const id = args.args[i].id;
             if (this.isCell(id)) {
                 this.u.varDeclsCode += "$cell." + id + " = " + id + ";";
             }
@@ -1265,9 +1266,9 @@ export class Compiler {
         // make sure correct number of arguments were passed (generators handled below)
         //
         if (!isGenerator) {
-            var minargs = args ? args.args.length - defaults.length : 0;
-            var maxargs = vararg ? Infinity : (args ? args.args.length : 0);
-            var kw = kwarg ? true : false;
+            const minargs = args ? args.args.length - defaults.length : 0;
+            const maxargs = vararg ? Infinity : (args ? args.args.length : 0);
+            const kw = kwarg ? true : false;
             this.u.varDeclsCode += "Sk.builtin.pyCheckArgs(\"" + coname +
                 "\", arguments, " + minargs + ", " + maxargs + ", " + kw +
                 ", " + descendantOrSelfHasFree + ");";
@@ -1281,9 +1282,9 @@ export class Compiler {
             // defaults have to be "right justified" so if there's less defaults
             // than args we offset to make them match up (we don't need another
             // correlation in the ast)
-            var offset = args.args.length - defaults.length;
+            const offset = args.args.length - defaults.length;
             for (let i = 0; i < defaults.length; ++i) {
-                var argname = this.nameop(args.args[i + offset].id, Param);
+                const argname = this.nameop(args.args[i + offset].id, Param);
                 this.u.varDeclsCode += "if(typeof " + argname + " === 'undefined')" + argname + " = " + scopename + ".$defaults[" + i + "];";
             }
         }
@@ -1292,7 +1293,7 @@ export class Compiler {
         // initialize vararg, if any
         //
         if (vararg) {
-            var start = funcArgs.length;
+            const start = funcArgs.length;
             this.u.varDeclsCode += vararg + "=new Sk.builtins['tuple'](Array.prototype.slice.call(arguments," + start + ")); /*vararg*/";
         }
 
@@ -1324,9 +1325,9 @@ export class Compiler {
         // get a list of all the argument names (used to attach to the code
         // object, and also to allow us to declare only locals that aren't also
         // parameters).
-        var argnames;
+        let argnames: string;
         if (args && args.args.length > 0) {
-            var argnamesarr = [];
+            const argnamesarr: string[] = [];
             for (let i = 0; i < args.args.length; ++i) {
                 argnamesarr.push(args.args[i].id);
             }
@@ -1378,7 +1379,7 @@ export class Compiler {
         //
         // todo; possibly this should be outside?
         //
-        var frees = "";
+        let frees = "";
         if (hasFree) {
             frees = ",$cell";
             // if the scope we're in where we're defining this one has free
@@ -1406,7 +1407,7 @@ export class Compiler {
 
     cfunction(s: FunctionDef) {
         assert(s instanceof FunctionDef);
-        var funcorgen = this.buildcodeobj(s, s.name, s.decorator_list, s.args,
+        const funcorgen = this.buildcodeobj(s, s.name, s.decorator_list, s.args,
             (scopename) => {
                 this.vseqstmt(s.body);
                 out("return Sk.builtin.none.none$;"); // if we fall off the bottom, we want the ret to be None
@@ -1417,17 +1418,17 @@ export class Compiler {
 
     clambda(e: Lambda) {
         assert(e instanceof Lambda);
-        var func = this.buildcodeobj(e, "<lambda>", null, e.args, (scopename) => {
-            var val = this.vexpr(e.body);
+        const func = this.buildcodeobj(e, "<lambda>", null, e.args, (scopename) => {
+            const val = this.vexpr(e.body);
             out("return ", val, ";");
         });
         return func;
     }
 
     cifexp(e: IfExp) {
-        var next = this.newBlock('next of ifexp');
-        var end = this.newBlock('end of ifexp');
-        var ret = this.emitArgs('res', 'null');
+        const next = this.newBlock('next of ifexp');
+        const end = this.newBlock('end of ifexp');
+        const ret = this.emitArgs('res', 'null');
 
         // var test = this.vexpr(e.test);
 
@@ -1441,14 +1442,14 @@ export class Compiler {
     }
 
     cgenexpgen(generators: Comprehension[], genIndex: number, elt: Expression) {
-        var start = this.newBlock('start for ' + genIndex);
-        var skip = this.newBlock('skip for ' + genIndex);
+        const start = this.newBlock('start for ' + genIndex);
+        const skip = this.newBlock('skip for ' + genIndex);
         // var ifCleanup = this.newBlock('if cleanup for ' + genIndex);
-        var end = this.newBlock('end for ' + genIndex);
+        const end = this.newBlock('end for ' + genIndex);
 
-        var ge = generators[genIndex];
+        const ge = generators[genIndex];
 
-        var iter;
+        let iter: string;
         if (genIndex === 0) {
             // the outer most iterator is evaluated in the scope outside so we
             // have to evaluate it outside and store it into the generator as a
@@ -1456,7 +1457,7 @@ export class Compiler {
             iter = "$loc.$iter0";
         }
         else {
-            var toiter = this.vexpr(ge.iter);
+            const toiter = this.vexpr(ge.iter);
             iter = "$loc." + this.gensym("iter");
             out(iter, " = ", "Sk.abstr.iter(", toiter, ");");
         }
@@ -1466,8 +1467,8 @@ export class Compiler {
         // var nexti = this.emitArgs('next', "Sk.abstr.iternext(", iter, ")");
         // var target = this.vexpr(ge.target, nexti);
 
-        var n = ge.ifs.length;
-        for (var i = 0; i < n; ++i) {
+        const n = ge.ifs.length;
+        for (let i = 0; i < n; ++i) {
             // var ifres = this.vexpr(ge.ifs[i]);
         }
 
@@ -1476,7 +1477,7 @@ export class Compiler {
         }
 
         if (genIndex >= generators.length) {
-            var velt = this.vexpr(elt);
+            const velt = this.vexpr(elt);
             out("return [", skip, "/*resume*/,", velt, "/*ret*/];");
             this.setBlock(skip);
         }
@@ -1488,7 +1489,7 @@ export class Compiler {
     }
 
     cgenexp(e: GeneratorExp) {
-        var gen = this.buildcodeobj(e, "<genexpr>", null, null,
+        const gen = this.buildcodeobj(e, "<genexpr>", null, null,
             (scopename) => {
                 this.cgenexpgen(e.generators, 0, e.elt);
             });
@@ -1497,7 +1498,7 @@ export class Compiler {
         // but the code builder builds a wrapper that makes generators for normal
         // function generators, so we just do it outside (even just new'ing it
         // inline would be fine).
-        var gener = this.emitArgs("gener", "Sk.misceval.callsim(", gen, ");");
+        const gener = this.emitArgs("gener", "Sk.misceval.callsim(", gen, ");");
         // stuff the outermost iterator into the generator after evaluating it
         // outside of the function. it's retrieved by the fixed name above.
         out(gener, ".gi$locals.$iter0=Sk.abstr.iter(", this.vexpr(e.generators[0].iter), ");");
@@ -1506,18 +1507,18 @@ export class Compiler {
 
     cclass(s: ClassDef, flags: number) {
         assert(s instanceof ClassDef);
-        // var decos = s.decorator_list;
+        // const decos = s.decorator_list;
 
         // decorators and bases need to be eval'd out here
         // this.vseqexpr(decos);
 
-        var bases = this.vseqexpr(s.bases);
+        const bases = this.vseqexpr(s.bases);
 
         /**
          *
          */
-        var scopename = this.enterScope(s.name, s, s.lineno);
-        var entryBlock = this.newBlock('class entry');
+        const scopename = this.enterScope(s.name, s, s.lineno);
+        const entryBlock = this.newBlock('class entry');
 
         this.u.prefixCode = "var " + scopename + "=(function $" + s.name + "$class_outer($globals,$locals,$rest){var $gbl=$globals,$loc=$locals;";
         this.u.switchCode += "return(function " + s.name + "(){";
@@ -1535,7 +1536,7 @@ export class Compiler {
 
         this.exitScope();
 
-        var wrapped = this.emitArgs('built', 'Sk.misceval.buildClass($gbl,', scopename, ',', toStringLiteralJS(s.name), ',[', bases, '])');
+        const wrapped = this.emitArgs('built', 'Sk.misceval.buildClass($gbl,', scopename, ',', toStringLiteralJS(s.name), ',[', bases, '])');
 
         // store our new class under the right name
         this.nameop(s.name, Store, wrapped);
@@ -1570,9 +1571,9 @@ export class Compiler {
         }
         else if (s instanceof Assign) {
             const assign = <Assign>s;
-            var n = assign.targets.length;
-            var val = this.vexpr(assign.value);
-            for (var i = 0; i < n; ++i) {
+            const n = assign.targets.length;
+            const val = this.vexpr(assign.value);
+            for (let i = 0; i < n; ++i) {
                 this.vexpr(assign.targets[i], val);
             }
         }
@@ -1639,10 +1640,11 @@ export class Compiler {
     }
 
     isCell(name: string): boolean {
-        var mangled = mangleName(this.u.private_, name);
-        var scope = this.u.ste.getScope(mangled);
-        if (scope === CELL)
+        const mangled = mangleName(this.u.private_, name);
+        const scope = this.u.ste.getScope(mangled);
+        if (scope === CELL) {
             return true;
+        }
         return false;
     }
 
@@ -1659,10 +1661,10 @@ export class Compiler {
         if (name === "False") return "Sk.ffi.bool.False";
 
         // Have to do this before looking it up in the scope
-        var mangled = mangleName(this.u.private_, name);
-        var optype = OP_NAME;
-        var scope = this.u.ste.getScope(mangled);
-        var dict = null;
+        let mangled = mangleName(this.u.private_, name);
+        let optype = OP_NAME;
+        const scope = this.u.ste.getScope(mangled);
+        let dict: string = null;
         switch (scope) {
             case FREE:
                 dict = "$free";
@@ -1825,13 +1827,13 @@ export class Compiler {
 
     cprint(s: Print) {
         assert(s instanceof Print);
-        var dest = 'null';
+        let dest = 'null';
         if (s.dest) {
             dest = this.vexpr(s.dest);
         }
 
-        var n = s.values.length;
-        for (var i = 0; i < n; ++i) {
+        const n = s.values.length;
+        for (let i = 0; i < n; ++i) {
             // out("Sk.misceval.print_(Sk.ffi.remapToJs(new Sk.builtins.str(", this.vexpr(s.values[i]), ")));");
         }
         if (s.nl) {
@@ -1884,12 +1886,12 @@ function fixReservedNames(name: string): string {
 }
 
 /**
- * @param {string} priv
- * @param {string} name
- * @return {string} The mangled name.
+ * @param priv
+ * @param name
+ * @return The mangled name.
  */
 function mangleName(priv: string, name: string): string {
-    var strpriv = null;
+    let strpriv = null;
 
     if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_')
         return name;
