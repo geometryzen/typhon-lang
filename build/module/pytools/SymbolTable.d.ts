@@ -1,17 +1,45 @@
 import { BlockType, SymbolTableScope } from './SymbolTableScope';
 import { Alias } from './types';
 import { Arguments } from './types';
+import { Assign } from './types';
+import { Call } from './types';
+import { Compare } from './types';
 import { Comprehension } from './types';
 import { Ellipsis } from './types';
 import { ExceptHandler } from './types';
 import { Expression } from './types';
+import { ExpressionStatement } from './types';
 import { ExtSlice } from './types';
 import { GeneratorExp } from './types';
+import { IfStatement } from './types';
 import { Index } from './types';
+import { Module } from './types';
 import { Name } from './types';
+import { Num } from './types';
+import { Print } from './types';
 import { Slice } from './types';
 import { Statement } from './types';
+import { Str } from './types';
+import { Visitor } from './types';
 import { DictionaryKind } from './SymbolConstants';
+import { SymbolFlags } from './SymbolConstants';
+/**
+ * Migrate to using this class to providing the implementation for the SymbolTable.
+ */
+export declare class SemanticVisitor implements Visitor {
+    private st;
+    constructor(st: SymbolTable);
+    assign(assign: Assign): void;
+    callExpression(ce: Call): void;
+    compareExpression(ce: Compare): void;
+    expressionStatement(expressionStatement: ExpressionStatement): void;
+    ifStatement(i: IfStatement): void;
+    module(module: Module): void;
+    name(name: Name): void;
+    num(num: Num): void;
+    print(print: Print): void;
+    str(str: Str): void;
+}
 /**
  * The symbol table uses the abstract synntax tree (not the parse tree).
  */
@@ -51,15 +79,14 @@ export declare class SymbolTable {
      */
     newTmpname(lineno: number): void;
     /**
-     * @param {string} name
-     * @param {number} flag
-     * @param {number} lineno
-     * @return {void}
+     * @param name
+     * @param flags
+     * @param lineno
      */
-    addDef(name: string, flag: number, lineno: number): void;
+    addDef(name: string, flags: SymbolFlags, lineno: number): void;
     visitSlice(s: Slice | ExtSlice | Index | Ellipsis): void;
     /**
-     * @param {Object} s
+     *
      */
     visitStmt(s: Statement): void;
     visitExpr(e: Expression): void;

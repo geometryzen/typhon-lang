@@ -1,9 +1,13 @@
 import { Symbol } from './Symbol';
 import { SymbolTable } from './SymbolTable';
+import { SymbolFlags } from './SymbolConstants';
 export declare type BlockType = 'class' | 'function' | 'module';
 export declare class SymbolTableScope {
+    /**
+     * A mapping from the name of a symbol to its flags.
+     */
     symFlags: {
-        [name: string]: number;
+        [name: string]: SymbolFlags;
     };
     private name;
     varnames: string[];

@@ -1,10 +1,10 @@
-import { /* compileExpression, */ compile/*, compileSingle*/, resetCompiler } from './transpiler';
+import { /* compileExpression, */ compile/*, compileSingle*/ } from './transpiler';
 
 const fileName = 'foo.ts';
 
 describe('transpiler', function () {
 
-    describe("reverse engineering", function () {
+    xdescribe("reverse engineering", function () {
         it("", function () {
             const sourceText = "123";
             const sourceFile = ts.createSourceFile("foo.ts", sourceText, ts.ScriptTarget.ES2016, true, ts.ScriptKind.TS);
@@ -14,7 +14,6 @@ describe('transpiler', function () {
 
     it('should be available', function () {
         expect(typeof compile).toBe('function');
-        expect(typeof resetCompiler).toBe('function');
     });
 
     xdescribe('ImportFrom', function () {

@@ -20,7 +20,7 @@ import { ClassDef } from '../pytools/types';
 import { Compare } from '../pytools/types';
 import { ContinueStatement } from '../pytools/types';
 import { Del } from '../pytools/types';
-import { DeleteExpression } from '../pytools/types';
+import { DeleteStatement } from '../pytools/types';
 import { Dict } from '../pytools/types';
 import { Ellipsis } from '../pytools/types';
 import { ExpressionStatement } from '../pytools/types';
@@ -83,17 +83,11 @@ var gensymCount = 0;
  */
 var CompilerUnit = (function () {
     /**
-     * @constructor
-     *
      * Stuff that changes on entry/exit of code blocks. must be saved and restored
      * when returning to a block.
-     *
      * Corresponds to the body of a module, class, or function.
      */
     function CompilerUnit() {
-        /**
-         * @type {?Object}
-         */
         this.ste = null;
         this.name = null;
         this.private_ = null;
@@ -130,34 +124,22 @@ var CompilerUnit = (function () {
 }());
 var Compiler = (function () {
     /**
-     * @constructor
-     * @param fileName {string}
-     * @param st {SymbolTable}
-     * @param flags {number}
-     * @param {string=} sourceCodeForAnnotation used to add original source to listing if desired
+     *
+     * @param fileName
+     * @param st
+     * @param flags
+     * @param sourceCodeForAnnotation used to add original source to listing if desired
      */
     function Compiler(fileName, st, flags, sourceCodeForAnnotation) {
         this.fileName = fileName;
-        /**
-         * @type {Object}
-         * @private
-         */
         this.st = st;
         this.flags = flags;
         this.interactive = false;
         this.nestlevel = 0;
         this.u = null;
-        /**
-         * @type Array.<CompilerUnit>
-         * @private
-         */
         this.stack = [];
         this.result = [];
         // this.gensymcount = 0;
-        /**
-         * @type Array.<CompilerUnit>
-         * @private
-         */
         this.allUnits = [];
         this.source = sourceCodeForAnnotation ? sourceCodeForAnnotation.split("\n") : false;
     }
@@ -1311,6 +1293,10 @@ var Compiler = (function () {
         this.u.lineno = s.lineno;
         this.u.linenoSet = false;
         this.annotateSource(s);
+        // TODO: Does not need to be exceptional anymore.
+        if (s instanceof DeleteStatement) {
+            this.vseqexpr(s.targets);
+        }
         switch (s.constructor) {
             case FunctionDef:
                 this.cfunction(s);
@@ -1327,9 +1313,6 @@ var Compiler = (function () {
                     out("return null;");
                 break;
             }
-            case DeleteExpression:
-                this.vseqexpr(s.targets);
-                break;
             case Assign:
                 var assign = s;
                 var n = assign.targets.length;

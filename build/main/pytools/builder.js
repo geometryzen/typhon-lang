@@ -60,6 +60,7 @@ var types_53 = require("./types");
 var types_54 = require("./types");
 var types_55 = require("./types");
 var types_56 = require("./types");
+// import { Module } from './types';
 var types_57 = require("./types");
 var types_58 = require("./types");
 var types_59 = require("./types");
@@ -564,7 +565,7 @@ function astForExprlist(c, n, context) {
 }
 function astForDelStmt(c, n) {
     REQ(n, SYM.del_stmt);
-    return new types_23.DeleteExpression(astForExprlist(c, tree_1.CHILD(n, 1), types_22.Del), n.lineno, n.col_offset);
+    return new types_23.DeleteStatement(astForExprlist(c, tree_1.CHILD(n, 1), types_22.Del), n.lineno, n.col_offset);
 }
 function astForGlobalStmt(c, n) {
     REQ(n, SYM.GlobalStmt);

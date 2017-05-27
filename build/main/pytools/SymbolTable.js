@@ -69,6 +69,71 @@ var SymbolConstants_13 = require("./SymbolConstants");
 var SymbolConstants_14 = require("./SymbolConstants");
 var SymbolConstants_15 = require("./SymbolConstants");
 var SymbolConstants_16 = require("./SymbolConstants");
+//
+// TODO: This should be refactored into a SemanticVisitor implementing the Visitor.
+//
+/**
+ * Migrate to using this class to providing the implementation for the SymbolTable.
+ */
+var SemanticVisitor = (function () {
+    function SemanticVisitor(st) {
+        this.st = st;
+        // Do nothing.
+    }
+    SemanticVisitor.prototype.assign = function (assign) {
+        this.st.SEQExpr(assign.targets);
+        assign.value.accept(this);
+    };
+    SemanticVisitor.prototype.callExpression = function (ce) {
+        ce.func.accept(this);
+        this.st.SEQExpr(ce.args);
+        for (var i = 0; i < ce.keywords.length; ++i)
+            ce.keywords[i].value.accept(this);
+        // print(JSON.stringify(e.starargs, null, 2));
+        // print(JSON.stringify(e.kwargs, null,2));
+        if (ce.starargs) {
+            ce.starargs.accept(this);
+        }
+        if (ce.kwargs) {
+            ce.kwargs.accept(this);
+        }
+    };
+    SemanticVisitor.prototype.compareExpression = function (ce) {
+        ce.left.accept(this);
+        this.st.SEQExpr(ce.comparators);
+    };
+    SemanticVisitor.prototype.expressionStatement = function (expressionStatement) {
+        expressionStatement.accept(this);
+    };
+    SemanticVisitor.prototype.ifStatement = function (i) {
+        i.test.accept(this);
+        this.st.SEQStmt(i.consequent);
+        if (i.alternate) {
+            this.st.SEQStmt(i.alternate);
+        }
+        throw new Error("SemanticVistor.IfStatement");
+    };
+    SemanticVisitor.prototype.module = function (module) {
+        throw new Error("module");
+    };
+    SemanticVisitor.prototype.name = function (name) {
+        this.st.addDef(name.id, name.ctx === types_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, name.lineno);
+    };
+    SemanticVisitor.prototype.num = function (num) {
+        // Do nothing, unless we are doing type inference.
+    };
+    SemanticVisitor.prototype.print = function (print) {
+        if (print.dest) {
+            print.dest.accept(this);
+        }
+        this.st.SEQExpr(print.values);
+    };
+    SemanticVisitor.prototype.str = function (str) {
+        // Do nothing, unless we are doing type inference.
+    };
+    return SemanticVisitor;
+}());
+exports.SemanticVisitor = SemanticVisitor;
 /**
  * The symbol table uses the abstract synntax tree (not the parse tree).
  */
@@ -167,30 +232,29 @@ var SymbolTable = (function () {
         this.addDef("_[" + (++this.tmpname) + "]", SymbolConstants_7.DEF_LOCAL, lineno);
     };
     /**
-     * @param {string} name
-     * @param {number} flag
-     * @param {number} lineno
-     * @return {void}
+     * @param name
+     * @param flags
+     * @param lineno
      */
-    SymbolTable.prototype.addDef = function (name, flag, lineno) {
+    SymbolTable.prototype.addDef = function (name, flags, lineno) {
         var mangled = mangleName_1.mangleName(this.curClass, name);
         //  mangled = fixReservedNames(mangled);
         var val = this.cur.symFlags[mangled];
         if (val !== undefined) {
-            if ((flag & SymbolConstants_8.DEF_PARAM) && (val & SymbolConstants_8.DEF_PARAM)) {
+            if ((flags & SymbolConstants_8.DEF_PARAM) && (val & SymbolConstants_8.DEF_PARAM)) {
                 throw syntaxError_1.syntaxError("duplicate argument '" + name + "' in function definition", lineno);
             }
-            val |= flag;
+            val |= flags;
         }
         else {
-            val = flag;
+            val = flags;
         }
         this.cur.symFlags[mangled] = val;
-        if (flag & SymbolConstants_8.DEF_PARAM) {
+        if (flags & SymbolConstants_8.DEF_PARAM) {
             this.cur.varnames.push(mangled);
         }
-        else if (flag & SymbolConstants_5.DEF_GLOBAL) {
-            val = flag;
+        else if (flags & SymbolConstants_5.DEF_GLOBAL) {
+            val = flags;
             var fromGlobal = this.global[mangled];
             if (fromGlobal !== undefined)
                 val |= fromGlobal;
@@ -219,7 +283,7 @@ var SymbolTable = (function () {
         }
     };
     /**
-     * @param {Object} s
+     *
      */
     SymbolTable.prototype.visitStmt = function (s) {
         asserts_1.assert(s !== undefined, "visitStmt called with undefined");
@@ -255,7 +319,7 @@ var SymbolTable = (function () {
                 }
             }
         }
-        else if (s instanceof types_12.DeleteExpression) {
+        else if (s instanceof types_12.DeleteStatement) {
             this.SEQExpr(s.targets);
         }
         else if (s instanceof types_2.Assign) {

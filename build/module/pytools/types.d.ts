@@ -1,4 +1,22 @@
 import { INumericLiteral } from './INumericLiteral';
+export interface Visitor {
+    assign(assign: Assign): void;
+    callExpression(ce: Call): void;
+    compareExpression(ce: Compare): void;
+    expressionStatement(es: ExpressionStatement): void;
+    ifStatement(ifs: IfStatement): void;
+    module(module: Module): void;
+    name(name: Name): void;
+    num(num: Num): void;
+    print(print: Print): void;
+    str(str: Str): void;
+}
+export interface Visitable {
+    /**
+     * Who am I?
+     */
+    accept(visitor: Visitor): void;
+}
 export declare type Operator = BitOr | BitXor | BitAnd | LShift | RShift | Add | Sub | Mult | Div | FloorDiv | Mod;
 export interface HasAstName {
 }
@@ -78,30 +96,32 @@ export declare class AST extends ASTSpan {
 }
 export declare class ModuleElement extends AST {
 }
-export declare class Statement extends ModuleElement {
-    lineno?: number;
-}
-export declare class IterationStatement extends Statement {
-}
-export declare class Module {
-    body: Statement[];
-    scopeId: number;
-    constructor(body: Statement[]);
-}
-export declare class Interactive {
-    body: any;
-    constructor(body: any);
-}
 export interface TextRange {
 }
 export interface Node extends TextRange {
     col_offset?: number;
 }
-export declare abstract class Expression implements Node {
-    body?: any;
+export declare abstract class Expression implements Node, Visitable {
     id?: string;
     lineno?: number;
     col_offset?: number;
+    constructor();
+    accept(visitor: Visitor): void;
+}
+export declare abstract class Statement extends ModuleElement implements Visitable {
+    lineno?: number;
+    accept(visitor: Visitor): void;
+}
+export declare class IterationStatement extends Statement {
+}
+export declare class Module implements Visitable {
+    body: Statement[];
+    scopeId: number;
+    constructor(body: Statement[]);
+    accept(v: Visitor): void;
+}
+export declare class Interactive {
+    body: any;
     constructor(body: any);
 }
 export declare class UnaryExpression extends Expression {
@@ -140,7 +160,7 @@ export declare class ReturnStatement extends Statement {
     col_offset: number;
     constructor(value: Expression | Tuple | null, lineno: number, col_offset: number);
 }
-export declare class DeleteExpression extends UnaryExpression {
+export declare class DeleteStatement extends Statement {
     targets: Expression[];
     lineno: number;
     col_offset: number;
@@ -153,6 +173,7 @@ export declare class Assign extends Statement {
     lineno: number;
     col_offset: number;
     constructor(targets: Target[], value: Target, lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
 export declare type AugAssignOperator = Add | Sub | FloorDiv | Div | Mod | LShift | RShift | BitAnd | BitXor | BitOr | Pow | Mult;
 export declare class AugAssign extends Statement {
@@ -170,6 +191,7 @@ export declare class Print extends Statement {
     lineno: number;
     col_offset: number;
     constructor(dest: Expression, values: Expression[], nl: boolean, lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
 export declare class ForStatement extends IterationStatement {
     target: Target;
@@ -195,6 +217,7 @@ export declare class IfStatement extends Statement {
     lineno: number;
     col_offset: number;
     constructor(test: Expression, consequent: Statement[], alternate: Statement[], lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
 export declare class WithStatement extends Statement {
     context_expr: Expression;
@@ -248,7 +271,7 @@ export declare class ImportFrom extends Statement {
     col_offset: number;
     constructor(module: string, names: Alias[], level: number, lineno: number, col_offset: number);
 }
-export declare class Exec {
+export declare class Exec extends Statement {
     body: Expression;
     globals: Expression | null;
     locals: Expression | null;
@@ -256,25 +279,26 @@ export declare class Exec {
     col_offset?: number;
     constructor(body: Expression, globals: Expression | null, locals: Expression | null, lineno?: number, col_offset?: number);
 }
-export declare class Global {
+export declare class Global extends Statement {
     names: string[];
     lineno: number;
     col_offset: number;
     constructor(names: string[], lineno: number, col_offset: number);
 }
-export declare class NonLocal {
+export declare class NonLocal extends Statement {
     names: string[];
     lineno: number;
     col_offset: number;
     constructor(names: string[], lineno: number, col_offset: number);
 }
 export declare class ExpressionStatement extends Statement {
-    value: Expression | Tuple;
+    value: Expression;
     lineno: number;
     col_offset: number;
-    constructor(value: Expression | Tuple, lineno: number, col_offset: number);
+    constructor(value: Expression, lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
-export declare class Pass {
+export declare class Pass extends Statement {
     lineno: number;
     col_offset: number;
     constructor(lineno: number, col_offset: number);
@@ -289,14 +313,14 @@ export declare class ContinueStatement extends Statement {
     col_offset: number;
     constructor(lineno: number, col_offset: number);
 }
-export declare class BoolOp {
+export declare class BoolOp extends Expression {
     op: And;
     values: Expression[];
     lineno: number;
     col_offset: number;
     constructor(op: And, values: Expression[], lineno: number, col_offset: number);
 }
-export declare class BinOp {
+export declare class BinOp extends Expression {
     left: Expression;
     op: Operator;
     right: Expression;
@@ -305,14 +329,14 @@ export declare class BinOp {
     constructor(left: Expression, op: Operator, right: Expression, lineno: number, col_offset: number);
 }
 export declare type UnaryOperator = UAdd | USub | Invert | Not;
-export declare class UnaryOp {
+export declare class UnaryOp extends Expression {
     op: UnaryOperator;
     operand: Expression;
     lineno: number;
     col_offset: number;
     constructor(op: UnaryOperator, operand: Expression, lineno: number, col_offset: number);
 }
-export declare class Lambda {
+export declare class Lambda extends Expression {
     args: Arguments;
     body: Expression;
     lineno: number;
@@ -320,7 +344,7 @@ export declare class Lambda {
     scopeId: number;
     constructor(args: Arguments, body: Expression, lineno: number, col_offset: number);
 }
-export declare class IfExp {
+export declare class IfExp extends Expression {
     test: Expression;
     body: Expression;
     orelse: Expression;
@@ -328,21 +352,21 @@ export declare class IfExp {
     col_offset: number;
     constructor(test: Expression, body: Expression, orelse: Expression, lineno: number, col_offset: number);
 }
-export declare class Dict {
+export declare class Dict extends Expression {
     keys: Expression[];
     values: Expression[];
     lineno: number;
     col_offset: number;
     constructor(keys: Expression[], values: Expression[], lineno: number, col_offset: number);
 }
-export declare class ListComp {
+export declare class ListComp extends Expression {
     elt: Expression;
     generators: Comprehension[];
     lineno: number;
     col_offset: number;
     constructor(elt: Expression, generators: Comprehension[], lineno: number, col_offset: number);
 }
-export declare class GeneratorExp {
+export declare class GeneratorExp extends Expression {
     elt: Expression;
     generators: Comprehension[];
     lineno: number;
@@ -350,22 +374,23 @@ export declare class GeneratorExp {
     scopeId: number;
     constructor(elt: Expression, generators: Comprehension[], lineno: number, col_offset: number);
 }
-export declare class Yield {
+export declare class Yield extends Expression {
     value: Expression | Tuple;
     lineno: number;
     col_offset: number;
     constructor(value: Expression | Tuple, lineno: number, col_offset: number);
 }
 export declare type CompareOperator = Lt | Gt | Eq | LtE | GtE | NotEq | In | NotIn | IsNot;
-export declare class Compare {
+export declare class Compare extends Expression {
     left: Expression;
     ops: CompareOperator[];
     comparators: Expression[];
     lineno: number;
     col_offset: number;
     constructor(left: Expression, ops: CompareOperator[], comparators: Expression[], lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
-export declare class Call {
+export declare class Call extends Expression {
     func: Attribute | Name;
     args: (Expression | GeneratorExp)[];
     keywords: Keyword[];
@@ -374,20 +399,23 @@ export declare class Call {
     lineno?: number;
     col_offset?: number;
     constructor(func: Attribute | Name, args: (Expression | GeneratorExp)[], keywords: Keyword[], starargs: Expression | null, kwargs: Expression | null, lineno?: number, col_offset?: number);
+    accept(visitor: Visitor): void;
 }
-export declare class Num {
+export declare class Num extends Expression {
     n: INumericLiteral;
     lineno: number;
     col_offset: number;
     constructor(n: INumericLiteral, lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
-export declare class Str {
+export declare class Str extends Expression {
     s: string;
     lineno: number;
     col_offset: number;
     constructor(s: string, lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
-export declare class Attribute {
+export declare class Attribute extends Expression {
     value: Attribute | Name;
     attr: string;
     ctx: Load;
@@ -396,7 +424,7 @@ export declare class Attribute {
     constructor(value: Attribute | Name, attr: string, ctx: Load, lineno?: number, col_offset?: number);
 }
 export declare type SubscriptContext = AugLoad | AugStore | Load | Store | Del | Param;
-export declare class Subscript {
+export declare class Subscript extends Expression {
     value: Attribute | Name;
     slice: Ellipsis | Index | Name | Slice;
     ctx: SubscriptContext;
@@ -410,15 +438,16 @@ export declare class Name extends Expression {
     lineno?: number;
     col_offset?: number;
     constructor(id: string, ctx: Param, lineno?: number, col_offset?: number);
+    accept(visitor: Visitor): void;
 }
-export declare class List {
+export declare class List extends Expression {
     elts: Expression[];
     ctx: Load;
     lineno: number;
     col_offset: number;
     constructor(elts: Expression[], ctx: Load, lineno: number, col_offset: number);
 }
-export declare class Tuple {
+export declare class Tuple extends Expression {
     elts: (Expression | Tuple)[];
     ctx: Load;
     lineno: number;

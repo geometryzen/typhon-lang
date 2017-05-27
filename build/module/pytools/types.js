@@ -1,4 +1,5 @@
 import * as tslib_1 from "tslib";
+import { astDump } from '../pytools/builder';
 var Load = (function () {
     function Load() {
     }
@@ -203,6 +204,7 @@ var NotIn = (function () {
     return NotIn;
 }());
 export { NotIn };
+// FIXME: Two competing approaches here: ASTSpan and TextRange.
 var ASTSpan = (function () {
     function ASTSpan() {
         this.minChar = -1; // -1 = "undefined" or "compiler generated"
@@ -227,11 +229,26 @@ var ModuleElement = (function (_super) {
     return ModuleElement;
 }(AST));
 export { ModuleElement };
+var Expression = (function () {
+    function Expression() {
+        // Do noting yet.
+    }
+    Expression.prototype.accept = function (visitor) {
+        // accept must be implemented by derived classes.
+        throw new Error("\"Expression.accept\" is not implemented on " + astDump(this));
+    };
+    return Expression;
+}());
+export { Expression };
 var Statement = (function (_super) {
     tslib_1.__extends(Statement, _super);
     function Statement() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    Statement.prototype.accept = function (visitor) {
+        // accept must be implemented by derived classes.
+        throw new Error("\"Statement.accept\" is not implemented on " + astDump(this));
+    };
     return Statement;
 }(ModuleElement));
 export { Statement };
@@ -247,6 +264,9 @@ var Module = (function () {
     function Module(body) {
         this.body = body;
     }
+    Module.prototype.accept = function (v) {
+        v.module(this);
+    };
     return Module;
 }());
 export { Module };
@@ -257,13 +277,6 @@ var Interactive = (function () {
     return Interactive;
 }());
 export { Interactive };
-var Expression = (function () {
-    function Expression(body) {
-        this.body = body;
-    }
-    return Expression;
-}());
-export { Expression };
 var UnaryExpression = (function (_super) {
     tslib_1.__extends(UnaryExpression, _super);
     function UnaryExpression() {
@@ -321,18 +334,18 @@ var ReturnStatement = (function (_super) {
     return ReturnStatement;
 }(Statement));
 export { ReturnStatement };
-var DeleteExpression = (function (_super) {
-    tslib_1.__extends(DeleteExpression, _super);
-    function DeleteExpression(targets, lineno, col_offset) {
-        var _this = _super.call(this, targets) || this;
+var DeleteStatement = (function (_super) {
+    tslib_1.__extends(DeleteStatement, _super);
+    function DeleteStatement(targets, lineno, col_offset) {
+        var _this = _super.call(this) || this;
         _this.targets = targets;
         _this.lineno = lineno;
         _this.col_offset = col_offset;
         return _this;
     }
-    return DeleteExpression;
-}(UnaryExpression));
-export { DeleteExpression };
+    return DeleteStatement;
+}(Statement));
+export { DeleteStatement };
 var Assign = (function (_super) {
     tslib_1.__extends(Assign, _super);
     function Assign(targets, value, lineno, col_offset) {
@@ -343,6 +356,9 @@ var Assign = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    Assign.prototype.accept = function (visitor) {
+        visitor.assign(this);
+    };
     return Assign;
 }(Statement));
 export { Assign };
@@ -371,6 +387,9 @@ var Print = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    Print.prototype.accept = function (visitor) {
+        visitor.print(this);
+    };
     return Print;
 }(Statement));
 export { Print };
@@ -414,6 +433,9 @@ var IfStatement = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    IfStatement.prototype.accept = function (visitor) {
+        visitor.ifStatement(this);
+    };
     return IfStatement;
 }(Statement));
 export { IfStatement };
@@ -511,34 +533,43 @@ var ImportFrom = (function (_super) {
     return ImportFrom;
 }(Statement));
 export { ImportFrom };
-var Exec = (function () {
+var Exec = (function (_super) {
+    tslib_1.__extends(Exec, _super);
     function Exec(body, globals, locals, lineno, col_offset) {
-        this.body = body;
-        this.globals = globals;
-        this.locals = locals;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.body = body;
+        _this.globals = globals;
+        _this.locals = locals;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return Exec;
-}());
+}(Statement));
 export { Exec };
-var Global = (function () {
+var Global = (function (_super) {
+    tslib_1.__extends(Global, _super);
     function Global(names, lineno, col_offset) {
-        this.names = names;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.names = names;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return Global;
-}());
+}(Statement));
 export { Global };
-var NonLocal = (function () {
+var NonLocal = (function (_super) {
+    tslib_1.__extends(NonLocal, _super);
     function NonLocal(names, lineno, col_offset) {
-        this.names = names;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.names = names;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return NonLocal;
-}());
+}(Statement));
 export { NonLocal };
 var ExpressionStatement = (function (_super) {
     tslib_1.__extends(ExpressionStatement, _super);
@@ -549,16 +580,22 @@ var ExpressionStatement = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    ExpressionStatement.prototype.accept = function (visitor) {
+        visitor.expressionStatement(this);
+    };
     return ExpressionStatement;
 }(Statement));
 export { ExpressionStatement };
-var Pass = (function () {
+var Pass = (function (_super) {
+    tslib_1.__extends(Pass, _super);
     function Pass(lineno, col_offset) {
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return Pass;
-}());
+}(Statement));
 export { Pass };
 var BreakStatement = (function (_super) {
     tslib_1.__extends(BreakStatement, _super);
@@ -582,193 +619,270 @@ var ContinueStatement = (function (_super) {
     return ContinueStatement;
 }(Statement));
 export { ContinueStatement };
-var BoolOp = (function () {
+var BoolOp = (function (_super) {
+    tslib_1.__extends(BoolOp, _super);
     function BoolOp(op, values, lineno, col_offset) {
-        this.op = op;
-        this.values = values;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.op = op;
+        _this.values = values;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return BoolOp;
-}());
+}(Expression));
 export { BoolOp };
-var BinOp = (function () {
+var BinOp = (function (_super) {
+    tslib_1.__extends(BinOp, _super);
     function BinOp(left, op, right, lineno, col_offset) {
-        this.left = left;
-        this.op = op;
-        this.right = right;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.left = left;
+        _this.op = op;
+        _this.right = right;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return BinOp;
-}());
+}(Expression));
 export { BinOp };
-var UnaryOp = (function () {
+var UnaryOp = (function (_super) {
+    tslib_1.__extends(UnaryOp, _super);
     function UnaryOp(op, operand, lineno, col_offset) {
-        this.op = op;
-        this.operand = operand;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.op = op;
+        _this.operand = operand;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return UnaryOp;
-}());
+}(Expression));
 export { UnaryOp };
-var Lambda = (function () {
+var Lambda = (function (_super) {
+    tslib_1.__extends(Lambda, _super);
     function Lambda(args, body, lineno, col_offset) {
-        this.args = args;
-        this.body = body;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.args = args;
+        _this.body = body;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return Lambda;
-}());
+}(Expression));
 export { Lambda };
-var IfExp = (function () {
+var IfExp = (function (_super) {
+    tslib_1.__extends(IfExp, _super);
     function IfExp(test, body, orelse, lineno, col_offset) {
-        this.test = test;
-        this.body = body;
-        this.orelse = orelse;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.test = test;
+        _this.body = body;
+        _this.orelse = orelse;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return IfExp;
-}());
+}(Expression));
 export { IfExp };
-var Dict = (function () {
+var Dict = (function (_super) {
+    tslib_1.__extends(Dict, _super);
     function Dict(keys, values, lineno, col_offset) {
-        this.keys = keys;
-        this.values = values;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.keys = keys;
+        _this.values = values;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return Dict;
-}());
+}(Expression));
 export { Dict };
-var ListComp = (function () {
+var ListComp = (function (_super) {
+    tslib_1.__extends(ListComp, _super);
     function ListComp(elt, generators, lineno, col_offset) {
-        this.elt = elt;
-        this.generators = generators;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.elt = elt;
+        _this.generators = generators;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return ListComp;
-}());
+}(Expression));
 export { ListComp };
-var GeneratorExp = (function () {
+var GeneratorExp = (function (_super) {
+    tslib_1.__extends(GeneratorExp, _super);
     function GeneratorExp(elt, generators, lineno, col_offset) {
-        this.elt = elt;
-        this.generators = generators;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.elt = elt;
+        _this.generators = generators;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return GeneratorExp;
-}());
+}(Expression));
 export { GeneratorExp };
-var Yield = (function () {
+var Yield = (function (_super) {
+    tslib_1.__extends(Yield, _super);
     function Yield(value, lineno, col_offset) {
-        this.value = value;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.value = value;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return Yield;
-}());
+}(Expression));
 export { Yield };
-var Compare = (function () {
+var Compare = (function (_super) {
+    tslib_1.__extends(Compare, _super);
     function Compare(left, ops, comparators, lineno, col_offset) {
-        this.left = left;
-        this.ops = ops;
-        this.comparators = comparators;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.left = left;
+        for (var _i = 0, ops_1 = ops; _i < ops_1.length; _i++) {
+            var op = ops_1[_i];
+            switch (op) {
+                case Lt: {
+                    break;
+                }
+                default: {
+                    throw new Error("ops must only contain CompareOperator(s) but contains " + op);
+                }
+            }
+        }
+        _this.ops = ops;
+        _this.comparators = comparators;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
+    Compare.prototype.accept = function (visitor) {
+        visitor.compareExpression(this);
+    };
     return Compare;
-}());
+}(Expression));
 export { Compare };
-var Call = (function () {
+var Call = (function (_super) {
+    tslib_1.__extends(Call, _super);
     function Call(func, args, keywords, starargs, kwargs, lineno, col_offset) {
-        this.func = func;
-        this.args = args;
-        this.keywords = keywords;
-        this.starargs = starargs;
-        this.kwargs = kwargs;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.func = func;
+        _this.args = args;
+        _this.keywords = keywords;
+        _this.starargs = starargs;
+        _this.kwargs = kwargs;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
+    Call.prototype.accept = function (visitor) {
+        visitor.callExpression(this);
+    };
     return Call;
-}());
+}(Expression));
 export { Call };
-var Num = (function () {
+var Num = (function (_super) {
+    tslib_1.__extends(Num, _super);
     function Num(n, lineno, col_offset) {
-        this.n = n;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.n = n;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
+    Num.prototype.accept = function (visitor) {
+        visitor.num(this);
+    };
     return Num;
-}());
+}(Expression));
 export { Num };
-var Str = (function () {
+var Str = (function (_super) {
+    tslib_1.__extends(Str, _super);
     function Str(s, lineno, col_offset) {
-        this.s = s;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.s = s;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
+    Str.prototype.accept = function (visitor) {
+        visitor.str(this);
+    };
     return Str;
-}());
+}(Expression));
 export { Str };
-var Attribute = (function () {
+var Attribute = (function (_super) {
+    tslib_1.__extends(Attribute, _super);
     function Attribute(value, attr, ctx, lineno, col_offset) {
-        this.value = value;
-        this.attr = attr;
-        this.ctx = ctx;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.value = value;
+        _this.attr = attr;
+        _this.ctx = ctx;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return Attribute;
-}());
+}(Expression));
 export { Attribute };
-var Subscript = (function () {
+var Subscript = (function (_super) {
+    tslib_1.__extends(Subscript, _super);
     function Subscript(value, slice, ctx, lineno, col_offset) {
-        this.value = value;
-        this.slice = slice;
-        this.ctx = ctx;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.value = value;
+        _this.slice = slice;
+        _this.ctx = ctx;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return Subscript;
-}());
+}(Expression));
 export { Subscript };
 var Name = (function (_super) {
     tslib_1.__extends(Name, _super);
     function Name(id, ctx, lineno, col_offset) {
-        var _this = _super.call(this, void 0) || this;
+        var _this = _super.call(this) || this;
         _this.id = id;
         _this.ctx = ctx;
         _this.lineno = lineno;
         _this.col_offset = col_offset;
         return _this;
     }
+    Name.prototype.accept = function (visitor) {
+        visitor.name(this);
+    };
     return Name;
 }(Expression));
 export { Name };
-var List = (function () {
+var List = (function (_super) {
+    tslib_1.__extends(List, _super);
     function List(elts, ctx, lineno, col_offset) {
-        this.elts = elts;
-        this.ctx = ctx;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.elts = elts;
+        _this.ctx = ctx;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return List;
-}());
+}(Expression));
 export { List };
-var Tuple = (function () {
+var Tuple = (function (_super) {
+    tslib_1.__extends(Tuple, _super);
     function Tuple(elts, ctx, lineno, col_offset) {
-        this.elts = elts;
-        this.ctx = ctx;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        var _this = _super.call(this) || this;
+        _this.elts = elts;
+        _this.ctx = ctx;
+        _this.lineno = lineno;
+        _this.col_offset = col_offset;
+        return _this;
     }
     return Tuple;
-}());
+}(Expression));
 export { Tuple };
 var Ellipsis = (function () {
     function Ellipsis() {
@@ -856,7 +970,10 @@ Interactive.prototype['_fields'] = [
 ];
 Expression.prototype['_astname'] = 'Expression';
 Expression.prototype['_fields'] = [
-    'body', function (n) { return n.body; }
+    'body', function (n) {
+        // TOD: Expression is abstract so we should not be here?
+        return void 0;
+    }
 ];
 Suite.prototype['_astname'] = 'Suite';
 Suite.prototype['_fields'] = [
@@ -880,8 +997,8 @@ ReturnStatement.prototype['_astname'] = 'ReturnStatement';
 ReturnStatement.prototype['_fields'] = [
     'value', function (n) { return n.value; }
 ];
-DeleteExpression.prototype['_astname'] = 'Delete';
-DeleteExpression.prototype['_fields'] = [
+DeleteStatement.prototype['_astname'] = 'DeleteStatement';
+DeleteStatement.prototype['_fields'] = [
     'targets', function (n) { return n.targets; }
 ];
 Assign.prototype['_astname'] = 'Assign';

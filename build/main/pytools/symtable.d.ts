@@ -2,8 +2,7 @@ import { SymbolTable } from './SymbolTable';
 import { Module } from './types';
 import { Statement } from './types';
 /**
- * @param ast
- * @param fileName
+ *
  */
 export declare function symbolTable(mod: Module): SymbolTable;
 export declare function symbolTableFromStatements(stmts: Statement[]): SymbolTable;
@@ -35,6 +34,6 @@ export interface SymbolObj {
     lookup(identifier: string): SymbolInfo;
 }
 /**
- * @param st
+ *
  */
 export declare function dumpSymbolTable(st: SymbolTable): string;

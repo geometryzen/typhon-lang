@@ -18,7 +18,7 @@ import { ClassDef } from './types';
 import { Compare } from './types';
 import { Comprehension } from './types';
 import { ContinueStatement } from './types';
-import { DeleteExpression } from './types';
+import { DeleteStatement } from './types';
 import { Dict } from './types';
 import { Ellipsis } from './types';
 import { ExceptHandler } from './types';
@@ -39,6 +39,7 @@ import { Lambda } from './types';
 import { Load } from './types';
 import { List } from './types';
 import { ListComp } from './types';
+import { Module } from './types';
 import { Name } from './types';
 import { Num } from './types';
 import { Param } from './types';
@@ -55,6 +56,7 @@ import { TryExcept } from './types';
 import { TryFinally } from './types';
 import { Tuple } from './types';
 import { UnaryOp } from './types';
+import { Visitor } from './types';
 import { WhileStatement } from './types';
 import { WithStatement } from './types';
 import { Yield } from './types';
@@ -76,6 +78,72 @@ import { LOCAL } from './SymbolConstants';
 import { ModuleBlock } from './SymbolConstants';
 import { USE } from './SymbolConstants';
 import { SCOPE_OFF } from './SymbolConstants';
+import { SymbolFlags } from './SymbolConstants';
+
+//
+// TODO: This should be refactored into a SemanticVisitor implementing the Visitor.
+//
+
+/**
+ * Migrate to using this class to providing the implementation for the SymbolTable.
+ */
+export class SemanticVisitor implements Visitor {
+    constructor(private st: SymbolTable) {
+        // Do nothing.
+    }
+    assign(assign: Assign): void {
+        this.st.SEQExpr(assign.targets);
+        assign.value.accept(this);
+    }
+    callExpression(ce: Call): void {
+        ce.func.accept(this);
+        this.st.SEQExpr(ce.args);
+        for (let i = 0; i < ce.keywords.length; ++i)
+            ce.keywords[i].value.accept(this);
+        // print(JSON.stringify(e.starargs, null, 2));
+        // print(JSON.stringify(e.kwargs, null,2));
+        if (ce.starargs) {
+            ce.starargs.accept(this);
+        }
+        if (ce.kwargs) {
+            ce.kwargs.accept(this);
+        }
+    }
+    compareExpression(ce: Compare): void {
+        ce.left.accept(this);
+        this.st.SEQExpr(ce.comparators);
+    }
+    expressionStatement(expressionStatement: ExpressionStatement): void {
+        expressionStatement.accept(this);
+    }
+    ifStatement(i: IfStatement): void {
+        i.test.accept(this);
+        this.st.SEQStmt(i.consequent);
+        if (i.alternate) {
+            this.st.SEQStmt(i.alternate);
+        }
+        throw new Error("SemanticVistor.IfStatement");
+    }
+    module(module: Module): void {
+        throw new Error("module");
+    }
+    name(name: Name): void {
+        this.st.addDef(name.id, name.ctx === Load ? USE : DEF_LOCAL, name.lineno);
+    }
+    num(num: Num): void {
+        // Do nothing, unless we are doing type inference.
+    }
+    print(print: Print) {
+        if (print.dest) {
+            print.dest.accept(this);
+        }
+        this.st.SEQExpr(print.values);
+
+    }
+    str(str: Str): void {
+        // Do nothing, unless we are doing type inference.
+    }
+}
 
 /**
  * The symbol table uses the abstract synntax tree (not the parse tree).
@@ -189,30 +257,29 @@ export class SymbolTable {
     }
 
     /**
-     * @param {string} name
-     * @param {number} flag
-     * @param {number} lineno
-     * @return {void}
+     * @param name
+     * @param flags
+     * @param lineno
      */
-    addDef(name: string, flag: number, lineno: number): void {
+    addDef(name: string, flags: SymbolFlags, lineno: number): void {
         const mangled = mangleName(this.curClass, name);
         //  mangled = fixReservedNames(mangled);
-        let val = this.cur.symFlags[mangled];
+        let val: SymbolFlags = this.cur.symFlags[mangled];
         if (val !== undefined) {
-            if ((flag & DEF_PARAM) && (val & DEF_PARAM)) {
+            if ((flags & DEF_PARAM) && (val & DEF_PARAM)) {
                 throw syntaxError("duplicate argument '" + name + "' in function definition", lineno);
             }
-            val |= flag;
+            val |= flags;
         }
         else {
-            val = flag;
+            val = flags;
         }
         this.cur.symFlags[mangled] = val;
-        if (flag & DEF_PARAM) {
+        if (flags & DEF_PARAM) {
             this.cur.varnames.push(mangled);
         }
-        else if (flag & DEF_GLOBAL) {
-            val = flag;
+        else if (flags & DEF_GLOBAL) {
+            val = flags;
             const fromGlobal = this.global[mangled];
             if (fromGlobal !== undefined) val |= fromGlobal;
             this.global[mangled] = val;
@@ -239,9 +306,9 @@ export class SymbolTable {
     }
 
     /**
-     * @param {Object} s
+     *
      */
-    visitStmt(s: Statement) {
+    visitStmt(s: Statement): void {
         assert(s !== undefined, "visitStmt called with undefined");
         if (s instanceof FunctionDef) {
             this.addDef(s.name, DEF_LOCAL, s.lineno);
@@ -272,7 +339,7 @@ export class SymbolTable {
                 }
             }
         }
-        else if (s instanceof DeleteExpression) {
+        else if (s instanceof DeleteStatement) {
             this.SEQExpr(s.targets);
         }
         else if (s instanceof Assign) {

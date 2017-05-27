@@ -27,7 +27,7 @@ import { Comprehension } from '../pytools/types';
 import { ContinueStatement } from '../pytools/types';
 import { Decorator } from '../pytools/types';
 import { Del } from '../pytools/types';
-import { DeleteExpression } from '../pytools/types';
+import { DeleteStatement } from '../pytools/types';
 import { Dict } from '../pytools/types';
 import { Ellipsis } from '../pytools/types';
 import { Expression } from '../pytools/types';
@@ -126,19 +126,13 @@ class CompilerUnit {
     continueBlocks: number[];
     exceptBlocks: number[];
     finallyBlocks: number[];
-    argnames: any[];
+    argnames: string[];
     /**
-     * @constructor
-     *
      * Stuff that changes on entry/exit of code blocks. must be saved and restored
      * when returning to a block.
-     *
      * Corresponds to the body of a module, class, or function.
      */
     constructor() {
-        /**
-         * @type {?Object}
-         */
         this.ste = null;
         this.name = null;
 
@@ -179,51 +173,70 @@ class CompilerUnit {
 }
 
 class Compiler {
+    /**
+     * The output of all units.
+     */
     public result: string[];
+    /**
+     * Used to instrument the code with the name of the file.
+     */
     private fileName: string;
+    /**
+     * When a scope is entered, used to obtain the corresponding SymbolTableScope.
+     * A CompilerUnit is created for each scope.
+     */
     private st: SymbolTable;
+    /**
+     * Not being used (but being carried through).
+     */
     private flags: number;
+    /**
+     * Not being used. Default is false.
+     */
     private interactive: boolean;
+    /**
+     * Incremented(Decremented) when entering(leaving) a scope.
+     * Default is 0.
+     * Not being used.
+     */
     private nestlevel: number;
+    /**
+     * Provides custom information about the current scope.
+     * Default is null.
+     */
     private u: CompilerUnit;
+    /**
+     * Pushed(Popped) when entering(leaving) a scope.
+     * Default is [].
+     * Used to provide the compiler unit as scopes are popped.
+     */
     private stack: CompilerUnit[];
+    /**
+     * Pushed whenever we enter a cope, but never popped.
+     */
     private allUnits: CompilerUnit[];
+    /**
+     * Used to provide comments referencing the original source in the transpiled code.
+     */
     private source: string[] | boolean;
     /**
-     * @constructor
-     * @param fileName {string}
-     * @param st {SymbolTable}
-     * @param flags {number}
-     * @param {string=} sourceCodeForAnnotation used to add original source to listing if desired
+     *
+     * @param fileName
+     * @param st
+     * @param flags
+     * @param sourceCodeForAnnotation used to add original source to listing if desired
      */
-    constructor(fileName: string, st: SymbolTable, flags: number, sourceCodeForAnnotation: string) {
+    constructor(fileName: string, st: SymbolTable, flags: number, sourceCodeForAnnotation?: string) {
         this.fileName = fileName;
-        /**
-         * @type {Object}
-         * @private
-         */
         this.st = st;
         this.flags = flags;
         this.interactive = false;
         this.nestlevel = 0;
-
         this.u = null;
-        /**
-         * @type Array.<CompilerUnit>
-         * @private
-         */
         this.stack = [];
-
         this.result = [];
-
         // this.gensymcount = 0;
-
-        /**
-         * @type Array.<CompilerUnit>
-         * @private
-         */
         this.allUnits = [];
-
         this.source = sourceCodeForAnnotation ? sourceCodeForAnnotation.split("\n") : false;
     }
 
@@ -534,7 +547,7 @@ class Compiler {
      * @param {Object=} augstoreval value to store to for an aug operation (not
      * vexpr'd yet)
      */
-    vexpr(e: Expression, data?: string | undefined, augstoreval?: object): string {
+    vexpr(e: Expression, data?: string | undefined, augstoreval?: Expression): string {
         if (e.lineno > this.u.lineno) {
             this.u.lineno = e.lineno;
             this.u.linenoSet = false;
@@ -1538,6 +1551,11 @@ class Compiler {
 
         this.annotateSource(s);
 
+        // TODO: Does not need to be exceptional anymore.
+        if (s instanceof DeleteStatement) {
+            this.vseqexpr(s.targets);
+        }
+
         switch (s.constructor) {
             case FunctionDef:
                 this.cfunction(s as FunctionDef);
@@ -1554,9 +1572,6 @@ class Compiler {
                     out("return null;");
                 break;
             }
-            case DeleteExpression:
-                this.vseqexpr((<DeleteExpression>s).targets);
-                break;
             case Assign:
                 const assign = s as Assign;
                 const n = assign.targets.length;

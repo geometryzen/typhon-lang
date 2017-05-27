@@ -5,8 +5,7 @@ import { Module } from './types';
 import { Statement } from './types';
 
 /**
- * @param ast
- * @param fileName
+ *
  */
 export function symbolTable(mod: Module): SymbolTable {
     const st = new SymbolTable();
@@ -74,7 +73,7 @@ export interface SymbolObj {
 }
 
 /**
- * @param st
+ *
  */
 export function dumpSymbolTable(st: SymbolTable): string {
     const pyBoolStr = function (b: boolean): string {

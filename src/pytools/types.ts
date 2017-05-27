@@ -1,4 +1,25 @@
 import { INumericLiteral } from './INumericLiteral';
+import { astDump } from '../pytools/builder';
+
+export interface Visitor {
+    assign(assign: Assign): void;
+    callExpression(ce: Call): void;
+    compareExpression(ce: Compare): void;
+    expressionStatement(es: ExpressionStatement): void;
+    ifStatement(ifs: IfStatement): void;
+    module(module: Module): void;
+    name(name: Name): void;
+    num(num: Num): void;
+    print(print: Print): void;
+    str(str: Str): void;
+}
+
+export interface Visitable {
+    /**
+     * Who am I?
+     */
+    accept(visitor: Visitor): void;
+}
 
 export type Operator = BitOr | BitXor | BitAnd | LShift | RShift | Add | Sub | Mult | Div | FloorDiv | Mod;
 
@@ -62,6 +83,8 @@ export class IsNot { }
 export class In { }
 export class NotIn { }
 
+// FIXME: Two competing approaches here: ASTSpan and TextRange.
+
 export class ASTSpan {
     public minChar?: number = -1;  // -1 = "undefined" or "compiler generated"
     public limChar?: number = -1;  // -1 = "undefined" or "compiler generated"
@@ -75,29 +98,6 @@ export class ModuleElement extends AST {
 
 }
 
-export class Statement extends ModuleElement {
-    lineno?: number;
-}
-
-export class IterationStatement extends Statement {
-    // statement: Statement;
-}
-
-export class Module {
-    body: Statement[];
-    scopeId: number;
-    constructor(body: Statement[]) {
-        this.body = body;
-    }
-}
-
-export class Interactive {
-    body: any;
-    constructor(body: any) {
-        this.body = body;
-    }
-}
-
 export interface TextRange {
     // pos: number;
     // end: number;
@@ -107,11 +107,44 @@ export interface Node extends TextRange {
     col_offset?: number;
 }
 
-export abstract class Expression implements Node {
-    body?: any;
+export abstract class Expression implements Node, Visitable {
     id?: string;
     lineno?: number;
     col_offset?: number;
+    constructor() {
+        // Do noting yet.
+    }
+    accept(visitor: Visitor): void {
+        // accept must be implemented by derived classes.
+        throw new Error(`"Expression.accept" is not implemented on ${astDump(this)}`);
+    }
+}
+
+export abstract class Statement extends ModuleElement implements Visitable {
+    lineno?: number;
+    accept(visitor: Visitor): void {
+        // accept must be implemented by derived classes.
+        throw new Error(`"Statement.accept" is not implemented on ${astDump(this)}`);
+    }
+}
+
+export class IterationStatement extends Statement {
+    // statement: Statement;
+}
+
+export class Module implements Visitable {
+    body: Statement[];
+    scopeId: number;
+    constructor(body: Statement[]) {
+        this.body = body;
+    }
+    accept(v: Visitor): void {
+        v.module(this);
+    }
+}
+
+export class Interactive {
+    body: any;
     constructor(body: any) {
         this.body = body;
     }
@@ -183,12 +216,12 @@ export class ReturnStatement extends Statement {
     }
 }
 
-export class DeleteExpression extends UnaryExpression {
+export class DeleteStatement extends Statement {
     targets: Expression[];
     lineno: number;
     col_offset: number;
     constructor(targets: Expression[], lineno: number, col_offset: number) {
-        super(targets);
+        super();
         this.targets = targets;
         this.lineno = lineno;
         this.col_offset = col_offset;
@@ -209,7 +242,11 @@ export class Assign extends Statement {
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
+    accept(visitor: Visitor): void {
+        visitor.assign(this);
+    }
 }
+
 export type AugAssignOperator = Add | Sub | FloorDiv | Div | Mod | LShift | RShift | BitAnd | BitXor | BitOr | Pow | Mult;
 
 export class AugAssign extends Statement {
@@ -241,6 +278,9 @@ export class Print extends Statement {
         this.nl = nl;
         this.lineno = lineno;
         this.col_offset = col_offset;
+    }
+    accept(visitor: Visitor): void {
+        visitor.print(this);
     }
 }
 
@@ -291,6 +331,9 @@ export class IfStatement extends Statement {
         this.alternate = alternate;
         this.lineno = lineno;
         this.col_offset = col_offset;
+    }
+    accept(visitor: Visitor): void {
+        visitor.ifStatement(this);
     }
 }
 
@@ -398,13 +441,14 @@ export class ImportFrom extends Statement {
     }
 }
 
-export class Exec {
+export class Exec extends Statement {
     body: Expression;
     globals: Expression | null;
     locals: Expression | null;
     lineno?: number;
     col_offset?: number;
     constructor(body: Expression, globals: Expression | null, locals: Expression | null, lineno?: number, col_offset?: number) {
+        super();
         this.body = body;
         this.globals = globals;
         this.locals = locals;
@@ -413,22 +457,24 @@ export class Exec {
     }
 }
 
-export class Global {
+export class Global extends Statement {
     names: string[];
     lineno: number;
     col_offset: number;
     constructor(names: string[], lineno: number, col_offset: number) {
+        super();
         this.names = names;
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
 }
 
-export class NonLocal {
+export class NonLocal extends Statement {
     names: string[];
     lineno: number;
     col_offset: number;
     constructor(names: string[], lineno: number, col_offset: number) {
+        super();
         this.names = names;
         this.lineno = lineno;
         this.col_offset = col_offset;
@@ -436,21 +482,25 @@ export class NonLocal {
 }
 
 export class ExpressionStatement extends Statement {
-    value: Expression | Tuple;
+    value: Expression;
     lineno: number;
     col_offset: number;
-    constructor(value: Expression | Tuple, lineno: number, col_offset: number) {
+    constructor(value: Expression, lineno: number, col_offset: number) {
         super();
         this.value = value;
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
+    accept(visitor: Visitor): void {
+        visitor.expressionStatement(this);
+    }
 }
 
-export class Pass {
+export class Pass extends Statement {
     lineno: number;
     col_offset: number;
     constructor(lineno: number, col_offset: number) {
+        super();
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
@@ -476,12 +526,13 @@ export class ContinueStatement extends Statement {
     }
 }
 
-export class BoolOp {
+export class BoolOp extends Expression {
     op: And;
     values: Expression[];
     lineno: number;
     col_offset: number;
     constructor(op: And, values: Expression[], lineno: number, col_offset: number) {
+        super();
         this.op = op;
         this.values = values;
         this.lineno = lineno;
@@ -489,13 +540,14 @@ export class BoolOp {
     }
 }
 
-export class BinOp {
+export class BinOp extends Expression {
     left: Expression;
     op: Operator;
     right: Expression;
     lineno: number;
     col_offset: number;
     constructor(left: Expression, op: Operator, right: Expression, lineno: number, col_offset: number) {
+        super();
         this.left = left;
         this.op = op;
         this.right = right;
@@ -506,12 +558,13 @@ export class BinOp {
 
 export type UnaryOperator = UAdd | USub | Invert | Not;
 
-export class UnaryOp {
+export class UnaryOp extends Expression {
     op: UnaryOperator;
     operand: Expression;
     lineno: number;
     col_offset: number;
     constructor(op: UnaryOperator, operand: Expression, lineno: number, col_offset: number) {
+        super();
         this.op = op;
         this.operand = operand;
         this.lineno = lineno;
@@ -519,13 +572,14 @@ export class UnaryOp {
     }
 }
 
-export class Lambda {
+export class Lambda extends Expression {
     args: Arguments;
     body: Expression;
     lineno: number;
     col_offset: number;
     scopeId: number;
     constructor(args: Arguments, body: Expression, lineno: number, col_offset: number) {
+        super();
         this.args = args;
         this.body = body;
         this.lineno = lineno;
@@ -533,13 +587,14 @@ export class Lambda {
     }
 }
 
-export class IfExp {
+export class IfExp extends Expression {
     test: Expression;
     body: Expression;
     orelse: Expression;
     lineno: number;
     col_offset: number;
     constructor(test: Expression, body: Expression, orelse: Expression, lineno: number, col_offset: number) {
+        super();
         this.test = test;
         this.body = body;
         this.orelse = orelse;
@@ -548,12 +603,13 @@ export class IfExp {
     }
 }
 
-export class Dict {
+export class Dict extends Expression {
     keys: Expression[];
     values: Expression[];
     lineno: number;
     col_offset: number;
     constructor(keys: Expression[], values: Expression[], lineno: number, col_offset: number) {
+        super();
         this.keys = keys;
         this.values = values;
         this.lineno = lineno;
@@ -561,12 +617,13 @@ export class Dict {
     }
 }
 
-export class ListComp {
+export class ListComp extends Expression {
     elt: Expression;
     generators: Comprehension[];
     lineno: number;
     col_offset: number;
     constructor(elt: Expression, generators: Comprehension[], lineno: number, col_offset: number) {
+        super();
         this.elt = elt;
         this.generators = generators;
         this.lineno = lineno;
@@ -574,13 +631,14 @@ export class ListComp {
     }
 }
 
-export class GeneratorExp {
+export class GeneratorExp extends Expression {
     elt: Expression;
     generators: Comprehension[];
     lineno: number;
     col_offset: number;
     scopeId: number;
     constructor(elt: Expression, generators: Comprehension[], lineno: number, col_offset: number) {
+        super();
         this.elt = elt;
         this.generators = generators;
         this.lineno = lineno;
@@ -588,11 +646,12 @@ export class GeneratorExp {
     }
 }
 
-export class Yield {
+export class Yield extends Expression {
     value: Expression | Tuple;
     lineno: number;
     col_offset: number;
     constructor(value: Expression | Tuple, lineno: number, col_offset: number) {
+        super();
         this.value = value;
         this.lineno = lineno;
         this.col_offset = col_offset;
@@ -601,22 +660,36 @@ export class Yield {
 
 export type CompareOperator = Lt | Gt | Eq | LtE | GtE | NotEq | In | NotIn | IsNot;
 
-export class Compare {
+export class Compare extends Expression {
     left: Expression;
     ops: CompareOperator[];
     comparators: Expression[];
     lineno: number;
     col_offset: number;
     constructor(left: Expression, ops: CompareOperator[], comparators: Expression[], lineno: number, col_offset: number) {
+        super();
         this.left = left;
+        for (const op of ops) {
+            switch (op) {
+                case Lt: {
+                    break;
+                }
+                default: {
+                    throw new Error(`ops must only contain CompareOperator(s) but contains ${op}`);
+                }
+            }
+        }
         this.ops = ops;
         this.comparators = comparators;
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
+    accept(visitor: Visitor): void {
+        visitor.compareExpression(this);
+    }
 }
 
-export class Call {
+export class Call extends Expression {
     func: Attribute | Name;
     args: (Expression | GeneratorExp)[];
     keywords: Keyword[];
@@ -625,6 +698,7 @@ export class Call {
     lineno?: number;
     col_offset?: number;
     constructor(func: Attribute | Name, args: (Expression | GeneratorExp)[], keywords: Keyword[], starargs: Expression | null, kwargs: Expression | null, lineno?: number, col_offset?: number) {
+        super();
         this.func = func;
         this.args = args;
         this.keywords = keywords;
@@ -633,37 +707,49 @@ export class Call {
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
+    accept(visitor: Visitor): void {
+        visitor.callExpression(this);
+    }
 }
 
-export class Num {
+export class Num extends Expression {
     n: INumericLiteral;
     lineno: number;
     col_offset: number;
     constructor(n: INumericLiteral, lineno: number, col_offset: number) {
+        super();
         this.n = n;
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
+    accept(visitor: Visitor): void {
+        visitor.num(this);
+    }
 }
 
-export class Str {
+export class Str extends Expression {
     s: string;
     lineno: number;
     col_offset: number;
     constructor(s: string, lineno: number, col_offset: number) {
+        super();
         this.s = s;
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
+    accept(visitor: Visitor): void {
+        visitor.str(this);
+    }
 }
 
-export class Attribute {
+export class Attribute extends Expression {
     value: Attribute | Name;
     attr: string;
     ctx: Load;
     lineno?: number;
     col_offset?: number;
     constructor(value: Attribute | Name, attr: string, ctx: Load, lineno?: number, col_offset?: number) {
+        super();
         this.value = value;
         this.attr = attr;
         this.ctx = ctx;
@@ -674,13 +760,14 @@ export class Attribute {
 
 export type SubscriptContext = AugLoad | AugStore | Load | Store | Del | Param;
 
-export class Subscript {
+export class Subscript extends Expression {
     value: Attribute | Name;
     slice: Ellipsis | Index | Name | Slice;
     ctx: SubscriptContext;
     lineno: number;
     col_offset: number;
     constructor(value: Attribute | Name, slice: Ellipsis | Index | Name | Slice, ctx: SubscriptContext, lineno: number, col_offset: number) {
+        super();
         this.value = value;
         this.slice = slice;
         this.ctx = ctx;
@@ -695,20 +782,24 @@ export class Name extends Expression {
     lineno?: number;
     col_offset?: number;
     constructor(id: string, ctx: Param, lineno?: number, col_offset?: number) {
-        super(void 0);
+        super();
         this.id = id;
         this.ctx = ctx;
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
+    accept(visitor: Visitor): void {
+        visitor.name(this);
+    }
 }
 
-export class List {
+export class List extends Expression {
     elts: Expression[];
     ctx: Load;
     lineno: number;
     col_offset: number;
     constructor(elts: Expression[], ctx: Load, lineno: number, col_offset: number) {
+        super();
         this.elts = elts;
         this.ctx = ctx;
         this.lineno = lineno;
@@ -716,13 +807,14 @@ export class List {
     }
 }
 
-export class Tuple {
+export class Tuple extends Expression {
     elts: (Expression | Tuple)[];
     ctx: Load;
     lineno: number;
     col_offset: number;
     id?: string;
     constructor(elts: (Expression | Tuple)[], ctx: Load, lineno: number, col_offset: number) {
+        super();
         this.elts = elts;
         this.ctx = ctx;
         this.lineno = lineno;
@@ -828,7 +920,10 @@ Interactive.prototype['_fields'] = [
 ];
 Expression.prototype['_astname'] = 'Expression';
 Expression.prototype['_fields'] = [
-    'body', function (n: Expression) { return n.body; }
+    'body', function (n: Expression): void {
+        // TOD: Expression is abstract so we should not be here?
+        return void 0;
+    }
 ];
 Suite.prototype['_astname'] = 'Suite';
 Suite.prototype['_fields'] = [
@@ -852,9 +947,9 @@ ReturnStatement.prototype['_astname'] = 'ReturnStatement';
 ReturnStatement.prototype['_fields'] = [
     'value', function (n: ReturnStatement) { return n.value; }
 ];
-DeleteExpression.prototype['_astname'] = 'Delete';
-DeleteExpression.prototype['_fields'] = [
-    'targets', function (n: DeleteExpression) { return n.targets; }
+DeleteStatement.prototype['_astname'] = 'DeleteStatement';
+DeleteStatement.prototype['_fields'] = [
+    'targets', function (n: DeleteStatement) { return n.targets; }
 ];
 Assign.prototype['_astname'] = 'Assign';
 Assign.prototype['_fields'] = [

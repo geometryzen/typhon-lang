@@ -1,5 +1,5 @@
-export declare const DEF_GLOBAL = 1;
-export declare const DEF_LOCAL = 2;
+export declare const DEF_GLOBAL: number;
+export declare const DEF_LOCAL: number;
 export declare const DEF_PARAM: number;
 export declare const USE: number;
 export declare const DEF_STAR: number;
@@ -10,6 +10,7 @@ export declare const DEF_FREE_GLOBAL: number;
 export declare const DEF_FREE_CLASS: number;
 export declare const DEF_IMPORT: number;
 export declare const DEF_BOUND: number;
+export declare type SymbolFlags = number;
 export declare const SCOPE_OFF = 11;
 export declare const SCOPE_MASK = 7;
 export declare type DictionaryKind = 1 | 2 | 3 | 4;

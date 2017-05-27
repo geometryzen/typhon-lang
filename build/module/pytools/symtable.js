@@ -2,8 +2,7 @@
 import { SymbolTable } from './SymbolTable';
 import { ModuleBlock } from './SymbolConstants';
 /**
- * @param ast
- * @param fileName
+ *
  */
 export function symbolTable(mod) {
     var st = new SymbolTable();
@@ -32,7 +31,7 @@ export function symbolTableFromStatements(stmts) {
     return st;
 }
 /**
- * @param st
+ *
  */
 export function dumpSymbolTable(st) {
     var pyBoolStr = function (b) {

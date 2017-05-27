@@ -1,7 +1,7 @@
 /* Flags for def-use information */
 
-export const DEF_GLOBAL = 1;           /* global stmt */
-export const DEF_LOCAL = 2;            /* assignment in code block */
+export const DEF_GLOBAL = 1 << 0;      /* global stmt */
+export const DEF_LOCAL = 2 << 0;       /* assignment in code block */
 export const DEF_PARAM = 2 << 1;       /* formal parameter */
 export const USE = 2 << 2;             /* name is used */
 export const DEF_STAR = 2 << 3;        /* parameter is star arg */
@@ -13,6 +13,9 @@ export const DEF_FREE_CLASS = 2 << 8;  /* free variable from class's method */
 export const DEF_IMPORT = 2 << 9;      /* assignment occurred via import */
 
 export const DEF_BOUND = (DEF_LOCAL | DEF_PARAM | DEF_IMPORT);
+
+// TODO: Each flag should be redefined as part of an enum and the SymbolFlags will be a Set.
+export type SymbolFlags = number;
 
 /* GLOBAL_EXPLICIT and GLOBAL_IMPLICIT are used internally by the symbol
    table.  GLOBAL is returned from PyST_GetScope() for either of them.

@@ -1,6 +1,6 @@
 /* Flags for def-use information */
-/* Flags for def-use information */ export var DEF_GLOBAL = 1; /* global stmt */
-/* global stmt */ export var DEF_LOCAL = 2; /* assignment in code block */
+/* Flags for def-use information */ export var DEF_GLOBAL = 1 << 0; /* global stmt */
+/* global stmt */ export var DEF_LOCAL = 2 << 0; /* assignment in code block */
 /* assignment in code block */ export var DEF_PARAM = 2 << 1; /* formal parameter */
 /* formal parameter */ export var USE = 2 << 2; /* name is used */
 /* name is used */ export var DEF_STAR = 2 << 3; /* parameter is star arg */

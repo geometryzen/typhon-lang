@@ -9,13 +9,17 @@ import { GLOBAL_EXPLICIT } from './SymbolConstants';
 import { GLOBAL_IMPLICIT } from './SymbolConstants';
 import { SCOPE_MASK } from './SymbolConstants';
 import { SCOPE_OFF } from './SymbolConstants';
+import { SymbolFlags } from './SymbolConstants';
 
 let astScopeCounter = 0;
 
 export type BlockType = 'class' | 'function' | 'module';
 
 export class SymbolTableScope {
-    symFlags: { [name: string]: number };
+    /**
+     * A mapping from the name of a symbol to its flags.
+     */
+    symFlags: { [name: string]: SymbolFlags };
     private name: string;
     varnames: string[];
     children: SymbolTableScope[];

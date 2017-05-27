@@ -4,8 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var SymbolTable_1 = require("./SymbolTable");
 var SymbolConstants_1 = require("./SymbolConstants");
 /**
- * @param ast
- * @param fileName
+ *
  */
 function symbolTable(mod) {
     var st = new SymbolTable_1.SymbolTable();
@@ -36,7 +35,7 @@ function symbolTableFromStatements(stmts) {
 }
 exports.symbolTableFromStatements = symbolTableFromStatements;
 /**
- * @param st
+ *
  */
 function dumpSymbolTable(st) {
     var pyBoolStr = function (b) {

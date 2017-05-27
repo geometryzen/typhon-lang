@@ -23,7 +23,7 @@ import { Compare } from './types';
 import { Comprehension } from './types';
 import { ContinueStatement } from './types';
 import { Del } from './types';
-import { DeleteExpression } from './types';
+import { DeleteStatement } from './types';
 import { Dict } from './types';
 import { Div } from './types';
 import { Ellipsis } from './types';
@@ -58,6 +58,7 @@ import { LShift } from './types';
 import { Lt } from './types';
 import { LtE } from './types';
 import { Mod } from './types';
+// import { Module } from './types';
 import { Mult } from './types';
 import { Name } from './types';
 import { NonLocal } from './types';
@@ -562,7 +563,7 @@ function astForExprlist(c, n, context) {
 }
 function astForDelStmt(c, n) {
     REQ(n, SYM.del_stmt);
-    return new DeleteExpression(astForExprlist(c, CHILD(n, 1), Del), n.lineno, n.col_offset);
+    return new DeleteStatement(astForExprlist(c, CHILD(n, 1), Del), n.lineno, n.col_offset);
 }
 function astForGlobalStmt(c, n) {
     REQ(n, SYM.GlobalStmt);

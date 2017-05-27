@@ -1,8 +1,8 @@
 "use strict";
 /* Flags for def-use information */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEF_GLOBAL = 1; /* global stmt */
-exports.DEF_LOCAL = 2; /* assignment in code block */
+exports.DEF_GLOBAL = 1 << 0; /* global stmt */
+exports.DEF_LOCAL = 2 << 0; /* assignment in code block */
 exports.DEF_PARAM = 2 << 1; /* formal parameter */
 exports.USE = 2 << 2; /* name is used */
 exports.DEF_STAR = 2 << 3; /* parameter is star arg */
