@@ -1,6 +1,6 @@
 import { SymbolTableScope } from './SymbolTableScope';
 /**
- *
+ * TODO: I'm not sure if it makes sense to have this.
  */
 export class CompilerUnit {
     ste: SymbolTableScope;

@@ -2,9 +2,9 @@ import { SymbolTable } from './SymbolTable';
 import { Module } from './types';
 import { Statement } from './types';
 /**
- *
+ * Creates a SymbolTable for the specified Module.
  */
-export declare function symbolTable(mod: Module): SymbolTable;
+export declare function semanticsOfModule(mod: Module): SymbolTable;
 export declare function symbolTableFromStatements(stmts: Statement[]): SymbolTable;
 export interface SymbolInfo {
     get_name(): string;
@@ -34,6 +34,6 @@ export interface SymbolObj {
     lookup(identifier: string): SymbolInfo;
 }
 /**
- *
+ * Provides a textual representation of the SymbolTable.
  */
 export declare function dumpSymbolTable(st: SymbolTable): string;

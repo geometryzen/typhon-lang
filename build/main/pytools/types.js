@@ -1,7 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = require("tslib");
-var builder_1 = require("../pytools/builder");
+//
+// This module is at the bottom.
+// It should only import modules that don't introduce circularity.
+//
+var asserts_1 = require("./asserts");
 var Load = (function () {
     function Load() {
     }
@@ -237,7 +241,7 @@ var Expression = (function () {
     }
     Expression.prototype.accept = function (visitor) {
         // accept must be implemented by derived classes.
-        throw new Error("\"Expression.accept\" is not implemented on " + builder_1.astDump(this));
+        throw new Error("\"Expression.accept\" is not implemented.");
     };
     return Expression;
 }());
@@ -249,7 +253,7 @@ var Statement = (function (_super) {
     }
     Statement.prototype.accept = function (visitor) {
         // accept must be implemented by derived classes.
-        throw new Error("\"Statement.accept\" is not implemented on " + builder_1.astDump(this));
+        throw new Error("\"Statement.accept\" is not implemented.");
     };
     return Statement;
 }(ModuleElement));
@@ -266,8 +270,8 @@ var Module = (function () {
     function Module(body) {
         this.body = body;
     }
-    Module.prototype.accept = function (v) {
-        v.module(this);
+    Module.prototype.accept = function (visitor) {
+        visitor.module(this);
     };
     return Module;
 }());
@@ -306,6 +310,9 @@ var FunctionDef = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    FunctionDef.prototype.accept = function (visitor) {
+        visitor.functionDef(this);
+    };
     return FunctionDef;
 }(Statement));
 exports.FunctionDef = FunctionDef;
@@ -321,6 +328,9 @@ var ClassDef = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    ClassDef.prototype.accept = function (visitor) {
+        visitor.classDef(this);
+    };
     return ClassDef;
 }(Statement));
 exports.ClassDef = ClassDef;
@@ -333,6 +343,9 @@ var ReturnStatement = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    ReturnStatement.prototype.accept = function (visitor) {
+        visitor.returnStatement(this);
+    };
     return ReturnStatement;
 }(Statement));
 exports.ReturnStatement = ReturnStatement;
@@ -525,6 +538,8 @@ var ImportFrom = (function (_super) {
     tslib_1.__extends(ImportFrom, _super);
     function ImportFrom(module, names, level, lineno, col_offset) {
         var _this = _super.call(this) || this;
+        asserts_1.assert(typeof module === 'string', "module must be a string.");
+        asserts_1.assert(Array.isArray(names), "names must be an Array.");
         _this.module = module;
         _this.names = names;
         _this.level = level;
@@ -532,6 +547,9 @@ var ImportFrom = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    ImportFrom.prototype.accept = function (visitor) {
+        visitor.importFrom(this);
+    };
     return ImportFrom;
 }(Statement));
 exports.ImportFrom = ImportFrom;
@@ -645,6 +663,9 @@ var BinOp = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    BinOp.prototype.accept = function (visitor) {
+        visitor.binOp(this);
+    };
     return BinOp;
 }(Expression));
 exports.BinOp = BinOp;
@@ -698,6 +719,9 @@ var Dict = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    Dict.prototype.accept = function (visitor) {
+        visitor.dict(this);
+    };
     return Dict;
 }(Expression));
 exports.Dict = Dict;
@@ -747,7 +771,34 @@ var Compare = (function (_super) {
         for (var _i = 0, ops_1 = ops; _i < ops_1.length; _i++) {
             var op = ops_1[_i];
             switch (op) {
+                case Eq: {
+                    break;
+                }
+                case NotEq: {
+                    break;
+                }
+                case Gt: {
+                    break;
+                }
+                case GtE: {
+                    break;
+                }
                 case Lt: {
+                    break;
+                }
+                case LtE: {
+                    break;
+                }
+                case In: {
+                    break;
+                }
+                case NotIn: {
+                    break;
+                }
+                case Is: {
+                    break;
+                }
+                case IsNot: {
                     break;
                 }
                 default: {
@@ -827,6 +878,9 @@ var Attribute = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    Attribute.prototype.accept = function (visitor) {
+        visitor.attribute(this);
+    };
     return Attribute;
 }(Expression));
 exports.Attribute = Attribute;
@@ -870,6 +924,9 @@ var List = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    List.prototype.accept = function (visitor) {
+        visitor.list(this);
+    };
     return List;
 }(Expression));
 exports.List = List;
@@ -956,9 +1013,14 @@ var Keyword = (function () {
 exports.Keyword = Keyword;
 var Alias = (function () {
     function Alias(name, asname) {
+        asserts_1.assert(typeof name === 'string');
+        asserts_1.assert(typeof asname === 'string' || asname === null);
         this.name = name;
         this.asname = asname;
     }
+    Alias.prototype.toString = function () {
+        return this.name + " as " + this.asname;
+    };
     return Alias;
 }());
 exports.Alias = Alias;

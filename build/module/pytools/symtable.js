@@ -2,9 +2,9 @@
 import { SymbolTable } from './SymbolTable';
 import { ModuleBlock } from './SymbolConstants';
 /**
- *
+ * Creates a SymbolTable for the specified Module.
  */
-export function symbolTable(mod) {
+export function semanticsOfModule(mod) {
     var st = new SymbolTable();
     st.enterBlock("top", ModuleBlock, mod, 0);
     st.top = st.cur;
@@ -31,12 +31,18 @@ export function symbolTableFromStatements(stmts) {
     return st;
 }
 /**
- *
+ * Provides a textual representation of the SymbolTable.
  */
 export function dumpSymbolTable(st) {
+    /**
+     * Renders the argument in the Python format: 'True' or 'False'.
+     */
     var pyBoolStr = function (b) {
         return b ? "True" : "False";
     };
+    /**
+     * Renders the list in the Python format: '[' 1, 2, ..., N ']'.
+     */
     var pyList = function (l) {
         var ret = [];
         for (var i = 0; i < l.length; ++i) {
@@ -49,11 +55,11 @@ export function dumpSymbolTable(st) {
         if (indent === undefined)
             indent = "";
         var ret = "";
-        ret += indent + "Sym_type: " + obj.get_type() + "\n";
-        ret += indent + "Sym_name: " + obj.get_name() + "\n";
-        ret += indent + "Sym_lineno: " + obj.get_lineno() + "\n";
-        ret += indent + "Sym_nested: " + pyBoolStr(obj.is_nested()) + "\n";
-        ret += indent + "Sym_haschildren: " + pyBoolStr(obj.has_children()) + "\n";
+        ret += indent + "type: '" + obj.get_type() + "'\n";
+        ret += indent + "name: '" + obj.get_name() + "'\n";
+        ret += indent + "lineno: " + obj.get_lineno() + "\n";
+        ret += indent + "nested: " + pyBoolStr(obj.is_nested()) + "\n";
+        ret += indent + "haschildren: " + pyBoolStr(obj.has_children()) + "\n";
         if (obj.get_type() === "class") {
             ret += indent + "Class_methods: " + pyList(obj.get_methods()) + "\n";
         }
@@ -68,7 +74,7 @@ export function dumpSymbolTable(st) {
         var objidentslen = objidents.length;
         for (var i = 0; i < objidentslen; ++i) {
             var info = obj.lookup(objidents[i]);
-            ret += indent + "name: " + info.get_name() + "\n";
+            ret += indent + "name: '" + info.get_name() + "'\n";
             ret += indent + "  is_referenced: " + pyBoolStr(info.is_referenced()) + "\n";
             ret += indent + "  is_imported: " + pyBoolStr(info.is_imported()) + "\n";
             ret += indent + "  is_parameter: " + pyBoolStr(info.is_parameter()) + "\n";
@@ -91,5 +97,6 @@ export function dumpSymbolTable(st) {
         }
         return ret;
     };
+    console.log("dumpSymbolTable()");
     return getIdents(st.top, '');
 }

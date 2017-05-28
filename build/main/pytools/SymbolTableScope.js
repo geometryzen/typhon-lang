@@ -11,35 +11,49 @@ var SymbolConstants_6 = require("./SymbolConstants");
 var SymbolConstants_7 = require("./SymbolConstants");
 var SymbolConstants_8 = require("./SymbolConstants");
 var astScopeCounter = 0;
+/**
+ * A SymbolTableScope is created for nodes in the AST.
+ * It is created only when the SymbolTable enters a block.
+ */
 var SymbolTableScope = (function () {
     /**
      * @param table
-     * @param name
-     * @param type
+     * @param name The name of the node defining the scope.
+     * @param blockType
+     * @param astNode
      * @param lineno
      */
-    function SymbolTableScope(table, name, blockType, ast, lineno) {
-        this.symFlags = {};
-        this.name = name;
-        this.varnames = [];
+    function SymbolTableScope(table, name, blockType, astNode, lineno) {
         /**
-         *
+         * A mapping from the name of a symbol to its flags.
          */
+        this.symFlags = {};
+        /**
+         * A list of (local) variables that exists in the current scope.
+         * This is populated by the addDef method in SymbolTable.
+         * e.g. Name, FunctionDef, ClassDef, Global?, Lambda, Alias.
+         * Note that global variables are maintained in the SymbolTable to which we have access.
+         */
+        this.varnames = [];
         this.children = [];
+        this.table = table;
+        this.name = name;
         this.blockType = blockType;
-        this.isNested = false;
+        astNode.scopeId = astScopeCounter++;
+        table.stss[astNode.scopeId] = this;
+        this.lineno = lineno;
+        if (table.cur && (table.cur.isNested || table.cur.blockType === SymbolConstants_4.FunctionBlock)) {
+            this.isNested = true;
+        }
+        else {
+            this.isNested = false;
+        }
         this.hasFree = false;
         this.childHasFree = false; // true if child block has free vars including free refs to globals
         this.generator = false;
         this.varargs = false;
         this.varkeywords = false;
         this.returnsValue = false;
-        this.lineno = lineno;
-        this.table = table;
-        if (table.cur && (table.cur.isNested || table.cur.blockType === SymbolConstants_4.FunctionBlock))
-            this.isNested = true;
-        ast.scopeId = astScopeCounter++;
-        table.stss[ast.scopeId] = this;
         // cache of Symbols for returning to other parts of code
         this.symbols = {};
     }
@@ -71,29 +85,43 @@ var SymbolTableScope = (function () {
         }
         return ret;
     };
-    SymbolTableScope.prototype._identsMatching = function (f) {
+    /**
+     * Looks in the bindings for this scope and returns the names of the nodes that match the mask filter.
+     */
+    SymbolTableScope.prototype._identsMatching = function (filter) {
         var ret = [];
         for (var k in this.symFlags) {
             if (this.symFlags.hasOwnProperty(k)) {
-                if (f(this.symFlags[k]))
+                if (filter(this.symFlags[k]))
                     ret.push(k);
             }
         }
         ret.sort();
         return ret;
     };
+    /**
+     * Returns the names of parameters (DEF_PARAM) for function scopes.
+     */
     SymbolTableScope.prototype.get_parameters = function () {
         asserts_1.assert(this.get_type() === 'function', "get_parameters only valid for function scopes");
-        if (!this._funcParams)
+        if (!this._funcParams) {
             this._funcParams = this._identsMatching(function (x) { return !!(x & SymbolConstants_1.DEF_PARAM); });
+        }
         return this._funcParams;
     };
+    /**
+     * Returns the names of local variables (DEF_BOUND) for function scopes.
+     */
     SymbolTableScope.prototype.get_locals = function () {
         asserts_1.assert(this.get_type() === 'function', "get_locals only valid for function scopes");
-        if (!this._funcLocals)
+        if (!this._funcLocals) {
             this._funcLocals = this._identsMatching(function (x) { return !!(x & SymbolConstants_2.DEF_BOUND); });
+        }
         return this._funcLocals;
     };
+    /**
+     * Returns the names of global variables for function scopes.
+     */
     SymbolTableScope.prototype.get_globals = function () {
         asserts_1.assert(this.get_type() === 'function', "get_globals only valid for function scopes");
         if (!this._funcGlobals) {
@@ -104,6 +132,9 @@ var SymbolTableScope = (function () {
         }
         return this._funcGlobals;
     };
+    /**
+     * Returns the names of free variables for function scopes.
+     */
     SymbolTableScope.prototype.get_frees = function () {
         asserts_1.assert(this.get_type() === 'function', "get_frees only valid for function scopes");
         if (!this._funcFrees) {
@@ -114,6 +145,9 @@ var SymbolTableScope = (function () {
         }
         return this._funcFrees;
     };
+    /**
+     * Returns the names of methods for class scopes.
+     */
     SymbolTableScope.prototype.get_methods = function () {
         asserts_1.assert(this.get_type() === 'class', "get_methods only valid for class scopes");
         if (!this._classMethods) {
@@ -126,6 +160,9 @@ var SymbolTableScope = (function () {
         }
         return this._classMethods;
     };
+    /**
+     * I think this returns the scopeId of a node with the specified name.
+     */
     SymbolTableScope.prototype.getScope = function (name) {
         // print("getScope");
         // for (var k in this.symFlags) print(k);

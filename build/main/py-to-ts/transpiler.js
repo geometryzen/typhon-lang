@@ -374,8 +374,8 @@ function transpileModule(sourceText) {
     if (typeof cst === 'object') {
         var stmts = builder_1.astFromParse(cst);
         var mod = new types_3.Module(stmts);
-        var st = symtable_1.symbolTable(mod);
-        var t = new Transpiler(st, 0, sourceText);
+        var symbolTable = symtable_1.semanticsOfModule(mod);
+        var t = new Transpiler(symbolTable, 0, sourceText);
         var flags = 0;
         // FIXME: This should be according to the sourceKind.
         return t.module(mod, flags);

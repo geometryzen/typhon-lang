@@ -262,6 +262,8 @@ function setContext(c, e, ctx, n) {
 var operatorMap = {};
 (function () {
     operatorMap[TOK.T_VBAR] = BitOr;
+    assert(operatorMap[TOK.T_VBAR] !== undefined, "" + TOK.T_VBAR);
+    // assert(operatorMap[TOK.T_VBAR] === BitOr, `${TOK.T_VBAR}`);
     operatorMap[TOK.T_VBAR] = BitOr;
     operatorMap[TOK.T_CIRCUMFLEX] = BitXor;
     operatorMap[TOK.T_AMPER] = BitAnd;
@@ -275,7 +277,7 @@ var operatorMap = {};
     operatorMap[TOK.T_PERCENT] = Mod;
 }());
 function getOperator(n) {
-    assert(operatorMap[n.type] !== undefined);
+    assert(operatorMap[n.type] !== undefined, "" + n.type);
     return operatorMap[n.type];
 }
 function astForCompOp(c, n) {

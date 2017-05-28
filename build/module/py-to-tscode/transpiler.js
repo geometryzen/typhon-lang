@@ -1,12 +1,14 @@
 import { assert } from '../pytools/asserts';
-import { Lt } from '../pytools/types';
+import { Add, Sub, Mult, Div, BitOr, BitXor, BitAnd, LShift, RShift, FloorDiv, Mod } from '../pytools/types';
+import { Eq, NotEq, Gt, GtE, Lt, LtE, In, NotIn, Is, IsNot } from '../pytools/types';
 import { Module } from '../pytools/types';
 import { Name } from '../pytools/types';
 import { parse, SourceKind } from '../pytools/parser';
 import { astFromParse } from '../pytools/builder';
-import { symbolTable } from '../pytools/symtable';
+import { semanticsOfModule } from '../pytools/symtable';
 import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 import { DEF_LOCAL } from '../pytools/SymbolConstants';
+import { isClassNameByConvention, isMethod } from './utils';
 /**
  * A smart buffer for writing TypeScript code.
  */
@@ -50,11 +52,23 @@ var TypeWriter = (function () {
     TypeWriter.prototype.endBlock = function () {
         this.buffer.push('}');
     };
+    TypeWriter.prototype.beginObject = function () {
+        this.buffer.push("{");
+    };
+    TypeWriter.prototype.endObject = function () {
+        this.buffer.push("}");
+    };
     TypeWriter.prototype.openParen = function () {
         this.buffer.push('(');
     };
     TypeWriter.prototype.closeParen = function () {
         this.buffer.push(')');
+    };
+    TypeWriter.prototype.beginQuote = function () {
+        this.buffer.push("'");
+    };
+    TypeWriter.prototype.endQuote = function () {
+        this.buffer.push("'");
     };
     TypeWriter.prototype.beginStatement = function () {
         // Do nothing yet.
@@ -74,6 +88,10 @@ var PrinterUnit = (function () {
      * Corresponds to the body of a module, class, or function.
      */
     function PrinterUnit(name, ste) {
+        /**
+         * Used to determine whether a local variable has been declared.
+         */
+        this.declared = {};
         assert(typeof name === 'string');
         assert(typeof ste === 'object');
         this.name = name;
@@ -198,7 +216,15 @@ var Printer = (function () {
                 var flags = this.u.ste.symFlags[target.id];
                 // console.log(`${target.id} => ${flags.toString(2)}`);
                 if (flags && DEF_LOCAL) {
-                    this.writer.push("const ");
+                    if (this.u.declared[target.id]) {
+                        // The variable has already been declared.
+                    }
+                    else {
+                        // We use let for now because we would need to look ahead for more assignments.
+                        // The smenatic analysis could count the number of assignments in the current scope?
+                        this.writer.push("let ");
+                        this.u.declared[target.id] = true;
+                    }
                 }
             }
             target.accept(this);
@@ -207,7 +233,75 @@ var Printer = (function () {
         assign.value.accept(this);
         this.writer.endStatement();
     };
+    Printer.prototype.attribute = function (attribute) {
+        attribute.value.accept(this);
+        this.writer.push(".");
+        this.writer.push(attribute.attr);
+    };
+    Printer.prototype.binOp = function (be) {
+        be.left.accept(this);
+        switch (be.op) {
+            case Add: {
+                this.writer.push("+");
+                break;
+            }
+            case Sub: {
+                this.writer.push("-");
+                break;
+            }
+            case Mult: {
+                this.writer.push("*");
+                break;
+            }
+            case Div: {
+                this.writer.push("/");
+                break;
+            }
+            case BitOr: {
+                this.writer.push("|");
+                break;
+            }
+            case BitXor: {
+                this.writer.push("^");
+                break;
+            }
+            case BitAnd: {
+                this.writer.push("&");
+                break;
+            }
+            case LShift: {
+                this.writer.push("<<");
+                break;
+            }
+            case RShift: {
+                this.writer.push(">>");
+                break;
+            }
+            case Mod: {
+                this.writer.push("%");
+                break;
+            }
+            case FloorDiv: {
+                // TODO: What is the best way to handle FloorDiv.
+                // This doesn't actually exist in TypeScript.
+                this.writer.push("//");
+                break;
+            }
+            default: {
+                throw new Error("Unexpected binary operator " + be.op + ": " + typeof be.op);
+            }
+        }
+        be.right.accept(this);
+    };
     Printer.prototype.callExpression = function (ce) {
+        if (ce.func instanceof Name) {
+            if (isClassNameByConvention(ce.func)) {
+                this.writer.push("new ");
+            }
+        }
+        else {
+            throw new Error("Call.func must be a Name");
+        }
         ce.func.accept(this);
         this.writer.openParen();
         for (var i = 0; i < ce.args.length; i++) {
@@ -217,10 +311,9 @@ var Printer = (function () {
             var arg = ce.args[i];
             arg.accept(this);
         }
-        for (var i = 0; i < ce.keywords.length; ++i)
+        for (var i = 0; i < ce.keywords.length; ++i) {
             ce.keywords[i].value.accept(this);
-        // print(JSON.stringify(e.starargs, null, 2));
-        // print(JSON.stringify(e.kwargs, null,2));
+        }
         if (ce.starargs) {
             ce.starargs.accept(this);
         }
@@ -229,13 +322,68 @@ var Printer = (function () {
         }
         this.writer.closeParen();
     };
+    Printer.prototype.classDef = function (cd) {
+        this.writer.push("class ");
+        this.writer.push(cd.name);
+        // this.writer.openParen();
+        // this.writer.closeParen();
+        this.writer.beginBlock();
+        /*
+        this.writer.push("constructor");
+        this.writer.openParen();
+        this.writer.closeParen();
+        this.writer.beginBlock();
+        this.writer.endBlock();
+        */
+        for (var _i = 0, _a = cd.body; _i < _a.length; _i++) {
+            var stmt = _a[_i];
+            stmt.accept(this);
+        }
+        this.writer.endBlock();
+    };
     Printer.prototype.compareExpression = function (ce) {
         ce.left.accept(this);
         for (var _i = 0, _a = ce.ops; _i < _a.length; _i++) {
             var op = _a[_i];
             switch (op) {
+                case Eq: {
+                    this.writer.push("===");
+                    break;
+                }
+                case NotEq: {
+                    this.writer.push("!==");
+                    break;
+                }
                 case Lt: {
                     this.writer.push("<");
+                    break;
+                }
+                case LtE: {
+                    this.writer.push("<=");
+                    break;
+                }
+                case Gt: {
+                    this.writer.push(">");
+                    break;
+                }
+                case GtE: {
+                    this.writer.push(">=");
+                    break;
+                }
+                case Is: {
+                    this.writer.push("===");
+                    break;
+                }
+                case IsNot: {
+                    this.writer.push("!==");
+                    break;
+                }
+                case In: {
+                    this.writer.push(" in ");
+                    break;
+                }
+                case NotIn: {
+                    this.writer.push(" not in ");
                     break;
                 }
                 default: {
@@ -248,8 +396,52 @@ var Printer = (function () {
             comparator.accept(this);
         }
     };
+    Printer.prototype.dict = function (dict) {
+        var keys = dict.keys;
+        var values = dict.values;
+        var N = keys.length;
+        this.writer.beginObject();
+        for (var i = 0; i < N; i++) {
+            if (i > 0) {
+                this.writer.comma();
+            }
+            keys[i].accept(this);
+            this.writer.push(":");
+            values[i].accept(this);
+        }
+        this.writer.endObject();
+    };
     Printer.prototype.expressionStatement = function (s) {
         s.value.accept(this);
+    };
+    Printer.prototype.functionDef = function (functionDef) {
+        var isClassMethod = isMethod(functionDef);
+        if (!isClassMethod) {
+            this.writer.push("function ");
+        }
+        this.writer.push(functionDef.name);
+        this.writer.openParen();
+        for (var i = 0; i < functionDef.args.args.length; i++) {
+            var arg = functionDef.args.args[i];
+            if (i === 0) {
+                if (arg.id === 'self') {
+                    // Ignore.
+                }
+                else {
+                    arg.accept(this);
+                }
+            }
+            else {
+                arg.accept(this);
+            }
+        }
+        this.writer.closeParen();
+        this.writer.beginBlock();
+        for (var _i = 0, _a = functionDef.body; _i < _a.length; _i++) {
+            var stmt = _a[_i];
+            stmt.accept(this);
+        }
+        this.writer.endBlock();
     };
     Printer.prototype.ifStatement = function (i) {
         this.writer.push("if");
@@ -262,6 +454,41 @@ var Printer = (function () {
             con.accept(this);
         }
         this.writer.endBlock();
+    };
+    Printer.prototype.importFrom = function (importFrom) {
+        this.writer.beginStatement();
+        this.writer.push("import ");
+        this.writer.beginBlock();
+        for (var i = 0; i < importFrom.names.length; i++) {
+            if (i > 0) {
+                this.writer.comma();
+            }
+            var alias = importFrom.names[i];
+            this.writer.push(alias.name);
+            if (alias.asname) {
+                this.writer.push(" as ");
+                this.writer.push(alias.asname);
+            }
+        }
+        this.writer.endBlock();
+        this.writer.push(" from ");
+        this.writer.beginQuote();
+        // TODO: Escaping?
+        this.writer.push(importFrom.module);
+        this.writer.endQuote();
+        this.writer.endStatement();
+    };
+    Printer.prototype.list = function (list) {
+        var elements = list.elts;
+        var N = elements.length;
+        this.writer.push('[');
+        for (var i = 0; i < N; i++) {
+            if (i > 0) {
+                this.writer.comma();
+            }
+            elements[i].accept(this);
+        }
+        this.writer.push(']');
     };
     Printer.prototype.module = function (m) {
         for (var _i = 0, _a = m.body; _i < _a.length; _i++) {
@@ -300,6 +527,12 @@ var Printer = (function () {
         }
         this.writer.closeParen();
     };
+    Printer.prototype.returnStatement = function (rs) {
+        this.writer.beginStatement();
+        this.writer.push("return ");
+        rs.value.accept(this);
+        this.writer.endStatement();
+    };
     Printer.prototype.str = function (str) {
         var s = str.s;
         // TODO: AST is not preserving the original quoting, or maybe a hint.
@@ -312,9 +545,9 @@ export function transpileModule(sourceText, fileName) {
     if (typeof cst === 'object') {
         var stmts = astFromParse(cst);
         var mod = new Module(stmts);
-        var st = symbolTable(mod);
-        var printer = new Printer(st, 0, sourceText);
-        return { code: printer.transpileModule(mod) };
+        var symbolTable = semanticsOfModule(mod);
+        var printer = new Printer(symbolTable, 0, sourceText);
+        return { code: printer.transpileModule(mod), symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");

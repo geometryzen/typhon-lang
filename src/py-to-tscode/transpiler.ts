@@ -1,23 +1,32 @@
 import { assert } from '../pytools/asserts';
 import { Visitor } from '../pytools/types';
 import { Assign } from '../pytools/types';
+import { Attribute } from '../pytools/types';
+import { BinOp, Add, Sub, Mult, Div, BitOr, BitXor, BitAnd, LShift, RShift, FloorDiv, Mod } from '../pytools/types';
 import { Call } from '../pytools/types';
-import { Compare, Lt } from '../pytools/types';
+import { ClassDef } from '../pytools/types';
+import { Compare, Eq, NotEq, Gt, GtE, Lt, LtE, In, NotIn, Is, IsNot } from '../pytools/types';
+import { Dict } from '../pytools/types';
 import { ExpressionStatement } from '../pytools/types';
+import { FunctionDef } from '../pytools/types';
 import { IfStatement } from '../pytools/types';
+import { ImportFrom } from '../pytools/types';
+import { List } from '../pytools/types';
 import { Module } from '../pytools/types';
 import { Name } from '../pytools/types';
 import { Num } from '../pytools/types';
 import { Print } from '../pytools/types';
+import { ReturnStatement } from '../pytools/types';
 import { Str } from '../pytools/types';
 import { parse, SourceKind } from '../pytools/parser';
 import { astFromParse } from '../pytools/builder';
-import { symbolTable } from '../pytools/symtable';
+import { semanticsOfModule } from '../pytools/symtable';
 import { SymbolTable } from '../pytools/SymbolTable';
 import { SymbolTableScope } from '../pytools/SymbolTableScope';
 import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 import { SymbolFlags } from '../pytools/SymbolConstants';
 import { DEF_LOCAL } from '../pytools/SymbolConstants';
+import { isClassNameByConvention, isMethod } from './utils';
 
 /**
  * A smart buffer for writing TypeScript code.
@@ -62,11 +71,23 @@ class TypeWriter {
     endBlock(): void {
         this.buffer.push('}');
     }
+    beginObject(): void {
+        this.buffer.push("{");
+    }
+    endObject(): void {
+        this.buffer.push("}");
+    }
     openParen(): void {
         this.buffer.push('(');
     }
     closeParen(): void {
         this.buffer.push(')');
+    }
+    beginQuote(): void {
+        this.buffer.push("'");
+    }
+    endQuote(): void {
+        this.buffer.push("'");
     }
     beginStatement(): void {
         // Do nothing yet.
@@ -99,6 +120,10 @@ class PrinterUnit {
      */
     blocks: any[];
     curblock: number;
+    /**
+     * Used to determine whether a local variable has been declared.
+     */
+    declared: { [name: string]: boolean } = {};
     scopename: string;
     prefixCode: string;
     varDeclsCode: string;
@@ -309,7 +334,15 @@ class Printer implements Visitor {
                 const flags: SymbolFlags = this.u.ste.symFlags[target.id];
                 // console.log(`${target.id} => ${flags.toString(2)}`);
                 if (flags && DEF_LOCAL) {
-                    this.writer.push("const ");
+                    if (this.u.declared[target.id]) {
+                        // The variable has already been declared.
+                    }
+                    else {
+                        // We use let for now because we would need to look ahead for more assignments.
+                        // The smenatic analysis could count the number of assignments in the current scope?
+                        this.writer.push("let ");
+                        this.u.declared[target.id] = true;
+                    }
                 }
             }
             target.accept(this);
@@ -318,7 +351,75 @@ class Printer implements Visitor {
         assign.value.accept(this);
         this.writer.endStatement();
     }
+    attribute(attribute: Attribute): void {
+        attribute.value.accept(this);
+        this.writer.push(".");
+        this.writer.push(attribute.attr);
+    }
+    binOp(be: BinOp): void {
+        be.left.accept(this);
+        switch (be.op) {
+            case Add: {
+                this.writer.push("+");
+                break;
+            }
+            case Sub: {
+                this.writer.push("-");
+                break;
+            }
+            case Mult: {
+                this.writer.push("*");
+                break;
+            }
+            case Div: {
+                this.writer.push("/");
+                break;
+            }
+            case BitOr: {
+                this.writer.push("|");
+                break;
+            }
+            case BitXor: {
+                this.writer.push("^");
+                break;
+            }
+            case BitAnd: {
+                this.writer.push("&");
+                break;
+            }
+            case LShift: {
+                this.writer.push("<<");
+                break;
+            }
+            case RShift: {
+                this.writer.push(">>");
+                break;
+            }
+            case Mod: {
+                this.writer.push("%");
+                break;
+            }
+            case FloorDiv: {
+                // TODO: What is the best way to handle FloorDiv.
+                // This doesn't actually exist in TypeScript.
+                this.writer.push("//");
+                break;
+            }
+            default: {
+                throw new Error(`Unexpected binary operator ${be.op}: ${typeof be.op}`);
+            }
+        }
+        be.right.accept(this);
+    }
     callExpression(ce: Call): void {
+        if (ce.func instanceof Name) {
+            if (isClassNameByConvention(ce.func)) {
+                this.writer.push("new ");
+            }
+        }
+        else {
+            throw new Error("Call.func must be a Name");
+        }
         ce.func.accept(this);
         this.writer.openParen();
         for (let i = 0; i < ce.args.length; i++) {
@@ -328,10 +429,9 @@ class Printer implements Visitor {
             const arg = ce.args[i];
             arg.accept(this);
         }
-        for (let i = 0; i < ce.keywords.length; ++i)
+        for (let i = 0; i < ce.keywords.length; ++i) {
             ce.keywords[i].value.accept(this);
-        // print(JSON.stringify(e.starargs, null, 2));
-        // print(JSON.stringify(e.kwargs, null,2));
+        }
         if (ce.starargs) {
             ce.starargs.accept(this);
         }
@@ -340,12 +440,66 @@ class Printer implements Visitor {
         }
         this.writer.closeParen();
     }
+    classDef(cd: ClassDef): void {
+        this.writer.push("class ");
+        this.writer.push(cd.name);
+        // this.writer.openParen();
+        // this.writer.closeParen();
+        this.writer.beginBlock();
+        /*
+        this.writer.push("constructor");
+        this.writer.openParen();
+        this.writer.closeParen();
+        this.writer.beginBlock();
+        this.writer.endBlock();
+        */
+        for (const stmt of cd.body) {
+            stmt.accept(this);
+        }
+        this.writer.endBlock();
+    }
     compareExpression(ce: Compare) {
         ce.left.accept(this);
         for (const op of ce.ops) {
             switch (op) {
+                case Eq: {
+                    this.writer.push("===");
+                    break;
+                }
+                case NotEq: {
+                    this.writer.push("!==");
+                    break;
+                }
                 case Lt: {
                     this.writer.push("<");
+                    break;
+                }
+                case LtE: {
+                    this.writer.push("<=");
+                    break;
+                }
+                case Gt: {
+                    this.writer.push(">");
+                    break;
+                }
+                case GtE: {
+                    this.writer.push(">=");
+                    break;
+                }
+                case Is: {
+                    this.writer.push("===");
+                    break;
+                }
+                case IsNot: {
+                    this.writer.push("!==");
+                    break;
+                }
+                case In: {
+                    this.writer.push(" in ");
+                    break;
+                }
+                case NotIn: {
+                    this.writer.push(" not in ");
                     break;
                 }
                 default: {
@@ -357,8 +511,51 @@ class Printer implements Visitor {
             comparator.accept(this);
         }
     }
+    dict(dict: Dict): void {
+        const keys = dict.keys;
+        const values = dict.values;
+        const N = keys.length;
+        this.writer.beginObject();
+        for (let i = 0; i < N; i++) {
+            if (i > 0) {
+                this.writer.comma();
+            }
+            keys[i].accept(this);
+            this.writer.push(":");
+            values[i].accept(this);
+        }
+        this.writer.endObject();
+    }
     expressionStatement(s: ExpressionStatement): void {
         s.value.accept(this);
+    }
+    functionDef(functionDef: FunctionDef): void {
+        const isClassMethod = isMethod(functionDef);
+        if (!isClassMethod) {
+            this.writer.push("function ");
+        }
+        this.writer.push(functionDef.name);
+        this.writer.openParen();
+        for (let i = 0; i < functionDef.args.args.length; i++) {
+            const arg = functionDef.args.args[i];
+            if (i === 0) {
+                if (arg.id === 'self') {
+                    // Ignore.
+                }
+                else {
+                    arg.accept(this);
+                }
+            }
+            else {
+                arg.accept(this);
+            }
+        }
+        this.writer.closeParen();
+        this.writer.beginBlock();
+        for (const stmt of functionDef.body) {
+            stmt.accept(this);
+        }
+        this.writer.endBlock();
     }
     ifStatement(i: IfStatement): void {
         this.writer.push("if");
@@ -370,6 +567,41 @@ class Printer implements Visitor {
             con.accept(this);
         }
         this.writer.endBlock();
+    }
+    importFrom(importFrom: ImportFrom): void {
+        this.writer.beginStatement();
+        this.writer.push("import ");
+        this.writer.beginBlock();
+        for (let i = 0; i < importFrom.names.length; i++) {
+            if (i > 0) {
+                this.writer.comma();
+            }
+            const alias = importFrom.names[i];
+            this.writer.push(alias.name);
+            if (alias.asname) {
+                this.writer.push(" as ");
+                this.writer.push(alias.asname);
+            }
+        }
+        this.writer.endBlock();
+        this.writer.push(" from ");
+        this.writer.beginQuote();
+        // TODO: Escaping?
+        this.writer.push(importFrom.module);
+        this.writer.endQuote();
+        this.writer.endStatement();
+    }
+    list(list: List): void {
+        const elements = list.elts;
+        const N = elements.length;
+        this.writer.push('[');
+        for (let i = 0; i < N; i++) {
+            if (i > 0) {
+                this.writer.comma();
+            }
+            elements[i].accept(this);
+        }
+        this.writer.push(']');
     }
     module(m: Module): void {
         for (const stmt of m.body) {
@@ -406,6 +638,12 @@ class Printer implements Visitor {
         }
         this.writer.closeParen();
     }
+    returnStatement(rs: ReturnStatement): void {
+        this.writer.beginStatement();
+        this.writer.push("return ");
+        rs.value.accept(this);
+        this.writer.endStatement();
+    }
     str(str: Str): void {
         const s = str.s;
         // TODO: AST is not preserving the original quoting, or maybe a hint.
@@ -413,14 +651,14 @@ class Printer implements Visitor {
     }
 }
 
-export function transpileModule(sourceText: string, fileName: string): { code: string } {
+export function transpileModule(sourceText: string, fileName: string): { code: string, symbolTable: SymbolTable } {
     const cst = parse(sourceText, SourceKind.File);
     if (typeof cst === 'object') {
         const stmts = astFromParse(cst);
         const mod = new Module(stmts);
-        const st = symbolTable(mod);
-        const printer = new Printer(st, 0, sourceText);
-        return { code: printer.transpileModule(mod) };
+        const symbolTable = semanticsOfModule(mod);
+        const printer = new Printer(symbolTable, 0, sourceText);
+        return { code: printer.transpileModule(mod), symbolTable };
     }
     else {
         throw new Error(`Error parsing source for file.`);

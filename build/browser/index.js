@@ -349,17 +349,17 @@ var ParseTables = {
                 37: 1 }],
         258: [[[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
-        259: [[[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
-                [[18, 1], [0, 1]],
-                [[0, 2]],
-                [[41, 7], [42, 2]],
-                [[43, 2], [44, 8], [45, 8]],
-                [[46, 9], [47, 2]],
+        259: [[[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
+                [[0, 1]],
+                [[41, 7], [42, 1]],
+                [[43, 1], [44, 8], [45, 8]],
+                [[46, 9], [47, 1]],
                 [[48, 10]],
-                [[42, 2]],
-                [[43, 2]],
-                [[47, 2]],
-                [[14, 2]]],
+                [[18, 6], [0, 6]],
+                [[42, 1]],
+                [[43, 1]],
+                [[47, 1]],
+                [[14, 1]]],
             { 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 29: 1, 32: 1 }],
         260: [[[[49, 1]], [[50, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
@@ -519,8 +519,8 @@ var ParseTables = {
         283: [[[[97, 1],
                     [98, 1],
                     [7, 2],
-                    [97, 1],
                     [99, 1],
+                    [97, 1],
                     [100, 1],
                     [101, 1],
                     [102, 3],
@@ -1029,17 +1029,17 @@ var ParseTables = {
     states: [[[[1, 1], [2, 1], [3, 2]], [[0, 1]], [[2, 1]]],
         [[[38, 1]], [[39, 0], [0, 1]]],
         [[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
-        [[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
-            [[18, 1], [0, 1]],
-            [[0, 2]],
-            [[41, 7], [42, 2]],
-            [[43, 2], [44, 8], [45, 8]],
-            [[46, 9], [47, 2]],
+        [[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
+            [[0, 1]],
+            [[41, 7], [42, 1]],
+            [[43, 1], [44, 8], [45, 8]],
+            [[46, 9], [47, 1]],
             [[48, 10]],
-            [[42, 2]],
-            [[43, 2]],
-            [[47, 2]],
-            [[14, 2]]],
+            [[18, 6], [0, 6]],
+            [[42, 1]],
+            [[43, 1]],
+            [[47, 1]],
+            [[14, 1]]],
         [[[49, 1]], [[50, 0], [0, 1]]],
         [[[51, 1]], [[52, 0], [0, 1]]],
         [[[53, 1]], [[54, 0], [0, 1]]],
@@ -1102,8 +1102,8 @@ var ParseTables = {
         [[[97, 1],
                 [98, 1],
                 [7, 2],
-                [97, 1],
                 [99, 1],
+                [97, 1],
                 [100, 1],
                 [101, 1],
                 [102, 3],
@@ -2596,6 +2596,10 @@ function __extends(d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 }
 
+//
+// This module is at the bottom.
+// It should only import modules that don't introduce circularity.
+//
 var Load = (function () {
     function Load() {
     }
@@ -2794,7 +2798,7 @@ var Expression = (function () {
     }
     Expression.prototype.accept = function (visitor) {
         // accept must be implemented by derived classes.
-        throw new Error("\"Expression.accept\" is not implemented on " + astDump(this));
+        throw new Error("\"Expression.accept\" is not implemented.");
     };
     return Expression;
 }());
@@ -2805,7 +2809,7 @@ var Statement = (function (_super) {
     }
     Statement.prototype.accept = function (visitor) {
         // accept must be implemented by derived classes.
-        throw new Error("\"Statement.accept\" is not implemented on " + astDump(this));
+        throw new Error("\"Statement.accept\" is not implemented.");
     };
     return Statement;
 }(ModuleElement));
@@ -2820,8 +2824,8 @@ var Module = (function () {
     function Module(body) {
         this.body = body;
     }
-    Module.prototype.accept = function (v) {
-        v.module(this);
+    Module.prototype.accept = function (visitor) {
+        visitor.module(this);
     };
     return Module;
 }());
@@ -2856,6 +2860,9 @@ var FunctionDef = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    FunctionDef.prototype.accept = function (visitor) {
+        visitor.functionDef(this);
+    };
     return FunctionDef;
 }(Statement));
 var ClassDef = (function (_super) {
@@ -2870,6 +2877,9 @@ var ClassDef = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    ClassDef.prototype.accept = function (visitor) {
+        visitor.classDef(this);
+    };
     return ClassDef;
 }(Statement));
 var ReturnStatement = (function (_super) {
@@ -2881,6 +2891,9 @@ var ReturnStatement = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    ReturnStatement.prototype.accept = function (visitor) {
+        visitor.returnStatement(this);
+    };
     return ReturnStatement;
 }(Statement));
 var DeleteStatement = (function (_super) {
@@ -3059,6 +3072,8 @@ var ImportFrom = (function (_super) {
     __extends(ImportFrom, _super);
     function ImportFrom(module, names, level, lineno, col_offset) {
         var _this = _super.call(this) || this;
+        assert(typeof module === 'string', "module must be a string.");
+        assert(Array.isArray(names), "names must be an Array.");
         _this.module = module;
         _this.names = names;
         _this.level = level;
@@ -3066,6 +3081,9 @@ var ImportFrom = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    ImportFrom.prototype.accept = function (visitor) {
+        visitor.importFrom(this);
+    };
     return ImportFrom;
 }(Statement));
 var Exec = (function (_super) {
@@ -3170,6 +3188,9 @@ var BinOp = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    BinOp.prototype.accept = function (visitor) {
+        visitor.binOp(this);
+    };
     return BinOp;
 }(Expression));
 var UnaryOp = (function (_super) {
@@ -3219,6 +3240,9 @@ var Dict = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    Dict.prototype.accept = function (visitor) {
+        visitor.dict(this);
+    };
     return Dict;
 }(Expression));
 var ListComp = (function (_super) {
@@ -3264,7 +3288,34 @@ var Compare = (function (_super) {
         for (var _i = 0, ops_1 = ops; _i < ops_1.length; _i++) {
             var op = ops_1[_i];
             switch (op) {
+                case Eq: {
+                    break;
+                }
+                case NotEq: {
+                    break;
+                }
+                case Gt: {
+                    break;
+                }
+                case GtE: {
+                    break;
+                }
                 case Lt: {
+                    break;
+                }
+                case LtE: {
+                    break;
+                }
+                case In: {
+                    break;
+                }
+                case NotIn: {
+                    break;
+                }
+                case Is: {
+                    break;
+                }
+                case IsNot: {
                     break;
                 }
                 default: {
@@ -3340,6 +3391,9 @@ var Attribute = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    Attribute.prototype.accept = function (visitor) {
+        visitor.attribute(this);
+    };
     return Attribute;
 }(Expression));
 var Subscript = (function (_super) {
@@ -3380,6 +3434,9 @@ var List = (function (_super) {
         _this.col_offset = col_offset;
         return _this;
     }
+    List.prototype.accept = function (visitor) {
+        visitor.list(this);
+    };
     return List;
 }(Expression));
 var Tuple = (function (_super) {
@@ -3456,9 +3513,14 @@ var Keyword = (function () {
 }());
 var Alias = (function () {
     function Alias(name, asname) {
+        assert(typeof name === 'string');
+        assert(typeof asname === 'string' || asname === null);
         this.name = name;
         this.asname = asname;
     }
+    Alias.prototype.toString = function () {
+        return this.name + " as " + this.asname;
+    };
     return Alias;
 }());
 Module.prototype['_astname'] = 'Module';
@@ -4024,6 +4086,8 @@ function setContext(c, e, ctx, n) {
 var operatorMap = {};
 (function () {
     operatorMap[Tokens.T_VBAR] = BitOr;
+    assert(operatorMap[Tokens.T_VBAR] !== undefined, "" + Tokens.T_VBAR);
+    // assert(operatorMap[TOK.T_VBAR] === BitOr, `${TOK.T_VBAR}`);
     operatorMap[Tokens.T_VBAR] = BitOr;
     operatorMap[Tokens.T_CIRCUMFLEX] = BitXor;
     operatorMap[Tokens.T_AMPER] = BitAnd;
@@ -4037,7 +4101,7 @@ var operatorMap = {};
     operatorMap[Tokens.T_PERCENT] = Mod;
 }());
 function getOperator(n) {
-    assert(operatorMap[n.type] !== undefined);
+    assert(operatorMap[n.type] !== undefined, "" + n.type);
     return operatorMap[n.type];
 }
 function astForCompOp(c, n) {
@@ -5602,24 +5666,27 @@ function dictUpdate(a, b) {
 }
 
 /**
- * @param {string|null} priv
- * @param {string} name
+ * @param priv
+ * @param name
  */
 /**
- * @param {string|null} priv
- * @param {string} name
+ * @param priv
+ * @param name
  */ function mangleName(priv, name) {
     var strpriv = null;
-    if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_')
+    if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_') {
         return name;
-    // don't mangle __id__
-    if (name.charAt(name.length - 1) === '_' && name.charAt(name.length - 2) === '_')
+    }
+    // don't mangle dunder (double underscore) names e.g. __id__.
+    if (name.charAt(name.length - 1) === '_' && name.charAt(name.length - 2) === '_') {
         return name;
+    }
     // don't mangle classes that are all _ (obscure much?)
     strpriv = priv;
     strpriv.replace(/_/g, '');
-    if (strpriv === '')
+    if (strpriv === '') {
         return name;
+    }
     strpriv = priv;
     strpriv.replace(/^_*/, '');
     strpriv = '_' + strpriv + name;
@@ -5696,35 +5763,49 @@ var Symbol$1 = (function () {
 }());
 
 var astScopeCounter = 0;
+/**
+ * A SymbolTableScope is created for nodes in the AST.
+ * It is created only when the SymbolTable enters a block.
+ */
 var SymbolTableScope = (function () {
     /**
      * @param table
-     * @param name
-     * @param type
+     * @param name The name of the node defining the scope.
+     * @param blockType
+     * @param astNode
      * @param lineno
      */
-    function SymbolTableScope(table, name, blockType, ast, lineno) {
-        this.symFlags = {};
-        this.name = name;
-        this.varnames = [];
+    function SymbolTableScope(table, name, blockType, astNode, lineno) {
         /**
-         *
+         * A mapping from the name of a symbol to its flags.
          */
+        this.symFlags = {};
+        /**
+         * A list of (local) variables that exists in the current scope.
+         * This is populated by the addDef method in SymbolTable.
+         * e.g. Name, FunctionDef, ClassDef, Global?, Lambda, Alias.
+         * Note that global variables are maintained in the SymbolTable to which we have access.
+         */
+        this.varnames = [];
         this.children = [];
+        this.table = table;
+        this.name = name;
         this.blockType = blockType;
-        this.isNested = false;
+        astNode.scopeId = astScopeCounter++;
+        table.stss[astNode.scopeId] = this;
+        this.lineno = lineno;
+        if (table.cur && (table.cur.isNested || table.cur.blockType === FunctionBlock)) {
+            this.isNested = true;
+        }
+        else {
+            this.isNested = false;
+        }
         this.hasFree = false;
         this.childHasFree = false; // true if child block has free vars including free refs to globals
         this.generator = false;
         this.varargs = false;
         this.varkeywords = false;
         this.returnsValue = false;
-        this.lineno = lineno;
-        this.table = table;
-        if (table.cur && (table.cur.isNested || table.cur.blockType === FunctionBlock))
-            this.isNested = true;
-        ast.scopeId = astScopeCounter++;
-        table.stss[ast.scopeId] = this;
         // cache of Symbols for returning to other parts of code
         this.symbols = {};
     }
@@ -5756,29 +5837,43 @@ var SymbolTableScope = (function () {
         }
         return ret;
     };
-    SymbolTableScope.prototype._identsMatching = function (f) {
+    /**
+     * Looks in the bindings for this scope and returns the names of the nodes that match the mask filter.
+     */
+    SymbolTableScope.prototype._identsMatching = function (filter) {
         var ret = [];
         for (var k in this.symFlags) {
             if (this.symFlags.hasOwnProperty(k)) {
-                if (f(this.symFlags[k]))
+                if (filter(this.symFlags[k]))
                     ret.push(k);
             }
         }
         ret.sort();
         return ret;
     };
+    /**
+     * Returns the names of parameters (DEF_PARAM) for function scopes.
+     */
     SymbolTableScope.prototype.get_parameters = function () {
         assert(this.get_type() === 'function', "get_parameters only valid for function scopes");
-        if (!this._funcParams)
+        if (!this._funcParams) {
             this._funcParams = this._identsMatching(function (x) { return !!(x & DEF_PARAM); });
+        }
         return this._funcParams;
     };
+    /**
+     * Returns the names of local variables (DEF_BOUND) for function scopes.
+     */
     SymbolTableScope.prototype.get_locals = function () {
         assert(this.get_type() === 'function', "get_locals only valid for function scopes");
-        if (!this._funcLocals)
+        if (!this._funcLocals) {
             this._funcLocals = this._identsMatching(function (x) { return !!(x & DEF_BOUND); });
+        }
         return this._funcLocals;
     };
+    /**
+     * Returns the names of global variables for function scopes.
+     */
     SymbolTableScope.prototype.get_globals = function () {
         assert(this.get_type() === 'function', "get_globals only valid for function scopes");
         if (!this._funcGlobals) {
@@ -5789,6 +5884,9 @@ var SymbolTableScope = (function () {
         }
         return this._funcGlobals;
     };
+    /**
+     * Returns the names of free variables for function scopes.
+     */
     SymbolTableScope.prototype.get_frees = function () {
         assert(this.get_type() === 'function', "get_frees only valid for function scopes");
         if (!this._funcFrees) {
@@ -5799,6 +5897,9 @@ var SymbolTableScope = (function () {
         }
         return this._funcFrees;
     };
+    /**
+     * Returns the names of methods for class scopes.
+     */
     SymbolTableScope.prototype.get_methods = function () {
         assert(this.get_type() === 'class', "get_methods only valid for class scopes");
         if (!this._classMethods) {
@@ -5811,6 +5912,9 @@ var SymbolTableScope = (function () {
         }
         return this._classMethods;
     };
+    /**
+     * I think this returns the scopeId of a node with the specified name.
+     */
     SymbolTableScope.prototype.getScope = function (name) {
         // print("getScope");
         // for (var k in this.symFlags) print(k);
@@ -5882,14 +5986,28 @@ var SymbolTable = (function () {
                 this.visitExpr(val);
         }
     };
-    SymbolTable.prototype.enterBlock = function (name, blockType, ast, lineno) {
+    /**
+     * A block represents a scope.
+     * The following nodes in the AST define new blocks of the indicated type and name:
+     * Module        ModuleBlock   = 'module'    name = 'top'
+     * FunctionDef   FunctionBlock = 'function'  name = The name of the function.
+     * ClassDef      ClassBlock    = 'class'     name = The name of the class.
+     * Lambda        FunctionBlock = 'function'  name = 'lambda'
+     * GeneratoeExp  FunctionBlock = 'function'  name = 'genexpr'
+     *
+     * @param name
+     * @param blockType
+     * @param astNode The AST node that is defining the block.
+     * @param lineno
+     */
+    SymbolTable.prototype.enterBlock = function (name, blockType, astNode, lineno) {
         //  name = fixReservedNames(name);
         var prev = null;
         if (this.cur) {
             prev = this.cur;
             this.stack.push(this.cur);
         }
-        this.cur = new SymbolTableScope(this, name, blockType, ast, lineno);
+        this.cur = new SymbolTableScope(this, name, blockType, astNode, lineno);
         if (name === 'top') {
             this.global = this.cur.symFlags;
         }
@@ -5936,6 +6054,9 @@ var SymbolTable = (function () {
         this.addDef("_[" + (++this.tmpname) + "]", DEF_LOCAL, lineno);
     };
     /**
+     * 1. Modifies symbol flags for the current scope.
+     * 2.a Adds a variable name for the current scope, OR
+     * 2.b Sets the SymbolFlags for a global variable.
      * @param name
      * @param flags
      * @param lineno
@@ -5943,6 +6064,7 @@ var SymbolTable = (function () {
     SymbolTable.prototype.addDef = function (name, flags, lineno) {
         var mangled = mangleName(this.curClass, name);
         //  mangled = fixReservedNames(mangled);
+        // Modify symbol flags for the current scope.
         var val = this.cur.symFlags[mangled];
         if (val !== undefined) {
             if ((flags & DEF_PARAM) && (val & DEF_PARAM)) {
@@ -6421,9 +6543,9 @@ var SymbolTable = (function () {
 
 // import { Symbol } from './Symbol';
 /**
- *
+ * Creates a SymbolTable for the specified Module.
  */
-function symbolTable(mod) {
+function semanticsOfModule(mod) {
     var st = new SymbolTable();
     st.enterBlock("top", ModuleBlock, mod, 0);
     st.top = st.cur;
@@ -6438,7 +6560,7 @@ function symbolTable(mod) {
 }
 
 /**
- *
+ * Provides a textual representation of the SymbolTable.
  */
 
 /// <reference path = "../../node_modules/typescript/lib/typescriptServices.d.ts" />
@@ -6679,8 +6801,8 @@ function transpileModule(sourceText) {
     if (typeof cst === 'object') {
         var stmts = astFromParse(cst);
         var mod = new Module(stmts);
-        var st = symbolTable(mod);
-        var t = new Transpiler(st, 0, sourceText);
+        var symbolTable = semanticsOfModule(mod);
+        var t = new Transpiler(symbolTable, 0, sourceText);
         var flags = 0;
         // FIXME: This should be according to the sourceKind.
         return t.module(mod, flags);

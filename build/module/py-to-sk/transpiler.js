@@ -3,7 +3,7 @@ import { parse, SourceKind } from '../pytools/parser';
 import { astFromParse } from '../pytools/builder';
 import { reservedNames } from '../pytools/reservedNames';
 import { reservedWords } from '../pytools/reservedWords';
-import { symbolTable } from '../pytools/symtable';
+import { semanticsOfModule } from '../pytools/symtable';
 import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 import { And } from '../pytools/types';
 import { Assert } from '../pytools/types';
@@ -1627,7 +1627,7 @@ export function compile(sourceText, fileName) {
     if (typeof cst === 'object') {
         var stmts = astFromParse(cst);
         var mod = new Module(stmts);
-        var st = symbolTable(mod);
+        var st = semanticsOfModule(mod);
         var c = new Compiler(fileName, st, 0, sourceText);
         return { 'funcname': c.cmod(mod), 'code': c.result.join('') };
     }

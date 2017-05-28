@@ -264,6 +264,8 @@ function setContext(c, e, ctx, n) {
 var operatorMap = {};
 (function () {
     operatorMap[Tokens_1.Tokens.T_VBAR] = types_13.BitOr;
+    asserts_1.assert(operatorMap[Tokens_1.Tokens.T_VBAR] !== undefined, "" + Tokens_1.Tokens.T_VBAR);
+    // assert(operatorMap[TOK.T_VBAR] === BitOr, `${TOK.T_VBAR}`);
     operatorMap[Tokens_1.Tokens.T_VBAR] = types_13.BitOr;
     operatorMap[Tokens_1.Tokens.T_CIRCUMFLEX] = types_14.BitXor;
     operatorMap[Tokens_1.Tokens.T_AMPER] = types_12.BitAnd;
@@ -277,7 +279,7 @@ var operatorMap = {};
     operatorMap[Tokens_1.Tokens.T_PERCENT] = types_56.Mod;
 }());
 function getOperator(n) {
-    asserts_1.assert(operatorMap[n.type] !== undefined);
+    asserts_1.assert(operatorMap[n.type] !== undefined, "" + n.type);
     return operatorMap[n.type];
 }
 function astForCompOp(c, n) {

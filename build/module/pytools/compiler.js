@@ -1,5 +1,5 @@
 /**
- *
+ * TODO: I'm not sure if it makes sense to have this.
  */
 var CompilerUnit = (function () {
     /**

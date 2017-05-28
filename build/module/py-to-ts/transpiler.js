@@ -4,7 +4,7 @@ import { isArray } from '../pytools/base';
 // import { isNumber } from '../pytools/base';
 import { parse, SourceKind } from '../pytools/parser';
 import { astFromExpression, astFromParse } from '../pytools/builder';
-import { symbolTable, symbolTableFromStatements } from '../pytools/symtable';
+import { semanticsOfModule, symbolTableFromStatements } from '../pytools/symtable';
 import { Assign } from '../pytools/types';
 // import { Dict } from '../pytools/types';
 // import { Ellipsis } from '../pytools/types';
@@ -368,8 +368,8 @@ export function transpileModule(sourceText) {
     if (typeof cst === 'object') {
         var stmts = astFromParse(cst);
         var mod = new Module(stmts);
-        var st = symbolTable(mod);
-        var t = new Transpiler(st, 0, sourceText);
+        var symbolTable = semanticsOfModule(mod);
+        var t = new Transpiler(symbolTable, 0, sourceText);
         var flags = 0;
         // FIXME: This should be according to the sourceKind.
         return t.module(mod, flags);

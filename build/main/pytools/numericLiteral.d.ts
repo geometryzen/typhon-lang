@@ -1,4 +1,4 @@
-import { INumericLiteral } from './INumericLiteral';
+import { INumericLiteral } from './types';
 /**
  * @param s
  */

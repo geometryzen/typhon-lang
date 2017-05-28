@@ -1,4 +1,5 @@
 import { transpileModule as compile } from './transpiler';
+import { dumpSymbolTable } from '../pytools/symtable';
 
 const fileName = 'foo.ts';
 
@@ -36,12 +37,12 @@ describe('transpiler', function () {
     describe('Assign', function () {
         it('should provide a declaration', function () {
             const result = compile('x = 0.01', fileName);
-            expect(result.code).toBe("const x=0.01;");
+            expect(result.code).toBe("let x=0.01;");
         });
         it('should provide a declaration', function () {
             const sourceText = "the_world_is_flat = True";
             const result = compile(sourceText, fileName);
-            expect(result.code).toBe("const the_world_is_flat=true;");
+            expect(result.code).toBe("let the_world_is_flat=true;");
         });
     });
 
@@ -59,7 +60,7 @@ describe('transpiler', function () {
             const result = compile('x = 1', fileName);
             expect(typeof result).toBe('object');
             expect(typeof result.code).toBe('string');
-            expect(result.code).toBe("const x=1;");
+            expect(result.code).toBe("let x=1;");
         });
     });
 
@@ -68,11 +69,112 @@ describe('transpiler', function () {
             const result = compile("name = 'David'", fileName);
             expect(typeof result).toBe('object');
             expect(typeof result.code).toBe('string');
-            expect(result.code).toBe("const name='David';");
+            expect(result.code).toBe("let name='David';");
         });
     });
 
-    describe('FunctionCall', function () {
+    describe('Attribute', function () {
+        it('should allow access to child attributes', function () {
+            const result = compile('box = Box(engine, {color: Color.blue})', fileName);
+            expect(result.code).toBe("let box=new Box(engine,{color:Color.blue});");
+        });
+    });
+
+    describe('BinOp', function () {
+        it('Add', function () {
+            const result = compile("a + b", fileName);
+            expect(result.code).toBe("a+b");
+        });
+        it('Sub', function () {
+            const result = compile("a - b", fileName);
+            expect(result.code).toBe("a-b");
+        });
+        it('Mult', function () {
+            const result = compile("a * b", fileName);
+            expect(result.code).toBe("a*b");
+        });
+        it('Div', function () {
+            const result = compile("a / b", fileName);
+            expect(result.code).toBe("a/b");
+        });
+        it('BitOr', function () {
+            const result = compile("a | b", fileName);
+            expect(result.code).toBe("a|b");
+        });
+        it('BitXor', function () {
+            const result = compile("a ^ b", fileName);
+            expect(result.code).toBe("a^b");
+        });
+        it('BitAnd', function () {
+            const result = compile("a & b", fileName);
+            expect(result.code).toBe("a&b");
+        });
+        it('LShift', function () {
+            const result = compile("a << b", fileName);
+            expect(result.code).toBe("a<<b");
+        });
+        it('RShift', function () {
+            const result = compile("a >> b", fileName);
+            expect(result.code).toBe("a>>b");
+        });
+        it('Mod', function () {
+            const result = compile("a % b", fileName);
+            expect(result.code).toBe("a%b");
+        });
+        it('FloorDiv', function () {
+            const result = compile("a // b", fileName);
+            expect(result.code).toBe("a//b");
+        });
+    });
+
+    describe('Compare', function () {
+        it('Eq', function () {
+            const result = compile("a == b", fileName);
+            expect(result.code).toBe("a===b");
+        });
+        it('NotEq', function () {
+            const result = compile("a != b", fileName);
+            expect(result.code).toBe("a!==b");
+        });
+        it('Lt', function () {
+            const result = compile("a < b", fileName);
+            expect(result.code).toBe("a<b");
+        });
+        it('LtE', function () {
+            const result = compile("a <= b", fileName);
+            expect(result.code).toBe("a<=b");
+        });
+        it('Gt', function () {
+            const result = compile("a > b", fileName);
+            expect(result.code).toBe("a>b");
+        });
+        it('GtE', function () {
+            const result = compile("a >= b", fileName);
+            expect(result.code).toBe("a>=b");
+        });
+        it('Is', function () {
+            const result = compile("a is b", fileName);
+            expect(result.code).toBe("a===b");
+        });
+        it('IsNot', function () {
+            const result = compile("a is not b", fileName);
+            expect(result.code).toBe("a!==b");
+        });
+        it('In', function () {
+            const result = compile("a in b", fileName);
+            expect(result.code).toBe("a in b");
+        });
+        it('NotIn', function () {
+            const result = compile("a not in b", fileName);
+            expect(result.code).toBe("a not in b");
+        });
+        it('FloorDiv', function () {
+            const result = compile("a // b", fileName);
+            expect(result.code).toBe("a//b");
+        });
+    });
+
+    describe('Call', function () {
         it('should work with no arguments', function () {
             const result = compile('f()', fileName);
             expect(result.code).toBe("f()");
@@ -85,17 +187,146 @@ describe('transpiler', function () {
             const result = compile('f(1,2)', fileName);
             expect(result.code).toBe("f(1,2)");
         });
+        it('should assume Upper case function name is a constructor function', function () {
+            const result = compile('Engine()', fileName);
+            expect(result.code).toBe("new Engine()");
+        });
+    });
+
+    describe('ClassDef', function () {
+        it('should make the self parameter implicit in the method', function () {
+            const sourceText = [
+                "class MyClass:",
+                "    def f(self, name):",
+                "        return 'Hello' + name"
+            ].join("\n");
+            const result = compile(sourceText, fileName);
+            /*
+            const resultText = [
+                "class MyClass {",
+                "    f(name) {",
+                "        return 'Hello' + name;",
+                "    }",
+                "}"
+            ].join("\n");
+            */
+            // console.log(dumpSymbolTable(result.symbolTable));
+            expect(result.code).toBe("class MyClass{f(name){return 'Hello'+name;}}");
+        });
+    });
+
+    describe('Dict', function () {
+        it('should allow the empty dictionary', function () {
+            const result = compile('{}', fileName);
+            expect(result.code).toBe("{}");
+        });
+        it('should allow a dictionary of many items', function () {
+            const result = compile("{'a': 1, 'b': 23, 'c': 'eggs'}", fileName);
+            expect(result.code).toBe("{'a':1,'b':23,'c':'eggs'}");
+        });
+    });
+
+    describe('FunctionDef', function () {
+        it('should work with no arguments', function () {
+            const sourceText = [
+                "def greeting(name):",
+                "    return 'Hello' + name"
+            ].join("\n");
+            const result = compile(sourceText, fileName);
+            expect(result.code).toBe("function greeting(name){return 'Hello'+name;}");
+        });
     });
 
     describe('IfStatement', function () {
-        it('TODO', function () {
+        it('should basically work', function () {
             const sourceText = "if the_world_is_flat:\n    print('Be careful not to fall off!')";
             const result = compile(sourceText, fileName);
             expect(result.code).toBe("if(the_world_is_flat){console.log('Be careful not to fall off!')}");
         });
-        xit('TODO', function () {
-            const result = compile('x = 7\nif x < 1:\n  x = 3', fileName);
-            expect(result.code).toBe("if(x<1){x=3;}");
+        it('should work with assignments', function () {
+            const result = compile('x = 7\nx=4\nif x < 1:\n  x = 3', fileName);
+            expect(result.code).toBe("let x=7;x=4;if(x<1){x=3;}");
+        });
+    });
+
+    describe('ImportFrom', function () {
+        it('should allow a single named import', function () {
+            const sourceText = [
+                "from eight import Engine",
+                ""
+            ].join("\n");
+            const result = compile(sourceText, fileName);
+            expect(result.code).toBe("import {Engine} from 'eight';");
+        });
+        it('should allow a multiple named imports', function () {
+            const sourceText = [
+                "from eight import Engine, Scene",
+                ""
+            ].join("\n");
+            const result = compile(sourceText, fileName);
+            expect(result.code).toBe("import {Engine,Scene} from 'eight';");
+        });
+        it('should allow a single alias named import', function () {
+            const sourceText = [
+                "from eight import Engine as Context",
+                ""
+            ].join("\n");
+            const result = compile(sourceText, fileName);
+            expect(result.code).toBe("import {Engine as Context} from 'eight';");
+        });
+        it('should allow a multiple alias named imports', function () {
+            const sourceText = [
+                "from eight import Engine as Context, Scene as Model",
+                ""
+            ].join("\n");
+            const result = compile(sourceText, fileName);
+            expect(result.code).toBe("import {Engine as Context,Scene as Model} from 'eight';");
+        });
+        xit('should allow hyphens in module name', function () {
+            const sourceText = [
+                "from davinci-eight import Engine",
+                ""
+            ].join("\n");
+            const result = compile(sourceText, fileName);
+            expect(result.code).toBe("import {Engine} from 'eight';");
+        });
+        xit('should allow slashes in module name', function () {
+            const sourceText = [
+                "from davinci/eight import Engine",
+                ""
+            ].join("\n");
+            const result = compile(sourceText, fileName);
+            expect(result.code).toBe("import {Engine} from 'eight';");
+        });
+        xit('should allow commercial @ module name', function () {
+            const sourceText = [
+                "from @eight import Engine",
+                ""
+            ].join("\n");
+            const result = compile(sourceText, fileName);
+            expect(result.code).toBe("import {Engine} from 'eight';");
+        });
+    });
+
+    describe('List', function () {
+        it('should allow the empty list', function () {
+            const result = compile('[]', fileName);
+            expect(result.code).toBe("[]");
+        });
+        it('should allow the singleton list', function () {
+            const result = compile('[1]', fileName);
+            expect(result.code).toBe("[1]");
+        });
+        it('should allow a list of many items', function () {
+            const result = compile('[1, 2, 3, 4, 5]', fileName);
+            expect(result.code).toBe("[1,2,3,4,5]");
+        });
+    });
+
+    describe('ListComp', function () {
+        xit('???', function () {
+            const result = compile('[x for x in range(5) if x%2 == 0]', fileName);
+            expect(result.code).toBe("???");
         });
     });
 
@@ -106,4 +337,32 @@ describe('transpiler', function () {
         });
     });
 
+    describe('Comments', function () {
+        xit('should allow single line comments', function () {
+            const result = compile('# This is a single-line comment.', fileName);
+            expect(result.code).toBe("???");
+        });
+        xit('should allow multi-line comments', function () {
+            const sourceText = [
+                "'''",
+                " This is a multi-line comment.",
+                "'''"
+            ].join("\n");
+            const result = compile(sourceText, fileName);
+            const resultText = [
+                "/**",
+                " * This is a multi-line comment.",
+                " *\/"
+            ].join("\n");
+            expect(result.code).toBe(resultText);
+        });
+    });
+
+    xdescribe('Bogus', function () {
+        xit('should temporarily allow dumpSymbolTable to be imported', function () {
+            const result = compile('x = 42', fileName);
+            console.log(dumpSymbolTable(result.symbolTable));
+            expect(true).toBeTruthy();
+        });
+    });
 });

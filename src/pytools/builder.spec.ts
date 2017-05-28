@@ -1,6 +1,6 @@
 import { parse, PyNode } from './parser';
 import { astFromParse, astDump } from './builder';
-import { symbolTable } from './symtable';
+import { semanticsOfModule } from './symtable';
 // import { dumpSymbolTable } from './symtable';
 import { Module } from './types';
 
@@ -12,7 +12,7 @@ describe('AST', function () {
             const ast: Module = new Module(astFromParse(cst));
             const dump = astDump(ast);
             expect(dump).toBe('Module(body=[ExpressionStatement(value=Num(n=123))])');
-            /* const st = */ symbolTable(ast);
+            /* const st = */ semanticsOfModule(ast);
             // const dumpST = dumpSymbolTable(st);
             // console.log(dumpST);
         }
@@ -58,7 +58,7 @@ describe('AST', function () {
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
         expect(dump).toBe('Module(body=[ExpressionStatement(value=Str(s=Hello))])');
-        /* const st = */ symbolTable(ast);
+        /* const st = */ semanticsOfModule(ast);
         // const dumpST = dumpSymbolTable(st);
         // console.log(dumpST);
     });
@@ -229,7 +229,7 @@ describe('AST', function () {
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
         expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
-        /* const st = */ symbolTable(ast);
+        /* const st = */ semanticsOfModule(ast);
         // const dumpST = dumpSymbolTable(st);
         // console.log(dumpST);
     });
@@ -339,7 +339,7 @@ describe('AST', function () {
             const cst = parse('def f(x,x):\n  pass') as PyNode;
             const ast = new Module(astFromParse(cst));
             /*const dump =*/ astDump(ast);
-            /*var st =*/ symbolTable(ast);
+            /*var st =*/ semanticsOfModule(ast);
         }
         catch (e) {
             console.log(e);
@@ -360,7 +360,7 @@ describe('AST', function () {
             const cst = parse('"""') as PyNode;
             const ast = new Module(astFromParse(cst));
             /*const dump =*/ astDump(ast);
-            /*var st =*/ symbolTable(ast);
+            /*var st =*/ semanticsOfModule(ast);
             console.log("SyntaxError from symtable???");
         }
         catch (e) {

@@ -1,14 +1,33 @@
-import { INumericLiteral } from './INumericLiteral';
+/**
+ * A numeric literal used in parsing.
+ */
+export interface INumericLiteral {
+    isFloat(): boolean;
+    isInt(): boolean;
+    isLong(): boolean;
+    radix?: number;
+    text?: string;
+    toString(): string;
+    value?: number;
+}
 export interface Visitor {
     assign(assign: Assign): void;
+    attribute(attribute: Attribute): void;
+    binOp(be: BinOp): void;
     callExpression(ce: Call): void;
+    classDef(classDef: ClassDef): void;
     compareExpression(ce: Compare): void;
+    dict(dict: Dict): void;
     expressionStatement(es: ExpressionStatement): void;
+    functionDef(functionDef: FunctionDef): void;
     ifStatement(ifs: IfStatement): void;
+    importFrom(importFrom: ImportFrom): void;
+    list(list: List): void;
     module(module: Module): void;
     name(name: Name): void;
     num(num: Num): void;
     print(print: Print): void;
+    returnStatement(rs: ReturnStatement): void;
     str(str: Str): void;
 }
 export interface Visitable {
@@ -17,6 +36,10 @@ export interface Visitable {
      */
     accept(visitor: Visitor): void;
 }
+/**
+ * Binary operators.
+ * TODO: Rename to BinaryOperator. Consider using an enum.
+ */
 export declare type Operator = BitOr | BitXor | BitAnd | LShift | RShift | Add | Sub | Mult | Div | FloorDiv | Mod;
 export interface HasAstName {
 }
@@ -118,7 +141,7 @@ export declare class Module implements Visitable {
     body: Statement[];
     scopeId: number;
     constructor(body: Statement[]);
-    accept(v: Visitor): void;
+    accept(visitor: Visitor): void;
 }
 export declare class Interactive {
     body: any;
@@ -140,6 +163,7 @@ export declare class FunctionDef extends Statement {
     col_offset: number;
     scopeId: number;
     constructor(name: string, args: Arguments, body: Statement[], decorator_list: Decorator[], lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
 export declare class ClassDef extends Statement {
     name: string;
@@ -150,6 +174,7 @@ export declare class ClassDef extends Statement {
     col_offset?: number;
     scopeId: number;
     constructor(name: string, bases: Expression[], body: Statement[], decorator_list: Decorator[], lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
 export declare class ReturnStatement extends Statement {
     /**
@@ -159,6 +184,7 @@ export declare class ReturnStatement extends Statement {
     lineno: number;
     col_offset: number;
     constructor(value: Expression | Tuple | null, lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
 export declare class DeleteStatement extends Statement {
     targets: Expression[];
@@ -270,6 +296,7 @@ export declare class ImportFrom extends Statement {
     lineno: number;
     col_offset: number;
     constructor(module: string, names: Alias[], level: number, lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
 export declare class Exec extends Statement {
     body: Expression;
@@ -327,6 +354,7 @@ export declare class BinOp extends Expression {
     lineno: number;
     col_offset: number;
     constructor(left: Expression, op: Operator, right: Expression, lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
 export declare type UnaryOperator = UAdd | USub | Invert | Not;
 export declare class UnaryOp extends Expression {
@@ -358,6 +386,7 @@ export declare class Dict extends Expression {
     lineno: number;
     col_offset: number;
     constructor(keys: Expression[], values: Expression[], lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
 export declare class ListComp extends Expression {
     elt: Expression;
@@ -380,7 +409,10 @@ export declare class Yield extends Expression {
     col_offset: number;
     constructor(value: Expression | Tuple, lineno: number, col_offset: number);
 }
-export declare type CompareOperator = Lt | Gt | Eq | LtE | GtE | NotEq | In | NotIn | IsNot;
+/**
+ * TODO: Consider replacing with an enum.
+ */
+export declare type CompareOperator = Eq | NotEq | Gt | GtE | Lt | LtE | Is | IsNot | In | NotIn;
 export declare class Compare extends Expression {
     left: Expression;
     ops: CompareOperator[];
@@ -422,6 +454,7 @@ export declare class Attribute extends Expression {
     lineno?: number;
     col_offset?: number;
     constructor(value: Attribute | Name, attr: string, ctx: Load, lineno?: number, col_offset?: number);
+    accept(visitor: Visitor): void;
 }
 export declare type SubscriptContext = AugLoad | AugStore | Load | Store | Del | Param;
 export declare class Subscript extends Expression {
@@ -446,6 +479,7 @@ export declare class List extends Expression {
     lineno: number;
     col_offset: number;
     constructor(elts: Expression[], ctx: Load, lineno: number, col_offset: number);
+    accept(visitor: Visitor): void;
 }
 export declare class Tuple extends Expression {
     elts: (Expression | Tuple)[];
@@ -500,6 +534,7 @@ export declare class Keyword {
 }
 export declare class Alias {
     name: string;
-    asname: string;
+    asname: string | null;
     constructor(name: string, asname: string);
+    toString(): string;
 }

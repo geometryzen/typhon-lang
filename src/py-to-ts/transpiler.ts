@@ -9,7 +9,7 @@ import { astFromExpression, astFromParse } from '../pytools/builder';
 // import { reservedWords } from '../pytools/reservedWords';
 import { CompilerUnit } from '../pytools/compiler';
 import { SymbolTable } from '../pytools/SymbolTable';
-import { symbolTable, symbolTableFromStatements } from '../pytools/symtable';
+import { semanticsOfModule, symbolTableFromStatements } from '../pytools/symtable';
 // import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 
 // import {And} from '../pytools/types';
@@ -452,8 +452,8 @@ export function transpileModule(sourceText: string): ts.ModuleBlock {
     if (typeof cst === 'object') {
         const stmts = astFromParse(cst);
         const mod = new Module(stmts);
-        const st = symbolTable(mod);
-        const t = new Transpiler(st, 0, sourceText);
+        const symbolTable = semanticsOfModule(mod);
+        const t = new Transpiler(symbolTable, 0, sourceText);
         const flags = 0;
         // FIXME: This should be according to the sourceKind.
         return t.module(mod, flags);

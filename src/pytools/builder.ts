@@ -97,7 +97,7 @@ import { isArrayLike, isNumber, isString } from './base';
 import { ParseTables } from './tables';
 import { Tokens as TOK } from './Tokens';
 import { floatAST, intAST, longAST } from './numericLiteral';
-import { INumericLiteral } from './INumericLiteral';
+import { INumericLiteral } from './types';
 import { PyNode } from './parser';
 
 //
@@ -278,6 +278,8 @@ function setContext(c: Compiling, e: Expression, ctx: Store, n: PyNode): void {
 const operatorMap: { [token: number]: Operator } = {};
 (function () {
     operatorMap[TOK.T_VBAR] = BitOr;
+    assert(operatorMap[TOK.T_VBAR] !== undefined, `${TOK.T_VBAR}`);
+    // assert(operatorMap[TOK.T_VBAR] === BitOr, `${TOK.T_VBAR}`);
     operatorMap[TOK.T_VBAR] = BitOr;
     operatorMap[TOK.T_CIRCUMFLEX] = BitXor;
     operatorMap[TOK.T_AMPER] = BitAnd;
@@ -292,7 +294,7 @@ const operatorMap: { [token: number]: Operator } = {};
 }());
 
 function getOperator(n: PyNode): Operator {
-    assert(operatorMap[n.type] !== undefined);
+    assert(operatorMap[n.type] !== undefined, `${n.type}`);
     return operatorMap[n.type];
 }
 

@@ -1629,7 +1629,7 @@ function compile(sourceText, fileName) {
     if (typeof cst === 'object') {
         var stmts = builder_1.astFromParse(cst);
         var mod = new types_34.Module(stmts);
-        var st = symtable_1.symbolTable(mod);
+        var st = symtable_1.semanticsOfModule(mod);
         var c = new Compiler(fileName, st, 0, sourceText);
         return { 'funcname': c.cmod(mod), 'code': c.result.join('') };
     }

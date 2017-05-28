@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- *
+ * TODO: I'm not sure if it makes sense to have this.
  */
 var CompilerUnit = (function () {
     /**

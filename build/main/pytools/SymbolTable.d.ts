@@ -2,21 +2,29 @@ import { BlockType, SymbolTableScope } from './SymbolTableScope';
 import { Alias } from './types';
 import { Arguments } from './types';
 import { Assign } from './types';
+import { Attribute } from './types';
+import { BinOp } from './types';
 import { Call } from './types';
+import { ClassDef } from './types';
 import { Compare } from './types';
 import { Comprehension } from './types';
+import { Dict } from './types';
 import { Ellipsis } from './types';
 import { ExceptHandler } from './types';
 import { Expression } from './types';
 import { ExpressionStatement } from './types';
 import { ExtSlice } from './types';
+import { FunctionDef } from './types';
 import { GeneratorExp } from './types';
 import { IfStatement } from './types';
+import { ImportFrom } from './types';
 import { Index } from './types';
+import { List } from './types';
 import { Module } from './types';
 import { Name } from './types';
 import { Num } from './types';
 import { Print } from './types';
+import { ReturnStatement } from './types';
 import { Slice } from './types';
 import { Statement } from './types';
 import { Str } from './types';
@@ -30,14 +38,22 @@ export declare class SemanticVisitor implements Visitor {
     private st;
     constructor(st: SymbolTable);
     assign(assign: Assign): void;
+    attribute(attribute: Attribute): void;
+    binOp(be: BinOp): void;
     callExpression(ce: Call): void;
+    classDef(cd: ClassDef): void;
     compareExpression(ce: Compare): void;
+    dict(dict: Dict): void;
     expressionStatement(expressionStatement: ExpressionStatement): void;
+    functionDef(fd: FunctionDef): void;
     ifStatement(i: IfStatement): void;
+    importFrom(importFrom: ImportFrom): void;
+    list(list: List): void;
     module(module: Module): void;
     name(name: Name): void;
     num(num: Num): void;
     print(print: Print): void;
+    returnStatement(rs: ReturnStatement): void;
     str(str: Str): void;
 }
 /**
@@ -67,7 +83,21 @@ export declare class SymbolTable {
     }): SymbolTableScope;
     SEQStmt(nodes: Statement[]): void;
     SEQExpr(nodes: Expression[]): void;
-    enterBlock(name: string, blockType: BlockType, ast: {
+    /**
+     * A block represents a scope.
+     * The following nodes in the AST define new blocks of the indicated type and name:
+     * Module        ModuleBlock   = 'module'    name = 'top'
+     * FunctionDef   FunctionBlock = 'function'  name = The name of the function.
+     * ClassDef      ClassBlock    = 'class'     name = The name of the class.
+     * Lambda        FunctionBlock = 'function'  name = 'lambda'
+     * GeneratoeExp  FunctionBlock = 'function'  name = 'genexpr'
+     *
+     * @param name
+     * @param blockType
+     * @param astNode The AST node that is defining the block.
+     * @param lineno
+     */
+    enterBlock(name: string, blockType: BlockType, astNode: {
         scopeId: number;
     }, lineno: number): void;
     exitBlock(): void;
@@ -79,6 +109,9 @@ export declare class SymbolTable {
      */
     newTmpname(lineno: number): void;
     /**
+     * 1. Modifies symbol flags for the current scope.
+     * 2.a Adds a variable name for the current scope, OR
+     * 2.b Sets the SymbolFlags for a global variable.
      * @param name
      * @param flags
      * @param lineno

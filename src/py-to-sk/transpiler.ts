@@ -5,7 +5,7 @@ import { reservedNames } from '../pytools/reservedNames';
 import { reservedWords } from '../pytools/reservedWords';
 import { SymbolTable } from '../pytools/SymbolTable';
 import { SymbolTableScope } from '../pytools/SymbolTableScope';
-import { symbolTable } from '../pytools/symtable';
+import { semanticsOfModule } from '../pytools/symtable';
 import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 
 import { Alias } from '../pytools/types';
@@ -1913,7 +1913,7 @@ export function compile(sourceText: string, fileName: string) {
     if (typeof cst === 'object') {
         const stmts = astFromParse(cst);
         const mod = new Module(stmts);
-        const st = symbolTable(mod);
+        const st = semanticsOfModule(mod);
         const c = new Compiler(fileName, st, 0, sourceText);
         return { 'funcname': c.cmod(mod), 'code': c.result.join('') };
     }

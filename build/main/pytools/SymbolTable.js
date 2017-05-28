@@ -84,6 +84,13 @@ var SemanticVisitor = (function () {
         this.st.SEQExpr(assign.targets);
         assign.value.accept(this);
     };
+    SemanticVisitor.prototype.attribute = function (attribute) {
+        attribute.value.accept(this);
+    };
+    SemanticVisitor.prototype.binOp = function (be) {
+        be.left.accept(this);
+        be.right.accept(this);
+    };
     SemanticVisitor.prototype.callExpression = function (ce) {
         ce.func.accept(this);
         this.st.SEQExpr(ce.args);
@@ -98,12 +105,39 @@ var SemanticVisitor = (function () {
             ce.kwargs.accept(this);
         }
     };
+    SemanticVisitor.prototype.classDef = function (cd) {
+        this.st.addDef(cd.name, SymbolConstants_7.DEF_LOCAL, cd.lineno);
+        this.st.SEQExpr(cd.bases);
+        if (cd.decorator_list)
+            this.st.SEQExpr(cd.decorator_list);
+        this.st.enterBlock(cd.name, SymbolConstants_2.ClassBlock, cd, cd.lineno);
+        var tmp = this.st.curClass;
+        this.st.curClass = cd.name;
+        this.st.SEQStmt(cd.body);
+        this.st.curClass = tmp;
+        this.st.exitBlock();
+    };
     SemanticVisitor.prototype.compareExpression = function (ce) {
         ce.left.accept(this);
         this.st.SEQExpr(ce.comparators);
     };
+    SemanticVisitor.prototype.dict = function (dict) {
+        this.st.SEQExpr(dict.keys);
+        this.st.SEQExpr(dict.values);
+    };
     SemanticVisitor.prototype.expressionStatement = function (expressionStatement) {
         expressionStatement.accept(this);
+    };
+    SemanticVisitor.prototype.functionDef = function (fd) {
+        this.st.addDef(fd.name, SymbolConstants_7.DEF_LOCAL, fd.lineno);
+        if (fd.args.defaults)
+            this.st.SEQExpr(fd.args.defaults);
+        if (fd.decorator_list)
+            this.st.SEQExpr(fd.decorator_list);
+        this.st.enterBlock(fd.name, SymbolConstants_10.FunctionBlock, fd, fd.lineno);
+        this.st.visitArguments(fd.args, fd.lineno);
+        this.st.SEQStmt(fd.body);
+        this.st.exitBlock();
     };
     SemanticVisitor.prototype.ifStatement = function (i) {
         i.test.accept(this);
@@ -112,6 +146,12 @@ var SemanticVisitor = (function () {
             this.st.SEQStmt(i.alternate);
         }
         throw new Error("SemanticVistor.IfStatement");
+    };
+    SemanticVisitor.prototype.importFrom = function (importFrom) {
+        this.st.visitAlias(importFrom.names, importFrom.lineno);
+    };
+    SemanticVisitor.prototype.list = function (list) {
+        this.st.SEQExpr(list.elts);
     };
     SemanticVisitor.prototype.module = function (module) {
         throw new Error("module");
@@ -127,6 +167,15 @@ var SemanticVisitor = (function () {
             print.dest.accept(this);
         }
         this.st.SEQExpr(print.values);
+    };
+    SemanticVisitor.prototype.returnStatement = function (rs) {
+        if (rs.value) {
+            rs.value.accept(this);
+            this.st.cur.returnsValue = true;
+            if (this.st.cur.generator) {
+                throw syntaxError_1.syntaxError("'return' with argument inside generator");
+            }
+        }
     };
     SemanticVisitor.prototype.str = function (str) {
         // Do nothing, unless we are doing type inference.
@@ -178,14 +227,28 @@ var SymbolTable = (function () {
                 this.visitExpr(val);
         }
     };
-    SymbolTable.prototype.enterBlock = function (name, blockType, ast, lineno) {
+    /**
+     * A block represents a scope.
+     * The following nodes in the AST define new blocks of the indicated type and name:
+     * Module        ModuleBlock   = 'module'    name = 'top'
+     * FunctionDef   FunctionBlock = 'function'  name = The name of the function.
+     * ClassDef      ClassBlock    = 'class'     name = The name of the class.
+     * Lambda        FunctionBlock = 'function'  name = 'lambda'
+     * GeneratoeExp  FunctionBlock = 'function'  name = 'genexpr'
+     *
+     * @param name
+     * @param blockType
+     * @param astNode The AST node that is defining the block.
+     * @param lineno
+     */
+    SymbolTable.prototype.enterBlock = function (name, blockType, astNode, lineno) {
         //  name = fixReservedNames(name);
         var prev = null;
         if (this.cur) {
             prev = this.cur;
             this.stack.push(this.cur);
         }
-        this.cur = new SymbolTableScope_1.SymbolTableScope(this, name, blockType, ast, lineno);
+        this.cur = new SymbolTableScope_1.SymbolTableScope(this, name, blockType, astNode, lineno);
         if (name === 'top') {
             this.global = this.cur.symFlags;
         }
@@ -232,6 +295,9 @@ var SymbolTable = (function () {
         this.addDef("_[" + (++this.tmpname) + "]", SymbolConstants_7.DEF_LOCAL, lineno);
     };
     /**
+     * 1. Modifies symbol flags for the current scope.
+     * 2.a Adds a variable name for the current scope, OR
+     * 2.b Sets the SymbolFlags for a global variable.
      * @param name
      * @param flags
      * @param lineno
@@ -239,6 +305,7 @@ var SymbolTable = (function () {
     SymbolTable.prototype.addDef = function (name, flags, lineno) {
         var mangled = mangleName_1.mangleName(this.curClass, name);
         //  mangled = fixReservedNames(mangled);
+        // Modify symbol flags for the current scope.
         var val = this.cur.symFlags[mangled];
         if (val !== undefined) {
             if ((flags & SymbolConstants_8.DEF_PARAM) && (val & SymbolConstants_8.DEF_PARAM)) {

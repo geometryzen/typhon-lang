@@ -1,16 +1,40 @@
-import { INumericLiteral } from './INumericLiteral';
-import { astDump } from '../pytools/builder';
+//
+// This module is at the bottom.
+// It should only import modules that don't introduce circularity.
+//
+import { assert } from './asserts';
+
+/**
+ * A numeric literal used in parsing.
+ */
+export interface INumericLiteral {
+    isFloat(): boolean;
+    isInt(): boolean;
+    isLong(): boolean;
+    radix?: number;
+    text?: string;
+    toString(): string;
+    value?: number;
+}
 
 export interface Visitor {
     assign(assign: Assign): void;
+    attribute(attribute: Attribute): void;
+    binOp(be: BinOp): void;
     callExpression(ce: Call): void;
+    classDef(classDef: ClassDef): void;
     compareExpression(ce: Compare): void;
+    dict(dict: Dict): void;
     expressionStatement(es: ExpressionStatement): void;
+    functionDef(functionDef: FunctionDef): void;
     ifStatement(ifs: IfStatement): void;
+    importFrom(importFrom: ImportFrom): void;
+    list(list: List): void;
     module(module: Module): void;
     name(name: Name): void;
     num(num: Num): void;
     print(print: Print): void;
+    returnStatement(rs: ReturnStatement): void;
     str(str: Str): void;
 }
 
@@ -21,6 +45,10 @@ export interface Visitable {
     accept(visitor: Visitor): void;
 }
 
+/**
+ * Binary operators.
+ * TODO: Rename to BinaryOperator. Consider using an enum.
+ */
 export type Operator = BitOr | BitXor | BitAnd | LShift | RShift | Add | Sub | Mult | Div | FloorDiv | Mod;
 
 export interface HasAstName {
@@ -116,7 +144,7 @@ export abstract class Expression implements Node, Visitable {
     }
     accept(visitor: Visitor): void {
         // accept must be implemented by derived classes.
-        throw new Error(`"Expression.accept" is not implemented on ${astDump(this)}`);
+        throw new Error(`"Expression.accept" is not implemented.`);
     }
 }
 
@@ -124,7 +152,7 @@ export abstract class Statement extends ModuleElement implements Visitable {
     lineno?: number;
     accept(visitor: Visitor): void {
         // accept must be implemented by derived classes.
-        throw new Error(`"Statement.accept" is not implemented on ${astDump(this)}`);
+        throw new Error(`"Statement.accept" is not implemented.`);
     }
 }
 
@@ -138,8 +166,8 @@ export class Module implements Visitable {
     constructor(body: Statement[]) {
         this.body = body;
     }
-    accept(v: Visitor): void {
-        v.module(this);
+    accept(visitor: Visitor): void {
+        visitor.module(this);
     }
 }
 
@@ -180,6 +208,9 @@ export class FunctionDef extends Statement {
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
+    accept(visitor: Visitor): void {
+        visitor.functionDef(this);
+    }
 }
 
 export class ClassDef extends Statement {
@@ -199,6 +230,9 @@ export class ClassDef extends Statement {
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
+    accept(visitor: Visitor): void {
+        visitor.classDef(this);
+    }
 }
 
 export class ReturnStatement extends Statement {
@@ -213,6 +247,9 @@ export class ReturnStatement extends Statement {
         this.value = value;
         this.lineno = lineno;
         this.col_offset = col_offset;
+    }
+    accept(visitor: Visitor): void {
+        visitor.returnStatement(this);
     }
 }
 
@@ -433,11 +470,16 @@ export class ImportFrom extends Statement {
     col_offset: number;
     constructor(module: string, names: Alias[], level: number, lineno: number, col_offset: number) {
         super();
+        assert(typeof module === 'string', "module must be a string.");
+        assert(Array.isArray(names), "names must be an Array.");
         this.module = module;
         this.names = names;
         this.level = level;
         this.lineno = lineno;
         this.col_offset = col_offset;
+    }
+    accept(visitor: Visitor): void {
+        visitor.importFrom(this);
     }
 }
 
@@ -554,6 +596,9 @@ export class BinOp extends Expression {
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
+    accept(visitor: Visitor): void {
+        visitor.binOp(this);
+    }
 }
 
 export type UnaryOperator = UAdd | USub | Invert | Not;
@@ -615,6 +660,9 @@ export class Dict extends Expression {
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
+    accept(visitor: Visitor): void {
+        visitor.dict(this);
+    }
 }
 
 export class ListComp extends Expression {
@@ -658,7 +706,10 @@ export class Yield extends Expression {
     }
 }
 
-export type CompareOperator = Lt | Gt | Eq | LtE | GtE | NotEq | In | NotIn | IsNot;
+/**
+ * TODO: Consider replacing with an enum.
+ */
+export type CompareOperator = Eq | NotEq | Gt | GtE | Lt | LtE | Is | IsNot | In | NotIn;
 
 export class Compare extends Expression {
     left: Expression;
@@ -671,7 +722,34 @@ export class Compare extends Expression {
         this.left = left;
         for (const op of ops) {
             switch (op) {
+                case Eq: {
+                    break;
+                }
+                case NotEq: {
+                    break;
+                }
+                case Gt: {
+                    break;
+                }
+                case GtE: {
+                    break;
+                }
                 case Lt: {
+                    break;
+                }
+                case LtE: {
+                    break;
+                }
+                case In: {
+                    break;
+                }
+                case NotIn: {
+                    break;
+                }
+                case Is: {
+                    break;
+                }
+                case IsNot: {
                     break;
                 }
                 default: {
@@ -756,6 +834,9 @@ export class Attribute extends Expression {
         this.lineno = lineno;
         this.col_offset = col_offset;
     }
+    accept(visitor: Visitor): void {
+        visitor.attribute(this);
+    }
 }
 
 export type SubscriptContext = AugLoad | AugStore | Load | Store | Del | Param;
@@ -804,6 +885,9 @@ export class List extends Expression {
         this.ctx = ctx;
         this.lineno = lineno;
         this.col_offset = col_offset;
+    }
+    accept(visitor: Visitor): void {
+        visitor.list(this);
     }
 }
 
@@ -903,10 +987,15 @@ export class Keyword {
 
 export class Alias {
     name: string;
-    asname: string;
+    asname: string | null;
     constructor(name: string, asname: string) {
+        assert(typeof name === 'string');
+        assert(typeof asname === 'string' || asname === null);
         this.name = name;
         this.asname = asname;
+    }
+    toString(): string {
+        return `${this.name} as ${this.asname}`;
     }
 }
 
