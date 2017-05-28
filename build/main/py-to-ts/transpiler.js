@@ -1,176 +1,76 @@
 "use strict";
-/// <reference path = "../../node_modules/typescript/lib/typescriptServices.d.ts" />
 Object.defineProperty(exports, "__esModule", { value: true });
-// import { assert } from '../pytools/asserts';
-var base_1 = require("../pytools/base");
-// import { isNumber } from '../pytools/base';
+var asserts_1 = require("../pytools/asserts");
+var types_1 = require("../pytools/types");
+var types_2 = require("../pytools/types");
+var types_3 = require("../pytools/types");
+var types_4 = require("../pytools/types");
 var parser_1 = require("../pytools/parser");
 var builder_1 = require("../pytools/builder");
 var symtable_1 = require("../pytools/symtable");
-var types_1 = require("../pytools/types");
-// import { Dict } from '../pytools/types';
-// import { Ellipsis } from '../pytools/types';
-var types_2 = require("../pytools/types");
-// import { Index } from '../pytools/types';
-// import { Lambda } from '../pytools/types';
-// import { List } from '../pytools/types';
-// import { ListComp } from '../pytools/types';
-// import { Load } from '../pytools/types';
-var types_3 = require("../pytools/types");
-var types_4 = require("../pytools/types");
-var types_5 = require("../pytools/types");
-// import { Yield } from '../pytools/types';
-// import { LOCAL } from '../pytools/SymbolConstants';
-// import { GLOBAL_EXPLICIT } from '../pytools/SymbolConstants';
-// import { GLOBAL_IMPLICIT } from '../pytools/SymbolConstants';
-// import { FREE } from '../pytools/SymbolConstants';
-// import { CELL } from '../pytools/SymbolConstants';
-// import { FunctionBlock } from '../pytools/SymbolConstants';
-// TODO: Replace these with the TypeScript AST
-// import {Node} from '../estools/esprima';
-// import {generate} from '../estools/escodegen';
-// const OP_FAST = 0;
-// const OP_GLOBAL = 1;
-// const OP_DEREF = 2;
-// const OP_NAME = 3;
-// const D_NAMES = 0;
-// const D_FREEVARS = 1;
-// const D_CELLVARS = 2;
-/*
-const Precedence = {
-    Sequence: 0,
-    Yield: 1,
-    Await: 1,
-    Assignment: 1,
-    Conditional: 2,
-    ArrowFunction: 2,
-    LogicalOR: 3,
-    LogicalAND: 4,
-    BitwiseOR: 5,
-    BitwiseXOR: 6,
-    BitwiseAND: 7,
-    Equality: 8,
-    Relational: 9,
-    BitwiseSHIFT: 10,
-    Additive: 11,
-    Multiplicative: 12,
-    Unary: 13,
-    Postfix: 14,
-    Call: 15,
-    New: 16,
-    TaggedTemplate: 17,
-    Member: 18,
-    Primary: 19
-};
-*/
-// Flags
-// const F_ALLOW_IN = 1;
-// const F_ALLOW_CALL = 1 << 1;
-// const F_ALLOW_UNPARATH_NEW = 1 << 2;
-// const F_FUNC_BODY = 1 << 3;
-// const F_DIRECTIVE_CTX = 1 << 4;
-// const F_SEMICOLON_OPT = 1 << 5;
-// Expression flag sets
-// NOTE: Flag order:
-// F_ALLOW_IN
-// F_ALLOW_CALL
-// F_ALLOW_UNPARATH_NEW
-// const E_FTT = F_ALLOW_CALL | F_ALLOW_UNPARATH_NEW;
-// const E_TTF = F_ALLOW_IN | F_ALLOW_CALL;
-// const E_TTT = F_ALLOW_IN | F_ALLOW_CALL | F_ALLOW_UNPARATH_NEW;
-// const E_TFF = F_ALLOW_IN;
-// const E_FFT = F_ALLOW_UNPARATH_NEW;
-// const E_TFT = F_ALLOW_IN | F_ALLOW_UNPARATH_NEW;
-// Statement flag sets
-// NOTE: Flag order:
-// F_ALLOW_IN
-// F_FUNC_BODY
-// F_DIRECTIVE_CTX
-// F_SEMICOLON_OPT
-// const S_TFFF = F_ALLOW_IN;
-// const S_TFFT = F_ALLOW_IN | F_SEMICOLON_OPT;
-// const S_FFFF = 0x00;
-// const S_TFTF = F_ALLOW_IN | F_DIRECTIVE_CTX;
-// const S_TTFF = F_ALLOW_IN | F_FUNC_BODY;
+var toStringLiteralJS_1 = require("../pytools/toStringLiteralJS");
+var SymbolConstants_1 = require("../pytools/SymbolConstants");
+var utils_1 = require("./utils");
+var TypeWriter_1 = require("./TypeWriter");
 /**
- * We keep track of how many time gensym method on the Compiler is called because ... ?
+ * Provides enhanced scope information beyond the SymbolTableScope.
  */
-var gensymCount = 0;
-function updateDeeply(target, override) {
-    function isHashObject(target) {
-        return typeof target === 'object' && target instanceof Object && !(target instanceof RegExp);
+var PrinterUnit = (function () {
+    /**
+     * Stuff that changes on entry/exit of code blocks. must be saved and restored
+     * when returning to a block.
+     * Corresponds to the body of a module, class, or function.
+     */
+    function PrinterUnit(name, ste) {
+        /**
+         * Used to determine whether a local variable has been declared.
+         */
+        this.declared = {};
+        asserts_1.assert(typeof name === 'string');
+        asserts_1.assert(typeof ste === 'object');
+        this.name = name;
+        this.ste = ste;
+        this.private_ = null;
+        this.firstlineno = 0;
+        this.lineno = 0;
+        this.linenoSet = false;
+        this.localnames = [];
+        this.blocknum = 0;
+        this.blocks = [];
+        this.curblock = 0;
+        this.scopename = null;
+        this.prefixCode = '';
+        this.varDeclsCode = '';
+        this.switchCode = '';
+        this.suffixCode = '';
+        // stack of where to go on a break
+        this.breakBlocks = [];
+        // stack of where to go on a continue
+        this.continueBlocks = [];
+        this.exceptBlocks = [];
+        this.finallyBlocks = [];
     }
-    for (var key in override) {
-        if (override.hasOwnProperty(key)) {
-            var val = override[key];
-            if (isHashObject(val)) {
-                if (isHashObject(target[key])) {
-                    updateDeeply(target[key], val);
-                }
-                else {
-                    target[key] = updateDeeply({}, val);
-                }
-            }
-            else {
-                target[key] = val;
-            }
-        }
-    }
-    return target;
-}
-/**
- * flatten an array to a string, where the array can contain
- * either strings or nested arrays
- */
-function flattenToString(arr) {
-    var result = '';
-    for (var i = 0, iz = arr.length; i < iz; ++i) {
-        var elem = arr[i];
-        result += base_1.isArray(elem) ? flattenToString(elem) : elem;
-    }
-    return result;
-}
-/*
-function withIndent(fn: (base: number) => void) {
-    let previousBase: number = base;
-    base += indent;
-    fn(base);
-    base = previousBase;
-}
-*/
-/**
- * TODO: Rename compileModule
- */
-function compile(source, fileName) {
-    var resultFile = ts.createSourceFile(fileName, "", ts.ScriptTarget.Latest, /*setParentNodes*/ false, ts.ScriptKind.TS);
-    var printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
-    var code = printer.printNode(ts.EmitHint.Unspecified, transpileModule(source), resultFile);
-    return { code: code };
-}
-exports.compile = compile;
-function compileExpression(source, fileName) {
-    var resultFile = ts.createSourceFile(fileName, "", ts.ScriptTarget.Latest, /*setParentNodes*/ false, ts.ScriptKind.TS);
-    var printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
-    var code = printer.printNode(ts.EmitHint.Expression, transpileExpression(source), resultFile);
-    return { code: code };
-}
-exports.compileExpression = compileExpression;
-function compileSingle(source, fileName) {
-    var resultFile = ts.createSourceFile(fileName, "", ts.ScriptTarget.Latest, /*setParentNodes*/ false, ts.ScriptKind.TS);
-    var printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
-    var code = printer.printNode(ts.EmitHint.Expression, transpileSingle(source)[0], resultFile);
-    return { code: code };
-}
-exports.compileSingle = compileSingle;
-function resetCompiler() {
-    gensymCount = 0;
-}
-exports.resetCompiler = resetCompiler;
-/**
- * Transpiles from Python to JavaScript.
- */
-var Transpiler = (function () {
-    function Transpiler(st, flags, sourceCodeForAnnotation) {
+    PrinterUnit.prototype.activateScope = function () {
+        // Do nothing yet.
+    };
+    PrinterUnit.prototype.deactivateScope = function () {
+        // Do nothing yet.
+    };
+    return PrinterUnit;
+}());
+var Printer = (function () {
+    /**
+     *
+     * @param st The symbol table obtained from semantic analysis.
+     * @param flags Not being used yet. May become options.
+     * @param sourceText The original source code, provided for annotating the generated code and source mapping.
+     */
+    function Printer(st, flags, sourceText) {
+        /**
+         * Used to provide a unique number for generated symbol names.
+         */
+        this.gensymCount = 0;
+        // this.fileName = fileName;
         this.st = st;
         this.flags = flags;
         this.interactive = false;
@@ -180,238 +80,411 @@ var Transpiler = (function () {
         this.result = [];
         // this.gensymcount = 0;
         this.allUnits = [];
-        this.source = sourceCodeForAnnotation ? sourceCodeForAnnotation.split("\n") : false;
+        this.source = sourceText ? sourceText.split("\n") : false;
+        this.writer = new TypeWriter_1.TypeWriter();
     }
-    Transpiler.prototype.module = function (ast, flags) {
-        // const node: ts.Node = new Node();
-        var body = this.statementList(ast.body, flags);
-        return ts.createModuleBlock(body);
-        // node.finishProgram(body);
-        // return node;
-        // throw new Error(`TODO: module`);
+    /**
+     * This is the entry point for this visitor.
+     */
+    Printer.prototype.transpileModule = function (module) {
+        this.enterScope("<module>", module, 0);
+        this.module(module);
+        this.exitScope();
+        return this.writer.snapshot();
     };
-    Transpiler.prototype.statementList = function (stmts, flags) {
-        var nodes = [];
-        var iLen = stmts.length;
-        for (var i = 0; i < iLen; i++) {
-            var stmt = stmts[i];
-            nodes.push(this.statement(stmt, flags));
+    /**
+     * Looks up the SymbolTableScope.
+     * Pushes a new PrinterUnit onto the stack.
+     * Returns a string identifying the scope.
+     * @param name The name that will be assigned to the PrinterUnit.
+     * @param key A scope object in the AST from sematic analysis. Provides the mapping to the SymbolTableScope.
+     * @param lineno Assigned to the first line numberof the PrinterUnit.
+     */
+    Printer.prototype.enterScope = function (name, key, lineno) {
+        var u = new PrinterUnit(name, this.st.getStsForAst(key));
+        u.firstlineno = lineno;
+        if (this.u && this.u.private_) {
+            u.private_ = this.u.private_;
         }
-        return nodes;
+        this.stack.push(this.u);
+        this.allUnits.push(u);
+        var scopeName = this.gensym('scope');
+        u.scopename = scopeName;
+        this.u = u;
+        this.u.activateScope();
+        this.nestlevel++;
+        return scopeName;
     };
-    Transpiler.prototype.statement = function (s, flags) {
-        // this.u.lineno = s.lineno;
-        // this.u.linenoSet = false;
-        // this.annotateSource(s);
-        if (s instanceof types_2.ExpressionStatement) {
-            return ts.createStatement(this.expr(s.value, flags));
+    Printer.prototype.exitScope = function () {
+        if (this.u) {
+            this.u.deactivateScope();
         }
-        else if (s instanceof types_1.Assign) {
-            return ts.createStatement(this.assign(s, flags));
+        this.nestlevel--;
+        if (this.stack.length - 1 >= 0) {
+            this.u = this.stack.pop();
         }
-        switch (s.constructor) {
-            /*
-            case FunctionDef:
-                return this.functionDef(s, flags);
-            case ClassDef:
-                return this.classDef(s, flags);
-            case ReturnStatement: {
-                return this.returnStatement(<ReturnStatement>s, flags);
+        else {
+            this.u = null;
+        }
+        if (this.u) {
+            this.u.activateScope();
+        }
+    };
+    /**
+     * Generates a unique symbol name for the provided namespace.
+     */
+    Printer.prototype.gensym = function (namespace) {
+        var symbolName = namespace || '';
+        symbolName = '$' + symbolName;
+        symbolName += this.gensymCount++;
+        return symbolName;
+    };
+    // Everything below here is an implementation of the Visitor
+    Printer.prototype.assign = function (assign) {
+        this.writer.beginStatement();
+        // TODO: Declaration.
+        // TODO: How to deal with multiple target?
+        for (var _i = 0, _a = assign.targets; _i < _a.length; _i++) {
+            var target = _a[_i];
+            if (target instanceof types_4.Name) {
+                var flags = this.u.ste.symFlags[target.id];
+                // console.log(`${target.id} => ${flags.toString(2)}`);
+                if (flags && SymbolConstants_1.DEF_LOCAL) {
+                    if (this.u.declared[target.id]) {
+                        // The variable has already been declared.
+                    }
+                    else {
+                        // We use let for now because we would need to look ahead for more assignments.
+                        // The smenatic analysis could count the number of assignments in the current scope?
+                        this.writer.write("let ");
+                        this.u.declared[target.id] = true;
+                    }
+                }
             }
-            case DeleteExpression:
-                return this.deleteExpression((<DeleteExpression>s), flags);
-            case Assign: {
-                return this.assign(<Assign>s, flags);
+            target.accept(this);
+        }
+        this.writer.write("=");
+        assign.value.accept(this);
+        this.writer.endStatement();
+    };
+    Printer.prototype.attribute = function (attribute) {
+        attribute.value.accept(this);
+        this.writer.write(".");
+        this.writer.write(attribute.attr);
+    };
+    Printer.prototype.binOp = function (be) {
+        be.left.accept(this);
+        switch (be.op) {
+            case types_1.Add: {
+                this.writer.binOp("+");
+                break;
             }
-            case AugAssign: {
-                return this.augAssign(<AugAssign>s, flags);
+            case types_1.Sub: {
+                this.writer.binOp("-");
+                break;
             }
-            case Print: {
-                this.print(<Print>s, flags);
-                throw new Error("Print");
-                // break;
+            case types_1.Mult: {
+                this.writer.binOp("*");
+                break;
             }
-            case ForStatement: {
-                return this.forStatement(<ForStatement>s, flags);
+            case types_1.Div: {
+                this.writer.binOp("/");
+                break;
             }
-            case WhileStatement: {
-                return this.whileStatement(<WhileStatement>s, flags);
+            case types_1.BitOr: {
+                this.writer.binOp("|");
+                break;
             }
-            case IfStatement: {
-                return this.ifStatement(<IfStatement>s, flags);
+            case types_1.BitXor: {
+                this.writer.binOp("^");
+                break;
             }
-            case Raise: {
-                return this.raise(<Raise>s, flags);
+            case types_1.BitAnd: {
+                this.writer.binOp("&");
+                break;
             }
-            case TryExcept: {
-                return this.tryExcept(<TryExcept>s, flags);
+            case types_1.LShift: {
+                this.writer.binOp("<<");
+                break;
             }
-            case TryFinally: {
-                return this.tryFinally(<TryFinally>s, flags);
+            case types_1.RShift: {
+                this.writer.binOp(">>");
+                break;
             }
-            case Assert: {
-                return this.assert(<Assert>s, flags);
+            case types_1.Mod: {
+                this.writer.binOp("%");
+                break;
             }
-            case ImportStatement:
-                return this.importStatement(<ImportStatement>s, flags);
-            case ImportFrom:
-                return this.importFrom(<ImportFrom>s, flags);
-            case Global:
-                throw new Error("Gloabl");
-            // break;
-            case Expr:
-                return this.expr((<Expr>s), flags);
-            case Pass:
-                throw new Error("Pass");
-            // break;
-            case BreakStatement:
-                return this.breakStatement((<BreakStatement>s), flags);
-            case ContinueStatement:
-                return this.continueStatement(<ContinueStatement>s, flags);
-            */
+            case types_1.FloorDiv: {
+                // TODO: What is the best way to handle FloorDiv.
+                // This doesn't actually exist in TypeScript.
+                this.writer.binOp("//");
+                break;
+            }
             default: {
-                throw new Error("statement(s = " + JSON.stringify(s) + ", flags = " + flags + ")");
+                throw new Error("Unexpected binary operator " + be.op + ": " + typeof be.op);
+            }
+        }
+        be.right.accept(this);
+    };
+    Printer.prototype.callExpression = function (ce) {
+        if (ce.func instanceof types_4.Name) {
+            if (utils_1.isClassNameByConvention(ce.func)) {
+                this.writer.write("new ");
+            }
+        }
+        else {
+            throw new Error("Call.func must be a Name");
+        }
+        ce.func.accept(this);
+        this.writer.openParen();
+        for (var i = 0; i < ce.args.length; i++) {
+            if (i > 0) {
+                this.writer.comma();
+            }
+            var arg = ce.args[i];
+            arg.accept(this);
+        }
+        for (var i = 0; i < ce.keywords.length; ++i) {
+            ce.keywords[i].value.accept(this);
+        }
+        if (ce.starargs) {
+            ce.starargs.accept(this);
+        }
+        if (ce.kwargs) {
+            ce.kwargs.accept(this);
+        }
+        this.writer.closeParen();
+    };
+    Printer.prototype.classDef = function (cd) {
+        this.writer.write("class ");
+        this.writer.write(cd.name);
+        // this.writer.openParen();
+        // this.writer.closeParen();
+        this.writer.beginBlock();
+        /*
+        this.writer.write("constructor");
+        this.writer.openParen();
+        this.writer.closeParen();
+        this.writer.beginBlock();
+        this.writer.endBlock();
+        */
+        for (var _i = 0, _a = cd.body; _i < _a.length; _i++) {
+            var stmt = _a[_i];
+            stmt.accept(this);
+        }
+        this.writer.endBlock();
+    };
+    Printer.prototype.compareExpression = function (ce) {
+        ce.left.accept(this);
+        for (var _i = 0, _a = ce.ops; _i < _a.length; _i++) {
+            var op = _a[_i];
+            switch (op) {
+                case types_2.Eq: {
+                    this.writer.write("===");
+                    break;
+                }
+                case types_2.NotEq: {
+                    this.writer.write("!==");
+                    break;
+                }
+                case types_2.Lt: {
+                    this.writer.write("<");
+                    break;
+                }
+                case types_2.LtE: {
+                    this.writer.write("<=");
+                    break;
+                }
+                case types_2.Gt: {
+                    this.writer.write(">");
+                    break;
+                }
+                case types_2.GtE: {
+                    this.writer.write(">=");
+                    break;
+                }
+                case types_2.Is: {
+                    this.writer.write("===");
+                    break;
+                }
+                case types_2.IsNot: {
+                    this.writer.write("!==");
+                    break;
+                }
+                case types_2.In: {
+                    this.writer.write(" in ");
+                    break;
+                }
+                case types_2.NotIn: {
+                    this.writer.write(" not in ");
+                    break;
+                }
+                default: {
+                    throw new Error("Unexpected comparison expression operator: " + op);
+                }
+            }
+        }
+        for (var _b = 0, _c = ce.comparators; _b < _c.length; _b++) {
+            var comparator = _c[_b];
+            comparator.accept(this);
+        }
+    };
+    Printer.prototype.dict = function (dict) {
+        var keys = dict.keys;
+        var values = dict.values;
+        var N = keys.length;
+        this.writer.beginObject();
+        for (var i = 0; i < N; i++) {
+            if (i > 0) {
+                this.writer.comma();
+            }
+            keys[i].accept(this);
+            this.writer.write(":");
+            values[i].accept(this);
+        }
+        this.writer.endObject();
+    };
+    Printer.prototype.expressionStatement = function (s) {
+        s.value.accept(this);
+    };
+    Printer.prototype.functionDef = function (functionDef) {
+        var isClassMethod = utils_1.isMethod(functionDef);
+        if (!isClassMethod) {
+            this.writer.write("function ");
+        }
+        this.writer.write(functionDef.name);
+        this.writer.openParen();
+        for (var i = 0; i < functionDef.args.args.length; i++) {
+            var arg = functionDef.args.args[i];
+            if (i === 0) {
+                if (arg.id === 'self') {
+                    // Ignore.
+                }
+                else {
+                    arg.accept(this);
+                }
+            }
+            else {
+                arg.accept(this);
+            }
+        }
+        this.writer.closeParen();
+        this.writer.beginBlock();
+        for (var _i = 0, _a = functionDef.body; _i < _a.length; _i++) {
+            var stmt = _a[_i];
+            stmt.accept(this);
+        }
+        this.writer.endBlock();
+    };
+    Printer.prototype.ifStatement = function (i) {
+        this.writer.write("if");
+        this.writer.openParen();
+        i.test.accept(this);
+        this.writer.closeParen();
+        this.writer.beginBlock();
+        for (var _i = 0, _a = i.consequent; _i < _a.length; _i++) {
+            var con = _a[_i];
+            con.accept(this);
+        }
+        this.writer.endBlock();
+    };
+    Printer.prototype.importFrom = function (importFrom) {
+        this.writer.beginStatement();
+        this.writer.write("import ");
+        this.writer.beginBlock();
+        for (var i = 0; i < importFrom.names.length; i++) {
+            if (i > 0) {
+                this.writer.comma();
+            }
+            var alias = importFrom.names[i];
+            this.writer.write(alias.name);
+            if (alias.asname) {
+                this.writer.write(" as ");
+                this.writer.write(alias.asname);
+            }
+        }
+        this.writer.endBlock();
+        this.writer.write(" from ");
+        this.writer.beginQuote();
+        // TODO: Escaping?
+        this.writer.write(importFrom.module);
+        this.writer.endQuote();
+        this.writer.endStatement();
+    };
+    Printer.prototype.list = function (list) {
+        var elements = list.elts;
+        var N = elements.length;
+        this.writer.write('[');
+        for (var i = 0; i < N; i++) {
+            if (i > 0) {
+                this.writer.comma();
+            }
+            elements[i].accept(this);
+        }
+        this.writer.write(']');
+    };
+    Printer.prototype.module = function (m) {
+        for (var _i = 0, _a = m.body; _i < _a.length; _i++) {
+            var stmt = _a[_i];
+            stmt.accept(this);
+        }
+    };
+    Printer.prototype.name = function (name) {
+        // TODO: Since 'True' and 'False' are reserved words in Python,
+        // syntactic analysis (parsing) should be sufficient to identify
+        // this name as a boolean expression - avoiding this overhead.
+        switch (name.id) {
+            case 'True': {
+                this.writer.write('true');
+                break;
+            }
+            case 'False': {
+                this.writer.write('false');
+                break;
+            }
+            default: {
+                this.writer.write(name.id);
             }
         }
     };
-    Transpiler.prototype.assert = function (a, flags) {
-        throw new Error("Assert");
+    Printer.prototype.num = function (num) {
+        var n = num.n;
+        this.writer.write(n.toString());
     };
-    Transpiler.prototype.breakStatement = function (b, flags) {
-        /*
-        if (this.u.breakBlocks.length === 0)
-            throw new SyntaxError("'break' outside loop");
-        break;
-        */
-        throw new Error("BreakStatement");
-    };
-    Transpiler.prototype.classDef = function (c, flags) {
-        throw new Error("ClassDef");
-    };
-    Transpiler.prototype.continueStatement = function (c, flags) {
-        throw new Error("ContinueStatement");
-    };
-    Transpiler.prototype.forStatement = function (fs, flags) {
-        throw new Error("ForStatement");
-    };
-    Transpiler.prototype.functionDef = function (f, flags) {
-        throw new Error("FunctionDef");
-    };
-    Transpiler.prototype.ifStatement = function (fs, flags) {
-        throw new Error("IfStatement");
-    };
-    Transpiler.prototype.importFrom = function (i, flags) {
-        // const node = new Node();
-        // node.fi
-        throw new Error("ImportFrom");
-    };
-    Transpiler.prototype.importStatement = function (i, flags) {
-        throw new Error("ImportStatement");
-    };
-    Transpiler.prototype.returnStatement = function (rs, flags) {
-        /*
-        if (this.u.ste.blockType !== FunctionBlock)
-            throw new SyntaxError("'return' outside function");
-        if (rs.value)
-            out("return ", this.vexpr(rs.value), ";");
-        else
-            out("return null;");
-        */
-        throw new Error("ClassDef");
-    };
-    Transpiler.prototype.deleteExpression = function (de, flags) {
-        throw new Error("DeleteStatement");
-    };
-    Transpiler.prototype.assign = function (assign, flags) {
-        // const node = new Node();
-        // node.finishAssignmentExpression(operator, left, right);
-        var right = this.expr(assign.value, flags);
-        var n = assign.targets.length;
-        var lhs;
-        for (var i = 0; i < n; ++i)
-            lhs = this.expr(assign.targets[i], flags);
-        // return node;
-        return ts.createAssignment(lhs, right);
-        // throw new Error("Assign");
-    };
-    Transpiler.prototype.augAssign = function (aa, flags) {
-        throw new Error("FunctionDef");
-    };
-    Transpiler.prototype.expr = function (expr, flags) {
-        console.log("" + JSON.stringify(expr));
-        if (expr instanceof types_5.Num) {
-            return ts.createLiteral(expr.n.value);
+    Printer.prototype.print = function (print) {
+        this.writer.write("console.log");
+        this.writer.openParen();
+        for (var _i = 0, _a = print.values; _i < _a.length; _i++) {
+            var value = _a[_i];
+            value.accept(this);
         }
-        else if (expr instanceof types_4.Name) {
-            return ts.createIdentifier(expr.id);
-        }
-        throw new Error("" + JSON.stringify(expr));
+        this.writer.closeParen();
     };
-    Transpiler.prototype.print = function (p, flags) {
-        throw new Error("Print");
+    Printer.prototype.returnStatement = function (rs) {
+        this.writer.beginStatement();
+        this.writer.write("return ");
+        rs.value.accept(this);
+        this.writer.endStatement();
     };
-    Transpiler.prototype.raise = function (raise, flags) {
-        throw new Error("Raise");
+    Printer.prototype.str = function (str) {
+        var s = str.s;
+        // TODO: AST is not preserving the original quoting, or maybe a hint.
+        this.writer.write(toStringLiteralJS_1.toStringLiteralJS(s));
     };
-    Transpiler.prototype.tryExcept = function (te, flags) {
-        throw new Error("TryExcept");
-    };
-    Transpiler.prototype.tryFinally = function (tf, flags) {
-        throw new Error("TryFinally");
-    };
-    Transpiler.prototype.whileStatement = function (ws, flags) {
-        throw new Error("WhileStatement");
-    };
-    return Transpiler;
+    return Printer;
 }());
-/**
- *
- * @param sourceText
- * @param sourceKind
- */
-function transpileModule(sourceText) {
+function transpileModule(sourceText, fileName) {
     var cst = parser_1.parse(sourceText, parser_1.SourceKind.File);
     if (typeof cst === 'object') {
         var stmts = builder_1.astFromParse(cst);
         var mod = new types_3.Module(stmts);
         var symbolTable = symtable_1.semanticsOfModule(mod);
-        var t = new Transpiler(symbolTable, 0, sourceText);
-        var flags = 0;
-        // FIXME: This should be according to the sourceKind.
-        return t.module(mod, flags);
+        var printer = new Printer(symbolTable, 0, sourceText);
+        return { code: printer.transpileModule(mod), cst: cst, symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");
     }
 }
 exports.transpileModule = transpileModule;
-function transpileExpression(sourceText) {
-    var cst = parser_1.parse(sourceText, parser_1.SourceKind.Single);
-    if (typeof cst === 'object') {
-        var expr = builder_1.astFromExpression(cst);
-        // const st = symbolTableFromStatements(stmts);
-        var t = new Transpiler(undefined, 0, sourceText);
-        var flags = 0;
-        // FIXME: This should be according to the sourceKind.
-        return t.expr(expr, flags);
-    }
-    else {
-        throw new Error("Error parsing source for file.");
-    }
-}
-exports.transpileExpression = transpileExpression;
-function transpileSingle(sourceText) {
-    var cst = parser_1.parse(sourceText, parser_1.SourceKind.Single);
-    if (typeof cst === 'object') {
-        var stmts = builder_1.astFromParse(cst);
-        var st = symtable_1.symbolTableFromStatements(stmts);
-        var t = new Transpiler(st, 0, sourceText);
-        var flags = 0;
-        // FIXME: This should be according to the sourceKind.
-        return t.statementList(stmts, flags);
-    }
-    else {
-        throw new Error("Error parsing source for file.");
-    }
-}
-exports.transpileSingle = transpileSingle;

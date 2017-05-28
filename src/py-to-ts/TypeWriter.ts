@@ -148,7 +148,7 @@ export class TypeWriter {
         this.epilog(false);
     }
     beginStatement(): void {
-        this.prolog('', ';')
+        this.prolog('', ';');
     }
     endStatement(): void {
         this.epilog(false);

@@ -28,7 +28,7 @@ export function FIND<T extends Tree>(n: T, type: number): number {
     const children = CHILDREN(n);
     const N = children.length;
     for (let i = 0; i < N; i++) {
-        const child = children[i]
+        const child = children[i];
         if (child.type === type) {
             return i;
         }

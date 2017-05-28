@@ -7,4 +7,4 @@ var builder_1 = require("./pytools/builder");
 exports.astFromParse = builder_1.astFromParse;
 exports.astDump = builder_1.astDump;
 var transpiler_1 = require("./py-to-ts/transpiler");
-exports.tsCompile = transpiler_1.compile;
+exports.transpileModule = transpiler_1.transpileModule;

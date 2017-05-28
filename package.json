@@ -1,18 +1,18 @@
 {
-    "name": "pytools",
-    "version": "0.9.247",
+    "name": "@geometryzen/typhon",
+    "version": "0.9.0",
     "author": "David Geo Holmes",
     "license": "MIT",
     "licenses": [
         {
             "type": "MIT",
-            "url": "http://github.com/geometryzen/pytools/blob/master/LICENSE"
+            "url": "http://github.com/geometryzen/typhon/blob/master/LICENSE"
         }
     ],
     "keywords": [],
     "repository": {
         "type": "git",
-        "url": "git://github.com/geometryzen/pytools.git"
+        "url": "git://github.com/geometryzen/typhon.git"
     },
     "engines": {
         "node": "0.12.0"
