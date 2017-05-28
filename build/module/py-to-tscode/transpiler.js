@@ -9,75 +9,7 @@ import { semanticsOfModule } from '../pytools/symtable';
 import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 import { DEF_LOCAL } from '../pytools/SymbolConstants';
 import { isClassNameByConvention, isMethod } from './utils';
-/**
- * A smart buffer for writing TypeScript code.
- */
-var TypeWriter = (function () {
-    function TypeWriter() {
-        this.buffer = [];
-        // Do nothing.
-    }
-    TypeWriter.prototype.push = function (text) {
-        switch (text) {
-            case ';': {
-                throw new Error("Please call endStatement rather than push('" + text + "')");
-            }
-            case ',': {
-                throw new Error("Please call comma rather than push('" + text + "')");
-            }
-            case '(': {
-                throw new Error("Please call openParen rather than push('" + text + "')");
-            }
-            case ')': {
-                throw new Error("Please call closeParen rather than push('" + text + "')");
-            }
-            case '{': {
-                throw new Error("Please call beginBlock rather than push('" + text + "')");
-            }
-            case '}': {
-                throw new Error("Please call endBlock rather than push('" + text + "')");
-            }
-        }
-        this.buffer.push(text);
-    };
-    TypeWriter.prototype.snapshot = function () {
-        return this.buffer.join("");
-    };
-    TypeWriter.prototype.comma = function () {
-        this.buffer.push(',');
-    };
-    TypeWriter.prototype.beginBlock = function () {
-        this.buffer.push('{');
-    };
-    TypeWriter.prototype.endBlock = function () {
-        this.buffer.push('}');
-    };
-    TypeWriter.prototype.beginObject = function () {
-        this.buffer.push("{");
-    };
-    TypeWriter.prototype.endObject = function () {
-        this.buffer.push("}");
-    };
-    TypeWriter.prototype.openParen = function () {
-        this.buffer.push('(');
-    };
-    TypeWriter.prototype.closeParen = function () {
-        this.buffer.push(')');
-    };
-    TypeWriter.prototype.beginQuote = function () {
-        this.buffer.push("'");
-    };
-    TypeWriter.prototype.endQuote = function () {
-        this.buffer.push("'");
-    };
-    TypeWriter.prototype.beginStatement = function () {
-        // Do nothing yet.
-    };
-    TypeWriter.prototype.endStatement = function () {
-        this.buffer.push(';');
-    };
-    return TypeWriter;
-}());
+import { TypeWriter } from './TypeWriter';
 /**
  * Provides enhanced scope information beyond the SymbolTableScope.
  */
@@ -222,69 +154,69 @@ var Printer = (function () {
                     else {
                         // We use let for now because we would need to look ahead for more assignments.
                         // The smenatic analysis could count the number of assignments in the current scope?
-                        this.writer.push("let ");
+                        this.writer.write("let ");
                         this.u.declared[target.id] = true;
                     }
                 }
             }
             target.accept(this);
         }
-        this.writer.push("=");
+        this.writer.write("=");
         assign.value.accept(this);
         this.writer.endStatement();
     };
     Printer.prototype.attribute = function (attribute) {
         attribute.value.accept(this);
-        this.writer.push(".");
-        this.writer.push(attribute.attr);
+        this.writer.write(".");
+        this.writer.write(attribute.attr);
     };
     Printer.prototype.binOp = function (be) {
         be.left.accept(this);
         switch (be.op) {
             case Add: {
-                this.writer.push("+");
+                this.writer.binOp("+");
                 break;
             }
             case Sub: {
-                this.writer.push("-");
+                this.writer.binOp("-");
                 break;
             }
             case Mult: {
-                this.writer.push("*");
+                this.writer.binOp("*");
                 break;
             }
             case Div: {
-                this.writer.push("/");
+                this.writer.binOp("/");
                 break;
             }
             case BitOr: {
-                this.writer.push("|");
+                this.writer.binOp("|");
                 break;
             }
             case BitXor: {
-                this.writer.push("^");
+                this.writer.binOp("^");
                 break;
             }
             case BitAnd: {
-                this.writer.push("&");
+                this.writer.binOp("&");
                 break;
             }
             case LShift: {
-                this.writer.push("<<");
+                this.writer.binOp("<<");
                 break;
             }
             case RShift: {
-                this.writer.push(">>");
+                this.writer.binOp(">>");
                 break;
             }
             case Mod: {
-                this.writer.push("%");
+                this.writer.binOp("%");
                 break;
             }
             case FloorDiv: {
                 // TODO: What is the best way to handle FloorDiv.
                 // This doesn't actually exist in TypeScript.
-                this.writer.push("//");
+                this.writer.binOp("//");
                 break;
             }
             default: {
@@ -296,7 +228,7 @@ var Printer = (function () {
     Printer.prototype.callExpression = function (ce) {
         if (ce.func instanceof Name) {
             if (isClassNameByConvention(ce.func)) {
-                this.writer.push("new ");
+                this.writer.write("new ");
             }
         }
         else {
@@ -323,13 +255,13 @@ var Printer = (function () {
         this.writer.closeParen();
     };
     Printer.prototype.classDef = function (cd) {
-        this.writer.push("class ");
-        this.writer.push(cd.name);
+        this.writer.write("class ");
+        this.writer.write(cd.name);
         // this.writer.openParen();
         // this.writer.closeParen();
         this.writer.beginBlock();
         /*
-        this.writer.push("constructor");
+        this.writer.write("constructor");
         this.writer.openParen();
         this.writer.closeParen();
         this.writer.beginBlock();
@@ -347,43 +279,43 @@ var Printer = (function () {
             var op = _a[_i];
             switch (op) {
                 case Eq: {
-                    this.writer.push("===");
+                    this.writer.write("===");
                     break;
                 }
                 case NotEq: {
-                    this.writer.push("!==");
+                    this.writer.write("!==");
                     break;
                 }
                 case Lt: {
-                    this.writer.push("<");
+                    this.writer.write("<");
                     break;
                 }
                 case LtE: {
-                    this.writer.push("<=");
+                    this.writer.write("<=");
                     break;
                 }
                 case Gt: {
-                    this.writer.push(">");
+                    this.writer.write(">");
                     break;
                 }
                 case GtE: {
-                    this.writer.push(">=");
+                    this.writer.write(">=");
                     break;
                 }
                 case Is: {
-                    this.writer.push("===");
+                    this.writer.write("===");
                     break;
                 }
                 case IsNot: {
-                    this.writer.push("!==");
+                    this.writer.write("!==");
                     break;
                 }
                 case In: {
-                    this.writer.push(" in ");
+                    this.writer.write(" in ");
                     break;
                 }
                 case NotIn: {
-                    this.writer.push(" not in ");
+                    this.writer.write(" not in ");
                     break;
                 }
                 default: {
@@ -406,7 +338,7 @@ var Printer = (function () {
                 this.writer.comma();
             }
             keys[i].accept(this);
-            this.writer.push(":");
+            this.writer.write(":");
             values[i].accept(this);
         }
         this.writer.endObject();
@@ -417,9 +349,9 @@ var Printer = (function () {
     Printer.prototype.functionDef = function (functionDef) {
         var isClassMethod = isMethod(functionDef);
         if (!isClassMethod) {
-            this.writer.push("function ");
+            this.writer.write("function ");
         }
-        this.writer.push(functionDef.name);
+        this.writer.write(functionDef.name);
         this.writer.openParen();
         for (var i = 0; i < functionDef.args.args.length; i++) {
             var arg = functionDef.args.args[i];
@@ -444,7 +376,7 @@ var Printer = (function () {
         this.writer.endBlock();
     };
     Printer.prototype.ifStatement = function (i) {
-        this.writer.push("if");
+        this.writer.write("if");
         this.writer.openParen();
         i.test.accept(this);
         this.writer.closeParen();
@@ -457,38 +389,38 @@ var Printer = (function () {
     };
     Printer.prototype.importFrom = function (importFrom) {
         this.writer.beginStatement();
-        this.writer.push("import ");
+        this.writer.write("import ");
         this.writer.beginBlock();
         for (var i = 0; i < importFrom.names.length; i++) {
             if (i > 0) {
                 this.writer.comma();
             }
             var alias = importFrom.names[i];
-            this.writer.push(alias.name);
+            this.writer.write(alias.name);
             if (alias.asname) {
-                this.writer.push(" as ");
-                this.writer.push(alias.asname);
+                this.writer.write(" as ");
+                this.writer.write(alias.asname);
             }
         }
         this.writer.endBlock();
-        this.writer.push(" from ");
+        this.writer.write(" from ");
         this.writer.beginQuote();
         // TODO: Escaping?
-        this.writer.push(importFrom.module);
+        this.writer.write(importFrom.module);
         this.writer.endQuote();
         this.writer.endStatement();
     };
     Printer.prototype.list = function (list) {
         var elements = list.elts;
         var N = elements.length;
-        this.writer.push('[');
+        this.writer.write('[');
         for (var i = 0; i < N; i++) {
             if (i > 0) {
                 this.writer.comma();
             }
             elements[i].accept(this);
         }
-        this.writer.push(']');
+        this.writer.write(']');
     };
     Printer.prototype.module = function (m) {
         for (var _i = 0, _a = m.body; _i < _a.length; _i++) {
@@ -502,24 +434,24 @@ var Printer = (function () {
         // this name as a boolean expression - avoiding this overhead.
         switch (name.id) {
             case 'True': {
-                this.writer.push('true');
+                this.writer.write('true');
                 break;
             }
             case 'False': {
-                this.writer.push('false');
+                this.writer.write('false');
                 break;
             }
             default: {
-                this.writer.push(name.id);
+                this.writer.write(name.id);
             }
         }
     };
     Printer.prototype.num = function (num) {
         var n = num.n;
-        this.writer.push(n.toString());
+        this.writer.write(n.toString());
     };
     Printer.prototype.print = function (print) {
-        this.writer.push("console.log");
+        this.writer.write("console.log");
         this.writer.openParen();
         for (var _i = 0, _a = print.values; _i < _a.length; _i++) {
             var value = _a[_i];
@@ -529,14 +461,14 @@ var Printer = (function () {
     };
     Printer.prototype.returnStatement = function (rs) {
         this.writer.beginStatement();
-        this.writer.push("return ");
+        this.writer.write("return ");
         rs.value.accept(this);
         this.writer.endStatement();
     };
     Printer.prototype.str = function (str) {
         var s = str.s;
         // TODO: AST is not preserving the original quoting, or maybe a hint.
-        this.writer.push(toStringLiteralJS(s));
+        this.writer.write(toStringLiteralJS(s));
     };
     return Printer;
 }());

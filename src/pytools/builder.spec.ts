@@ -53,16 +53,6 @@ describe('AST', function () {
         expect(dump).toBe('Module(body=[ExpressionStatement(value=Str(s=Hello))])');
     });
 
-    xit('"a{,2}b"', function () {
-        const cst = parse('"a\{,b"') as PyNode;
-        const ast = new Module(astFromParse(cst));
-        const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=Str(s=Hello))])');
-        /* const st = */ semanticsOfModule(ast);
-        // const dumpST = dumpSymbolTable(st);
-        // console.log(dumpST);
-    });
-
     it('True', function () {
         const cst = parse('True') as PyNode;
         const ast = new Module(astFromParse(cst));
@@ -329,48 +319,6 @@ describe('AST', function () {
             //      console.log("actual: " + JSON.stringify(e.message));
             expect(e.lineNumber).toBe(1);
             expect(e.columnNumber).toBe(undefined);
-            expect(e.toString()).toBe(e.name + ": " + message);
-        }
-    });
-
-    // FIXME
-    xit('SyntaxError from symtable', function () {
-        try {
-            const cst = parse('def f(x,x):\n  pass') as PyNode;
-            const ast = new Module(astFromParse(cst));
-            /*const dump =*/ astDump(ast);
-            /*var st =*/ semanticsOfModule(ast);
-        }
-        catch (e) {
-            console.log(e);
-            // expect(e.name).toBe('SyntaxError');
-            // var message = "duplicate argument 'x' in function definition";
-            // expect(e.message).toBe(message);
-            //      console.log("expect: " + JSON.stringify(message));
-            //      console.log("actual: " + JSON.stringify(e.message));
-            // expect(e.fileName).toBe(fileName);
-            // expect(e.lineNumber).toBe(1);
-            // expect(e.columnNumber).toBe(undefined);
-            // expect(e.toString()).toBe(e.name + ": " + message);
-        }
-    });
-
-    xit('TokenError', function () {
-        try {
-            const cst = parse('"""') as PyNode;
-            const ast = new Module(astFromParse(cst));
-            /*const dump =*/ astDump(ast);
-            /*var st =*/ semanticsOfModule(ast);
-            console.log("SyntaxError from symtable???");
-        }
-        catch (e) {
-            expect(e.name).toBe('TokenError');
-            const message = "EOF in multi-line string";
-            // expect(e.message).toBe(message);
-            //      console.log("expect: " + JSON.stringify(message));
-            //      console.log("actual: " + JSON.stringify(e.message));
-            expect(e.lineNumber).toBe(1);
-            expect(e.columnNumber).toBe(0);
             expect(e.toString()).toBe(e.name + ": " + message);
         }
     });

@@ -1,6 +1,6 @@
 import { transpileModule as compile } from './transpiler';
-import { parseTreeDump } from '../pytools/parser';
-import { dumpSymbolTable } from '../pytools/symtable';
+// import { parseTreeDump } from '../pytools/parser';
+// import { dumpSymbolTable } from '../pytools/symtable';
 
 const fileName = 'foo.ts';
 
@@ -339,13 +339,6 @@ describe('transpiler', function () {
         });
     });
 
-    describe('ListComp', function () {
-        xit('???', function () {
-            const result = compile('[x for x in range(5) if x%2 == 0]', fileName);
-            expect(result.code).toBe("???");
-        });
-    });
-
     describe('Print', function () {
         it('should provide a declaration', function () {
             const result = compile('print("Hello, World!")', fileName);
@@ -354,9 +347,9 @@ describe('transpiler', function () {
     });
 
     describe('Comments', function () {
-        xit('should allow single line comments', function () {
+        it('should allow single line comments', function () {
             const result = compile('# This is a single-line comment.', fileName);
-            expect(result.code).toBe("???");
+            expect(result.code).toBe("");
         });
         xit('should allow multi-line comments', function () {
             const sourceText = [
@@ -371,15 +364,6 @@ describe('transpiler', function () {
                 " *\/"
             ].join("\n");
             expect(result.code).toBe(resultText);
-        });
-    });
-
-    xdescribe('Bogus', function () {
-        xit('should temporarily allow dumpSymbolTable to be imported', function () {
-            const result = compile('x = 42', fileName);
-            console.log(parseTreeDump(result.cst));
-            console.log(dumpSymbolTable(result.symbolTable));
-            expect(true).toBeTruthy();
         });
     });
 });

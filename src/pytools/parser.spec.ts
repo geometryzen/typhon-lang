@@ -640,215 +640,53 @@ describe('parse', function () {
         // expect(dump).toBe('');
     });
 
-    xit('a * b', function () {
+    // FIXME: Why is this not being run?
+    describe('Binary Multiplication', function () {
         const cst = parse('a * b') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=BinOp(left=Name(id=a,ctx=Load()),op=Mult(),right=Name(id=b,ctx=Load())))])');
-    });
+        const ns = TERMS(cst);
 
-    xit('a / b', function () {
-        const cst = parse('a / b') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=BinOp(left=Name(id=a,ctx=Load()),op=Div(),right=Name(id=b,ctx=Load())))])');
-    });
+        it("should have correct number of terminals", function () {
+            expect(Array.isArray(ns)).toBeTruthy();
+            expect(ns.length).toBe(5);
+        });
 
-    xit('a % b', function () {
-        const cst = parse('a % b') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=BinOp(left=Name(id=a,ctx=Load()),op=Mod(),right=Name(id=b,ctx=Load())))])');
-    });
+        const n0 = ns[0];
+        const n1 = ns[1];
+        const n2 = ns[2];
 
-    xit('a << b', function () {
-        const cst = parse('a << b') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=BinOp(left=Name(id=a,ctx=Load()),op=LShift(),right=Name(id=b,ctx=Load())))])');
-    });
+        const nl = ns[IDXLAST(ns) - 1];
+        const em = ns[IDXLAST(ns)];
 
-    xit('a >> b', function () {
-        const cst = parse('a >> b') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=BinOp(left=Name(id=a,ctx=Load()),op=RShift(),right=Name(id=b,ctx=Load())))])');
-    });
+        it("should have the correct terminals", function () {
+            expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(n0.value).toBe('a');
+            expect(n0.lineno).toBe(1);
+            expect(n0.col_offset).toBe(0);
+            expect(n0.children).toBeNull();
 
-    xit('a ^ b', function () {
-        const cst = parse('a ^ b') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=BinOp(left=Name(id=a,ctx=Load()),op=BitXor(),right=Name(id=b,ctx=Load())))])');
-    });
+            expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_STAR]);
+            expect(n1.value).toBe('*');
+            expect(n1.lineno).toBe(1);
+            expect(n1.col_offset).toBe(2);
+            expect(n1.children).toBeNull();
 
-    xit('a & b', function () {
-        const cst = parse('a & b') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=BinOp(left=Name(id=a,ctx=Load()),op=BitAnd(),right=Name(id=b,ctx=Load())))])');
-    });
+            expect(tokenNames[n2.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(n2.value).toBe('b');
+            expect(n2.lineno).toBe(1);
+            expect(n2.col_offset).toBe(4);
+            expect(n2.children).toBeNull();
 
-    xit('a | b', function () {
-        const cst = parse('a | b') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=BinOp(left=Name(id=a,ctx=Load()),op=BitOr(),right=Name(id=b,ctx=Load())))])');
-    });
+            expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
+            expect(nl.value).toBe("\n");
+            expect(nl.lineno).toBe(1);
+            expect(nl.col_offset).toBe(5);
+            expect(nl.children).toBeNull();
 
-    xit('a or b', function () {
-        const cst = parse('a or b') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=BoolOp(op=Or(),values=[Name(id=a,ctx=Load()),Name(id=b,ctx=Load())]))])');
-    });
-
-    xit('a and b', function () {
-        const cst = parse('a and b') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=BoolOp(op=And(),values=[Name(id=a,ctx=Load()),Name(id=b,ctx=Load())]))])');
-    });
-
-    xit('a + b * c', function () {
-        const cst = parse('a + b * c') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=BinOp(left=Name(id=a,ctx=Load()),op=Add(),right=BinOp(left=Name(id=b,ctx=Load()),op=Mult(),right=Name(id=c,ctx=Load()))))])');
-    });
-
-    xit('a + b ^ c', function () {
-        const cst = parse('a + b ^ c') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=BinOp(left=Name(id=a,ctx=Load()),op=Add(),right=BinOp(left=Name(id=b,ctx=Load()),op=BitXor(),right=Name(id=c,ctx=Load()))))])');
-    });
-
-    xit('not a', function () {
-        const cst = parse('not a') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[Expr(value=UnaryOp(op=Not(),operand=Name(id=a,ctx=Load())))])');
-    });
-
-    xit('def foo():\n pass', function () {
-        const cst = parse('def foo():\n pass') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
-    });
-
-    xit('def foo():\n return a', function () {
-        const cst = parse('def foo():\n return a') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[ReturnStatement(value=Name(id=a,ctx=Load()))],decorator_list=[])])');
-    });
-
-    xit('def foo(x):\n pass', function () {
-        const cst = parse('def foo(x):\n pass') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
-    });
-
-    xit('def foo(x, y):\n pass', function () {
-        const cst = parse('def foo(x, y):\n pass') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param()),Name(id=y,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
-    });
-
-    xit('if a:\n pass', function () {
-        const cst = parse('if a:\n pass') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[IfStatement(test=Name(id=a,ctx=Load()),consequent=[Pass()],alternate=[])])');
-    });
-
-    xit('if a:\n pass\nelse:\n pass', function () {
-        const cst = parse('if a:\n pass\nelse:\n pass') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[IfStatement(test=Name(id=a,ctx=Load()),consequent=[Pass()],alternate=[Pass()])])');
-    });
-
-    xit('while a:\n pass', function () {
-        const cst = parse('while a:\n pass') as PyNode;
-        const dump = parseTreeDump(cst);
-        expect(dump).toBe('Module(body=[WhileStatement(test=Name(id=a,ctx=Load()),body=[Pass()],orelse=[])])');
-    });
-
-    xit('ParseError', function () {
-        try {
-            const cst = parse('print 1s') as PyNode;
-            const dump = parseTreeDump(cst);
-            console.log(`ParseError??? ${dump}`);
-        }
-        catch (e) {
-            expect(e.name).toBe('ParseError');
-            const message = 'Unexpected T_NAME at [1,7]';
-            expect(e.message).toBe(message);
-            //      console.log("expect: " + JSON.stringify(message));
-            //      console.log("actual: " + JSON.stringify(e.message));
-            expect(e.lineNumber).toBe(1);
-            expect(e.columnNumber).toBe(7);
-            expect(e.toString()).toBe(e.name + ": " + message);
-        }
-    });
-
-    xit('IndentationError', function () {
-        try {
-            const cst = parse('def f():\n    pass\n print') as PyNode;
-            const dump = parseTreeDump(cst);
-            console.log(`IndentationError??? ${dump}`);
-        }
-        catch (e) {
-            expect(e.name).toBe('IndentationError');
-            const message = 'unindent does not match any outer indentation level';
-            expect(e.message).toBe(message);
-            //      console.log("expect: " + JSON.stringify(message));
-            //      console.log("actual: " + JSON.stringify(e.message));
-            expect(e.lineNumber).toBe(3);
-            expect(e.columnNumber).toBe(0);
-            expect(e.toString()).toBe(e.name + ": " + message);
-        }
-    });
-
-    xit('SyntaxError from builder', function () {
-        try {
-            const cst = parse('()=1') as PyNode;
-            const dump = parseTreeDump(cst);
-            console.log(`SyntaxError from builder??? ${dump}`);
-        }
-        catch (e) {
-            expect(e.name).toBe('SyntaxError');
-            const message = "can't assign to ()";
-            expect(e.message).toBe(message);
-            //      console.log("expect: " + JSON.stringify(message));
-            //      console.log("actual: " + JSON.stringify(e.message));
-            expect(e.lineNumber).toBe(1);
-            expect(e.columnNumber).toBe(undefined);
-            expect(e.toString()).toBe(e.name + ": " + message);
-        }
-    });
-
-    // FIXME
-    xit('SyntaxError from symtable', function () {
-        try {
-            const cst = parse('def f(x,x):\n  pass') as PyNode;
-            /*const dump =*/ parseTreeDump(cst);
-        }
-        catch (e) {
-            console.log(e);
-            // expect(e.name).toBe('SyntaxError');
-            // var message = "duplicate argument 'x' in function definition";
-            // expect(e.message).toBe(message);
-            //      console.log("expect: " + JSON.stringify(message));
-            //      console.log("actual: " + JSON.stringify(e.message));
-            // expect(e.fileName).toBe(fileName);
-            // expect(e.lineNumber).toBe(1);
-            // expect(e.columnNumber).toBe(undefined);
-            // expect(e.toString()).toBe(e.name + ": " + message);
-        }
-    });
-
-    xit('TokenError', function () {
-        try {
-            const cst = parse('"""') as PyNode;
-            /*const dump =*/ parseTreeDump(cst);
-            console.log("SyntaxError from symtable???");
-        }
-        catch (e) {
-            expect(e.name).toBe('TokenError');
-            const message = "EOF in multi-line string";
-            // expect(e.message).toBe(message);
-            //      console.log("expect: " + JSON.stringify(message));
-            //      console.log("actual: " + JSON.stringify(e.message));
-            expect(e.lineNumber).toBe(1);
-            expect(e.columnNumber).toBe(0);
-            expect(e.toString()).toBe(e.name + ": " + message);
-        }
+            expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
+            expect(em.value).toBe("");
+            expect(em.lineno).toBe(2);
+            expect(em.col_offset).toBe(0);
+            expect(em.children).toBeNull();
+        });
     });
 });

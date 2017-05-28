@@ -27,75 +27,7 @@ import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 import { SymbolFlags } from '../pytools/SymbolConstants';
 import { DEF_LOCAL } from '../pytools/SymbolConstants';
 import { isClassNameByConvention, isMethod } from './utils';
-
-/**
- * A smart buffer for writing TypeScript code.
- */
-class TypeWriter {
-    private buffer: string[] = [];
-    constructor() {
-        // Do nothing.
-    }
-    push(text: string): void {
-        switch (text) {
-            case ';': {
-                throw new Error(`Please call endStatement rather than push('${text}')`);
-            }
-            case ',': {
-                throw new Error(`Please call comma rather than push('${text}')`);
-            }
-            case '(': {
-                throw new Error(`Please call openParen rather than push('${text}')`);
-            }
-            case ')': {
-                throw new Error(`Please call closeParen rather than push('${text}')`);
-            }
-            case '{': {
-                throw new Error(`Please call beginBlock rather than push('${text}')`);
-            }
-            case '}': {
-                throw new Error(`Please call endBlock rather than push('${text}')`);
-            }
-        }
-        this.buffer.push(text);
-    }
-    snapshot(): string {
-        return this.buffer.join("");
-    }
-    comma(): void {
-        this.buffer.push(',');
-    }
-    beginBlock(): void {
-        this.buffer.push('{');
-    }
-    endBlock(): void {
-        this.buffer.push('}');
-    }
-    beginObject(): void {
-        this.buffer.push("{");
-    }
-    endObject(): void {
-        this.buffer.push("}");
-    }
-    openParen(): void {
-        this.buffer.push('(');
-    }
-    closeParen(): void {
-        this.buffer.push(')');
-    }
-    beginQuote(): void {
-        this.buffer.push("'");
-    }
-    endQuote(): void {
-        this.buffer.push("'");
-    }
-    beginStatement(): void {
-        // Do nothing yet.
-    }
-    endStatement(): void {
-        this.buffer.push(';');
-    }
-}
+import { TypeWriter } from './TypeWriter';
 
 /**
  * Provides enhanced scope information beyond the SymbolTableScope.
@@ -340,69 +272,69 @@ class Printer implements Visitor {
                     else {
                         // We use let for now because we would need to look ahead for more assignments.
                         // The smenatic analysis could count the number of assignments in the current scope?
-                        this.writer.push("let ");
+                        this.writer.write("let ");
                         this.u.declared[target.id] = true;
                     }
                 }
             }
             target.accept(this);
         }
-        this.writer.push("=");
+        this.writer.write("=");
         assign.value.accept(this);
         this.writer.endStatement();
     }
     attribute(attribute: Attribute): void {
         attribute.value.accept(this);
-        this.writer.push(".");
-        this.writer.push(attribute.attr);
+        this.writer.write(".");
+        this.writer.write(attribute.attr);
     }
     binOp(be: BinOp): void {
         be.left.accept(this);
         switch (be.op) {
             case Add: {
-                this.writer.push("+");
+                this.writer.binOp("+");
                 break;
             }
             case Sub: {
-                this.writer.push("-");
+                this.writer.binOp("-");
                 break;
             }
             case Mult: {
-                this.writer.push("*");
+                this.writer.binOp("*");
                 break;
             }
             case Div: {
-                this.writer.push("/");
+                this.writer.binOp("/");
                 break;
             }
             case BitOr: {
-                this.writer.push("|");
+                this.writer.binOp("|");
                 break;
             }
             case BitXor: {
-                this.writer.push("^");
+                this.writer.binOp("^");
                 break;
             }
             case BitAnd: {
-                this.writer.push("&");
+                this.writer.binOp("&");
                 break;
             }
             case LShift: {
-                this.writer.push("<<");
+                this.writer.binOp("<<");
                 break;
             }
             case RShift: {
-                this.writer.push(">>");
+                this.writer.binOp(">>");
                 break;
             }
             case Mod: {
-                this.writer.push("%");
+                this.writer.binOp("%");
                 break;
             }
             case FloorDiv: {
                 // TODO: What is the best way to handle FloorDiv.
                 // This doesn't actually exist in TypeScript.
-                this.writer.push("//");
+                this.writer.binOp("//");
                 break;
             }
             default: {
@@ -414,7 +346,7 @@ class Printer implements Visitor {
     callExpression(ce: Call): void {
         if (ce.func instanceof Name) {
             if (isClassNameByConvention(ce.func)) {
-                this.writer.push("new ");
+                this.writer.write("new ");
             }
         }
         else {
@@ -441,13 +373,13 @@ class Printer implements Visitor {
         this.writer.closeParen();
     }
     classDef(cd: ClassDef): void {
-        this.writer.push("class ");
-        this.writer.push(cd.name);
+        this.writer.write("class ");
+        this.writer.write(cd.name);
         // this.writer.openParen();
         // this.writer.closeParen();
         this.writer.beginBlock();
         /*
-        this.writer.push("constructor");
+        this.writer.write("constructor");
         this.writer.openParen();
         this.writer.closeParen();
         this.writer.beginBlock();
@@ -463,43 +395,43 @@ class Printer implements Visitor {
         for (const op of ce.ops) {
             switch (op) {
                 case Eq: {
-                    this.writer.push("===");
+                    this.writer.write("===");
                     break;
                 }
                 case NotEq: {
-                    this.writer.push("!==");
+                    this.writer.write("!==");
                     break;
                 }
                 case Lt: {
-                    this.writer.push("<");
+                    this.writer.write("<");
                     break;
                 }
                 case LtE: {
-                    this.writer.push("<=");
+                    this.writer.write("<=");
                     break;
                 }
                 case Gt: {
-                    this.writer.push(">");
+                    this.writer.write(">");
                     break;
                 }
                 case GtE: {
-                    this.writer.push(">=");
+                    this.writer.write(">=");
                     break;
                 }
                 case Is: {
-                    this.writer.push("===");
+                    this.writer.write("===");
                     break;
                 }
                 case IsNot: {
-                    this.writer.push("!==");
+                    this.writer.write("!==");
                     break;
                 }
                 case In: {
-                    this.writer.push(" in ");
+                    this.writer.write(" in ");
                     break;
                 }
                 case NotIn: {
-                    this.writer.push(" not in ");
+                    this.writer.write(" not in ");
                     break;
                 }
                 default: {
@@ -521,7 +453,7 @@ class Printer implements Visitor {
                 this.writer.comma();
             }
             keys[i].accept(this);
-            this.writer.push(":");
+            this.writer.write(":");
             values[i].accept(this);
         }
         this.writer.endObject();
@@ -532,9 +464,9 @@ class Printer implements Visitor {
     functionDef(functionDef: FunctionDef): void {
         const isClassMethod = isMethod(functionDef);
         if (!isClassMethod) {
-            this.writer.push("function ");
+            this.writer.write("function ");
         }
-        this.writer.push(functionDef.name);
+        this.writer.write(functionDef.name);
         this.writer.openParen();
         for (let i = 0; i < functionDef.args.args.length; i++) {
             const arg = functionDef.args.args[i];
@@ -558,7 +490,7 @@ class Printer implements Visitor {
         this.writer.endBlock();
     }
     ifStatement(i: IfStatement): void {
-        this.writer.push("if");
+        this.writer.write("if");
         this.writer.openParen();
         i.test.accept(this);
         this.writer.closeParen();
@@ -570,38 +502,38 @@ class Printer implements Visitor {
     }
     importFrom(importFrom: ImportFrom): void {
         this.writer.beginStatement();
-        this.writer.push("import ");
+        this.writer.write("import ");
         this.writer.beginBlock();
         for (let i = 0; i < importFrom.names.length; i++) {
             if (i > 0) {
                 this.writer.comma();
             }
             const alias = importFrom.names[i];
-            this.writer.push(alias.name);
+            this.writer.write(alias.name);
             if (alias.asname) {
-                this.writer.push(" as ");
-                this.writer.push(alias.asname);
+                this.writer.write(" as ");
+                this.writer.write(alias.asname);
             }
         }
         this.writer.endBlock();
-        this.writer.push(" from ");
+        this.writer.write(" from ");
         this.writer.beginQuote();
         // TODO: Escaping?
-        this.writer.push(importFrom.module);
+        this.writer.write(importFrom.module);
         this.writer.endQuote();
         this.writer.endStatement();
     }
     list(list: List): void {
         const elements = list.elts;
         const N = elements.length;
-        this.writer.push('[');
+        this.writer.write('[');
         for (let i = 0; i < N; i++) {
             if (i > 0) {
                 this.writer.comma();
             }
             elements[i].accept(this);
         }
-        this.writer.push(']');
+        this.writer.write(']');
     }
     module(m: Module): void {
         for (const stmt of m.body) {
@@ -614,24 +546,24 @@ class Printer implements Visitor {
         // this name as a boolean expression - avoiding this overhead.
         switch (name.id) {
             case 'True': {
-                this.writer.push('true');
+                this.writer.write('true');
                 break;
             }
             case 'False': {
-                this.writer.push('false');
+                this.writer.write('false');
                 break;
             }
             default: {
-                this.writer.push(name.id);
+                this.writer.write(name.id);
             }
         }
     }
     num(num: Num): void {
         const n = num.n;
-        this.writer.push(n.toString());
+        this.writer.write(n.toString());
     }
     print(print: Print): void {
-        this.writer.push("console.log");
+        this.writer.write("console.log");
         this.writer.openParen();
         for (const value of print.values) {
             value.accept(this);
@@ -640,14 +572,14 @@ class Printer implements Visitor {
     }
     returnStatement(rs: ReturnStatement): void {
         this.writer.beginStatement();
-        this.writer.push("return ");
+        this.writer.write("return ");
         rs.value.accept(this);
         this.writer.endStatement();
     }
     str(str: Str): void {
         const s = str.s;
         // TODO: AST is not preserving the original quoting, or maybe a hint.
-        this.writer.push(toStringLiteralJS(s));
+        this.writer.write(toStringLiteralJS(s));
     }
 }
 
