@@ -547,7 +547,7 @@ export function transpileModule(sourceText, fileName) {
         var mod = new Module(stmts);
         var symbolTable = semanticsOfModule(mod);
         var printer = new Printer(symbolTable, 0, sourceText);
-        return { code: printer.transpileModule(mod), symbolTable: symbolTable };
+        return { code: printer.transpileModule(mod), cst: cst, symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");

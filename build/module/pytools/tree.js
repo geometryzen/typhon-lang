@@ -12,8 +12,20 @@ export function NCH(n) {
     }
 }
 export function CHILD(n, i) {
-    assert(i !== undefined);
+    assert(i !== undefined && i >= 0);
     return CHILDREN(n)[i];
+}
+export function FIND(n, type) {
+    assert(type !== undefined);
+    var children = CHILDREN(n);
+    var N = children.length;
+    for (var i = 0; i < N; i++) {
+        var child = children[i];
+        if (child.type === type) {
+            return i;
+        }
+    }
+    return -1;
 }
 export function CHILDREN(n) {
     assert(n !== undefined);

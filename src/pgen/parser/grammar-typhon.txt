@@ -47,12 +47,15 @@ continue_stmt: 'continue'
 return_stmt: 'return' [testlist]
 yield_stmt: YieldExpr
 raise_stmt: 'raise' [IfExpr [',' IfExpr [',' IfExpr]]]
+
+# Imports
+ModuleSpecifier: STRING
 import_stmt: import_name | import_from
 import_name: 'import' dotted_as_names
-import_from: ('from' ('.'* dotted_name | '.'+) 'import' ('*' | '(' import_as_names ')' | import_as_names))
-import_as_name: NAME ['as' NAME]
+import_from: ('from' ModuleSpecifier 'import' ('*' | '(' ImportList ')' | ImportList))
+ImportSpecifier: NAME ['as' NAME]
 dotted_as_name: dotted_name ['as' NAME]
-import_as_names: import_as_name (',' import_as_name)* [',']
+ImportList: ImportSpecifier (',' ImportSpecifier)* [',']
 dotted_as_names: dotted_as_name (',' dotted_as_name)*
 dotted_name: NAME ('.' NAME)*
 

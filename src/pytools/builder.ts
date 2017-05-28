@@ -1,5 +1,5 @@
-import { assert } from './asserts';
-import { NCH, CHILD } from './tree';
+import { assert, fail } from './asserts';
+import { NCH, CHILD, FIND } from './tree';
 
 import { Add } from './types';
 // TODO: Conventions
@@ -99,6 +99,8 @@ import { Tokens as TOK } from './Tokens';
 import { floatAST, intAST, longAST } from './numericLiteral';
 import { INumericLiteral } from './types';
 import { PyNode } from './parser';
+// import { parseTreeDump } from './parser';
+import { grammarName } from './grammarName';
 
 //
 // This is pretty much a straight port of ast.c from CPython 2.6.5.
@@ -135,12 +137,24 @@ class Compiling {
     }
 }
 
-function REQ(n: PyNode, type: TOK): void {
-    assert(n.type === type, "node wasn't expected type");
+/**
+ * Asserts that the type of the node is that specified.
+ */
+function REQ(n: PyNode, type: TOK | number): void {
+    // Avoid the cost of building the message string when there is no issue.
+    if (n.type !== type) {
+        fail(`node must have type ${type} = ${grammarName(type)}, but was ${n.type} = ${grammarName(n.type)}.`);
+    }
 }
 
+/**
+ * Nothing more than assertion that the argument is a string.
+ */
 function strobj(s: string): string {
-    assert(typeof s === "string", "expecting string, got " + (typeof s));
+    // Avoid the cost of building the message string when there is no issue.
+    if (typeof s !== 'string') {
+        fail("expecting string, got " + (typeof s));
+    }
     // This previously constructed the runtime representation.
     // That may have had an string intern side effect?
     return s;
@@ -657,19 +671,21 @@ function astForAssertStmt(c: Compiling, n: PyNode): Assert {
 
 function aliasForImportName(c: Compiling, n: PyNode): Alias {
     /*
-        import_as_name: NAME ['as' NAME]
+        ImportSpecifier: NAME ['as' NAME]
         dotted_as_name: dotted_name ['as' NAME]
         dotted_name: NAME ('.' NAME)*
     */
 
     loop: while (true) {
         switch (n.type) {
-            case SYM.import_as_name:
+            case SYM.ImportSpecifier: {
                 let str: string = null;
                 const name = strobj(CHILD(n, 0).value);
-                if (NCH(n) === 3)
+                if (NCH(n) === 3) {
                     str = CHILD(n, 2).value;
+                }
                 return new Alias(name, str == null ? null : strobj(str));
+            }
             case SYM.dotted_as_name:
                 if (NCH(n) === 1) {
                     n = CHILD(n, 0);
@@ -691,72 +707,122 @@ function aliasForImportName(c: Compiling, n: PyNode): Alias {
                         str += CHILD(n, i).value + ".";
                     return new Alias(strobj(str.substr(0, str.length - 1)), null);
                 }
-            case TOK.T_STAR:
+            case TOK.T_STAR: {
                 return new Alias(strobj("*"), null);
-            default:
-                throw syntaxError("unexpected import name", n.lineno);
+            }
+            case TOK.T_NAME: {
+                // Temporary.
+                return new Alias(strobj(n.value), null);
+            }
+            default: {
+                throw syntaxError(`unexpected import name ${grammarName(n.type)}`, n.lineno);
+            }
         }
     }
 }
 
-function astForImportStmt(c: Compiling, n: PyNode): ImportStatement | ImportFrom {
-    REQ(n, SYM.import_stmt);
-    let lineno = n.lineno;
-    const col_offset = n.col_offset;
-    n = CHILD(n, 0);
-    if (n.type === SYM.import_name) {
-        n = CHILD(n, 1);
+function parseModuleSpecifier(c: Compiling, moduleSpecifierNode: PyNode): string {
+    REQ(moduleSpecifierNode, SYM.ModuleSpecifier);
+    const N = NCH(moduleSpecifierNode);
+    let ret = "";
+    for (let i = 0; i < N; ++i) {
+        const child = CHILD(moduleSpecifierNode, i);
+        ret = ret + parsestr(c, child.value);
+    }
+    return ret;
+
+}
+
+function astForImportStmt(c: Compiling, importStatementNode: PyNode): ImportStatement | ImportFrom {
+    REQ(importStatementNode, SYM.import_stmt);
+    let lineno = importStatementNode.lineno;
+    const col_offset = importStatementNode.col_offset;
+    let nameOrFrom = CHILD(importStatementNode, 0);
+    if (nameOrFrom.type === SYM.import_name) {
+        const n = CHILD(nameOrFrom, 1);
         REQ(n, SYM.dotted_as_names);
         const aliases = [];
-        for (let i = 0; i < NCH(n); i += 2)
+        for (let i = 0; i < NCH(n); i += 2) {
             aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
+        }
         return new ImportStatement(aliases, lineno, col_offset);
     }
-    else if (n.type === SYM.import_from) {
+    else if (nameOrFrom.type === SYM.import_from) {
         let mod: Alias = null;
+        let moduleName = "";
         let ndots = 0;
         let nchildren: number;
         let idx: number;
-        for (idx = 1; idx < NCH(n); ++idx) {
-            if (CHILD(n, idx).type === SYM.dotted_name) {
-                mod = aliasForImportName(c, CHILD(n, idx));
-                idx++;
+        for (idx = 1; idx < NCH(nameOrFrom); ++idx) {
+            const child = CHILD(nameOrFrom, idx);
+            const childType = child.type;
+            if (childType === SYM.dotted_name) {
+                // This should be dead code since we support ECMAScript 2015 modules.
+                throw syntaxError(`unknown import statement ${grammarName(childType)}.`, child.lineno);
+                // mod = aliasForImportName(c, child);
+                // idx++;
+                // break;
+            }
+            else if (childType === SYM.ModuleSpecifier) {
+                moduleName = parseModuleSpecifier(c, child);
                 break;
             }
-            else if (CHILD(n, idx).type !== TOK.T_DOT)
-                break;
+            else if (childType !== TOK.T_DOT) {
+                // Let's be more specific...
+                throw syntaxError(`unknown import statement ${grammarName(childType)}.`, child.lineno);
+                // break;
+            }
             ndots++;
         }
         ++idx; // skip the import keyword
-        switch (CHILD(n, idx).type) {
-            case TOK.T_STAR:
+        let n = nameOrFrom;
+        switch (CHILD(nameOrFrom, idx).type) {
+            case TOK.T_STAR: {
                 // from ... import
-                n = CHILD(n, idx);
+                n = CHILD(nameOrFrom, idx);
                 nchildren = 1;
                 break;
-            case TOK.T_LPAR:
+            }
+            case TOK.T_LPAR: {
                 // from ... import (x, y, z)
                 n = CHILD(n, idx + 1);
                 nchildren = NCH(n);
                 break;
-            case SYM.import_as_names:
+            }
+            case SYM.ImportList: {
                 // from ... import x, y, z
                 n = CHILD(n, idx);
                 nchildren = NCH(n);
                 if (nchildren % 2 === 0)
                     throw syntaxError("trailing comma not allowed without surrounding parentheses", n.lineno);
-        }
-        const aliases = [];
-        if (n.type === TOK.T_STAR)
-            aliases[0] = aliasForImportName(c, n);
-        else
-            for (let i = 0; i < NCH(n); i += 2) {
-                aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
             }
-        const modname = mod ? mod.name : "";
-        return new ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
+        }
+        const aliases: Alias[] = [];
+        if (n.type === TOK.T_STAR) {
+            aliases[0] = aliasForImportName(c, n);
+        }
+        else {
+            REQ(n, SYM.import_from);
+            const importListNode = CHILD(n, FIND(n, SYM.ImportList));
+            astForImportList(c, importListNode, aliases);
+        }
+        moduleName = mod ? mod.name : moduleName;
+        return new ImportFrom(strobj(moduleName), aliases, ndots, lineno, col_offset);
     }
-    throw syntaxError("unknown import statement", n.lineno);
+    else {
+        throw syntaxError(`unknown import statement ${grammarName(nameOrFrom.type)}.`, nameOrFrom.lineno);
+    }
+}
+
+function astForImportList(c: Compiling, importListNode: PyNode, aliases: Alias[]): void {
+    REQ(importListNode, SYM.ImportList);
+    const N = NCH(importListNode);
+    for (let i = 0; i < N; i++) {
+        const child = CHILD(importListNode, i);
+        if (child.type === SYM.ImportSpecifier) {
+            aliases.push(aliasForImportName(c, child));
+        }
+    }
 }
 
 function astForTestlistGexp(c: Compiling, n: PyNode): Expression | Tuple {
@@ -1504,7 +1570,7 @@ function parsestr(c: Compiling, s: string): string {
 }
 
 /**
- * @return {string}
+ *
  */
 function parsestrplus(c: Compiling, n: PyNode): string {
     REQ(CHILD(n, 0), TOK.T_STRING);
@@ -1652,51 +1718,57 @@ function astForSlice(c: Compiling, n: PyNode): Ellipsis | Index | Name | Slice {
 }
 
 function astForAtomExpr(c: Compiling, n: PyNode): Name | Expression {
-    let ch = CHILD(n, 0);
-    switch (ch.type) {
+    const c0 = CHILD(n, 0);
+    switch (c0.type) {
         case TOK.T_NAME:
             // All names start in Load context, but may be changed later
-            return new Name(strobj(ch.value), Load, n.lineno, n.col_offset);
-        case TOK.T_STRING:
+            return new Name(strobj(c0.value), Load, n.lineno, n.col_offset);
+        case TOK.T_STRING: {
             return new Str(parsestrplus(c, n), n.lineno, n.col_offset);
+        }
         case TOK.T_NUMBER:
-            return new Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
-        case TOK.T_LPAR: // various uses for parens
-            ch = CHILD(n, 1);
-            if (ch.type === TOK.T_RPAR) {
+            return new Num(parsenumber(c, c0.value, n.lineno), n.lineno, n.col_offset);
+        case TOK.T_LPAR: { // various uses for parens
+            const c1 = CHILD(n, 1);
+            if (c1.type === TOK.T_RPAR) {
                 return new Tuple([], Load, n.lineno, n.col_offset);
             }
-            if (ch.type === SYM.YieldExpr) {
-                return astForExpr(c, ch) as Yield;
+            if (c1.type === SYM.YieldExpr) {
+                return astForExpr(c, c1) as Yield;
             }
-            if (NCH(ch) > 1 && CHILD(ch, 1).type === SYM.gen_for) {
-                return astForGenexp(c, ch);
+            if (NCH(c1) > 1 && CHILD(c1, 1).type === SYM.gen_for) {
+                return astForGenexp(c, c1);
             }
-            return astForTestlistGexp(c, ch);
-        case TOK.T_LSQB: // list or listcomp
-            ch = CHILD(n, 1);
-            if (ch.type === TOK.T_RSQB)
+            return astForTestlistGexp(c, c1);
+        }
+        case TOK.T_LSQB: { // list or listcomp
+            const c1 = CHILD(n, 1);
+            if (c1.type === TOK.T_RSQB)
                 return new List([], Load, n.lineno, n.col_offset);
-            REQ(ch, SYM.listmaker);
-            if (NCH(ch) === 1 || CHILD(ch, 1).type === TOK.T_COMMA)
-                return new List(seqForTestlist(c, ch), Load, n.lineno, n.col_offset);
+            REQ(c1, SYM.listmaker);
+            if (NCH(c1) === 1 || CHILD(c1, 1).type === TOK.T_COMMA)
+                return new List(seqForTestlist(c, c1), Load, n.lineno, n.col_offset);
             else
-                return astForListcomp(c, ch);
-        case TOK.T_LBRACE:
+                return astForListcomp(c, c1);
+        }
+        case TOK.T_LBRACE: {
             /* dictmaker: test ':' test (',' test ':' test)* [','] */
-            ch = CHILD(n, 1);
+            const c1 = CHILD(n, 1);
+            const N = NCH(c1);
             // var size = Math.floor((NCH(ch) + 1) / 4); // + 1 for no trailing comma case
             const keys: Expression[] = [];
             const values: Expression[] = [];
-            for (let i = 0; i < NCH(ch); i += 4) {
-                keys[i / 4] = astForExpr(c, CHILD(ch, i));
-                values[i / 4] = astForExpr(c, CHILD(ch, i + 2));
+            for (let i = 0; i < N; i += 4) {
+                keys[i / 4] = astForExpr(c, CHILD(c1, i));
+                values[i / 4] = astForExpr(c, CHILD(c1, i + 2));
             }
             return new Dict(keys, values, n.lineno, n.col_offset);
-        case TOK.T_BACKQUOTE:
+        }
+        case TOK.T_BACKQUOTE: {
             throw syntaxError("backquote not supported, use repr()", n.lineno);
+        }
         default: {
-            throw new Error("unhandled atom"/*, ch.type*/);
+            throw new Error(`unhandled atom '${grammarName(c0.type)}'`);
         }
     }
 }

@@ -1,4 +1,5 @@
 export interface Tree {
+    type: number;
     children: Tree[];
 }
 /**
@@ -6,6 +7,7 @@ export interface Tree {
  */
 export declare function NCH<T extends Tree>(n: T): number;
 export declare function CHILD<T extends Tree>(n: T, i: number): T;
+export declare function FIND<T extends Tree>(n: T, type: number): number;
 export declare function CHILDREN<T extends Tree>(n: T): T[];
 export declare function IDXLAST<T>(xs: ArrayLike<T>): number;
 /**

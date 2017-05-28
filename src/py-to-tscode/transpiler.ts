@@ -18,7 +18,7 @@ import { Num } from '../pytools/types';
 import { Print } from '../pytools/types';
 import { ReturnStatement } from '../pytools/types';
 import { Str } from '../pytools/types';
-import { parse, SourceKind } from '../pytools/parser';
+import { parse, PyNode, SourceKind } from '../pytools/parser';
 import { astFromParse } from '../pytools/builder';
 import { semanticsOfModule } from '../pytools/symtable';
 import { SymbolTable } from '../pytools/SymbolTable';
@@ -651,14 +651,14 @@ class Printer implements Visitor {
     }
 }
 
-export function transpileModule(sourceText: string, fileName: string): { code: string, symbolTable: SymbolTable } {
+export function transpileModule(sourceText: string, fileName: string): { code: string, cst: PyNode, symbolTable: SymbolTable } {
     const cst = parse(sourceText, SourceKind.File);
     if (typeof cst === 'object') {
         const stmts = astFromParse(cst);
         const mod = new Module(stmts);
         const symbolTable = semanticsOfModule(mod);
         const printer = new Printer(symbolTable, 0, sourceText);
-        return { code: printer.transpileModule(mod), symbolTable };
+        return { code: printer.transpileModule(mod), cst, symbolTable };
     }
     else {
         throw new Error(`Error parsing source for file.`);

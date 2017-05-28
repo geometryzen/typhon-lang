@@ -55,7 +55,7 @@ export const OpMap: { [op: string]: Tokens } = {
     "->": Tokens.T_RARROW
 };
 
-""" + pgen.generate_grammar('grammar-pytools.txt').genjs() + \
+""" + pgen.generate_grammar('grammar-typhon.txt').genjs() + \
 """
 // Nothing more to see here.
 """

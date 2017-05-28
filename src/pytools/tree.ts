@@ -1,6 +1,7 @@
 import { assert } from './asserts';
 
 export interface Tree {
+    type: number;
     children: Tree[];
 }
 
@@ -18,8 +19,21 @@ export function NCH<T extends Tree>(n: T): number {
 }
 
 export function CHILD<T extends Tree>(n: T, i: number): T {
-    assert(i !== undefined);
+    assert(i !== undefined && i >= 0);
     return CHILDREN(n)[i];
+}
+
+export function FIND<T extends Tree>(n: T, type: number): number {
+    assert(type !== undefined);
+    const children = CHILDREN(n);
+    const N = children.length;
+    for (let i = 0; i < N; i++) {
+        const child = children[i]
+        if (child.type === type) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 export function CHILDREN<T extends Tree>(n: T): T[] {

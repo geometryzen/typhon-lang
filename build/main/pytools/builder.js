@@ -94,6 +94,8 @@ var base_1 = require("./base");
 var tables_1 = require("./tables");
 var Tokens_1 = require("./Tokens");
 var numericLiteral_1 = require("./numericLiteral");
+// import { parseTreeDump } from './parser';
+var grammarName_1 = require("./grammarName");
 //
 // This is pretty much a straight port of ast.c from CPython 2.6.5.
 //
@@ -125,11 +127,23 @@ var Compiling = (function () {
     }
     return Compiling;
 }());
+/**
+ * Asserts that the type of the node is that specified.
+ */
 function REQ(n, type) {
-    asserts_1.assert(n.type === type, "node wasn't expected type");
+    // Avoid the cost of building the message string when there is no issue.
+    if (n.type !== type) {
+        asserts_1.fail("node must have type " + type + " = " + grammarName_1.grammarName(type) + ", but was " + n.type + " = " + grammarName_1.grammarName(n.type) + ".");
+    }
 }
+/**
+ * Nothing more than assertion that the argument is a string.
+ */
 function strobj(s) {
-    asserts_1.assert(typeof s === "string", "expecting string, got " + (typeof s));
+    // Avoid the cost of building the message string when there is no issue.
+    if (typeof s !== 'string') {
+        asserts_1.fail("expecting string, got " + (typeof s));
+    }
     // This previously constructed the runtime representation.
     // That may have had an string intern side effect?
     return s;
@@ -598,18 +612,20 @@ function astForAssertStmt(c, n) {
 }
 function aliasForImportName(c, n) {
     /*
-        import_as_name: NAME ['as' NAME]
+        ImportSpecifier: NAME ['as' NAME]
         dotted_as_name: dotted_name ['as' NAME]
         dotted_name: NAME ('.' NAME)*
     */
     loop: while (true) {
         switch (n.type) {
-            case SYM.import_as_name:
+            case SYM.ImportSpecifier: {
                 var str = null;
                 var name_1 = strobj(tree_1.CHILD(n, 0).value);
-                if (tree_1.NCH(n) === 3)
+                if (tree_1.NCH(n) === 3) {
                     str = tree_1.CHILD(n, 2).value;
+                }
                 return new types_2.Alias(name_1, str == null ? null : strobj(str));
+            }
             case SYM.dotted_as_name:
                 if (tree_1.NCH(n) === 1) {
                     n = tree_1.CHILD(n, 0);
@@ -626,76 +642,123 @@ function aliasForImportName(c, n) {
                     return new types_2.Alias(strobj(tree_1.CHILD(n, 0).value), null);
                 else {
                     // create a string of the form a.b.c
-                    var str_1 = '';
+                    var str = '';
                     for (var i = 0; i < tree_1.NCH(n); i += 2)
-                        str_1 += tree_1.CHILD(n, i).value + ".";
-                    return new types_2.Alias(strobj(str_1.substr(0, str_1.length - 1)), null);
+                        str += tree_1.CHILD(n, i).value + ".";
+                    return new types_2.Alias(strobj(str.substr(0, str.length - 1)), null);
                 }
-            case Tokens_1.Tokens.T_STAR:
+            case Tokens_1.Tokens.T_STAR: {
                 return new types_2.Alias(strobj("*"), null);
-            default:
-                throw syntaxError("unexpected import name", n.lineno);
+            }
+            case Tokens_1.Tokens.T_NAME: {
+                // Temporary.
+                return new types_2.Alias(strobj(n.value), null);
+            }
+            default: {
+                throw syntaxError("unexpected import name " + grammarName_1.grammarName(n.type), n.lineno);
+            }
         }
     }
 }
-function astForImportStmt(c, n) {
-    REQ(n, SYM.import_stmt);
-    var lineno = n.lineno;
-    var col_offset = n.col_offset;
-    n = tree_1.CHILD(n, 0);
-    if (n.type === SYM.import_name) {
-        n = tree_1.CHILD(n, 1);
+function parseModuleSpecifier(c, moduleSpecifierNode) {
+    REQ(moduleSpecifierNode, SYM.ModuleSpecifier);
+    var N = tree_1.NCH(moduleSpecifierNode);
+    var ret = "";
+    for (var i = 0; i < N; ++i) {
+        var child = tree_1.CHILD(moduleSpecifierNode, i);
+        ret = ret + parsestr(c, child.value);
+    }
+    return ret;
+}
+function astForImportStmt(c, importStatementNode) {
+    REQ(importStatementNode, SYM.import_stmt);
+    var lineno = importStatementNode.lineno;
+    var col_offset = importStatementNode.col_offset;
+    var nameOrFrom = tree_1.CHILD(importStatementNode, 0);
+    if (nameOrFrom.type === SYM.import_name) {
+        var n = tree_1.CHILD(nameOrFrom, 1);
         REQ(n, SYM.dotted_as_names);
         var aliases = [];
-        for (var i = 0; i < tree_1.NCH(n); i += 2)
+        for (var i = 0; i < tree_1.NCH(n); i += 2) {
             aliases[i / 2] = aliasForImportName(c, tree_1.CHILD(n, i));
+        }
         return new types_42.ImportStatement(aliases, lineno, col_offset);
     }
-    else if (n.type === SYM.import_from) {
+    else if (nameOrFrom.type === SYM.import_from) {
         var mod = null;
+        var moduleName = "";
         var ndots = 0;
         var nchildren = void 0;
         var idx = void 0;
-        for (idx = 1; idx < tree_1.NCH(n); ++idx) {
-            if (tree_1.CHILD(n, idx).type === SYM.dotted_name) {
-                mod = aliasForImportName(c, tree_1.CHILD(n, idx));
-                idx++;
+        for (idx = 1; idx < tree_1.NCH(nameOrFrom); ++idx) {
+            var child = tree_1.CHILD(nameOrFrom, idx);
+            var childType = child.type;
+            if (childType === SYM.dotted_name) {
+                // This should be dead code since we support ECMAScript 2015 modules.
+                throw syntaxError("unknown import statement " + grammarName_1.grammarName(childType) + ".", child.lineno);
+                // mod = aliasForImportName(c, child);
+                // idx++;
+                // break;
+            }
+            else if (childType === SYM.ModuleSpecifier) {
+                moduleName = parseModuleSpecifier(c, child);
                 break;
             }
-            else if (tree_1.CHILD(n, idx).type !== Tokens_1.Tokens.T_DOT)
-                break;
+            else if (childType !== Tokens_1.Tokens.T_DOT) {
+                // Let's be more specific...
+                throw syntaxError("unknown import statement " + grammarName_1.grammarName(childType) + ".", child.lineno);
+                // break;
+            }
             ndots++;
         }
         ++idx; // skip the import keyword
-        switch (tree_1.CHILD(n, idx).type) {
-            case Tokens_1.Tokens.T_STAR:
+        var n = nameOrFrom;
+        switch (tree_1.CHILD(nameOrFrom, idx).type) {
+            case Tokens_1.Tokens.T_STAR: {
                 // from ... import
-                n = tree_1.CHILD(n, idx);
+                n = tree_1.CHILD(nameOrFrom, idx);
                 nchildren = 1;
                 break;
-            case Tokens_1.Tokens.T_LPAR:
+            }
+            case Tokens_1.Tokens.T_LPAR: {
                 // from ... import (x, y, z)
                 n = tree_1.CHILD(n, idx + 1);
                 nchildren = tree_1.NCH(n);
                 break;
-            case SYM.import_as_names:
+            }
+            case SYM.ImportList: {
                 // from ... import x, y, z
                 n = tree_1.CHILD(n, idx);
                 nchildren = tree_1.NCH(n);
                 if (nchildren % 2 === 0)
                     throw syntaxError("trailing comma not allowed without surrounding parentheses", n.lineno);
+            }
         }
         var aliases = [];
-        if (n.type === Tokens_1.Tokens.T_STAR)
+        if (n.type === Tokens_1.Tokens.T_STAR) {
             aliases[0] = aliasForImportName(c, n);
-        else
-            for (var i = 0; i < tree_1.NCH(n); i += 2) {
-                aliases[i / 2] = aliasForImportName(c, tree_1.CHILD(n, i));
-            }
-        var modname = mod ? mod.name : "";
-        return new types_43.ImportFrom(strobj(modname), aliases, ndots, lineno, col_offset);
+        }
+        else {
+            REQ(n, SYM.import_from);
+            var importListNode = tree_1.CHILD(n, tree_1.FIND(n, SYM.ImportList));
+            astForImportList(c, importListNode, aliases);
+        }
+        moduleName = mod ? mod.name : moduleName;
+        return new types_43.ImportFrom(strobj(moduleName), aliases, ndots, lineno, col_offset);
     }
-    throw syntaxError("unknown import statement", n.lineno);
+    else {
+        throw syntaxError("unknown import statement " + grammarName_1.grammarName(nameOrFrom.type) + ".", nameOrFrom.lineno);
+    }
+}
+function astForImportList(c, importListNode, aliases) {
+    REQ(importListNode, SYM.ImportList);
+    var N = tree_1.NCH(importListNode);
+    for (var i = 0; i < N; i++) {
+        var child = tree_1.CHILD(importListNode, i);
+        if (child.type === SYM.ImportSpecifier) {
+            aliases.push(aliasForImportName(c, child));
+        }
+    }
 }
 function astForTestlistGexp(c, n) {
     asserts_1.assert(n.type === SYM.testlist_gexp || n.type === SYM.argument);
@@ -1404,7 +1467,7 @@ function parsestr(c, s) {
     return strobj(decodeEscape(s, quote));
 }
 /**
- * @return {string}
+ *
  */
 function parsestrplus(c, n) {
     REQ(tree_1.CHILD(n, 0), Tokens_1.Tokens.T_STRING);
@@ -1541,51 +1604,57 @@ function astForSlice(c, n) {
     return new types_72.Slice(lower, upper, step);
 }
 function astForAtomExpr(c, n) {
-    var ch = tree_1.CHILD(n, 0);
-    switch (ch.type) {
+    var c0 = tree_1.CHILD(n, 0);
+    switch (c0.type) {
         case Tokens_1.Tokens.T_NAME:
             // All names start in Load context, but may be changed later
-            return new types_58.Name(strobj(ch.value), types_52.Load, n.lineno, n.col_offset);
-        case Tokens_1.Tokens.T_STRING:
+            return new types_58.Name(strobj(c0.value), types_52.Load, n.lineno, n.col_offset);
+        case Tokens_1.Tokens.T_STRING: {
             return new types_74.Str(parsestrplus(c, n), n.lineno, n.col_offset);
+        }
         case Tokens_1.Tokens.T_NUMBER:
-            return new types_63.Num(parsenumber(c, ch.value, n.lineno), n.lineno, n.col_offset);
-        case Tokens_1.Tokens.T_LPAR:
-            ch = tree_1.CHILD(n, 1);
-            if (ch.type === Tokens_1.Tokens.T_RPAR) {
+            return new types_63.Num(parsenumber(c, c0.value, n.lineno), n.lineno, n.col_offset);
+        case Tokens_1.Tokens.T_LPAR: {
+            var c1 = tree_1.CHILD(n, 1);
+            if (c1.type === Tokens_1.Tokens.T_RPAR) {
                 return new types_79.Tuple([], types_52.Load, n.lineno, n.col_offset);
             }
-            if (ch.type === SYM.YieldExpr) {
-                return astForExpr(c, ch);
+            if (c1.type === SYM.YieldExpr) {
+                return astForExpr(c, c1);
             }
-            if (tree_1.NCH(ch) > 1 && tree_1.CHILD(ch, 1).type === SYM.gen_for) {
-                return astForGenexp(c, ch);
+            if (tree_1.NCH(c1) > 1 && tree_1.CHILD(c1, 1).type === SYM.gen_for) {
+                return astForGenexp(c, c1);
             }
-            return astForTestlistGexp(c, ch);
-        case Tokens_1.Tokens.T_LSQB:
-            ch = tree_1.CHILD(n, 1);
-            if (ch.type === Tokens_1.Tokens.T_RSQB)
+            return astForTestlistGexp(c, c1);
+        }
+        case Tokens_1.Tokens.T_LSQB: {
+            var c1 = tree_1.CHILD(n, 1);
+            if (c1.type === Tokens_1.Tokens.T_RSQB)
                 return new types_50.List([], types_52.Load, n.lineno, n.col_offset);
-            REQ(ch, SYM.listmaker);
-            if (tree_1.NCH(ch) === 1 || tree_1.CHILD(ch, 1).type === Tokens_1.Tokens.T_COMMA)
-                return new types_50.List(seqForTestlist(c, ch), types_52.Load, n.lineno, n.col_offset);
+            REQ(c1, SYM.listmaker);
+            if (tree_1.NCH(c1) === 1 || tree_1.CHILD(c1, 1).type === Tokens_1.Tokens.T_COMMA)
+                return new types_50.List(seqForTestlist(c, c1), types_52.Load, n.lineno, n.col_offset);
             else
-                return astForListcomp(c, ch);
-        case Tokens_1.Tokens.T_LBRACE:
+                return astForListcomp(c, c1);
+        }
+        case Tokens_1.Tokens.T_LBRACE: {
             /* dictmaker: test ':' test (',' test ':' test)* [','] */
-            ch = tree_1.CHILD(n, 1);
+            var c1 = tree_1.CHILD(n, 1);
+            var N = tree_1.NCH(c1);
             // var size = Math.floor((NCH(ch) + 1) / 4); // + 1 for no trailing comma case
             var keys = [];
             var values = [];
-            for (var i = 0; i < tree_1.NCH(ch); i += 4) {
-                keys[i / 4] = astForExpr(c, tree_1.CHILD(ch, i));
-                values[i / 4] = astForExpr(c, tree_1.CHILD(ch, i + 2));
+            for (var i = 0; i < N; i += 4) {
+                keys[i / 4] = astForExpr(c, tree_1.CHILD(c1, i));
+                values[i / 4] = astForExpr(c, tree_1.CHILD(c1, i + 2));
             }
             return new types_24.Dict(keys, values, n.lineno, n.col_offset);
-        case Tokens_1.Tokens.T_BACKQUOTE:
+        }
+        case Tokens_1.Tokens.T_BACKQUOTE: {
             throw syntaxError("backquote not supported, use repr()", n.lineno);
+        }
         default: {
-            throw new Error("unhandled atom" /*, ch.type*/);
+            throw new Error("unhandled atom '" + grammarName_1.grammarName(c0.type) + "'");
         }
     }
 }

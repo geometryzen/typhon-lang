@@ -1,4 +1,5 @@
 import { transpileModule as compile } from './transpiler';
+import { parseTreeDump } from '../pytools/parser';
 import { dumpSymbolTable } from '../pytools/symtable';
 
 const fileName = 'foo.ts';
@@ -16,7 +17,7 @@ describe('transpiler', function () {
         });
     });
 
-    describe('StringLiteral', function () {
+    describe('STRING', function () {
         it('with double quotes', function () {
             const result = compile('"Hello"', fileName);
             expect(result.code).toBe("'Hello'");
@@ -250,25 +251,40 @@ describe('transpiler', function () {
     });
 
     describe('ImportFrom', function () {
-        it('should allow a single named import', function () {
+        it('Experiment', function () {
             const sourceText = [
                 "from eight import Engine",
                 ""
             ].join("\n");
+            try {
+                compile(sourceText, fileName);
+                fail(`ECMAScript 2015 modules require the ModuleSpecifier to be a STRING.`);
+            }
+            catch (e) {
+                expect(`${e}`).toBe("ParseError: Unexpected T_NAME at [1,5]");
+            }
+        });
+        it('should allow a single named import', function () {
+            const sourceText = [
+                "from 'eight' import Engine",
+                ""
+            ].join("\n");
             const result = compile(sourceText, fileName);
+            // console.log(parseTreeDump(result.cst));
             expect(result.code).toBe("import {Engine} from 'eight';");
         });
         it('should allow a multiple named imports', function () {
             const sourceText = [
-                "from eight import Engine, Scene",
+                "from 'eight' import Engine, Scene",
                 ""
             ].join("\n");
             const result = compile(sourceText, fileName);
+            // console.log(parseTreeDump(result.cst));
             expect(result.code).toBe("import {Engine,Scene} from 'eight';");
         });
         it('should allow a single alias named import', function () {
             const sourceText = [
-                "from eight import Engine as Context",
+                "from 'eight' import Engine as Context",
                 ""
             ].join("\n");
             const result = compile(sourceText, fileName);
@@ -276,35 +292,35 @@ describe('transpiler', function () {
         });
         it('should allow a multiple alias named imports', function () {
             const sourceText = [
-                "from eight import Engine as Context, Scene as Model",
+                "from 'eight' import Engine as Context, Scene as Model",
                 ""
             ].join("\n");
             const result = compile(sourceText, fileName);
             expect(result.code).toBe("import {Engine as Context,Scene as Model} from 'eight';");
         });
-        xit('should allow hyphens in module name', function () {
+        it('should allow hyphens in module name', function () {
             const sourceText = [
-                "from davinci-eight import Engine",
+                "from 'davinci-eight' import Engine",
                 ""
             ].join("\n");
             const result = compile(sourceText, fileName);
-            expect(result.code).toBe("import {Engine} from 'eight';");
+            expect(result.code).toBe("import {Engine} from 'davinci-eight';");
         });
-        xit('should allow slashes in module name', function () {
+        it('should allow slashes in module name', function () {
             const sourceText = [
-                "from davinci/eight import Engine",
+                "from 'davinci/eight' import Engine",
                 ""
             ].join("\n");
             const result = compile(sourceText, fileName);
-            expect(result.code).toBe("import {Engine} from 'eight';");
+            expect(result.code).toBe("import {Engine} from 'davinci/eight';");
         });
-        xit('should allow commercial @ module name', function () {
+        it('should allow commercial @ module name', function () {
             const sourceText = [
-                "from @eight import Engine",
+                "from '@eight' import Engine",
                 ""
             ].join("\n");
             const result = compile(sourceText, fileName);
-            expect(result.code).toBe("import {Engine} from 'eight';");
+            expect(result.code).toBe("import {Engine} from '@eight';");
         });
     });
 
@@ -361,6 +377,7 @@ describe('transpiler', function () {
     xdescribe('Bogus', function () {
         xit('should temporarily allow dumpSymbolTable to be imported', function () {
             const result = compile('x = 42', fileName);
+            console.log(parseTreeDump(result.cst));
             console.log(dumpSymbolTable(result.symbolTable));
             expect(true).toBeTruthy();
         });

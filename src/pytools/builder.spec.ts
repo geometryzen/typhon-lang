@@ -285,7 +285,7 @@ describe('AST', function () {
         }
         catch (e) {
             expect(e.name).toBe('ParseError');
-            const message = 'bad input';
+            const message = "Unexpected T_NAME at [1,7]";
             expect(e.message).toBe(message);
             //      console.log("expect: " + JSON.stringify(message));
             //      console.log("actual: " + JSON.stringify(e.message));

@@ -15,10 +15,23 @@ function NCH(n) {
 }
 exports.NCH = NCH;
 function CHILD(n, i) {
-    asserts_1.assert(i !== undefined);
+    asserts_1.assert(i !== undefined && i >= 0);
     return CHILDREN(n)[i];
 }
 exports.CHILD = CHILD;
+function FIND(n, type) {
+    asserts_1.assert(type !== undefined);
+    var children = CHILDREN(n);
+    var N = children.length;
+    for (var i = 0; i < N; i++) {
+        var child = children[i];
+        if (child.type === type) {
+            return i;
+        }
+    }
+    return -1;
+}
+exports.FIND = FIND;
 function CHILDREN(n) {
     asserts_1.assert(n !== undefined);
     if (n.children) {

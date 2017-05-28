@@ -4,6 +4,7 @@ import { assert } from './asserts';
 import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
 import { tokenNames } from './tokenNames';
+import { grammarName } from './grammarName';
 
 /**
  * Decode this!!!
@@ -169,8 +170,8 @@ class Parser {
                 }
             }
 
-            // TODO: What is the zeroth state? Does it have a symbolic name?
-            if (existsTransition(arcs, [0, tp.state])) {
+            // We've exhaused all the arcs for the for the state.
+            if (existsTransition(arcs, [Tokens.T_ENDMARKER, tp.state])) {
                 // an accepting state, pop it and try something else
                 this.pop();
                 if (this.stack.length === 0) {
@@ -178,7 +179,10 @@ class Parser {
                 }
             }
             else {
-                throw parseError("bad input", context[0], context[1]);
+                const found = grammarName(tp.state);
+                const begin = context[0];
+                const end = context[1];
+                throw parseError(`Unexpected ${found} at ${JSON.stringify(begin)}`, begin, end);
             }
         }
     }
@@ -389,19 +393,23 @@ export function parse(sourceText: string, sourceKind: SourceKind = SourceKind.Fi
     return ret;
 }
 
-export function parseTreeDump(n: PyNode): string {
-    let ret = "";
-    // non-term
-    if (n.type >= 256) {
-        ret += ParseTables.number2symbol[n.type] + "\n";
-        if (n.children) {
-            for (let i = 0; i < n.children.length; ++i) {
-                ret += parseTreeDump(n.children[i]);
+export function parseTreeDump(parseTree: PyNode): string {
+    function parseTreeDumpInternal(n: PyNode, indent: string): string {
+        let ret = "";
+        // non-term
+        if (n.type >= 256) {
+            ret += indent + ParseTables.number2symbol[n.type] + "\n";
+            if (n.children) {
+                for (let i = 0; i < n.children.length; ++i) {
+                    ret += parseTreeDumpInternal(n.children[i], "  " + indent);
+                }
             }
         }
+        else {
+            ret += indent + tokenNames[n.type] + ": " + n.value + "\n";
+        }
+        return ret;
     }
-    else {
-        ret += tokenNames[n.type] + ": " + n.value + "\n";
-    }
-    return ret;
+    return parseTreeDumpInternal(parseTree, "");
 }
+

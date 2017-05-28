@@ -633,6 +633,13 @@ describe('parse', function () {
         });
     });
 
+    it("ImportFrom", function () {
+        const cst = parse("from 'x' import a, b") as PyNode;
+        const dump = parseTreeDump(cst);
+        expect(typeof dump).toBe('string');
+        // expect(dump).toBe('');
+    });
+
     xit('a * b', function () {
         const cst = parse('a * b') as PyNode;
         const dump = parseTreeDump(cst);
@@ -761,7 +768,7 @@ describe('parse', function () {
         }
         catch (e) {
             expect(e.name).toBe('ParseError');
-            const message = 'bad input';
+            const message = 'Unexpected T_NAME at [1,7]';
             expect(e.message).toBe(message);
             //      console.log("expect: " + JSON.stringify(message));
             //      console.log("actual: " + JSON.stringify(e.message));

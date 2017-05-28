@@ -82,4 +82,4 @@ export declare enum SourceKind {
     Single = 2,
 }
 export declare function parse(sourceText: string, sourceKind?: SourceKind): boolean | PyNode;
-export declare function parseTreeDump(n: PyNode): string;
+export declare function parseTreeDump(parseTree: PyNode): string;

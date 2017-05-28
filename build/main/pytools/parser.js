@@ -6,6 +6,7 @@ var asserts_1 = require("./asserts");
 var Tokenizer_1 = require("./Tokenizer");
 var Tokens_1 = require("./Tokens");
 var tokenNames_1 = require("./tokenNames");
+var grammarName_1 = require("./grammarName");
 // low level parser to a concrete syntax tree, derived from cpython's lib2to3
 /**
  * @param message
@@ -101,8 +102,8 @@ var Parser = (function () {
                     }
                 }
             }
-            // TODO: What is the zeroth state? Does it have a symbolic name?
-            if (existsTransition(arcs, [0, tp.state])) {
+            // We've exhaused all the arcs for the for the state.
+            if (existsTransition(arcs, [Tokens_1.Tokens.T_ENDMARKER, tp.state])) {
                 // an accepting state, pop it and try something else
                 this.pop();
                 if (this.stack.length === 0) {
@@ -110,7 +111,10 @@ var Parser = (function () {
                 }
             }
             else {
-                throw parseError("bad input", context[0], context[1]);
+                var found = grammarName_1.grammarName(tp.state);
+                var begin = context[0];
+                var end = context[1];
+                throw parseError("Unexpected " + found + " at " + JSON.stringify(begin), begin, end);
             }
         }
     };
@@ -311,20 +315,23 @@ function parse(sourceText, sourceKind) {
     return ret;
 }
 exports.parse = parse;
-function parseTreeDump(n) {
-    var ret = "";
-    // non-term
-    if (n.type >= 256) {
-        ret += tables_1.ParseTables.number2symbol[n.type] + "\n";
-        if (n.children) {
-            for (var i = 0; i < n.children.length; ++i) {
-                ret += parseTreeDump(n.children[i]);
+function parseTreeDump(parseTree) {
+    function parseTreeDumpInternal(n, indent) {
+        var ret = "";
+        // non-term
+        if (n.type >= 256) {
+            ret += indent + tables_1.ParseTables.number2symbol[n.type] + "\n";
+            if (n.children) {
+                for (var i = 0; i < n.children.length; ++i) {
+                    ret += parseTreeDumpInternal(n.children[i], "  " + indent);
+                }
             }
         }
+        else {
+            ret += indent + tokenNames_1.tokenNames[n.type] + ": " + n.value + "\n";
+        }
+        return ret;
     }
-    else {
-        ret += tokenNames_1.tokenNames[n.type] + ": " + n.value + "\n";
-    }
-    return ret;
+    return parseTreeDumpInternal(parseTree, "");
 }
 exports.parseTreeDump = parseTreeDump;
