@@ -474,7 +474,7 @@ var Printer = (function () {
     };
     return Printer;
 }());
-function transpileModule(sourceText, fileName) {
+function transpileModule(sourceText) {
     var cst = parser_1.parse(sourceText, parser_1.SourceKind.File);
     if (typeof cst === 'object') {
         var stmts = builder_1.astFromParse(cst);

@@ -583,7 +583,7 @@ class Printer implements Visitor {
     }
 }
 
-export function transpileModule(sourceText: string, fileName: string): { code: string, cst: PyNode, symbolTable: SymbolTable } {
+export function transpileModule(sourceText: string): { code: string, cst: PyNode, symbolTable: SymbolTable } {
     const cst = parse(sourceText, SourceKind.File);
     if (typeof cst === 'object') {
         const stmts = astFromParse(cst);

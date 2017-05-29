@@ -472,7 +472,7 @@ var Printer = (function () {
     };
     return Printer;
 }());
-export function transpileModule(sourceText, fileName) {
+export function transpileModule(sourceText) {
     var cst = parse(sourceText, SourceKind.File);
     if (typeof cst === 'object') {
         var stmts = astFromParse(cst);
