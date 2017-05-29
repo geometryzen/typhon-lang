@@ -1,10 +1,6 @@
 import { Tokens } from './Tokens';
-/**
- * Decode this!!!
- */
 export declare type Arc = [number, number];
-export declare type State = [Arc[], [[number, number]], [[number, number]]];
-export declare type Dfa = [State, {
+export declare type Dfa = [Arc[][], {
     [value: number]: number;
 }];
 /**
@@ -12,10 +8,16 @@ export declare type Dfa = [State, {
  */
 export interface Grammar {
     start: Tokens;
+    /**
+     *
+     */
     dfas: {
         [value: number]: Dfa;
     };
-    labels: number[][];
+    /**
+     * The index is the symbol for a transition.
+     */
+    labels: [number, string | null][];
     keywords: {
         [keyword: string]: number;
     };
@@ -63,15 +65,6 @@ export interface StackElement {
     dfa: Dfa;
     state: number;
     node: PyNode;
-}
-export interface Position {
-    row: number;
-    column: number;
-}
-export declare class ParseError extends SyntaxError {
-    constructor(message: string);
-    begin?: Position;
-    end?: Position;
 }
 /**
  * Determines the starting point in the grammar for parsing the source.

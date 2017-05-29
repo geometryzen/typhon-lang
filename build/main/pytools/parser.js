@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var tslib_1 = require("tslib");
 var tables_1 = require("./tables");
 var tree_1 = require("./tree");
 var asserts_1 = require("./asserts");
@@ -8,31 +7,22 @@ var Tokenizer_1 = require("./Tokenizer");
 var Tokens_1 = require("./Tokens");
 var tokenNames_1 = require("./tokenNames");
 var grammarName_1 = require("./grammarName");
-var ParseError = (function (_super) {
-    tslib_1.__extends(ParseError, _super);
-    function ParseError(message) {
-        var _this = _super.call(this, message) || this;
-        _this.name = 'ParseError';
-        return _this;
-    }
-    return ParseError;
-}(SyntaxError));
-exports.ParseError = ParseError;
+var syntaxError_1 = require("./syntaxError");
 /**
- * @param message
- * @param begin
- * @param end
+ * Forget about the array wrapper!
+ * An Arc is a two-part object consisting a ... and a to-state.
  */
-function parseError(message, begin, end) {
-    var e = new ParseError(message);
-    if (Array.isArray(begin)) {
-        e.begin = { row: begin[0] - 1, column: begin[1] - 1 };
-    }
-    if (Array.isArray(end)) {
-        e.end = { row: end[0] - 1, column: end[1] - 1 };
-    }
-    return e;
-}
+var ARC_SYMBOL_LABEL = 0;
+var ARC_TO_STATE = 1;
+/**
+ * Forget about the array wrapper!
+ * A Dfa is a two-part object consisting of:
+ * 1. A list of arcs for each state
+ * 2. A mapping?
+ * Interestingly, the second part does not seem to be used here.
+ */
+var DFA_STATES = 0;
+// low level parser to a concrete syntax tree, derived from cpython's lib2to3
 // TODO: The parser does not report whitespace nodes.
 // It would be nice if there were an ignoreWhitespace option.
 var Parser = (function () {
@@ -66,29 +56,33 @@ var Parser = (function () {
      * @param context [start, end, line]
      */
     Parser.prototype.addtoken = function (type, value, context) {
-        var ilabel = this.classify(type, value, context);
+        /**
+         * The symbol for the token being added.
+         */
+        var tokenSymbol = this.classify(type, value, context);
         OUTERWHILE: while (true) {
             var tp = this.stack[this.stack.length - 1];
             asserts_1.assert(typeof tp === 'object', "stack element must be a StackElement. stack = " + JSON.stringify(this.stack));
-            var states = tp.dfa[0];
-            var first = tp.dfa[1];
+            var states = tp.dfa[DFA_STATES];
+            // This is not being used. Why?
+            // let first = tp.dfa[DFA_SECOND];
             var arcs = states[tp.state];
-            // look for a state with this label
-            for (var a = 0; a < arcs.length; ++a) {
-                var i = arcs[a][0];
-                var newstate = arcs[a][1];
-                var t = this.grammar.labels[i][0];
-                // var v = this.grammar.labels[i][1];
-                if (ilabel === i) {
+            // look for a to-state with this label
+            for (var _i = 0, arcs_1 = arcs; _i < arcs_1.length; _i++) {
+                var arc = arcs_1[_i];
+                var arcSymbol = arc[ARC_SYMBOL_LABEL];
+                var newstate = arc[ARC_TO_STATE];
+                var t = this.grammar.labels[arcSymbol][0];
+                // const v = this.grammar.labels[i][1];
+                // console.log(`t => ${t}, v => ${v}`);
+                if (tokenSymbol === arcSymbol) {
                     // look it up in the list of labels
                     asserts_1.assert(t < 256);
                     // shift a token; we're done with it
                     this.shift(type, value, newstate, context);
                     // pop while we are in an accept-only state
                     var state = newstate;
-                    while (states[state].length === 1
-                        && states[state][0][0] === 0
-                        && states[state][0][1] === state) {
+                    while (states[state].length === 1 && states[state][0][ARC_SYMBOL_LABEL] === 0 /* Tokens.T_ENDMARKER? */ && states[state][0][ARC_TO_STATE] === state) {
                         this.pop();
                         if (this.stack.length === 0) {
                             // done!
@@ -96,8 +90,8 @@ var Parser = (function () {
                         }
                         tp = this.stack[this.stack.length - 1];
                         state = tp.state;
-                        states = tp.dfa[0];
-                        first = tp.dfa[1];
+                        states = tp.dfa[DFA_STATES];
+                        // first = tp.dfa[1];
                     }
                     // done with this token
                     return false;
@@ -105,7 +99,7 @@ var Parser = (function () {
                 else if (t >= 256) {
                     var itsdfa = this.grammar.dfas[t];
                     var itsfirst = itsdfa[1];
-                    if (itsfirst.hasOwnProperty(ilabel)) {
+                    if (itsfirst.hasOwnProperty(tokenSymbol)) {
                         // push a symbol
                         this.push(t, this.grammar.dfas[t], newstate, context);
                         continue OUTERWHILE;
@@ -117,19 +111,20 @@ var Parser = (function () {
                 // an accepting state, pop it and try something else
                 this.pop();
                 if (this.stack.length === 0) {
-                    throw parseError("too much input");
+                    throw syntaxError_1.parseError("too much input");
                 }
             }
             else {
                 var found = grammarName_1.grammarName(tp.state);
                 var begin = context[0];
                 var end = context[1];
-                throw parseError("Unexpected " + found + " at " + JSON.stringify(begin), begin, end);
+                throw syntaxError_1.parseError("Unexpected " + found + " at " + JSON.stringify(begin), begin, end);
             }
         }
     };
     /**
-     * turn a token into a label.
+     * Turn a token into a symbol (something that labels an arc in the DFA).
+     * The context is only used for error reporting.
      * @param type
      * @param value
      * @param context [begin, end, line]
@@ -149,7 +144,7 @@ var Parser = (function () {
             ilabel = this.grammar.tokens[type];
         }
         if (!ilabel) {
-            throw parseError("bad token", context[0], context[1]);
+            throw syntaxError_1.parseError("bad token", context[0], context[1]);
         }
         return ilabel;
     };
@@ -280,7 +275,7 @@ function makeParser(sourceKind) {
         var ret = tokenizer.generateTokens(line);
         if (ret) {
             if (ret !== "done") {
-                throw parseError("incomplete input");
+                throw syntaxError_1.parseError("incomplete input");
             }
             return p.rootnode;
         }

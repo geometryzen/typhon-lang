@@ -1,6 +1,7 @@
 import { transpileModule as compile } from './transpiler';
 // import { parseTreeDump } from '../pytools/parser';
 // import { dumpSymbolTable } from '../pytools/symtable';
+// import { astDump } from '../pytools/builder';
 
 describe('transpiler', function () {
 
@@ -11,25 +12,25 @@ describe('transpiler', function () {
     describe('NumericLiteral', function () {
         it('Float', function () {
             const result = compile('0.01');
-            expect(result.code).toBe("0.01");
+            expect(result.code).toBe("0.01;");
         });
     });
 
     describe('STRING', function () {
         it('with double quotes', function () {
             const result = compile('"Hello"');
-            expect(result.code).toBe("'Hello'");
+            expect(result.code).toBe("'Hello';");
         });
     });
 
     describe('BooleanLiteral', function () {
         it('True should be converted', function () {
             const result = compile('True');
-            expect(result.code).toBe("true");
+            expect(result.code).toBe("true;");
         });
         it('False should be converted', function () {
             const result = compile('False');
-            expect(result.code).toBe("false");
+            expect(result.code).toBe("false;");
         });
     });
 
@@ -82,113 +83,113 @@ describe('transpiler', function () {
     describe('BinOp', function () {
         it('Add', function () {
             const result = compile("a + b");
-            expect(result.code).toBe("a+b");
+            expect(result.code).toBe("a+b;");
         });
         it('Sub', function () {
             const result = compile("a - b");
-            expect(result.code).toBe("a-b");
+            expect(result.code).toBe("a-b;");
         });
         it('Mult', function () {
             const result = compile("a * b");
-            expect(result.code).toBe("a*b");
+            expect(result.code).toBe("a*b;");
         });
         it('Div', function () {
             const result = compile("a / b");
-            expect(result.code).toBe("a/b");
+            expect(result.code).toBe("a/b;");
         });
         it('BitOr', function () {
             const result = compile("a | b");
-            expect(result.code).toBe("a|b");
+            expect(result.code).toBe("a|b;");
         });
         it('BitXor', function () {
             const result = compile("a ^ b");
-            expect(result.code).toBe("a^b");
+            expect(result.code).toBe("a^b;");
         });
         it('BitAnd', function () {
             const result = compile("a & b");
-            expect(result.code).toBe("a&b");
+            expect(result.code).toBe("a&b;");
         });
         it('LShift', function () {
             const result = compile("a << b");
-            expect(result.code).toBe("a<<b");
+            expect(result.code).toBe("a<<b;");
         });
         it('RShift', function () {
             const result = compile("a >> b");
-            expect(result.code).toBe("a>>b");
+            expect(result.code).toBe("a>>b;");
         });
         it('Mod', function () {
             const result = compile("a % b");
-            expect(result.code).toBe("a%b");
+            expect(result.code).toBe("a%b;");
         });
         it('FloorDiv', function () {
             const result = compile("a // b");
-            expect(result.code).toBe("a//b");
+            expect(result.code).toBe("a//b;");
         });
     });
 
     describe('Compare', function () {
         it('Eq', function () {
             const result = compile("a == b");
-            expect(result.code).toBe("a===b");
+            expect(result.code).toBe("a===b;");
         });
         it('NotEq', function () {
             const result = compile("a != b");
-            expect(result.code).toBe("a!==b");
+            expect(result.code).toBe("a!==b;");
         });
         it('Lt', function () {
             const result = compile("a < b");
-            expect(result.code).toBe("a<b");
+            expect(result.code).toBe("a<b;");
         });
         it('LtE', function () {
             const result = compile("a <= b");
-            expect(result.code).toBe("a<=b");
+            expect(result.code).toBe("a<=b;");
         });
         it('Gt', function () {
             const result = compile("a > b");
-            expect(result.code).toBe("a>b");
+            expect(result.code).toBe("a>b;");
         });
         it('GtE', function () {
             const result = compile("a >= b");
-            expect(result.code).toBe("a>=b");
+            expect(result.code).toBe("a>=b;");
         });
         it('Is', function () {
             const result = compile("a is b");
-            expect(result.code).toBe("a===b");
+            expect(result.code).toBe("a===b;");
         });
         it('IsNot', function () {
             const result = compile("a is not b");
-            expect(result.code).toBe("a!==b");
+            expect(result.code).toBe("a!==b;");
         });
         it('In', function () {
             const result = compile("a in b");
-            expect(result.code).toBe("a in b");
+            expect(result.code).toBe("a in b;");
         });
         it('NotIn', function () {
             const result = compile("a not in b");
-            expect(result.code).toBe("a not in b");
+            expect(result.code).toBe("a not in b;");
         });
         it('FloorDiv', function () {
             const result = compile("a // b");
-            expect(result.code).toBe("a//b");
+            expect(result.code).toBe("a//b;");
         });
     });
 
     describe('Call', function () {
         it('should work with no arguments', function () {
             const result = compile('f()');
-            expect(result.code).toBe("f()");
+            expect(result.code).toBe("f();");
         });
         it('should work with 1 argument', function () {
             const result = compile('f(1)');
-            expect(result.code).toBe("f(1)");
+            expect(result.code).toBe("f(1);");
         });
         it('should work with 2 arguments', function () {
             const result = compile('f(1,2)');
-            expect(result.code).toBe("f(1,2)");
+            expect(result.code).toBe("f(1,2);");
         });
         it('should assume Upper case function name is a constructor function', function () {
             const result = compile('Engine()');
-            expect(result.code).toBe("new Engine()");
+            expect(result.code).toBe("new Engine();");
         });
     });
 
@@ -217,11 +218,11 @@ describe('transpiler', function () {
     describe('Dict', function () {
         it('should allow the empty dictionary', function () {
             const result = compile('{}');
-            expect(result.code).toBe("{}");
+            expect(result.code).toBe("{};");
         });
         it('should allow a dictionary of many items', function () {
             const result = compile("{'a': 1, 'b': 23, 'c': 'eggs'}");
-            expect(result.code).toBe("{'a':1,'b':23,'c':'eggs'}");
+            expect(result.code).toBe("{'a':1,'b':23,'c':'eggs'};");
         });
     });
 
@@ -325,15 +326,15 @@ describe('transpiler', function () {
     describe('List', function () {
         it('should allow the empty list', function () {
             const result = compile('[]');
-            expect(result.code).toBe("[]");
+            expect(result.code).toBe("[];");
         });
         it('should allow the singleton list', function () {
             const result = compile('[1]');
-            expect(result.code).toBe("[1]");
+            expect(result.code).toBe("[1];");
         });
         it('should allow a list of many items', function () {
             const result = compile('[1, 2, 3, 4, 5]');
-            expect(result.code).toBe("[1,2,3,4,5]");
+            expect(result.code).toBe("[1,2,3,4,5];");
         });
     });
 
@@ -367,10 +368,20 @@ describe('transpiler', function () {
 
     // Trying out things. Break down into simpler tests.
     describe('Misc', function () {
-        it('...', function () {
+        it('a = b.c(t)', function () {
             const sourceText = "a = b.c(t)";
             const result = compile(sourceText);
             expect(result.code).toBe("let a=b.c(t);");
+        });
+        it('a.b(c)', function () {
+            const sourceText = [
+                "a.b(c)",
+                "x.y(z)"
+            ].join("\n");
+            const result = compile(sourceText);
+            // const mod = result.mod;
+            // console.log(astDump(mod));
+            expect(result.code).toBe("a.b(c);x.y(z);");
         });
     });
 });

@@ -1,3 +1,4 @@
-export { parse, parseTreeDump, ParseError } from './pytools/parser';
+export { parse, parseTreeDump } from './pytools/parser';
+export { ParseError } from './pytools/syntaxError';
 export { astFromParse, astDump } from './pytools/builder';
 export { transpileModule } from './py-to-ts/transpiler';

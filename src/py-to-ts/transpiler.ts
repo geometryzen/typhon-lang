@@ -464,7 +464,9 @@ class Printer implements Visitor {
         this.writer.endObject();
     }
     expressionStatement(s: ExpressionStatement): void {
+        this.writer.beginStatement();
         s.value.accept(this);
+        this.writer.endStatement();
     }
     functionDef(functionDef: FunctionDef): void {
         const isClassMethod = isMethod(functionDef);
@@ -588,14 +590,14 @@ class Printer implements Visitor {
     }
 }
 
-export function transpileModule(sourceText: string): { code: string, cst: PyNode, symbolTable: SymbolTable } {
+export function transpileModule(sourceText: string): { code: string, cst: PyNode, mod: Module, symbolTable: SymbolTable } {
     const cst = parse(sourceText, SourceKind.File);
     if (typeof cst === 'object') {
         const stmts = astFromParse(cst);
         const mod = new Module(stmts);
         const symbolTable = semanticsOfModule(mod);
         const printer = new Printer(symbolTable, 0, sourceText);
-        return { code: printer.transpileModule(mod), cst, symbolTable };
+        return { code: printer.transpileModule(mod), cst, mod, symbolTable };
     }
     else {
         throw new Error(`Error parsing source for file.`);

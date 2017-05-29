@@ -350,7 +350,9 @@ var Printer = (function () {
         this.writer.endObject();
     };
     Printer.prototype.expressionStatement = function (s) {
+        this.writer.beginStatement();
         s.value.accept(this);
+        this.writer.endStatement();
     };
     Printer.prototype.functionDef = function (functionDef) {
         var isClassMethod = isMethod(functionDef);
@@ -485,7 +487,7 @@ export function transpileModule(sourceText) {
         var mod = new Module(stmts);
         var symbolTable = semanticsOfModule(mod);
         var printer = new Printer(symbolTable, 0, sourceText);
-        return { code: printer.transpileModule(mod), cst: cst, symbolTable: symbolTable };
+        return { code: printer.transpileModule(mod), cst: cst, mod: mod, symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");

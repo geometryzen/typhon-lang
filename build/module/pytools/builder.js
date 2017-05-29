@@ -88,7 +88,7 @@ import { USub } from './types';
 import { WhileStatement } from './types';
 import { WithStatement } from './types';
 import { Yield } from './types';
-import { isArrayLike, isNumber, isString } from './base';
+import { isNumber, isString } from './base';
 import { ParseTables } from './tables';
 import { Tokens as TOK } from './Tokens';
 import { floatAST, intAST, longAST } from './numericLiteral';
@@ -109,6 +109,7 @@ var SYM = ParseTables.sym;
  */
 var LONG_THRESHOLD = Math.pow(2, 53);
 /**
+ * FIXME: Consolidate with parseError in parser.
  * @param message
  * @param lineNumber
  */
@@ -1864,14 +1865,16 @@ export function astDump(node) {
         if (node === null) {
             return "None";
         }
-        else if (node.prototype && node.prototype._astname !== undefined && node.prototype._isenum) {
-            return node.prototype._astname + "()";
+        else if (node['prototype'] && node['prototype']._astname !== undefined && node['prototype']._isenum) {
+            // TODO: Replace the _isenum classes with real TypeScript enum.
+            // TODO: Why do we have the parens?
+            return node['prototype']._astname + "()";
         }
-        else if (node._astname !== undefined) {
+        else if (node['_astname'] !== undefined) {
             var fields = [];
-            for (var i = 0; i < node._fields.length; i += 2) {
-                var a = node._fields[i]; // field name
-                var b = node._fields[i + 1](node); // field getter func
+            for (var i = 0; i < node['_fields'].length; i += 2) {
+                var a = node['_fields'][i]; // field name
+                var b = node['_fields'][i + 1](node); // field getter func
                 fields.push([a, _format(b)]);
             }
             var attrs = [];
@@ -1880,9 +1883,9 @@ export function astDump(node) {
                 attrs.push(field[0] + "=" + field[1].replace(/^\s+/, ''));
             }
             var fieldstr = attrs.join(',');
-            return node._astname + "(" + fieldstr + ")";
+            return node['_astname'] + "(" + fieldstr + ")";
         }
-        else if (isArrayLike(node)) {
+        else if (Array.isArray(node)) {
             var elems = [];
             for (var i = 0; i < node.length; ++i) {
                 var x = node[i];

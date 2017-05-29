@@ -52,14 +52,6 @@ export declare function isDefAndNotNull(val: any): boolean;
  */
 export declare function isArray(val: any): boolean;
 /**
- * Returns true if the object looks like an array. To qualify as array like
- * the value needs to be either a NodeList or an object with a Number length
- * property.
- * @param {*} val Variable to test.
- * @return {boolean} Whether variable is an array.
- */
-export declare function isArrayLike(val: any): boolean;
-/**
  * Returns true if the object looks like a Date. To qualify as Date-like the
  * value needs to be an object and have a getFullYear() function.
  * @param {*} val Variable to test.

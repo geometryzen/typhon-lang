@@ -4,32 +4,6 @@
 	(factory((global.PYTOOLS = global.PYTOOLS || {})));
 }(this, (function (exports) { 'use strict';
 
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
-
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-***************************************************************************** */
-/* global Reflect, Promise */
-
-var extendStatics = Object.setPrototypeOf ||
-    ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-    function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-
-function __extends(d, b) {
-    extendStatics(d, b);
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-}
-
 /**
  * Symbolic constants for various Python Language tokens.
  */
@@ -550,8 +524,8 @@ var ParseTables = {
         286: [[[[99, 1],
                     [100, 1],
                     [7, 2],
-                    [99, 1],
                     [101, 1],
+                    [99, 1],
                     [102, 1],
                     [103, 1],
                     [104, 3],
@@ -1133,8 +1107,8 @@ var ParseTables = {
         [[[99, 1],
                 [100, 1],
                 [7, 2],
-                [99, 1],
                 [101, 1],
+                [99, 1],
                 [102, 1],
                 [103, 1],
                 [104, 3],
@@ -1416,9 +1390,9 @@ var ParseTables = {
         [37, null],
         [44, null],
         [49, null],
-        [45, null],
-        [38, null],
         [40, null],
+        [38, null],
+        [45, null],
         [331, null],
         [29, null],
         [21, null],
@@ -1470,16 +1444,16 @@ var ParseTables = {
         [318, null],
         [327, null],
         [13, null],
+        [302, null],
         [273, null],
-        [267, null],
         [265, null],
         [321, null],
+        [267, null],
         [322, null],
         [292, null],
         [300, null],
-        [313, null],
         [282, null],
-        [302, null],
+        [313, null],
         [326, null],
         [329, null],
         [5, null],
@@ -1560,12 +1534,12 @@ var ParseTables = {
         37: 92,
         38: 96,
         39: 87,
-        40: 97,
+        40: 95,
         41: 88,
         42: 90,
         43: 91,
         44: 93,
-        45: 95,
+        45: 97,
         46: 86,
         47: 89,
         48: 62,
@@ -1781,17 +1755,6 @@ function isDef(val) {
  */
 function isArray(val) {
     return typeOf(val) === 'array';
-}
-/**
- * Returns true if the object looks like an array. To qualify as array like
- * the value needs to be either a NodeList or an object with a Number length
- * property.
- * @param {*} val Variable to test.
- * @return {boolean} Whether variable is an array.
- */
-function isArrayLike(val) {
-    var type = typeOf(val);
-    return type === 'array' || type === 'object' && typeof val.length === 'number';
 }
 /**
  * Returns true if the object looks like a Date. To qualify as Date-like the
@@ -2300,6 +2263,47 @@ function grammarName(type) {
     }
 }
 
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+/* global Reflect, Promise */
+
+var extendStatics = Object.setPrototypeOf ||
+    ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+    function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+
+function __extends(d, b) {
+    extendStatics(d, b);
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+
+/**
+ * @param message
+ * @param lineNumber
+ */
+function syntaxError(message, lineNumber) {
+    assert(isString(message), "message must be a string");
+    if (isDef(lineNumber)) {
+        assert(isNumber(lineNumber), "lineNumber must be a number");
+    }
+    var e = new SyntaxError(message /*, fileName*/);
+    if (typeof lineNumber === 'number') {
+        e['lineNumber'] = lineNumber;
+    }
+    return e;
+}
 var ParseError = (function (_super) {
     __extends(ParseError, _super);
     function ParseError(message) {
@@ -2324,6 +2328,22 @@ function parseError(message, begin, end) {
     }
     return e;
 }
+
+/**
+ * Forget about the array wrapper!
+ * An Arc is a two-part object consisting a ... and a to-state.
+ */
+var ARC_SYMBOL_LABEL = 0;
+var ARC_TO_STATE = 1;
+/**
+ * Forget about the array wrapper!
+ * A Dfa is a two-part object consisting of:
+ * 1. A list of arcs for each state
+ * 2. A mapping?
+ * Interestingly, the second part does not seem to be used here.
+ */
+var DFA_STATES = 0;
+// low level parser to a concrete syntax tree, derived from cpython's lib2to3
 // TODO: The parser does not report whitespace nodes.
 // It would be nice if there were an ignoreWhitespace option.
 var Parser = (function () {
@@ -2357,29 +2377,33 @@ var Parser = (function () {
      * @param context [start, end, line]
      */
     Parser.prototype.addtoken = function (type, value, context) {
-        var ilabel = this.classify(type, value, context);
+        /**
+         * The symbol for the token being added.
+         */
+        var tokenSymbol = this.classify(type, value, context);
         OUTERWHILE: while (true) {
             var tp = this.stack[this.stack.length - 1];
             assert(typeof tp === 'object', "stack element must be a StackElement. stack = " + JSON.stringify(this.stack));
-            var states = tp.dfa[0];
-            var first = tp.dfa[1];
+            var states = tp.dfa[DFA_STATES];
+            // This is not being used. Why?
+            // let first = tp.dfa[DFA_SECOND];
             var arcs = states[tp.state];
-            // look for a state with this label
-            for (var a = 0; a < arcs.length; ++a) {
-                var i = arcs[a][0];
-                var newstate = arcs[a][1];
-                var t = this.grammar.labels[i][0];
-                // var v = this.grammar.labels[i][1];
-                if (ilabel === i) {
+            // look for a to-state with this label
+            for (var _i = 0, arcs_1 = arcs; _i < arcs_1.length; _i++) {
+                var arc = arcs_1[_i];
+                var arcSymbol = arc[ARC_SYMBOL_LABEL];
+                var newstate = arc[ARC_TO_STATE];
+                var t = this.grammar.labels[arcSymbol][0];
+                // const v = this.grammar.labels[i][1];
+                // console.log(`t => ${t}, v => ${v}`);
+                if (tokenSymbol === arcSymbol) {
                     // look it up in the list of labels
                     assert(t < 256);
                     // shift a token; we're done with it
                     this.shift(type, value, newstate, context);
                     // pop while we are in an accept-only state
                     var state = newstate;
-                    while (states[state].length === 1
-                        && states[state][0][0] === 0
-                        && states[state][0][1] === state) {
+                    while (states[state].length === 1 && states[state][0][ARC_SYMBOL_LABEL] === 0 /* Tokens.T_ENDMARKER? */ && states[state][0][ARC_TO_STATE] === state) {
                         this.pop();
                         if (this.stack.length === 0) {
                             // done!
@@ -2387,8 +2411,8 @@ var Parser = (function () {
                         }
                         tp = this.stack[this.stack.length - 1];
                         state = tp.state;
-                        states = tp.dfa[0];
-                        first = tp.dfa[1];
+                        states = tp.dfa[DFA_STATES];
+                        // first = tp.dfa[1];
                     }
                     // done with this token
                     return false;
@@ -2396,7 +2420,7 @@ var Parser = (function () {
                 else if (t >= 256) {
                     var itsdfa = this.grammar.dfas[t];
                     var itsfirst = itsdfa[1];
-                    if (itsfirst.hasOwnProperty(ilabel)) {
+                    if (itsfirst.hasOwnProperty(tokenSymbol)) {
                         // push a symbol
                         this.push(t, this.grammar.dfas[t], newstate, context);
                         continue OUTERWHILE;
@@ -2420,7 +2444,8 @@ var Parser = (function () {
         }
     };
     /**
-     * turn a token into a label.
+     * Turn a token into a symbol (something that labels an arc in the DFA).
+     * The context is only used for error reporting.
      * @param type
      * @param value
      * @param context [begin, end, line]
@@ -3971,10 +3996,11 @@ var SYM = ParseTables.sym;
  */
 var LONG_THRESHOLD = Math.pow(2, 53);
 /**
+ * FIXME: Consolidate with parseError in parser.
  * @param message
  * @param lineNumber
  */
-function syntaxError(message, lineNumber) {
+function syntaxError$1(message, lineNumber) {
     assert(isString(message), "message must be a string");
     assert(isNumber(lineNumber), "lineNumber must be a number");
     var e = new SyntaxError(message /*, fileName*/);
@@ -4047,9 +4073,9 @@ function numStmts(n) {
 }
 function forbiddenCheck(c, n, x, lineno) {
     if (x === "None")
-        throw syntaxError("assignment to None", lineno);
+        throw syntaxError$1("assignment to None", lineno);
     if (x === "True" || x === "False")
-        throw syntaxError("assignment to True or False is forbidden", lineno);
+        throw syntaxError$1("assignment to True or False is forbidden", lineno);
 }
 /**
  * Set the context ctx for e, recursively traversing e.
@@ -4080,7 +4106,7 @@ function setContext(c, e, ctx, n) {
     }
     else if (e instanceof Tuple) {
         if (e.elts.length === 0) {
-            throw syntaxError("can't assign to ()", n.lineno);
+            throw syntaxError$1("can't assign to ()", n.lineno);
         }
         e.ctx = ctx;
         s = e.elts;
@@ -4127,7 +4153,7 @@ function setContext(c, e, ctx, n) {
         }
     }
     if (exprName) {
-        throw syntaxError("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, n.lineno);
+        throw syntaxError$1("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, n.lineno);
     }
     if (s) {
         for (var i = 0; i < s.length; ++i) {
@@ -4287,7 +4313,7 @@ function astForTryStmt(c, n) {
         }
     }
     else if (CHILD(n, nc - 3).type !== SYM.except_clause) {
-        throw syntaxError("malformed 'try' statement", n.lineno);
+        throw syntaxError$1("malformed 'try' statement", n.lineno);
     }
     if (nexcept > 0) {
         var handlers = [];
@@ -4515,7 +4541,7 @@ function aliasForImportName(c, n) {
                 return new Alias(strobj(n.value), null);
             }
             default: {
-                throw syntaxError("unexpected import name " + grammarName(n.type), n.lineno);
+                throw syntaxError$1("unexpected import name " + grammarName(n.type), n.lineno);
             }
         }
     }
@@ -4555,7 +4581,7 @@ function astForImportStmt(c, importStatementNode) {
             var childType = child.type;
             if (childType === SYM.dotted_name) {
                 // This should be dead code since we support ECMAScript 2015 modules.
-                throw syntaxError("unknown import statement " + grammarName(childType) + ".", child.lineno);
+                throw syntaxError$1("unknown import statement " + grammarName(childType) + ".", child.lineno);
                 // mod = aliasForImportName(c, child);
                 // idx++;
                 // break;
@@ -4566,7 +4592,7 @@ function astForImportStmt(c, importStatementNode) {
             }
             else if (childType !== Tokens.T_DOT) {
                 // Let's be more specific...
-                throw syntaxError("unknown import statement " + grammarName(childType) + ".", child.lineno);
+                throw syntaxError$1("unknown import statement " + grammarName(childType) + ".", child.lineno);
                 // break;
             }
             ndots++;
@@ -4591,7 +4617,7 @@ function astForImportStmt(c, importStatementNode) {
                 n = CHILD(n, idx);
                 nchildren = NCH(n);
                 if (nchildren % 2 === 0)
-                    throw syntaxError("trailing comma not allowed without surrounding parentheses", n.lineno);
+                    throw syntaxError$1("trailing comma not allowed without surrounding parentheses", n.lineno);
             }
         }
         var aliases = [];
@@ -4607,7 +4633,7 @@ function astForImportStmt(c, importStatementNode) {
         return new ImportFrom(strobj(moduleName), aliases, ndots, lineno, col_offset);
     }
     else {
-        throw syntaxError("unknown import statement " + grammarName(nameOrFrom.type) + ".", nameOrFrom.lineno);
+        throw syntaxError$1("unknown import statement " + grammarName(nameOrFrom.type) + ".", nameOrFrom.lineno);
     }
 }
 function astForImportList(c, importListNode, aliases) {
@@ -4769,9 +4795,9 @@ function astForCall(c, n, func) {
         }
     }
     if (ngens > 1 || (ngens && (nargs || nkeywords)))
-        throw syntaxError("Generator expression must be parenthesized if not sole argument", n.lineno);
+        throw syntaxError$1("Generator expression must be parenthesized if not sole argument", n.lineno);
     if (nargs + nkeywords + ngens > 255)
-        throw syntaxError("more than 255 arguments", n.lineno);
+        throw syntaxError$1("more than 255 arguments", n.lineno);
     var args = [];
     var keywords = [];
     nargs = 0;
@@ -4783,9 +4809,9 @@ function astForCall(c, n, func) {
         if (ch.type === SYM.argument) {
             if (NCH(ch) === 1) {
                 if (nkeywords)
-                    throw syntaxError("non-keyword arg after keyword arg", n.lineno);
+                    throw syntaxError$1("non-keyword arg after keyword arg", n.lineno);
                 if (vararg)
-                    throw syntaxError("only named arguments may follow *expression", n.lineno);
+                    throw syntaxError$1("only named arguments may follow *expression", n.lineno);
                 args[nargs++] = astForExpr(c, CHILD(ch, 0));
             }
             else if (CHILD(ch, 1).type === SYM.gen_for)
@@ -4793,15 +4819,15 @@ function astForCall(c, n, func) {
             else {
                 var e = astForExpr(c, CHILD(ch, 0));
                 if (e.constructor === Lambda)
-                    throw syntaxError("lambda cannot contain assignment", n.lineno);
+                    throw syntaxError$1("lambda cannot contain assignment", n.lineno);
                 else if (e.constructor !== Name)
-                    throw syntaxError("keyword can't be an expression", n.lineno);
+                    throw syntaxError$1("keyword can't be an expression", n.lineno);
                 var key = e.id;
                 forbiddenCheck(c, CHILD(ch, 0), key, n.lineno);
                 for (var k = 0; k < nkeywords; ++k) {
                     var tmp = keywords[k].arg;
                     if (tmp === key)
-                        throw syntaxError("keyword argument repeated", n.lineno);
+                        throw syntaxError$1("keyword argument repeated", n.lineno);
                 }
                 keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
             }
@@ -4936,14 +4962,14 @@ function astForArguments(c, n) {
                         /* def f((x)=4): pass should raise an error.
                             def f((x, (y))): pass will just incur the tuple unpacking warning. */
                         if (parenthesized && !complexArgs)
-                            throw syntaxError("parenthesized arg with default", n.lineno);
-                        throw syntaxError("non-default argument follows default argument", n.lineno);
+                            throw syntaxError$1("parenthesized arg with default", n.lineno);
+                        throw syntaxError$1("non-default argument follows default argument", n.lineno);
                     }
                     if (NCH(ch) === 3) {
                         ch = CHILD(ch, 1);
                         // def foo((x)): is not complex, special case.
                         if (NCH(ch) !== 1) {
-                            throw syntaxError("tuple parameter unpacking has been removed", n.lineno);
+                            throw syntaxError$1("tuple parameter unpacking has been removed", n.lineno);
                         }
                         else {
                             /* def foo((x)): setup for checking NAME below. */
@@ -4962,7 +4988,7 @@ function astForArguments(c, n) {
                     }
                     i += 2;
                     if (parenthesized)
-                        throw syntaxError("parenthesized argument names are invalid", n.lineno);
+                        throw syntaxError$1("parenthesized argument names are invalid", n.lineno);
                     break;
                 }
                 break;
@@ -5194,8 +5220,8 @@ function astForExprStmt(c, n) {
         var ch = CHILD(n, 0);
         var expr1 = astForTestlist(c, ch);
         switch (expr1.constructor) {
-            case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.lineno);
-            case Yield: throw syntaxError("augmented assignment to yield expression not possible", n.lineno);
+            case GeneratorExp: throw syntaxError$1("augmented assignment to generator expression not possible", n.lineno);
+            case Yield: throw syntaxError$1("augmented assignment to yield expression not possible", n.lineno);
             case Name:
                 var varName = expr1.id;
                 forbiddenCheck(c, ch, varName, n.lineno);
@@ -5204,7 +5230,7 @@ function astForExprStmt(c, n) {
             case Subscript:
                 break;
             default:
-                throw syntaxError("illegal expression for augmented assignment", n.lineno);
+                throw syntaxError$1("illegal expression for augmented assignment", n.lineno);
         }
         setContext(c, expr1, Store, ch);
         ch = CHILD(n, 2);
@@ -5222,7 +5248,7 @@ function astForExprStmt(c, n) {
         for (var i = 0; i < NCH(n) - 2; i += 2) {
             var ch = CHILD(n, i);
             if (ch.type === SYM.YieldExpr)
-                throw syntaxError("assignment to yield expression not possible", n.lineno);
+                throw syntaxError$1("assignment to yield expression not possible", n.lineno);
             var e = astForTestlist(c, ch);
             setContext(c, e, Store, CHILD(n, i));
             targets[i / 2] = e;
@@ -5338,7 +5364,7 @@ function parsestrplus(c, n) {
             ret = ret + parsestr(c, child.value);
         }
         catch (x) {
-            throw syntaxError("invalid string (possibly contains a unicode character)", child.lineno);
+            throw syntaxError$1("invalid string (possibly contains a unicode character)", child.lineno);
         }
     }
     return ret;
@@ -5346,7 +5372,7 @@ function parsestrplus(c, n) {
 function parsenumber(c, s, lineno) {
     var end = s.charAt(s.length - 1);
     if (end === 'j' || end === 'J') {
-        throw syntaxError("complex numbers are currently unsupported", lineno);
+        throw syntaxError$1("complex numbers are currently unsupported", lineno);
     }
     if (s.indexOf('.') !== -1) {
         return floatAST(s);
@@ -5511,7 +5537,7 @@ function astForAtomExpr(c, n) {
             return new Dict(keys, values, n.lineno, n.col_offset);
         }
         case Tokens.T_BACKQUOTE: {
-            throw syntaxError("backquote not supported, use repr()", n.lineno);
+            throw syntaxError$1("backquote not supported, use repr()", n.lineno);
         }
         default: {
             throw new Error("unhandled atom '" + grammarName(c0.type) + "'");
@@ -5723,14 +5749,16 @@ function astDump(node) {
         if (node === null) {
             return "None";
         }
-        else if (node.prototype && node.prototype._astname !== undefined && node.prototype._isenum) {
-            return node.prototype._astname + "()";
+        else if (node['prototype'] && node['prototype']._astname !== undefined && node['prototype']._isenum) {
+            // TODO: Replace the _isenum classes with real TypeScript enum.
+            // TODO: Why do we have the parens?
+            return node['prototype']._astname + "()";
         }
-        else if (node._astname !== undefined) {
+        else if (node['_astname'] !== undefined) {
             var fields = [];
-            for (var i = 0; i < node._fields.length; i += 2) {
-                var a = node._fields[i]; // field name
-                var b = node._fields[i + 1](node); // field getter func
+            for (var i = 0; i < node['_fields'].length; i += 2) {
+                var a = node['_fields'][i]; // field name
+                var b = node['_fields'][i + 1](node); // field getter func
                 fields.push([a, _format(b)]);
             }
             var attrs = [];
@@ -5739,9 +5767,9 @@ function astDump(node) {
                 attrs.push(field[0] + "=" + field[1].replace(/^\s+/, ''));
             }
             var fieldstr = attrs.join(',');
-            return node._astname + "(" + fieldstr + ")";
+            return node['_astname'] + "(" + fieldstr + ")";
         }
-        else if (isArrayLike(node)) {
+        else if (Array.isArray(node)) {
             var elems = [];
             for (var i = 0; i < node.length; ++i) {
                 var x = node[i];
@@ -6034,22 +6062,6 @@ var SymbolTableScope = (function () {
 }());
 
 /**
- * @param message
- * @param lineNumber
- */
-function syntaxError$1(message, lineNumber) {
-    assert(isString(message), "message must be a string");
-    if (isDef(lineNumber)) {
-        assert(isNumber(lineNumber), "lineNumber must be a number");
-    }
-    var e = new SyntaxError(message /*, fileName*/);
-    if (typeof lineNumber === 'number') {
-        e['lineNumber'] = lineNumber;
-    }
-    return e;
-}
-
-/**
  * The symbol table uses the abstract synntax tree (not the parse tree).
  */
 var SymbolTable = (function () {
@@ -6137,7 +6149,7 @@ var SymbolTable = (function () {
             }
             else {
                 // Tuple isn't supported
-                throw syntaxError$1("invalid expression in parameter list");
+                throw syntaxError("invalid expression in parameter list");
             }
         }
     };
@@ -6175,7 +6187,7 @@ var SymbolTable = (function () {
         var val = this.cur.symFlags[mangled];
         if (val !== undefined) {
             if ((flags & DEF_PARAM) && (val & DEF_PARAM)) {
-                throw syntaxError$1("duplicate argument '" + name + "' in function definition", lineno);
+                throw syntaxError("duplicate argument '" + name + "' in function definition", lineno);
             }
             val |= flags;
         }
@@ -6248,7 +6260,7 @@ var SymbolTable = (function () {
                 this.visitExpr(s.value);
                 this.cur.returnsValue = true;
                 if (this.cur.generator) {
-                    throw syntaxError$1("'return' with argument inside generator");
+                    throw syntaxError("'return' with argument inside generator");
                 }
             }
         }
@@ -6336,10 +6348,10 @@ var SymbolTable = (function () {
                 var cur = this.cur.symFlags[name_1];
                 if (cur & (DEF_LOCAL | USE)) {
                     if (cur & DEF_LOCAL) {
-                        throw syntaxError$1("name '" + name_1 + "' is assigned to before global declaration", s.lineno);
+                        throw syntaxError("name '" + name_1 + "' is assigned to before global declaration", s.lineno);
                     }
                     else {
-                        throw syntaxError$1("name '" + name_1 + "' is used prior to global declaration", s.lineno);
+                        throw syntaxError("name '" + name_1 + "' is used prior to global declaration", s.lineno);
                     }
                 }
                 this.addDef(name_1, DEF_GLOBAL, s.lineno);
@@ -6408,7 +6420,7 @@ var SymbolTable = (function () {
                 this.visitExpr(e.value);
             this.cur.generator = true;
             if (this.cur.returnsValue) {
-                throw syntaxError$1("'return' with argument inside generator");
+                throw syntaxError("'return' with argument inside generator");
             }
         }
         else if (e instanceof Compare) {
@@ -6479,7 +6491,7 @@ var SymbolTable = (function () {
             }
             else {
                 if (this.cur.blockType !== ModuleBlock) {
-                    throw syntaxError$1("import * only allowed at module level");
+                    throw syntaxError("import * only allowed at module level");
                 }
             }
         }
@@ -6613,7 +6625,7 @@ var SymbolTable = (function () {
     SymbolTable.prototype.analyzeName = function (ste, dict, name, flags, bound, local, free, global) {
         if (flags & DEF_GLOBAL) {
             if (flags & DEF_PARAM)
-                throw syntaxError$1("name '" + name + "' is local and global", ste.lineno);
+                throw syntaxError("name '" + name + "' is local and global", ste.lineno);
             dict[name] = GLOBAL_EXPLICIT;
             global[name] = null;
             if (bound && bound[name] !== undefined)
@@ -7239,7 +7251,9 @@ var Printer = (function () {
         this.writer.endObject();
     };
     Printer.prototype.expressionStatement = function (s) {
+        this.writer.beginStatement();
         s.value.accept(this);
+        this.writer.endStatement();
     };
     Printer.prototype.functionDef = function (functionDef) {
         var isClassMethod = isMethod(functionDef);
@@ -7374,7 +7388,7 @@ function transpileModule(sourceText) {
         var mod = new Module(stmts);
         var symbolTable = semanticsOfModule(mod);
         var printer = new Printer(symbolTable, 0, sourceText);
-        return { code: printer.transpileModule(mod), cst: cst, symbolTable: symbolTable };
+        return { code: printer.transpileModule(mod), cst: cst, mod: mod, symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");

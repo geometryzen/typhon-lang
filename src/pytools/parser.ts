@@ -5,21 +5,40 @@ import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
 import { tokenNames } from './tokenNames';
 import { grammarName } from './grammarName';
+import { parseError } from './syntaxError';
 
 /**
- * Decode this!!!
+ * Forget about the array wrapper!
+ * An Arc is a two-part object consisting a ... and a to-state.
  */
+const ARC_SYMBOL_LABEL = 0;
+const ARC_TO_STATE = 1;
 export type Arc = [number, number];
-export type State = [Arc[], [[number, number]], [[number, number]]];
-export type Dfa = [State, { [value: number]: number }];
+
+/**
+ * Forget about the array wrapper!
+ * A Dfa is a two-part object consisting of:
+ * 1. A list of arcs for each state
+ * 2. A mapping?
+ * Interestingly, the second part does not seem to be used here.
+ */
+const DFA_STATES = 0;
+// const DFA_SECOND = 1;
+export type Dfa = [Arc[][], { [value: number]: number }];
 
 /**
  * Describes the shape of the ParseTables objects (which needs to be renamed BTW).
  */
 export interface Grammar {
     start: Tokens;
+    /**
+     *
+     */
     dfas: { [value: number]: Dfa };
-    labels: number[][];
+    /**
+     * The index is the symbol for a transition.
+     */
+    labels: [number, string | null][];
     keywords: { [keyword: string]: number };
     tokens: { [token: number]: number };
     /**
@@ -65,36 +84,6 @@ export interface StackElement {
 
 // low level parser to a concrete syntax tree, derived from cpython's lib2to3
 
-export interface Position {
-    row: number;
-    column: number;
-}
-
-export class ParseError extends SyntaxError {
-    constructor(message: string) {
-        super(message);
-        this.name = 'ParseError';
-    }
-    begin?: Position;
-    end?: Position;
-}
-
-/**
- * @param message
- * @param begin
- * @param end
- */
-function parseError(message: string, begin?: LineColumn, end?: LineColumn): ParseError {
-    const e = new ParseError(message);
-    if (Array.isArray(begin)) {
-        e.begin = { row: begin[0] - 1, column: begin[1] - 1 };
-    }
-    if (Array.isArray(end)) {
-        e.end = { row: end[0] - 1, column: end[1] - 1 };
-    }
-    return e;
-}
-
 // TODO: The parser does not report whitespace nodes.
 // It would be nice if there were an ignoreWhitespace option.
 class Parser {
@@ -134,32 +123,35 @@ class Parser {
      * @param context [start, end, line]
      */
     addtoken(type: Tokens, value: string, context: ParseContext): boolean {
-        const ilabel = this.classify(type, value, context);
+        /**
+         * The symbol for the token being added.
+         */
+        const tokenSymbol = this.classify(type, value, context);
 
         OUTERWHILE:
         while (true) {
             let tp = this.stack[this.stack.length - 1];
             assert(typeof tp === 'object', `stack element must be a StackElement. stack = ${JSON.stringify(this.stack)}`);
-            let states = tp.dfa[0];
-            let first = tp.dfa[1];
+            let states = tp.dfa[DFA_STATES];
+            // This is not being used. Why?
+            // let first = tp.dfa[DFA_SECOND];
             const arcs = states[tp.state];
 
-            // look for a state with this label
-            for (let a = 0; a < arcs.length; ++a) {
-                const i = arcs[a][0];
-                const newstate = arcs[a][1];
-                const t = this.grammar.labels[i][0];
-                // var v = this.grammar.labels[i][1];
-                if (ilabel === i) {
+            // look for a to-state with this label
+            for (const arc of arcs) {
+                const arcSymbol = arc[ARC_SYMBOL_LABEL];
+                const newstate = arc[ARC_TO_STATE];
+                const t = this.grammar.labels[arcSymbol][0];
+                // const v = this.grammar.labels[i][1];
+                // console.log(`t => ${t}, v => ${v}`);
+                if (tokenSymbol === arcSymbol) {
                     // look it up in the list of labels
                     assert(t < 256);
                     // shift a token; we're done with it
                     this.shift(type, value, newstate, context);
                     // pop while we are in an accept-only state
                     let state = newstate;
-                    while (states[state].length === 1
-                        && states[state][0][0] === 0
-                        && states[state][0][1] === state) {
+                    while (states[state].length === 1 && states[state][0][ARC_SYMBOL_LABEL] === 0 /* Tokens.T_ENDMARKER? */ && states[state][0][ARC_TO_STATE] === state) {
                         this.pop();
                         if (this.stack.length === 0) {
                             // done!
@@ -167,8 +159,8 @@ class Parser {
                         }
                         tp = this.stack[this.stack.length - 1];
                         state = tp.state;
-                        states = tp.dfa[0];
-                        first = tp.dfa[1];
+                        states = tp.dfa[DFA_STATES];
+                        // first = tp.dfa[1];
                     }
                     // done with this token
                     return false;
@@ -176,7 +168,7 @@ class Parser {
                 else if (t >= 256) {
                     const itsdfa = this.grammar.dfas[t];
                     const itsfirst = itsdfa[1];
-                    if (itsfirst.hasOwnProperty(ilabel)) {
+                    if (itsfirst.hasOwnProperty(tokenSymbol)) {
                         // push a symbol
                         this.push(t, this.grammar.dfas[t], newstate, context);
                         continue OUTERWHILE;
@@ -202,7 +194,8 @@ class Parser {
     }
 
     /**
-     * turn a token into a label.
+     * Turn a token into a symbol (something that labels an arc in the DFA).
+     * The context is only used for error reporting.
      * @param type
      * @param value
      * @param context [begin, end, line]

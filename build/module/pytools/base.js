@@ -155,17 +155,6 @@ export function isArray(val) {
     return typeOf(val) === 'array';
 }
 /**
- * Returns true if the object looks like an array. To qualify as array like
- * the value needs to be either a NodeList or an object with a Number length
- * property.
- * @param {*} val Variable to test.
- * @return {boolean} Whether variable is an array.
- */
-export function isArrayLike(val) {
-    var type = typeOf(val);
-    return type === 'array' || type === 'object' && typeof val.length === 'number';
-}
-/**
  * Returns true if the object looks like a Date. To qualify as Date-like the
  * value needs to be an object and have a getFullYear() function.
  * @param {*} val Variable to test.

@@ -93,7 +93,7 @@ import { WhileStatement } from './types';
 import { WithStatement } from './types';
 import { Yield } from './types';
 
-import { isArrayLike, isNumber, isString } from './base';
+import { isNumber, isString } from './base';
 import { ParseTables } from './tables';
 import { Tokens as TOK } from './Tokens';
 import { floatAST, intAST, longAST } from './numericLiteral';
@@ -119,6 +119,7 @@ const SYM = ParseTables.sym;
 const LONG_THRESHOLD = Math.pow(2, 53);
 
 /**
+ * FIXME: Consolidate with parseError in parser.
  * @param message
  * @param lineNumber
  */
@@ -1982,19 +1983,21 @@ export function astFromParse(n: PyNode): Statement[] {
     */
 }
 
-export function astDump(node: {}): string {
-    const _format = function (node: any): string {
+export function astDump(node: Expression | Statement): string {
+    const _format = function (node: Expression | Statement | boolean | any[]): string {
         if (node === null) {
             return "None";
         }
-        else if (node.prototype && node.prototype._astname !== undefined && node.prototype._isenum) {
-            return node.prototype._astname + "()";
+        else if (node['prototype'] && node['prototype']._astname !== undefined && node['prototype']._isenum) {
+            // TODO: Replace the _isenum classes with real TypeScript enum.
+            // TODO: Why do we have the parens?
+            return node['prototype']._astname + "()";
         }
-        else if (node._astname !== undefined) {
+        else if (node['_astname'] !== undefined) {
             const fields = [];
-            for (let i = 0; i < node._fields.length; i += 2) {
-                const a = node._fields[i]; // field name
-                const b = node._fields[i + 1](node); // field getter func
+            for (let i = 0; i < node['_fields'].length; i += 2) {
+                const a = node['_fields'][i]; // field name
+                const b = node['_fields'][i + 1](node); // field getter func
                 fields.push([a, _format(b)]);
             }
             const attrs: string[] = [];
@@ -2003,9 +2006,9 @@ export function astDump(node: {}): string {
                 attrs.push(field[0] + "=" + field[1].replace(/^\s+/, ''));
             }
             const fieldstr = attrs.join(',');
-            return node._astname + "(" + fieldstr + ")";
+            return node['_astname'] + "(" + fieldstr + ")";
         }
-        else if (isArrayLike(node)) {
+        else if (Array.isArray(node)) {
             const elems = [];
             for (let i = 0; i < node.length; ++i) {
                 const x = node[i];
@@ -2018,8 +2021,6 @@ export function astDump(node: {}): string {
             let ret: string;
             if (node === true) ret = "True";
             else if (node === false) ret = "False";
-            //          else if (Sk.ffi.isLong(node)) ret = Sk.ffi.remapToJs(node.tp$str());
-            //          else if (Sk.builtin.isStringPy(node)) ret = Sk.builtin.stringToJs(node.tp$repr());
             else ret = "" + node;
             return ret;
         }

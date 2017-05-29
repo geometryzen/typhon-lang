@@ -1,4 +1,5 @@
-import { parse, ParseError, PyNode } from './parser';
+import { parse, PyNode } from './parser';
+import { ParseError } from './syntaxError';
 import { astFromParse, astDump } from './builder';
 import { semanticsOfModule } from './symtable';
 // import { dumpSymbolTable } from './symtable';
