@@ -524,8 +524,8 @@ var ParseTables = {
         286: [[[[99, 1],
                     [100, 1],
                     [7, 2],
-                    [99, 1],
                     [101, 1],
+                    [99, 1],
                     [102, 1],
                     [103, 1],
                     [104, 3],
@@ -1107,8 +1107,8 @@ var ParseTables = {
         [[[99, 1],
                 [100, 1],
                 [7, 2],
-                [99, 1],
                 [101, 1],
+                [99, 1],
                 [102, 1],
                 [103, 1],
                 [104, 3],
@@ -6700,12 +6700,23 @@ function semanticsOfModule(mod) {
     return ret;
 }
 
+/**
+ * Determines whether the name or attribute should be considered to be a class.
+ * This is a heuristic test based upon the JavaScript convention for class names.
+ * In future we may be able to use type information.
+ */
 function isClassNameByConvention(name) {
     var id = name.id;
-    var N = id.length;
-    if (N > 0) {
-        var firstChar = id[0];
-        return firstChar.toUpperCase() === firstChar;
+    if (typeof id === 'string') {
+        // console.lg(`name => ${JSON.stringify(name, null, 2)}`);
+        var N = id.length;
+        if (N > 0) {
+            var firstChar = id[0];
+            return firstChar.toUpperCase() === firstChar;
+        }
+        else {
+            return false;
+        }
     }
     else {
         return false;
@@ -7102,8 +7113,13 @@ var Printer = (function () {
                 this.writer.write("new ");
             }
         }
+        else if (ce.func instanceof Attribute) {
+            if (isClassNameByConvention(ce.func)) {
+                this.writer.write("new ");
+            }
+        }
         else {
-            throw new Error("Call.func must be a Name");
+            throw new Error("Call.func must be a Name " + ce.func);
         }
         ce.func.accept(this);
         this.writer.openParen();

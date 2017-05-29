@@ -689,4 +689,91 @@ describe('parse', function () {
             expect(em.children).toBeNull();
         });
     });
+
+    describe('a = b.c(t)', function () {
+        const cst = parse('a = b.c(t)') as PyNode;
+        // console.lg(JSON.stringify(DECODE(cst), null, 2));
+        const ns = TERMS(cst);
+
+        it("should have correct number of terminals", function () {
+            expect(Array.isArray(ns)).toBeTruthy();
+            expect(ns.length).toBe(10);
+        });
+
+        const a = ns[0];
+        const eq = ns[1];
+        const b = ns[2];
+        const dot = ns[3];
+        const c = ns[4];
+        const lPar = ns[5];
+        const t = ns[6];
+        const rPar = ns[7];
+
+        const nl = ns[IDXLAST(ns) - 1];
+        const em = ns[IDXLAST(ns)];
+
+        it("should have the correct terminals", function () {
+            expect(tokenNames[a.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(a.value).toBe('a');
+            expect(a.lineno).toBe(1);
+            expect(a.col_offset).toBe(0);
+            expect(a.children).toBeNull();
+
+            expect(tokenNames[eq.type]).toBe(tokenNames[Tokens.T_EQUAL]);
+            expect(eq.value).toBe('=');
+            expect(eq.lineno).toBe(1);
+            expect(eq.col_offset).toBe(2);
+            expect(eq.children).toBeNull();
+
+            expect(tokenNames[b.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(b.value).toBe('b');
+            expect(b.lineno).toBe(1);
+            expect(b.col_offset).toBe(4);
+            expect(b.children).toBeNull();
+
+            expect(tokenNames[dot.type]).toBe(tokenNames[Tokens.T_DOT]);
+            expect(dot.value).toBe('.');
+            expect(dot.lineno).toBe(1);
+            expect(dot.col_offset).toBe(5);
+            expect(dot.children).toBeNull();
+
+            expect(tokenNames[c.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(c.value).toBe('c');
+            expect(c.lineno).toBe(1);
+            expect(c.col_offset).toBe(6);
+            expect(c.children).toBeNull();
+
+            expect(tokenNames[lPar.type]).toBe(tokenNames[Tokens.T_LPAR]);
+            expect(lPar.value).toBe('(');
+            expect(lPar.lineno).toBe(1);
+            expect(lPar.col_offset).toBe(7);
+            expect(lPar.children).toBeNull();
+
+            expect(tokenNames[t.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(t.value).toBe('t');
+            expect(t.lineno).toBe(1);
+            expect(t.col_offset).toBe(8);
+            expect(t.children).toBeNull();
+
+            expect(tokenNames[rPar.type]).toBe(tokenNames[Tokens.T_RPAR]);
+            expect(rPar.value).toBe(')');
+            expect(rPar.lineno).toBe(1);
+            expect(rPar.col_offset).toBe(9);
+            expect(rPar.children).toBeNull();
+
+            // Newline
+            expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
+            expect(nl.value).toBe("\n");
+            expect(nl.lineno).toBe(1);
+            expect(nl.col_offset).toBe(10);
+            expect(nl.children).toBeNull();
+
+            // End Marker
+            expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
+            expect(em.value).toBe("");
+            expect(em.lineno).toBe(2);
+            expect(em.col_offset).toBe(0);
+            expect(em.children).toBeNull();
+        });
+    });
 });

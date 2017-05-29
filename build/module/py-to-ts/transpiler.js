@@ -1,4 +1,5 @@
 import { assert } from '../pytools/asserts';
+import { Attribute } from '../pytools/types';
 import { Add, Sub, Mult, Div, BitOr, BitXor, BitAnd, LShift, RShift, FloorDiv, Mod } from '../pytools/types';
 import { Eq, NotEq, Gt, GtE, Lt, LtE, In, NotIn, Is, IsNot } from '../pytools/types';
 import { Module } from '../pytools/types';
@@ -231,8 +232,13 @@ var Printer = (function () {
                 this.writer.write("new ");
             }
         }
+        else if (ce.func instanceof Attribute) {
+            if (isClassNameByConvention(ce.func)) {
+                this.writer.write("new ");
+            }
+        }
         else {
-            throw new Error("Call.func must be a Name");
+            throw new Error("Call.func must be a Name " + ce.func);
         }
         ce.func.accept(this);
         this.writer.openParen();

@@ -349,8 +349,13 @@ class Printer implements Visitor {
                 this.writer.write("new ");
             }
         }
+        else if (ce.func instanceof Attribute) {
+            if (isClassNameByConvention(ce.func)) {
+                this.writer.write("new ");
+            }
+        }
         else {
-            throw new Error("Call.func must be a Name");
+            throw new Error(`Call.func must be a Name ${ce.func}`);
         }
         ce.func.accept(this);
         this.writer.openParen();

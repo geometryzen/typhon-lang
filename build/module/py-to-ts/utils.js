@@ -1,9 +1,20 @@
+/**
+ * Determines whether the name or attribute should be considered to be a class.
+ * This is a heuristic test based upon the JavaScript convention for class names.
+ * In future we may be able to use type information.
+ */
 export function isClassNameByConvention(name) {
     var id = name.id;
-    var N = id.length;
-    if (N > 0) {
-        var firstChar = id[0];
-        return firstChar.toUpperCase() === firstChar;
+    if (typeof id === 'string') {
+        // console.lg(`name => ${JSON.stringify(name, null, 2)}`);
+        var N = id.length;
+        if (N > 0) {
+            var firstChar = id[0];
+            return firstChar.toUpperCase() === firstChar;
+        }
+        else {
+            return false;
+        }
     }
     else {
         return false;

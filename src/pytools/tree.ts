@@ -2,7 +2,7 @@ import { assert } from './asserts';
 
 export interface Tree {
     type: number;
-    children: Tree[];
+    children: Tree[] | null | undefined;
 }
 
 /**

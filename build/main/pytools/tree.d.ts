@@ -1,6 +1,6 @@
 export interface Tree {
     type: number;
-    children: Tree[];
+    children: Tree[] | null | undefined;
 }
 /**
  * Returns the number of children in the specified node.

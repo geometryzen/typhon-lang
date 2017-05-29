@@ -5,6 +5,7 @@ var types_1 = require("../pytools/types");
 var types_2 = require("../pytools/types");
 var types_3 = require("../pytools/types");
 var types_4 = require("../pytools/types");
+var types_5 = require("../pytools/types");
 var parser_1 = require("../pytools/parser");
 var builder_1 = require("../pytools/builder");
 var symtable_1 = require("../pytools/symtable");
@@ -146,7 +147,7 @@ var Printer = (function () {
         // TODO: How to deal with multiple target?
         for (var _i = 0, _a = assign.targets; _i < _a.length; _i++) {
             var target = _a[_i];
-            if (target instanceof types_4.Name) {
+            if (target instanceof types_5.Name) {
                 var flags = this.u.ste.symFlags[target.id];
                 // console.log(`${target.id} => ${flags.toString(2)}`);
                 if (flags && SymbolConstants_1.DEF_LOCAL) {
@@ -175,47 +176,47 @@ var Printer = (function () {
     Printer.prototype.binOp = function (be) {
         be.left.accept(this);
         switch (be.op) {
-            case types_1.Add: {
+            case types_2.Add: {
                 this.writer.binOp("+");
                 break;
             }
-            case types_1.Sub: {
+            case types_2.Sub: {
                 this.writer.binOp("-");
                 break;
             }
-            case types_1.Mult: {
+            case types_2.Mult: {
                 this.writer.binOp("*");
                 break;
             }
-            case types_1.Div: {
+            case types_2.Div: {
                 this.writer.binOp("/");
                 break;
             }
-            case types_1.BitOr: {
+            case types_2.BitOr: {
                 this.writer.binOp("|");
                 break;
             }
-            case types_1.BitXor: {
+            case types_2.BitXor: {
                 this.writer.binOp("^");
                 break;
             }
-            case types_1.BitAnd: {
+            case types_2.BitAnd: {
                 this.writer.binOp("&");
                 break;
             }
-            case types_1.LShift: {
+            case types_2.LShift: {
                 this.writer.binOp("<<");
                 break;
             }
-            case types_1.RShift: {
+            case types_2.RShift: {
                 this.writer.binOp(">>");
                 break;
             }
-            case types_1.Mod: {
+            case types_2.Mod: {
                 this.writer.binOp("%");
                 break;
             }
-            case types_1.FloorDiv: {
+            case types_2.FloorDiv: {
                 // TODO: What is the best way to handle FloorDiv.
                 // This doesn't actually exist in TypeScript.
                 this.writer.binOp("//");
@@ -228,13 +229,18 @@ var Printer = (function () {
         be.right.accept(this);
     };
     Printer.prototype.callExpression = function (ce) {
-        if (ce.func instanceof types_4.Name) {
+        if (ce.func instanceof types_5.Name) {
+            if (utils_1.isClassNameByConvention(ce.func)) {
+                this.writer.write("new ");
+            }
+        }
+        else if (ce.func instanceof types_1.Attribute) {
             if (utils_1.isClassNameByConvention(ce.func)) {
                 this.writer.write("new ");
             }
         }
         else {
-            throw new Error("Call.func must be a Name");
+            throw new Error("Call.func must be a Name " + ce.func);
         }
         ce.func.accept(this);
         this.writer.openParen();
@@ -280,43 +286,43 @@ var Printer = (function () {
         for (var _i = 0, _a = ce.ops; _i < _a.length; _i++) {
             var op = _a[_i];
             switch (op) {
-                case types_2.Eq: {
+                case types_3.Eq: {
                     this.writer.write("===");
                     break;
                 }
-                case types_2.NotEq: {
+                case types_3.NotEq: {
                     this.writer.write("!==");
                     break;
                 }
-                case types_2.Lt: {
+                case types_3.Lt: {
                     this.writer.write("<");
                     break;
                 }
-                case types_2.LtE: {
+                case types_3.LtE: {
                     this.writer.write("<=");
                     break;
                 }
-                case types_2.Gt: {
+                case types_3.Gt: {
                     this.writer.write(">");
                     break;
                 }
-                case types_2.GtE: {
+                case types_3.GtE: {
                     this.writer.write(">=");
                     break;
                 }
-                case types_2.Is: {
+                case types_3.Is: {
                     this.writer.write("===");
                     break;
                 }
-                case types_2.IsNot: {
+                case types_3.IsNot: {
                     this.writer.write("!==");
                     break;
                 }
-                case types_2.In: {
+                case types_3.In: {
                     this.writer.write(" in ");
                     break;
                 }
-                case types_2.NotIn: {
+                case types_3.NotIn: {
                     this.writer.write(" not in ");
                     break;
                 }
@@ -478,7 +484,7 @@ function transpileModule(sourceText) {
     var cst = parser_1.parse(sourceText, parser_1.SourceKind.File);
     if (typeof cst === 'object') {
         var stmts = builder_1.astFromParse(cst);
-        var mod = new types_3.Module(stmts);
+        var mod = new types_4.Module(stmts);
         var symbolTable = symtable_1.semanticsOfModule(mod);
         var printer = new Printer(symbolTable, 0, sourceText);
         return { code: printer.transpileModule(mod), cst: cst, symbolTable: symbolTable };

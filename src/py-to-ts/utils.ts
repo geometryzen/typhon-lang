@@ -1,12 +1,24 @@
+import { Attribute } from '../pytools/types';
 import { FunctionDef } from '../pytools/types';
 import { Name } from '../pytools/types';
 
-export function isClassNameByConvention(name: Name): boolean {
+/**
+ * Determines whether the name or attribute should be considered to be a class.
+ * This is a heuristic test based upon the JavaScript convention for class names.
+ * In future we may be able to use type information.
+ */
+export function isClassNameByConvention(name: Attribute | Name): boolean {
     const id = name.id;
-    const N = id.length;
-    if (N > 0) {
-        const firstChar = id[0];
-        return firstChar.toUpperCase() === firstChar;
+    if (typeof id === 'string') {
+        // console.lg(`name => ${JSON.stringify(name, null, 2)}`);
+        const N = id.length;
+        if (N > 0) {
+            const firstChar = id[0];
+            return firstChar.toUpperCase() === firstChar;
+        }
+        else {
+            return false;
+        }
     }
     else {
         return false;

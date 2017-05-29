@@ -364,4 +364,13 @@ describe('transpiler', function () {
             expect(result.code).toBe(resultText);
         });
     });
+
+    // Trying out things. Break down into simpler tests.
+    describe('Misc', function () {
+        it('...', function () {
+            const sourceText = "a = b.c(t)";
+            const result = compile(sourceText);
+            expect(result.code).toBe("let a=b.c(t);");
+        });
+    });
 });
