@@ -4,6 +4,32 @@
 	(factory((global.PYTOOLS = global.PYTOOLS || {})));
 }(this, (function (exports) { 'use strict';
 
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+/* global Reflect, Promise */
+
+var extendStatics = Object.setPrototypeOf ||
+    ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+    function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+
+function __extends(d, b) {
+    extendStatics(d, b);
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+
 /**
  * Symbolic constants for various Python Language tokens.
  */
@@ -524,8 +550,8 @@ var ParseTables = {
         286: [[[[99, 1],
                     [100, 1],
                     [7, 2],
-                    [101, 1],
                     [99, 1],
+                    [101, 1],
                     [102, 1],
                     [103, 1],
                     [104, 3],
@@ -1107,8 +1133,8 @@ var ParseTables = {
         [[[99, 1],
                 [100, 1],
                 [7, 2],
-                [101, 1],
                 [99, 1],
+                [101, 1],
                 [102, 1],
                 [103, 1],
                 [104, 3],
@@ -1451,9 +1477,9 @@ var ParseTables = {
         [322, null],
         [292, null],
         [300, null],
-        [302, null],
-        [282, null],
         [313, null],
+        [282, null],
+        [302, null],
         [326, null],
         [329, null],
         [5, null],
@@ -2274,19 +2300,27 @@ function grammarName(type) {
     }
 }
 
-// low level parser to a concrete syntax tree, derived from cpython's lib2to3
+var ParseError = (function (_super) {
+    __extends(ParseError, _super);
+    function ParseError(message) {
+        var _this = _super.call(this, message) || this;
+        _this.name = 'ParseError';
+        return _this;
+    }
+    return ParseError;
+}(SyntaxError));
 /**
  * @param message
- * @param fileName
  * @param begin
  * @param end
  */
 function parseError(message, begin, end) {
-    var e = new SyntaxError(message);
-    e.name = "ParseError";
+    var e = new ParseError(message);
     if (Array.isArray(begin)) {
-        e['lineNumber'] = begin[0];
-        e['columnNumber'] = begin[1];
+        e.begin = { row: begin[0] - 1, column: begin[1] - 1 };
+    }
+    if (Array.isArray(end)) {
+        e.end = { row: end[0] - 1, column: end[1] - 1 };
     }
     return e;
 }
@@ -2599,32 +2633,6 @@ function parseTreeDump(parseTree) {
         return ret;
     }
     return parseTreeDumpInternal(parseTree, "");
-}
-
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
-
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-***************************************************************************** */
-/* global Reflect, Promise */
-
-var extendStatics = Object.setPrototypeOf ||
-    ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-    function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-
-function __extends(d, b) {
-    extendStatics(d, b);
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 }
 
 //
@@ -7375,6 +7383,7 @@ function transpileModule(sourceText) {
 
 exports.parse = parse;
 exports.parseTreeDump = parseTreeDump;
+exports.ParseError = ParseError;
 exports.astFromParse = astFromParse;
 exports.astDump = astDump;
 exports.transpileModule = transpileModule;

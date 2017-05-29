@@ -64,6 +64,15 @@ export interface StackElement {
     state: number;
     node: PyNode;
 }
+export interface Position {
+    row: number;
+    column: number;
+}
+export declare class ParseError extends SyntaxError {
+    constructor(message: string);
+    begin?: Position;
+    end?: Position;
+}
 /**
  * Determines the starting point in the grammar for parsing the source.
  */

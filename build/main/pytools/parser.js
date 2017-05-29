@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var tslib_1 = require("tslib");
 var tables_1 = require("./tables");
 var tree_1 = require("./tree");
 var asserts_1 = require("./asserts");
@@ -7,19 +8,28 @@ var Tokenizer_1 = require("./Tokenizer");
 var Tokens_1 = require("./Tokens");
 var tokenNames_1 = require("./tokenNames");
 var grammarName_1 = require("./grammarName");
-// low level parser to a concrete syntax tree, derived from cpython's lib2to3
+var ParseError = (function (_super) {
+    tslib_1.__extends(ParseError, _super);
+    function ParseError(message) {
+        var _this = _super.call(this, message) || this;
+        _this.name = 'ParseError';
+        return _this;
+    }
+    return ParseError;
+}(SyntaxError));
+exports.ParseError = ParseError;
 /**
  * @param message
- * @param fileName
  * @param begin
  * @param end
  */
 function parseError(message, begin, end) {
-    var e = new SyntaxError(message);
-    e.name = "ParseError";
+    var e = new ParseError(message);
     if (Array.isArray(begin)) {
-        e['lineNumber'] = begin[0];
-        e['columnNumber'] = begin[1];
+        e.begin = { row: begin[0] - 1, column: begin[1] - 1 };
+    }
+    if (Array.isArray(end)) {
+        e.end = { row: end[0] - 1, column: end[1] - 1 };
     }
     return e;
 }

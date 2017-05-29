@@ -65,18 +65,32 @@ export interface StackElement {
 
 // low level parser to a concrete syntax tree, derived from cpython's lib2to3
 
+export interface Position {
+    row: number;
+    column: number;
+}
+
+export class ParseError extends SyntaxError {
+    constructor(message: string) {
+        super(message);
+        this.name = 'ParseError';
+    }
+    begin?: Position;
+    end?: Position;
+}
+
 /**
  * @param message
- * @param fileName
  * @param begin
  * @param end
  */
-function parseError(message: string, begin?: LineColumn, end?: LineColumn): SyntaxError {
-    const e = new SyntaxError(message);
-    e.name = "ParseError";
+function parseError(message: string, begin?: LineColumn, end?: LineColumn): ParseError {
+    const e = new ParseError(message);
     if (Array.isArray(begin)) {
-        e['lineNumber'] = begin[0];
-        e['columnNumber'] = begin[1];
+        e.begin = { row: begin[0] - 1, column: begin[1] - 1 };
+    }
+    if (Array.isArray(end)) {
+        e.end = { row: end[0] - 1, column: end[1] - 1 };
     }
     return e;
 }

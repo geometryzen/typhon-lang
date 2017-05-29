@@ -1,4 +1,4 @@
-import { parse, PyNode } from './parser';
+import { parse, ParseError, PyNode } from './parser';
 import { astFromParse, astDump } from './builder';
 import { semanticsOfModule } from './symtable';
 // import { dumpSymbolTable } from './symtable';
@@ -274,14 +274,19 @@ describe('AST', function () {
             console.log(`ParseError??? ${dump}`);
         }
         catch (e) {
-            expect(e.name).toBe('ParseError');
+            expect(e instanceof SyntaxError).toBe(true);
+            expect(e.name).toBe("ParseError");
+            // FIXME: Why can't we do instanceof?
+            // expect(e instanceof ParseError).toBe(true);
+            // console.lg(JSON.stringify(e));
             const message = "Unexpected T_NAME at [1,7]";
             expect(e.message).toBe(message);
+            const parseError: ParseError = e;
             //      console.log("expect: " + JSON.stringify(message));
             //      console.log("actual: " + JSON.stringify(e.message));
-            expect(e.lineNumber).toBe(1);
-            expect(e.columnNumber).toBe(7);
-            expect(e.toString()).toBe(e.name + ": " + message);
+            expect(parseError.begin.row).toBe(0);
+            expect(parseError.begin.column).toBe(6);
+            expect(parseError.toString()).toBe(e.name + ": " + message);
         }
     });
 
