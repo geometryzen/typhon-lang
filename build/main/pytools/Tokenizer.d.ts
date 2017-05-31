@@ -1,4 +1,8 @@
 import { Tokens } from './Tokens';
+/**
+ * The function called by the tokenizer for each token in a line.
+ * If the callback returns `true`, the tokenizer declares that it is 'done' with that line.
+ */
 export declare type TokenizerCallback = (token: Tokens, text: string, start: number[], end: number[], line: string) => boolean | undefined;
 /**
  * This is a port of tokenize.py by Ka-Ping Yee.
@@ -16,18 +20,16 @@ export declare type TokenizerCallback = (token: Tokens, text: string, start: num
  * callback can return true to abort.
  */
 export declare class Tokenizer {
-    callback: TokenizerCallback;
-    lnum: number;
-    parenlev: number;
-    continued: boolean;
-    namechars: string;
-    numchars: string;
-    contstr: string;
-    needcont: boolean;
-    contline: any;
-    indents: number[];
-    endprog: RegExp;
-    strstart: number[];
+    private callback;
+    private lnum;
+    private parenlev;
+    private continued;
+    private contstr;
+    private needcont;
+    private contline;
+    private indents;
+    private endprog;
+    private strstart;
     /**
      * Probably used for REPL support.
      */

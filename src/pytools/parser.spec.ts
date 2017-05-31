@@ -1,6 +1,7 @@
-import { parse, PyNode, parseTreeDump } from './parser';
+import { parse, PyNode, parseTreeDump, SourceKind } from './parser';
 import { ParseTables } from './tables';
 import { IDXLAST, TERMS } from './tree';
+import { sourceLines } from '../data/eight';
 import { Tokens } from './Tokens';
 import { tokenNames } from './tokenNames';
 // import { astFromParse, astDump } from './builder';
@@ -11,7 +12,7 @@ import { tokenNames } from './tokenNames';
 const sym = ParseTables.sym;
 
 // Helper function to compute the terminals of a node and convert the type(s) to human-readable strings.
-/*
+
 function DECODE(n: PyNode) {
     return TERMS(n).map(function (term) {
         return {
@@ -25,7 +26,6 @@ function DECODE(n: PyNode) {
         };
     });
 }
-*/
 
 describe('parse', function () {
 
@@ -776,4 +776,64 @@ describe('parse', function () {
             expect(em.children).toBeNull();
         });
     });
+
+
+    describe('Parser', function () {
+        const t0 = Date.now();
+        const cst = parse(sourceLines.join('\n'), SourceKind.File) as PyNode;
+        const t1 = Date.now();
+        const decode = JSON.stringify(DECODE(cst), null, 2);
+        let view = decode;
+        view = view;
+        // console.log(decode);
+        const ns = TERMS(cst);
+
+        it("performance should not degrade", function () {
+            expect(Array.isArray(ns)).toBeTruthy();
+            expect(ns.length).toBe(247);
+            // console.log(`Parser    performance parse          (${ns.length} terminals) took ${t1 - t0} ms`);
+            // This has been benchmarked at around 20-40 ms.
+            expect(t1 - t0 < 60).toBe(true);
+        });
+
+        const n0 = ns[0];
+        const n1 = ns[1];
+        const n2 = ns[2];
+
+        const nl = ns[IDXLAST(ns) - 1];
+        const em = ns[IDXLAST(ns)];
+
+        xit("should have the correct terminals", function () {
+            expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(n0.value).toBe('a');
+            expect(n0.lineno).toBe(1);
+            expect(n0.col_offset).toBe(0);
+            expect(n0.children).toBeNull();
+
+            expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_MINUS]);
+            expect(n1.value).toBe('-');
+            expect(n1.lineno).toBe(1);
+            expect(n1.col_offset).toBe(2);
+            expect(n1.children).toBeNull();
+
+            expect(tokenNames[n2.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(n2.value).toBe('b');
+            expect(n2.lineno).toBe(1);
+            expect(n2.col_offset).toBe(4);
+            expect(n2.children).toBeNull();
+
+            expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
+            expect(nl.value).toBe("\n");
+            expect(nl.lineno).toBe(1);
+            expect(nl.col_offset).toBe(5);
+            expect(nl.children).toBeNull();
+
+            expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
+            expect(em.value).toBe("");
+            expect(em.lineno).toBe(2);
+            expect(em.col_offset).toBe(0);
+            expect(em.children).toBeNull();
+        });
+    });
+
 });

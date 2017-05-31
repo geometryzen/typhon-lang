@@ -597,7 +597,8 @@ export function transpileModule(sourceText: string): { code: string, cst: PyNode
         const mod = new Module(stmts);
         const symbolTable = semanticsOfModule(mod);
         const printer = new Printer(symbolTable, 0, sourceText);
-        return { code: printer.transpileModule(mod), cst, mod, symbolTable };
+        const code = printer.transpileModule(mod);
+        return { code, cst, mod, symbolTable };
     }
     else {
         throw new Error(`Error parsing source for file.`);

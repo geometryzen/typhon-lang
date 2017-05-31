@@ -1,4 +1,5 @@
 import { transpileModule as compile } from './transpiler';
+import { sourceLines } from '../data/eight';
 // import { parseTreeDump } from '../pytools/parser';
 // import { dumpSymbolTable } from '../pytools/symtable';
 // import { astDump } from '../pytools/builder';
@@ -363,6 +364,19 @@ describe('transpiler', function () {
                 " *\/"
             ].join("\n");
             expect(result.code).toBe(resultText);
+        });
+    });
+
+    describe('Performance', function () {
+        xit('should be sub-second for standard graphics example', function () {
+            const sourceText = sourceLines.join('\n');
+            const result = compile(sourceText);
+            /*
+            const resultText = [
+            ].join("\n");
+            */
+            expect(true).toBeTruthy();
+            expect(typeof result.code).toBe('string');
         });
     });
 

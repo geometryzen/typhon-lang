@@ -524,8 +524,8 @@ var ParseTables = {
         286: [[[[99, 1],
                     [100, 1],
                     [7, 2],
-                    [101, 1],
                     [99, 1],
+                    [101, 1],
                     [102, 1],
                     [103, 1],
                     [104, 3],
@@ -1107,8 +1107,8 @@ var ParseTables = {
         [[[99, 1],
                 [100, 1],
                 [7, 2],
-                [101, 1],
                 [99, 1],
+                [101, 1],
                 [102, 1],
                 [103, 1],
                 [104, 3],
@@ -1445,10 +1445,10 @@ var ParseTables = {
         [327, null],
         [13, null],
         [302, null],
-        [273, null],
+        [267, null],
         [265, null],
         [321, null],
-        [267, null],
+        [273, null],
         [322, null],
         [292, null],
         [300, null],
@@ -1638,93 +1638,7 @@ function IDXLAST(xs) {
  * @param {*} value The value to get the type of.
  * @return {string} The name of the type.
  */
-function typeOf(value) {
-    var s = typeof value;
-    if (s === 'object') {
-        if (value) {
-            // Check these first, so we can avoid calling Object.prototype.toString if
-            // possible.
-            //
-            // IE improperly marshals tyepof across execution contexts, but a
-            // cross-context object will still return false for "instanceof Object".
-            if (value instanceof Array) {
-                return 'array';
-            }
-            else if (value instanceof Object) {
-                return s;
-            }
-            // HACK: In order to use an Object prototype method on the arbitrary
-            //   value, the compiler requires the value be cast to type Object,
-            //   even though the ECMA spec explicitly allows it.
-            var className = Object.prototype.toString.call(
-            /** @type {Object} */ (value));
-            // In Firefox 3.6, attempting to access iframe window objects' length
-            // property throws an NS_ERROR_FAILURE, so we need to special-case it
-            // here.
-            if (className === '[object Window]') {
-                return 'object';
-            }
-            // We cannot always use constructor == Array or instanceof Array because
-            // different frames have different Array objects. In IE6, if the iframe
-            // where the array was created is destroyed, the array loses its
-            // prototype. Then dereferencing val.splice here throws an exception, so
-            // we can't use base.isFunction. Calling typeof directly returns 'unknown'
-            // so that will work. In this case, this function will return false and
-            // most array functions will still work because the array is still
-            // array-like (supports length and []) even though it has lost its
-            // prototype.
-            // Mark Miller noticed that Object.prototype.toString
-            // allows access to the unforgeable [[Class]] property.
-            //  15.2.4.2 Object.prototype.toString ( )
-            //  When the toString method is called, the following steps are taken:
-            //      1. Get the [[Class]] property of this object.
-            //      2. Compute a string value by concatenating the three strings
-            //         "[object ", Result(1), and "]".
-            //      3. Return Result(2).
-            // and this behavior survives the destruction of the execution context.
-            if ((className === '[object Array]' ||
-                // In IE all non value types are wrapped as objects across window
-                // boundaries (not iframe though) so we have to do object detection
-                // for this edge case.
-                typeof value.length === 'number' &&
-                    typeof value.splice !== 'undefined' &&
-                    typeof value.propertyIsEnumerable !== 'undefined' &&
-                    !value.propertyIsEnumerable('splice'))) {
-                return 'array';
-            }
-            // HACK: There is still an array case that fails.
-            //     function ArrayImpostor() {}
-            //     ArrayImpostor.prototype = [];
-            //     var impostor = new ArrayImpostor;
-            // this can be fixed by getting rid of the fast path
-            // (value instanceof Array) and solely relying on
-            // (value && Object.prototype.toString.vall(value) === '[object Array]')
-            // but that would require many more function calls and is not warranted
-            // unless closure code is receiving objects from untrusted sources.
-            // IE in cross-window calls does not correctly marshal the function type
-            // (it appears just as an object) so we cannot use just typeof val ==
-            // 'function'. However, if the object has a call property, it is a
-            // function.
-            if ((className === '[object Function]' ||
-                typeof value.call !== 'undefined' &&
-                    typeof value.propertyIsEnumerable !== 'undefined' &&
-                    !value.propertyIsEnumerable('call'))) {
-                return 'function';
-            }
-        }
-        else {
-            return 'null';
-        }
-    }
-    else if (s === 'function' && typeof value.call === 'undefined') {
-        // In Safari typeof nodeList returns 'function', and on Firefox typeof
-        // behaves similarly for HTML{Applet,Embed,Object}, Elements and RegExps. We
-        // would like to return object for those and we can detect an invalid
-        // function by making sure that the function object has a call method.
-        return 'object';
-    }
-    return s;
-}
+
 /**
  * Returns true if the specified value is not undefined.
  * WARNING: Do not use this to test if an object has a property. Use the in
@@ -1753,9 +1667,7 @@ function isDef(val) {
  * @param {*} val Variable to test.
  * @return {boolean} Whether variable is an array.
  */
-function isArray(val) {
-    return typeOf(val) === 'array';
-}
+
 /**
  * Returns true if the object looks like a Date. To qualify as Date-like the
  * value needs to be an object and have a getFullYear() function.
@@ -1814,6 +1726,18 @@ var TokenError = (function () {
     return TokenError;
 }());
 
+// Cache a few tokens for performance
+var T_COMMENT$1 = Tokens.T_COMMENT;
+var T_DEDENT = Tokens.T_DEDENT;
+var T_ENDMARKER$1 = Tokens.T_ENDMARKER;
+var T_ERRORTOKEN = Tokens.T_ERRORTOKEN;
+var T_INDENT = Tokens.T_INDENT;
+var T_NAME$1 = Tokens.T_NAME;
+var T_NEWLINE = Tokens.T_NEWLINE;
+var T_NL$1 = Tokens.T_NL;
+var T_NUMBER = Tokens.T_NUMBER;
+var T_OP$1 = Tokens.T_OP;
+var T_STRING = Tokens.T_STRING;
 /* we have to use string and ctor to be able to build patterns up. + on /.../
     * does something strange. */
 // const Whitespace = "[ \\f\\t]*";
@@ -1853,10 +1777,30 @@ var ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
 var PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
 // Need to prefix with "^" as we only want to match what's next
 var PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
-// let pseudoprog;
-// let single3prog;
-// let double3prog;
-// const endprogs = {};
+var pseudoprog = new RegExp(PseudoToken);
+var single3prog = new RegExp(Single3, "g");
+var double3prog = new RegExp(Double3, "g");
+var endprogs = {
+    "'": new RegExp(Single, "g"), '"': new RegExp(Double_, "g"),
+    "'''": single3prog, '"""': double3prog,
+    "r'''": single3prog, 'r"""': double3prog,
+    "u'''": single3prog, 'u"""': double3prog,
+    "b'''": single3prog, 'b"""': double3prog,
+    "ur'''": single3prog, 'ur"""': double3prog,
+    "br'''": single3prog, 'br"""': double3prog,
+    "R'''": single3prog, 'R"""': double3prog,
+    "U'''": single3prog, 'U"""': double3prog,
+    "B'''": single3prog, 'B"""': double3prog,
+    "uR'''": single3prog, 'uR"""': double3prog,
+    "Ur'''": single3prog, 'Ur"""': double3prog,
+    "UR'''": single3prog, 'UR"""': double3prog,
+    "bR'''": single3prog, 'bR"""': double3prog,
+    "Br'''": single3prog, 'Br"""': double3prog,
+    "BR'''": single3prog, 'BR"""': double3prog,
+    'r': null, 'R': null,
+    'u': null, 'U': null,
+    'b': null, 'B': null
+};
 var triple_quoted = {
     "'''": true, '"""': true,
     "r'''": true, 'r"""': true, "R'''": true, 'R"""': true,
@@ -1878,6 +1822,8 @@ var single_quoted = {
     "bR'": true, 'bR"': true, "BR'": true, 'BR"': true
 };
 var tabsize = 8;
+var NAMECHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
+var NUMCHARS = '0123456789';
 /**
  * This is a port of tokenize.py by Ka-Ping Yee.
  *
@@ -1902,8 +1848,6 @@ var Tokenizer = (function () {
         this.lnum = 0;
         this.parenlev = 0;
         this.continued = false;
-        this.namechars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
-        this.numchars = '0123456789';
         this.contstr = '';
         this.needcont = false;
         this.contline = undefined;
@@ -1913,11 +1857,13 @@ var Tokenizer = (function () {
         this.interactive = interactive;
         this.doneFunc = function doneOrFailed() {
             for (var i = 1; i < this.indents.length; ++i) {
-                if (this.callback(Tokens.T_DEDENT, '', [this.lnum, 0], [this.lnum, 0], ''))
+                if (this.callback(T_DEDENT, '', [this.lnum, 0], [this.lnum, 0], '')) {
                     return 'done';
+                }
             }
-            if (this.callback(Tokens.T_ENDMARKER, '', [this.lnum, 0], [this.lnum, 0], ''))
+            if (this.callback(T_ENDMARKER$1, '', [this.lnum, 0], [this.lnum, 0], '')) {
                 return 'done';
+            }
             return 'failed';
         };
     }
@@ -1927,42 +1873,18 @@ var Tokenizer = (function () {
      */
     Tokenizer.prototype.generateTokens = function (line) {
         var endmatch;
-        var pos;
         var column;
         var end;
-        var max;
-        // bnm - Move these definitions in this function otherwise test state is preserved between
-        // calls on single3prog and double3prog causing weird errors with having multiple instances
-        // of triple quoted strings in the same program.
-        var pseudoprog = new RegExp(PseudoToken);
-        var single3prog = new RegExp(Single3, "g");
-        var double3prog = new RegExp(Double3, "g");
-        var endprogs = {
-            "'": new RegExp(Single, "g"), '"': new RegExp(Double_, "g"),
-            "'''": single3prog, '"""': double3prog,
-            "r'''": single3prog, 'r"""': double3prog,
-            "u'''": single3prog, 'u"""': double3prog,
-            "b'''": single3prog, 'b"""': double3prog,
-            "ur'''": single3prog, 'ur"""': double3prog,
-            "br'''": single3prog, 'br"""': double3prog,
-            "R'''": single3prog, 'R"""': double3prog,
-            "U'''": single3prog, 'U"""': double3prog,
-            "B'''": single3prog, 'B"""': double3prog,
-            "uR'''": single3prog, 'uR"""': double3prog,
-            "Ur'''": single3prog, 'Ur"""': double3prog,
-            "UR'''": single3prog, 'UR"""': double3prog,
-            "bR'''": single3prog, 'bR"""': double3prog,
-            "Br'''": single3prog, 'Br"""': double3prog,
-            "BR'''": single3prog, 'BR"""': double3prog,
-            'r': null, 'R': null,
-            'u': null, 'U': null,
-            'b': null, 'B': null
-        };
-        if (!line)
+        if (!line) {
             line = '';
+        }
         this.lnum += 1;
-        pos = 0;
-        max = line.length;
+        var pos = 0;
+        var max = line.length;
+        /**
+         * Local variable for performance and brevity.
+         */
+        var callback = this.callback;
         if (this.contstr.length > 0) {
             if (!line) {
                 throw new TokenError("EOF in multi-line string", this.strstart[0], this.strstart[1]);
@@ -1971,14 +1893,15 @@ var Tokenizer = (function () {
             endmatch = this.endprog.test(line);
             if (endmatch) {
                 pos = end = this.endprog.lastIndex;
-                if (this.callback(Tokens.T_STRING, this.contstr + line.substring(0, end), this.strstart, [this.lnum, end], this.contline + line))
+                if (callback(T_STRING, this.contstr + line.substring(0, end), this.strstart, [this.lnum, end], this.contline + line)) {
                     return 'done';
+                }
                 this.contstr = '';
                 this.needcont = false;
                 this.contline = undefined;
             }
             else if (this.needcont && line.substring(line.length - 2) !== "\\\n" && line.substring(line.length - 3) !== "\\\r\n") {
-                if (this.callback(Tokens.T_ERRORTOKEN, this.contstr + line, this.strstart, [this.lnum, line.length], this.contline)) {
+                if (callback(T_ERRORTOKEN, this.contstr + line, this.strstart, [this.lnum, line.length], this.contline)) {
                     return 'done';
                 }
                 this.contstr = '';
@@ -1996,14 +1919,19 @@ var Tokenizer = (function () {
                 return this.doneFunc();
             column = 0;
             while (pos < max) {
-                if (line.charAt(pos) === ' ')
+                var ch = line.charAt(pos);
+                if (ch === ' ') {
                     column += 1;
-                else if (line.charAt(pos) === '\t')
+                }
+                else if (ch === '\t') {
                     column = (column / tabsize + 1) * tabsize;
-                else if (line.charAt(pos) === '\f')
+                }
+                else if (ch === '\f') {
                     column = 0;
-                else
+                }
+                else {
                     break;
+                }
                 pos = pos + 1;
             }
             if (pos === max)
@@ -2012,32 +1940,34 @@ var Tokenizer = (function () {
                 if (line.charAt(pos) === '#') {
                     var comment_token = rstrip(line.substring(pos), '\r\n');
                     var nl_pos = pos + comment_token.length;
-                    if (this.callback(Tokens.T_COMMENT, comment_token, [this.lnum, pos], [this.lnum, pos + comment_token.length], line)) {
+                    if (callback(T_COMMENT$1, comment_token, [this.lnum, pos], [this.lnum, pos + comment_token.length], line)) {
                         return 'done';
                     }
-                    if (this.callback(Tokens.T_NL, line.substring(nl_pos), [this.lnum, nl_pos], [this.lnum, line.length], line)) {
+                    if (callback(T_NL$1, line.substring(nl_pos), [this.lnum, nl_pos], [this.lnum, line.length], line)) {
                         return 'done';
                     }
                     return false;
                 }
                 else {
-                    if (this.callback(Tokens.T_NL, line.substring(pos), [this.lnum, pos], [this.lnum, line.length], line))
+                    if (callback(T_NL$1, line.substring(pos), [this.lnum, pos], [this.lnum, line.length], line)) {
                         return 'done';
+                    }
                     if (!this.interactive)
                         return false;
                 }
             }
             if (column > this.indents[this.indents.length - 1]) {
                 this.indents.push(column);
-                if (this.callback(Tokens.T_INDENT, line.substring(0, pos), [this.lnum, 0], [this.lnum, pos], line))
+                if (callback(T_INDENT, line.substring(0, pos), [this.lnum, 0], [this.lnum, pos], line)) {
                     return 'done';
+                }
             }
             while (column < this.indents[this.indents.length - 1]) {
                 if (!contains(this.indents, column)) {
                     throw indentationError("unindent does not match any outer indentation level", [this.lnum, 0], [this.lnum, pos], line);
                 }
                 this.indents.splice(this.indents.length - 1, 1);
-                if (this.callback(Tokens.T_DEDENT, '', [this.lnum, pos], [this.lnum, pos], line)) {
+                if (callback(T_DEDENT, '', [this.lnum, pos], [this.lnum, pos], line)) {
                     return 'done';
                 }
             }
@@ -2067,20 +1997,23 @@ var Tokenizer = (function () {
                 pos = end;
                 var token = line.substring(start, end);
                 var initial = line.charAt(start);
-                if (this.numchars.indexOf(initial) !== -1 || (initial === '.' && token !== '.')) {
-                    if (this.callback(Tokens.T_NUMBER, token, spos, epos, line))
+                if (NUMCHARS.indexOf(initial) !== -1 || (initial === '.' && token !== '.')) {
+                    if (callback(T_NUMBER, token, spos, epos, line)) {
                         return 'done';
+                    }
                 }
                 else if (initial === '\r' || initial === '\n') {
-                    var newl = Tokens.T_NEWLINE;
+                    var newl = T_NEWLINE;
                     if (this.parenlev > 0)
-                        newl = Tokens.T_NL;
-                    if (this.callback(newl, token, spos, epos, line))
+                        newl = T_NL$1;
+                    if (callback(newl, token, spos, epos, line)) {
                         return 'done';
+                    }
                 }
                 else if (initial === '#') {
-                    if (this.callback(Tokens.T_COMMENT, token, spos, epos, line))
+                    if (callback(T_COMMENT$1, token, spos, epos, line)) {
                         return 'done';
+                    }
                 }
                 else if (triple_quoted.hasOwnProperty(token)) {
                     this.endprog = endprogs[token];
@@ -2089,8 +2022,9 @@ var Tokenizer = (function () {
                     if (endmatch) {
                         pos = this.endprog.lastIndex + pos;
                         var token_1 = line.substring(start, pos);
-                        if (this.callback(Tokens.T_STRING, token_1, spos, [this.lnum, pos], line))
+                        if (callback(T_STRING, token_1, spos, [this.lnum, pos], line)) {
                             return 'done';
+                        }
                     }
                     else {
                         this.strstart = [this.lnum, start];
@@ -2111,31 +2045,38 @@ var Tokenizer = (function () {
                         return false;
                     }
                     else {
-                        if (this.callback(Tokens.T_STRING, token, spos, epos, line))
+                        if (callback(T_STRING, token, spos, epos, line)) {
                             return 'done';
+                        }
                     }
                 }
-                else if (this.namechars.indexOf(initial) !== -1) {
-                    if (this.callback(Tokens.T_NAME, token, spos, epos, line))
+                else if (NAMECHARS.indexOf(initial) !== -1) {
+                    if (callback(T_NAME$1, token, spos, epos, line)) {
                         return 'done';
+                    }
                 }
                 else if (initial === '\\') {
-                    if (this.callback(Tokens.T_NL, token, spos, [this.lnum, pos], line))
+                    if (callback(T_NL$1, token, spos, [this.lnum, pos], line)) {
                         return 'done';
+                    }
                     this.continued = true;
                 }
                 else {
-                    if ('([{'.indexOf(initial) !== -1)
+                    if ('([{'.indexOf(initial) !== -1) {
                         this.parenlev += 1;
-                    else if (')]}'.indexOf(initial) !== -1)
+                    }
+                    else if (')]}'.indexOf(initial) !== -1) {
                         this.parenlev -= 1;
-                    if (this.callback(Tokens.T_OP, token, spos, epos, line))
+                    }
+                    if (callback(T_OP$1, token, spos, epos, line)) {
                         return 'done';
+                    }
                 }
             }
             else {
-                if (this.callback(Tokens.T_ERRORTOKEN, line.charAt(pos), [this.lnum, pos], [this.lnum, pos + 1], line))
+                if (callback(T_ERRORTOKEN, line.charAt(pos), [this.lnum, pos], [this.lnum, pos + 1], line)) {
                     return 'done';
+                }
                 pos += 1;
             }
         }
@@ -2143,14 +2084,10 @@ var Tokenizer = (function () {
     };
     return Tokenizer;
 }());
-/** @param {...*} x */
 function group(x, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) {
     var args = Array.prototype.slice.call(arguments);
     return '(' + args.join('|') + ')';
 }
-/** @param {...*} x */
-// function any(x) { return group.apply(null, arguments) + "*"; }
-/** @param {...*} x */
 function maybe(x) { return group.apply(null, arguments) + "?"; }
 function contains(a, obj) {
     var i = a.length;
@@ -2176,15 +2113,15 @@ function rstrip(input, what) {
  * @param {string|undefined} text
  */
 function indentationError(message, begin, end, text) {
-    if (!isArray(begin)) {
+    if (!Array.isArray(begin)) {
         throw new Error("begin must be Array.<number>");
     }
-    if (!isArray(end)) {
+    if (!Array.isArray(end)) {
         throw new Error("end must be Array.<number>");
     }
     var e = new SyntaxError(message /*, fileName*/);
     e.name = "IndentationError";
-    if (isDef(begin)) {
+    if (begin) {
         e['lineNumber'] = begin[0];
         e['columnNumber'] = begin[1];
     }
@@ -2192,7 +2129,8 @@ function indentationError(message, begin, end, text) {
 }
 
 /**
- * Decodes of the tokens
+ * Decodes of the tokens.
+ * A mapping from the token number (symbol) to its human-readable name.
  */
 var tokenNames = {};
 tokenNames[Tokens.T_AMPER] = 'T_AMPER';
@@ -2329,6 +2267,14 @@ function parseError(message, begin, end) {
     return e;
 }
 
+// import { assert } from './asserts';
+// Dereference certain tokens for performance.
+var T_COMMENT = Tokens.T_COMMENT;
+var T_ENDMARKER = Tokens.T_ENDMARKER;
+var T_NAME = Tokens.T_NAME;
+var T_NL = Tokens.T_NL;
+var T_NT_OFFSET = Tokens.T_NT_OFFSET;
+var T_OP = Tokens.T_OP;
 /**
  * Forget about the array wrapper!
  * An Arc is a two-part object consisting a ... and a to-state.
@@ -2351,8 +2297,9 @@ var Parser = (function () {
      *
      */
     function Parser(grammar) {
+        this.stack = [];
+        this.used_names = {};
         this.grammar = grammar;
-        return this;
     }
     Parser.prototype.setup = function (start) {
         start = start || this.grammar.start;
@@ -2367,8 +2314,8 @@ var Parser = (function () {
             state: 0,
             node: newnode
         };
-        this.stack = [stackentry];
-        this.used_names = {};
+        this.stack.push(stackentry);
+        //        this.used_names = {};
     };
     /**
      * Add a token; return true if we're done.
@@ -2381,62 +2328,75 @@ var Parser = (function () {
          * The symbol for the token being added.
          */
         var tokenSymbol = this.classify(type, value, context);
+        /**
+         * Local variable for performance.
+         */
+        var stack = this.stack;
+        // More local variables for performance.
+        var g = this.grammar;
+        var dfas = g.dfas;
+        var labels = g.labels;
+        // This code is very performance sensitive.
         OUTERWHILE: while (true) {
-            var tp = this.stack[this.stack.length - 1];
-            assert(typeof tp === 'object', "stack element must be a StackElement. stack = " + JSON.stringify(this.stack));
-            var states = tp.dfa[DFA_STATES];
+            var top_1 = stack[stack.length - 1];
+            var states = top_1.dfa[DFA_STATES];
             // This is not being used. Why?
             // let first = tp.dfa[DFA_SECOND];
-            var arcs = states[tp.state];
+            var arcs = states[top_1.state];
             // look for a to-state with this label
             for (var _i = 0, arcs_1 = arcs; _i < arcs_1.length; _i++) {
                 var arc = arcs_1[_i];
                 var arcSymbol = arc[ARC_SYMBOL_LABEL];
-                var newstate = arc[ARC_TO_STATE];
-                var t = this.grammar.labels[arcSymbol][0];
-                // const v = this.grammar.labels[i][1];
+                var newState = arc[ARC_TO_STATE];
+                var t = labels[arcSymbol][0];
+                // const v = labels[arcSymbol][1];
                 // console.log(`t => ${t}, v => ${v}`);
                 if (tokenSymbol === arcSymbol) {
-                    // look it up in the list of labels
-                    assert(t < 256);
-                    // shift a token; we're done with it
-                    this.shift(type, value, newstate, context);
+                    this.shiftToken(type, value, newState, context);
                     // pop while we are in an accept-only state
-                    var state = newstate;
-                    while (states[state].length === 1 && states[state][0][ARC_SYMBOL_LABEL] === 0 /* Tokens.T_ENDMARKER? */ && states[state][0][ARC_TO_STATE] === state) {
-                        this.pop();
-                        if (this.stack.length === 0) {
+                    var state = newState;
+                    /**
+                     * Temporary variable to save a few CPU cycles.
+                     */
+                    var statesOfState = states[state];
+                    while (statesOfState.length === 1 && statesOfState[0][ARC_SYMBOL_LABEL] === 0 && statesOfState[0][ARC_TO_STATE] === state) {
+                        this.popNonTerminal();
+                        // Much of the time we won't be done so cache the stack length.
+                        var stackLength = stack.length;
+                        if (stackLength === 0) {
                             // done!
                             return true;
                         }
-                        tp = this.stack[this.stack.length - 1];
-                        state = tp.state;
-                        states = tp.dfa[DFA_STATES];
-                        // first = tp.dfa[1];
+                        else {
+                            top_1 = stack[stackLength - 1];
+                            state = top_1.state;
+                            states = top_1.dfa[DFA_STATES];
+                            // first = top.dfa[1];
+                            statesOfState = states[state];
+                        }
                     }
                     // done with this token
                     return false;
                 }
-                else if (t >= 256) {
-                    var itsdfa = this.grammar.dfas[t];
-                    var itsfirst = itsdfa[1];
+                else if (isNonTerminal(t)) {
+                    var dfa = dfas[t];
+                    var itsfirst = dfa[1];
                     if (itsfirst.hasOwnProperty(tokenSymbol)) {
-                        // push a symbol
-                        this.push(t, this.grammar.dfas[t], newstate, context);
+                        this.pushNonTerminal(t, dfa, newState, context);
                         continue OUTERWHILE;
                     }
                 }
             }
             // We've exhaused all the arcs for the for the state.
-            if (existsTransition(arcs, [Tokens.T_ENDMARKER, tp.state])) {
+            if (existsTransition(arcs, [T_ENDMARKER, top_1.state])) {
                 // an accepting state, pop it and try something else
-                this.pop();
-                if (this.stack.length === 0) {
+                this.popNonTerminal();
+                if (stack.length === 0) {
                     throw parseError("too much input");
                 }
             }
             else {
-                var found = grammarName(tp.state);
+                var found = grammarName(top_1.state);
                 var begin = context[0];
                 var end = context[1];
                 throw parseError("Unexpected " + found + " at " + JSON.stringify(begin), begin, end);
@@ -2451,64 +2411,120 @@ var Parser = (function () {
      * @param context [begin, end, line]
      */
     Parser.prototype.classify = function (type, value, context) {
-        var ilabel;
-        if (type === Tokens.T_NAME) {
+        // Assertion commented out for efficiency.
+        // assertTerminal(type);
+        var g = this.grammar;
+        if (type === T_NAME) {
             this.used_names[value] = true;
-            if (this.grammar.keywords.hasOwnProperty(value)) {
-                ilabel = this.grammar.keywords[value];
-            }
-            if (ilabel) {
-                return ilabel;
+            var keywordToSymbol = g.keywords;
+            if (keywordToSymbol.hasOwnProperty(value)) {
+                var ilabel_1 = keywordToSymbol[value];
+                // assert(typeof ilabel === 'number', "How can it not be?");
+                return ilabel_1;
             }
         }
-        if (this.grammar.tokens.hasOwnProperty(type)) {
-            ilabel = this.grammar.tokens[type];
+        var tokenToSymbol = g.tokens;
+        var ilabel;
+        if (tokenToSymbol.hasOwnProperty(type)) {
+            ilabel = tokenToSymbol[type];
         }
         if (!ilabel) {
             throw parseError("bad token", context[0], context[1]);
         }
         return ilabel;
     };
-    // shift a token
-    Parser.prototype.shift = function (type, value, newstate, context) {
-        var dfa = this.stack[this.stack.length - 1].dfa;
-        // var state = this.stack[this.stack.length - 1].state;
-        var node = this.stack[this.stack.length - 1].node;
+    /**
+     * Shifting a token (terminal).
+     * 1. A new node is created representing the token.
+     * 2. The new node is added as a child to the topmost node on the stack.
+     * 3. The state of the topmost element on the stack is updated to be the new state.
+     */
+    Parser.prototype.shiftToken = function (type, value, newState, context) {
+        // assertTerminal(type);
+        // Local variable for efficiency.
+        var stack = this.stack;
+        /**
+         * The topmost element in the stack is affected by shifting a token.
+         */
+        var stackTop = stack[stack.length - 1];
+        // const dfa = stackTop.dfa;
+        // const oldState = stackTop.state;
+        var node = stackTop.node;
+        // TODO: Since this is a token, why don't we keep more of the context (even if some redundancy).
+        // Further, is the value the raw text?
+        var begin = context[0];
         var newnode = {
             type: type,
             value: value,
-            lineno: context[0][0],
-            col_offset: context[0][1],
+            lineno: begin[0],
+            col_offset: begin[1],
             children: null
         };
         if (newnode && node.children) {
             node.children.push(newnode);
         }
-        this.stack[this.stack.length - 1] = { dfa: dfa, state: newstate, node: node };
+        // TODO: Is it necessary to replace the topmost stack element with a new object.
+        // Can't we simply update the state?
+        // console.log(`oldState = ${oldState} => newState = ${newState}`);
+        // New Code:
+        stackTop.state = newState;
+        // Old Code:
+        // this.stack[this.stack.length - 1] = { dfa: dfa, state: newState, node: node };
     };
-    // push a nonterminal
-    Parser.prototype.push = function (type, newdfa, newstate, context) {
-        var dfa = this.stack[this.stack.length - 1].dfa;
-        var node = this.stack[this.stack.length - 1].node;
-        this.stack[this.stack.length - 1] = { dfa: dfa, state: newstate, node: node };
-        var newnode = { type: type, value: null, lineno: context[0][0], col_offset: context[0][1], children: [] };
-        this.stack.push({ dfa: newdfa, state: 0, node: newnode });
+    /**
+     * Push a non-terminal symbol onto the stack as a new node.
+     * 1. Update the state of the topmost element on the stack to be newState.
+     * 2. Push a new element onto the stack corresponding to the symbol.
+     * The new stack elements uses the newDfa and has state 0.
+     */
+    Parser.prototype.pushNonTerminal = function (type, newDfa, newState, context) {
+        // Based on how this function is called, there is really no need for this assertion.
+        // Retain it for now while it is not the performance bottleneck.
+        // assertNonTerminal(type);
+        // Local variable for efficiency.
+        var stack = this.stack;
+        var stackTop = stack[stack.length - 1];
+        // const dfa = stackTop.dfa;
+        // const node = stackTop.node;
+        // New Code:
+        stackTop.state = newState;
+        // Old Code
+        // stack[stack.length - 1] = { dfa: dfa, state: newState, node: node };
+        // TODO: Why don't we retain more of the context? Is `end` not appropriate?
+        var begin = context[0];
+        var newnode = { type: type, value: null, lineno: begin[0], col_offset: begin[1], children: [] };
+        // TODO: Is there a symbolic constant for the zero state?
+        stack.push({ dfa: newDfa, state: 0, node: newnode });
     };
-    // pop a nonterminal
-    Parser.prototype.pop = function () {
-        var pop = this.stack.pop();
-        if (pop) {
-            var newnode = pop.node;
-            if (newnode) {
-                if (this.stack.length !== 0) {
-                    var node = this.stack[this.stack.length - 1].node;
-                    if (node.children) {
-                        node.children.push(newnode);
+    /**
+     * Pop a nonterminal.
+     * Popping an element from the stack causes the node to be added to the children of the new top element.
+     * The exception is when the stack becomes empty, in which case the node becomes the root node.
+     */
+    Parser.prototype.popNonTerminal = function () {
+        // Local variable for efficiency.
+        var stack = this.stack;
+        var poppedElement = stack.pop();
+        if (poppedElement) {
+            var poppedNode = poppedElement.node;
+            // Remove this assertion only when it becomes a performance issue.
+            // assertNonTerminal(poppedNode.type);
+            if (poppedNode) {
+                /**
+                 * The length of the stack following the pop operation.
+                 */
+                var N = stack.length;
+                if (N !== 0) {
+                    var node = stack[N - 1].node;
+                    var children = node.children;
+                    if (children) {
+                        children.push(poppedNode);
                     }
                 }
                 else {
-                    this.rootnode = newnode;
-                    this.rootnode.used_names = this.used_names;
+                    // If the length of the stack following the pop is zero then the popped element becomes the root node.
+                    this.rootNode = poppedNode;
+                    poppedNode.used_names = this.used_names;
                 }
             }
         }
@@ -2516,14 +2532,16 @@ var Parser = (function () {
     return Parser;
 }());
 /**
+ * FIXME: This is O(N). Can we do better?
  * Finds the specified
  * @param a An array of arrays where each element is an array of two integers.
  * @param obj An array containing two integers.
  */
-function existsTransition(a, obj) {
-    var i = a.length;
+function existsTransition(arcs, obj) {
+    var i = arcs.length;
     while (i--) {
-        if (a[i][0] === obj[0] && a[i][1] === obj[1]) {
+        var arc = arcs[i];
+        if (arc[ARC_SYMBOL_LABEL] === obj[ARC_SYMBOL_LABEL] && arc[ARC_TO_STATE] === obj[ARC_TO_STATE]) {
             return true;
         }
     }
@@ -2539,7 +2557,7 @@ function existsTransition(a, obj) {
 function makeParser(sourceKind) {
     if (sourceKind === undefined)
         sourceKind = SourceKind.File;
-    // FIXME: Would be nice to get this typing locked down.
+    // FIXME: Would be nice to get this typing locked down. Why does Grammar not match ParseTables?
     var p = new Parser(ParseTables);
     // TODO: Can we do this over the symbolic constants?
     switch (sourceKind) {
@@ -2562,9 +2580,6 @@ function makeParser(sourceKind) {
     var lineno = 1;
     var column = 0;
     var prefix = "";
-    var T_COMMENT = Tokens.T_COMMENT;
-    var T_NL = Tokens.T_NL;
-    var T_OP = Tokens.T_OP;
     var tokenizer = new Tokenizer(sourceKind === SourceKind.Single, function tokenizerCallback(type, value, start, end, line) {
         // var s_lineno = start[0];
         // var s_column = start[1];
@@ -2598,7 +2613,7 @@ function makeParser(sourceKind) {
             if (ret !== "done") {
                 throw parseError("incomplete input");
             }
-            return p.rootnode;
+            return p.rootNode;
         }
         return false;
     };
@@ -2633,7 +2648,8 @@ function parse(sourceText, sourceKind) {
     var lines = sourceText.split("\n");
     // FIXME: Mixing the types this way is awkward for the consumer.
     var ret = false;
-    for (var i = 0; i < lines.length; ++i) {
+    var N = lines.length;
+    for (var i = 0; i < N; ++i) {
         // FIXME: Lots of string creation going on here. Why?
         // We're adding back newline characters for all but the last line.
         ret = parseFunc(lines[i] + ((i === IDXLAST(lines)) ? "" : "\n"));
@@ -2643,8 +2659,7 @@ function parse(sourceText, sourceKind) {
 function parseTreeDump(parseTree) {
     function parseTreeDumpInternal(n, indent) {
         var ret = "";
-        // non-term
-        if (n.type >= 256) {
+        if (isNonTerminal(n.type)) {
             ret += indent + ParseTables.number2symbol[n.type] + "\n";
             if (n.children) {
                 for (var i = 0; i < n.children.length; ++i) {
@@ -2658,6 +2673,23 @@ function parseTreeDump(parseTree) {
         return ret;
     }
     return parseTreeDumpInternal(parseTree, "");
+}
+/**
+ * Terminal symbols hsould be less than T_NT_OFFSET.
+ * NT_OFFSET means non-terminal offset.
+ */
+/*
+function assertTerminal(type: Tokens): void {
+    assert(type < T_NT_OFFSET, "terminal symbols should be less than T_NT_OFFSET");
+}
+*/
+/*
+function assertNonTerminal(type: number): void {
+    assert(isNonTerminal(type), "non terminal symbols should be greater than or equal to T_NT_OFFSET");
+}
+*/
+function isNonTerminal(type) {
+    return type >= T_NT_OFFSET;
 }
 
 //
@@ -7388,7 +7420,8 @@ function transpileModule(sourceText) {
         var mod = new Module(stmts);
         var symbolTable = semanticsOfModule(mod);
         var printer = new Printer(symbolTable, 0, sourceText);
-        return { code: printer.transpileModule(mod), cst: cst, mod: mod, symbolTable: symbolTable };
+        var code = printer.transpileModule(mod);
+        return { code: code, cst: cst, mod: mod, symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");

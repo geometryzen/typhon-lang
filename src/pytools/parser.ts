@@ -1,11 +1,19 @@
 import { OpMap, ParseTables } from './tables';
 import { IDXLAST } from './tree';
-import { assert } from './asserts';
+// import { assert } from './asserts';
 import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
 import { tokenNames } from './tokenNames';
 import { grammarName } from './grammarName';
 import { parseError } from './syntaxError';
+
+// Dereference certain tokens for performance.
+const T_COMMENT = Tokens.T_COMMENT;
+const T_ENDMARKER = Tokens.T_ENDMARKER;
+const T_NAME = Tokens.T_NAME;
+const T_NL = Tokens.T_NL;
+const T_NT_OFFSET = Tokens.T_NT_OFFSET;
+const T_OP = Tokens.T_OP;
 
 /**
  * Forget about the array wrapper!
@@ -36,10 +44,20 @@ export interface Grammar {
      */
     dfas: { [value: number]: Dfa };
     /**
-     * The index is the symbol for a transition.
+     * The first index is the symbol for a transition (a number).
+     * The second index is the haman-readable decode of the symbol, if it exists, otherwise `null`.
+     * Not all symbols have human-readable names.
+     * All symbols that have human-readable names are keywords, with one exception.
+     * The symbol 0 (zero) is an exceptional symbol and has the human-readavble name 'EMPTY'.
      */
     labels: [number, string | null][];
+    /**
+     * A mapping from a keyword to the symbol that has been assigned to it.
+     */
     keywords: { [keyword: string]: number };
+    /**
+     * A mapping from a token to a symbol.
+     */
     tokens: { [token: number]: number };
     /**
      * Actually maps from the node constructor name.
@@ -87,17 +105,17 @@ export interface StackElement {
 // TODO: The parser does not report whitespace nodes.
 // It would be nice if there were an ignoreWhitespace option.
 class Parser {
-    grammar: Grammar;
-    stack: StackElement[];
-    used_names: { [name: string]: boolean };
-    rootnode: PyNode;
+    private readonly grammar: Grammar;
+    private readonly stack: StackElement[] = [];
+    private readonly used_names: { [name: string]: boolean } = {};
+    rootNode: PyNode;
     /**
      *
      */
     constructor(grammar: Grammar) {
         this.grammar = grammar;
-        return this;
     }
+
     setup(start?: Tokens): void {
         start = start || this.grammar.start;
 
@@ -112,8 +130,8 @@ class Parser {
             state: 0,
             node: newnode
         };
-        this.stack = [stackentry];
-        this.used_names = {};
+        this.stack.push(stackentry);
+        //        this.used_names = {};
     }
 
     /**
@@ -127,65 +145,78 @@ class Parser {
          * The symbol for the token being added.
          */
         const tokenSymbol = this.classify(type, value, context);
+        /**
+         * Local variable for performance.
+         */
+        const stack = this.stack;
+        // More local variables for performance.
+        const g = this.grammar;
+        const dfas = g.dfas;
+        const labels = g.labels;
 
+        // This code is very performance sensitive.
         OUTERWHILE:
         while (true) {
-            let tp = this.stack[this.stack.length - 1];
-            assert(typeof tp === 'object', `stack element must be a StackElement. stack = ${JSON.stringify(this.stack)}`);
-            let states = tp.dfa[DFA_STATES];
+            let top = stack[stack.length - 1];
+            let states = top.dfa[DFA_STATES];
             // This is not being used. Why?
             // let first = tp.dfa[DFA_SECOND];
-            const arcs = states[tp.state];
+            const arcs = states[top.state];
 
             // look for a to-state with this label
             for (const arc of arcs) {
                 const arcSymbol = arc[ARC_SYMBOL_LABEL];
-                const newstate = arc[ARC_TO_STATE];
-                const t = this.grammar.labels[arcSymbol][0];
-                // const v = this.grammar.labels[i][1];
+                const newState = arc[ARC_TO_STATE];
+                const t = labels[arcSymbol][0];
+                // const v = labels[arcSymbol][1];
                 // console.log(`t => ${t}, v => ${v}`);
                 if (tokenSymbol === arcSymbol) {
-                    // look it up in the list of labels
-                    assert(t < 256);
-                    // shift a token; we're done with it
-                    this.shift(type, value, newstate, context);
+                    this.shiftToken(type, value, newState, context);
                     // pop while we are in an accept-only state
-                    let state = newstate;
-                    while (states[state].length === 1 && states[state][0][ARC_SYMBOL_LABEL] === 0 /* Tokens.T_ENDMARKER? */ && states[state][0][ARC_TO_STATE] === state) {
-                        this.pop();
-                        if (this.stack.length === 0) {
+                    let state = newState;
+                    /**
+                     * Temporary variable to save a few CPU cycles.
+                     */
+                    let statesOfState: [number, number][] = states[state];
+                    while (statesOfState.length === 1 && statesOfState[0][ARC_SYMBOL_LABEL] === 0 && statesOfState[0][ARC_TO_STATE] === state) {
+                        this.popNonTerminal();
+                        // Much of the time we won't be done so cache the stack length.
+                        const stackLength = stack.length;
+                        if (stackLength === 0) {
                             // done!
                             return true;
                         }
-                        tp = this.stack[this.stack.length - 1];
-                        state = tp.state;
-                        states = tp.dfa[DFA_STATES];
-                        // first = tp.dfa[1];
+                        else {
+                            top = stack[stackLength - 1];
+                            state = top.state;
+                            states = top.dfa[DFA_STATES];
+                            // first = top.dfa[1];
+                            statesOfState = states[state];
+                        }
                     }
                     // done with this token
                     return false;
                 }
-                else if (t >= 256) {
-                    const itsdfa = this.grammar.dfas[t];
-                    const itsfirst = itsdfa[1];
+                else if (isNonTerminal(t)) {
+                    const dfa = dfas[t];
+                    const itsfirst = dfa[1];
                     if (itsfirst.hasOwnProperty(tokenSymbol)) {
-                        // push a symbol
-                        this.push(t, this.grammar.dfas[t], newstate, context);
+                        this.pushNonTerminal(t, dfa, newState, context);
                         continue OUTERWHILE;
                     }
                 }
             }
 
             // We've exhaused all the arcs for the for the state.
-            if (existsTransition(arcs, [Tokens.T_ENDMARKER, tp.state])) {
+            if (existsTransition(arcs, [T_ENDMARKER, top.state])) {
                 // an accepting state, pop it and try something else
-                this.pop();
-                if (this.stack.length === 0) {
+                this.popNonTerminal();
+                if (stack.length === 0) {
                     throw parseError("too much input");
                 }
             }
             else {
-                const found = grammarName(tp.state);
+                const found = grammarName(top.state);
                 const begin = context[0];
                 const end = context[1];
                 throw parseError(`Unexpected ${found} at ${JSON.stringify(begin)}`, begin, end);
@@ -200,19 +231,23 @@ class Parser {
      * @param value
      * @param context [begin, end, line]
      */
-    classify(type: Tokens, value: string, context: ParseContext): number {
-        let ilabel: number | undefined;
-        if (type === Tokens.T_NAME) {
+    private classify(type: Tokens, value: string, context: ParseContext): number {
+        // Assertion commented out for efficiency.
+        // assertTerminal(type);
+        const g = this.grammar;
+        if (type === T_NAME) {
             this.used_names[value] = true;
-            if (this.grammar.keywords.hasOwnProperty(value)) {
-                ilabel = this.grammar.keywords[value];
-            }
-            if (ilabel) {
+            const keywordToSymbol = g.keywords;
+            if (keywordToSymbol.hasOwnProperty(value)) {
+                const ilabel = keywordToSymbol[value];
+                // assert(typeof ilabel === 'number', "How can it not be?");
                 return ilabel;
             }
         }
-        if (this.grammar.tokens.hasOwnProperty(type)) {
-            ilabel = this.grammar.tokens[type];
+        const tokenToSymbol = g.tokens;
+        let ilabel: number | undefined;
+        if (tokenToSymbol.hasOwnProperty(type)) {
+            ilabel = tokenToSymbol[type];
         }
         if (!ilabel) {
             throw parseError("bad token", context[0], context[1]);
@@ -220,51 +255,105 @@ class Parser {
         return ilabel;
     }
 
-    // shift a token
-    shift(type: Tokens, value: string, newstate: number, context: ParseContext): void {
-        const dfa = this.stack[this.stack.length - 1].dfa;
-        // var state = this.stack[this.stack.length - 1].state;
-        const node = this.stack[this.stack.length - 1].node;
+    /**
+     * Shifting a token (terminal).
+     * 1. A new node is created representing the token.
+     * 2. The new node is added as a child to the topmost node on the stack.
+     * 3. The state of the topmost element on the stack is updated to be the new state.
+     */
+    private shiftToken(type: Tokens, value: string, newState: number, context: ParseContext): void {
+        // assertTerminal(type);
+        // Local variable for efficiency.
+        const stack = this.stack;
+        /**
+         * The topmost element in the stack is affected by shifting a token.
+         */
+        const stackTop = stack[stack.length - 1];
+        // const dfa = stackTop.dfa;
+        // const oldState = stackTop.state;
+        const node = stackTop.node;
+        // TODO: Since this is a token, why don't we keep more of the context (even if some redundancy).
+        // Further, is the value the raw text?
+        const begin = context[0];
         const newnode: PyNode = {
             type: type,
             value: value,
-            lineno: context[0][0],
-            col_offset: context[0][1],
+            lineno: begin[0],
+            col_offset: begin[1],
             children: null
         };
         if (newnode && node.children) {
             node.children.push(newnode);
         }
-        this.stack[this.stack.length - 1] = { dfa: dfa, state: newstate, node: node };
+        // TODO: Is it necessary to replace the topmost stack element with a new object.
+        // Can't we simply update the state?
+        // console.log(`oldState = ${oldState} => newState = ${newState}`);
+
+        // New Code:
+        stackTop.state = newState;
+
+        // Old Code:
+        // this.stack[this.stack.length - 1] = { dfa: dfa, state: newState, node: node };
     }
 
-    // push a nonterminal
-    push(type: Tokens, newdfa: Dfa, newstate: number, context: ParseContext): void {
-        const dfa = this.stack[this.stack.length - 1].dfa;
-        const node = this.stack[this.stack.length - 1].node;
+    /**
+     * Push a non-terminal symbol onto the stack as a new node.
+     * 1. Update the state of the topmost element on the stack to be newState.
+     * 2. Push a new element onto the stack corresponding to the symbol.
+     * The new stack elements uses the newDfa and has state 0.
+     */
+    private pushNonTerminal(type: number, newDfa: Dfa, newState: number, context: ParseContext): void {
+        // Based on how this function is called, there is really no need for this assertion.
+        // Retain it for now while it is not the performance bottleneck.
+        // assertNonTerminal(type);
+        // Local variable for efficiency.
+        const stack = this.stack;
+        const stackTop = stack[stack.length - 1];
+        // const dfa = stackTop.dfa;
+        // const node = stackTop.node;
 
-        this.stack[this.stack.length - 1] = { dfa: dfa, state: newstate, node: node };
+        // New Code:
+        stackTop.state = newState;
+        // Old Code
+        // stack[stack.length - 1] = { dfa: dfa, state: newState, node: node };
 
-        const newnode: PyNode = { type: type, value: null, lineno: context[0][0], col_offset: context[0][1], children: [] };
+        // TODO: Why don't we retain more of the context? Is `end` not appropriate?
+        const begin = context[0];
+        const newnode: PyNode = { type, value: null, lineno: begin[0], col_offset: begin[1], children: [] };
 
-        this.stack.push({ dfa: newdfa, state: 0, node: newnode });
+        // TODO: Is there a symbolic constant for the zero state?
+        stack.push({ dfa: newDfa, state: 0, node: newnode });
     }
 
-    // pop a nonterminal
-    pop(): void {
-        const pop = this.stack.pop();
-        if (pop) {
-            const newnode = pop.node;
-            if (newnode) {
-                if (this.stack.length !== 0) {
-                    const node = this.stack[this.stack.length - 1].node;
-                    if (node.children) {
-                        node.children.push(newnode);
+    /**
+     * Pop a nonterminal.
+     * Popping an element from the stack causes the node to be added to the children of the new top element.
+     * The exception is when the stack becomes empty, in which case the node becomes the root node.
+     */
+    private popNonTerminal(): void {
+        // Local variable for efficiency.
+        const stack = this.stack;
+        const poppedElement = stack.pop();
+        if (poppedElement) {
+            const poppedNode = poppedElement.node;
+            // Remove this assertion only when it becomes a performance issue.
+            // assertNonTerminal(poppedNode.type);
+            if (poppedNode) {
+                /**
+                 * The length of the stack following the pop operation.
+                 */
+                const N = stack.length;
+                if (N !== 0) {
+                    const node = stack[N - 1].node;
+                    const children = node.children;
+                    if (children) {
+                        children.push(poppedNode);
                     }
                 }
                 else {
-                    this.rootnode = newnode;
-                    this.rootnode.used_names = this.used_names;
+                    // If the length of the stack following the pop is zero then the popped element becomes the root node.
+                    this.rootNode = poppedNode;
+                    poppedNode.used_names = this.used_names;
                 }
             }
         }
@@ -274,14 +363,16 @@ class Parser {
 
 
 /**
+ * FIXME: This is O(N). Can we do better?
  * Finds the specified
  * @param a An array of arrays where each element is an array of two integers.
  * @param obj An array containing two integers.
  */
-function existsTransition(a: Arc[], obj: Arc): boolean {
-    let i = a.length;
+function existsTransition(arcs: Arc[], obj: Arc): boolean {
+    let i = arcs.length;
     while (i--) {
-        if (a[i][0] === obj[0] && a[i][1] === obj[1]) {
+        const arc = arcs[i];
+        if (arc[ARC_SYMBOL_LABEL] === obj[ARC_SYMBOL_LABEL] && arc[ARC_TO_STATE] === obj[ARC_TO_STATE]) {
             return true;
         }
     }
@@ -298,7 +389,7 @@ function existsTransition(a: Arc[], obj: Arc): boolean {
 function makeParser(sourceKind: SourceKind): (line: string) => PyNode | boolean {
     if (sourceKind === undefined) sourceKind = SourceKind.File;
 
-    // FIXME: Would be nice to get this typing locked down.
+    // FIXME: Would be nice to get this typing locked down. Why does Grammar not match ParseTables?
     const p = new Parser(ParseTables as any);
     // TODO: Can we do this over the symbolic constants?
     switch (sourceKind) {
@@ -321,9 +412,6 @@ function makeParser(sourceKind: SourceKind): (line: string) => PyNode | boolean 
     let lineno = 1;
     let column = 0;
     let prefix = "";
-    const T_COMMENT = Tokens.T_COMMENT;
-    const T_NL = Tokens.T_NL;
-    const T_OP = Tokens.T_OP;
     const tokenizer = new Tokenizer(sourceKind === SourceKind.Single, function tokenizerCallback(type: Tokens, value: string, start: [number, number], end: [number, number], line: string): boolean | undefined {
         // var s_lineno = start[0];
         // var s_column = start[1];
@@ -346,6 +434,8 @@ function makeParser(sourceKind: SourceKind): (line: string) => PyNode | boolean 
         if (type === T_OP) {
             type = OpMap[value];
         }
+
+
         if (p.addtoken(type, value, [start, end, line])) {
             return true;
         }
@@ -357,7 +447,7 @@ function makeParser(sourceKind: SourceKind): (line: string) => PyNode | boolean 
             if (ret !== "done") {
                 throw parseError("incomplete input");
             }
-            return p.rootnode;
+            return p.rootNode;
         }
         return false;
     };
@@ -392,7 +482,8 @@ export function parse(sourceText: string, sourceKind: SourceKind = SourceKind.Fi
     const lines = sourceText.split("\n");
     // FIXME: Mixing the types this way is awkward for the consumer.
     let ret: boolean | PyNode = false;
-    for (let i = 0; i < lines.length; ++i) {
+    const N = lines.length;
+    for (let i = 0; i < N; ++i) {
         // FIXME: Lots of string creation going on here. Why?
         // We're adding back newline characters for all but the last line.
         ret = parseFunc(lines[i] + ((i === IDXLAST(lines)) ? "" : "\n"));
@@ -403,8 +494,7 @@ export function parse(sourceText: string, sourceKind: SourceKind = SourceKind.Fi
 export function parseTreeDump(parseTree: PyNode): string {
     function parseTreeDumpInternal(n: PyNode, indent: string): string {
         let ret = "";
-        // non-term
-        if (n.type >= 256) {
+        if (isNonTerminal(n.type)) {
             ret += indent + ParseTables.number2symbol[n.type] + "\n";
             if (n.children) {
                 for (let i = 0; i < n.children.length; ++i) {
@@ -418,5 +508,24 @@ export function parseTreeDump(parseTree: PyNode): string {
         return ret;
     }
     return parseTreeDumpInternal(parseTree, "");
+}
+
+/**
+ * Terminal symbols hsould be less than T_NT_OFFSET.
+ * NT_OFFSET means non-terminal offset.
+ */
+/*
+function assertTerminal(type: Tokens): void {
+    assert(type < T_NT_OFFSET, "terminal symbols should be less than T_NT_OFFSET");
+}
+*/
+/*
+function assertNonTerminal(type: number): void {
+    assert(isNonTerminal(type), "non terminal symbols should be greater than or equal to T_NT_OFFSET");
+}
+*/
+
+function isNonTerminal(type: number): boolean {
+    return type >= T_NT_OFFSET;
 }
 

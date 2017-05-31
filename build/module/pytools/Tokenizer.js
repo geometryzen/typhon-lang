@@ -1,6 +1,17 @@
-import { isArray, isDef } from './base';
 import { TokenError } from './TokenError';
 import { Tokens } from './Tokens';
+// Cache a few tokens for performance
+var T_COMMENT = Tokens.T_COMMENT;
+var T_DEDENT = Tokens.T_DEDENT;
+var T_ENDMARKER = Tokens.T_ENDMARKER;
+var T_ERRORTOKEN = Tokens.T_ERRORTOKEN;
+var T_INDENT = Tokens.T_INDENT;
+var T_NAME = Tokens.T_NAME;
+var T_NEWLINE = Tokens.T_NEWLINE;
+var T_NL = Tokens.T_NL;
+var T_NUMBER = Tokens.T_NUMBER;
+var T_OP = Tokens.T_OP;
+var T_STRING = Tokens.T_STRING;
 /* we have to use string and ctor to be able to build patterns up. + on /.../
     * does something strange. */
 // const Whitespace = "[ \\f\\t]*";
@@ -40,10 +51,30 @@ var ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
 var PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
 // Need to prefix with "^" as we only want to match what's next
 var PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
-// let pseudoprog;
-// let single3prog;
-// let double3prog;
-// const endprogs = {};
+var pseudoprog = new RegExp(PseudoToken);
+var single3prog = new RegExp(Single3, "g");
+var double3prog = new RegExp(Double3, "g");
+var endprogs = {
+    "'": new RegExp(Single, "g"), '"': new RegExp(Double_, "g"),
+    "'''": single3prog, '"""': double3prog,
+    "r'''": single3prog, 'r"""': double3prog,
+    "u'''": single3prog, 'u"""': double3prog,
+    "b'''": single3prog, 'b"""': double3prog,
+    "ur'''": single3prog, 'ur"""': double3prog,
+    "br'''": single3prog, 'br"""': double3prog,
+    "R'''": single3prog, 'R"""': double3prog,
+    "U'''": single3prog, 'U"""': double3prog,
+    "B'''": single3prog, 'B"""': double3prog,
+    "uR'''": single3prog, 'uR"""': double3prog,
+    "Ur'''": single3prog, 'Ur"""': double3prog,
+    "UR'''": single3prog, 'UR"""': double3prog,
+    "bR'''": single3prog, 'bR"""': double3prog,
+    "Br'''": single3prog, 'Br"""': double3prog,
+    "BR'''": single3prog, 'BR"""': double3prog,
+    'r': null, 'R': null,
+    'u': null, 'U': null,
+    'b': null, 'B': null
+};
 var triple_quoted = {
     "'''": true, '"""': true,
     "r'''": true, 'r"""': true, "R'''": true, 'R"""': true,
@@ -65,6 +96,8 @@ var single_quoted = {
     "bR'": true, 'bR"': true, "BR'": true, 'BR"': true
 };
 var tabsize = 8;
+var NAMECHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
+var NUMCHARS = '0123456789';
 /**
  * This is a port of tokenize.py by Ka-Ping Yee.
  *
@@ -89,8 +122,6 @@ var Tokenizer = (function () {
         this.lnum = 0;
         this.parenlev = 0;
         this.continued = false;
-        this.namechars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
-        this.numchars = '0123456789';
         this.contstr = '';
         this.needcont = false;
         this.contline = undefined;
@@ -100,11 +131,13 @@ var Tokenizer = (function () {
         this.interactive = interactive;
         this.doneFunc = function doneOrFailed() {
             for (var i = 1; i < this.indents.length; ++i) {
-                if (this.callback(Tokens.T_DEDENT, '', [this.lnum, 0], [this.lnum, 0], ''))
+                if (this.callback(T_DEDENT, '', [this.lnum, 0], [this.lnum, 0], '')) {
                     return 'done';
+                }
             }
-            if (this.callback(Tokens.T_ENDMARKER, '', [this.lnum, 0], [this.lnum, 0], ''))
+            if (this.callback(T_ENDMARKER, '', [this.lnum, 0], [this.lnum, 0], '')) {
                 return 'done';
+            }
             return 'failed';
         };
     }
@@ -114,42 +147,18 @@ var Tokenizer = (function () {
      */
     Tokenizer.prototype.generateTokens = function (line) {
         var endmatch;
-        var pos;
         var column;
         var end;
-        var max;
-        // bnm - Move these definitions in this function otherwise test state is preserved between
-        // calls on single3prog and double3prog causing weird errors with having multiple instances
-        // of triple quoted strings in the same program.
-        var pseudoprog = new RegExp(PseudoToken);
-        var single3prog = new RegExp(Single3, "g");
-        var double3prog = new RegExp(Double3, "g");
-        var endprogs = {
-            "'": new RegExp(Single, "g"), '"': new RegExp(Double_, "g"),
-            "'''": single3prog, '"""': double3prog,
-            "r'''": single3prog, 'r"""': double3prog,
-            "u'''": single3prog, 'u"""': double3prog,
-            "b'''": single3prog, 'b"""': double3prog,
-            "ur'''": single3prog, 'ur"""': double3prog,
-            "br'''": single3prog, 'br"""': double3prog,
-            "R'''": single3prog, 'R"""': double3prog,
-            "U'''": single3prog, 'U"""': double3prog,
-            "B'''": single3prog, 'B"""': double3prog,
-            "uR'''": single3prog, 'uR"""': double3prog,
-            "Ur'''": single3prog, 'Ur"""': double3prog,
-            "UR'''": single3prog, 'UR"""': double3prog,
-            "bR'''": single3prog, 'bR"""': double3prog,
-            "Br'''": single3prog, 'Br"""': double3prog,
-            "BR'''": single3prog, 'BR"""': double3prog,
-            'r': null, 'R': null,
-            'u': null, 'U': null,
-            'b': null, 'B': null
-        };
-        if (!line)
+        if (!line) {
             line = '';
+        }
         this.lnum += 1;
-        pos = 0;
-        max = line.length;
+        var pos = 0;
+        var max = line.length;
+        /**
+         * Local variable for performance and brevity.
+         */
+        var callback = this.callback;
         if (this.contstr.length > 0) {
             if (!line) {
                 throw new TokenError("EOF in multi-line string", this.strstart[0], this.strstart[1]);
@@ -158,14 +167,15 @@ var Tokenizer = (function () {
             endmatch = this.endprog.test(line);
             if (endmatch) {
                 pos = end = this.endprog.lastIndex;
-                if (this.callback(Tokens.T_STRING, this.contstr + line.substring(0, end), this.strstart, [this.lnum, end], this.contline + line))
+                if (callback(T_STRING, this.contstr + line.substring(0, end), this.strstart, [this.lnum, end], this.contline + line)) {
                     return 'done';
+                }
                 this.contstr = '';
                 this.needcont = false;
                 this.contline = undefined;
             }
             else if (this.needcont && line.substring(line.length - 2) !== "\\\n" && line.substring(line.length - 3) !== "\\\r\n") {
-                if (this.callback(Tokens.T_ERRORTOKEN, this.contstr + line, this.strstart, [this.lnum, line.length], this.contline)) {
+                if (callback(T_ERRORTOKEN, this.contstr + line, this.strstart, [this.lnum, line.length], this.contline)) {
                     return 'done';
                 }
                 this.contstr = '';
@@ -183,14 +193,19 @@ var Tokenizer = (function () {
                 return this.doneFunc();
             column = 0;
             while (pos < max) {
-                if (line.charAt(pos) === ' ')
+                var ch = line.charAt(pos);
+                if (ch === ' ') {
                     column += 1;
-                else if (line.charAt(pos) === '\t')
+                }
+                else if (ch === '\t') {
                     column = (column / tabsize + 1) * tabsize;
-                else if (line.charAt(pos) === '\f')
+                }
+                else if (ch === '\f') {
                     column = 0;
-                else
+                }
+                else {
                     break;
+                }
                 pos = pos + 1;
             }
             if (pos === max)
@@ -199,32 +214,34 @@ var Tokenizer = (function () {
                 if (line.charAt(pos) === '#') {
                     var comment_token = rstrip(line.substring(pos), '\r\n');
                     var nl_pos = pos + comment_token.length;
-                    if (this.callback(Tokens.T_COMMENT, comment_token, [this.lnum, pos], [this.lnum, pos + comment_token.length], line)) {
+                    if (callback(T_COMMENT, comment_token, [this.lnum, pos], [this.lnum, pos + comment_token.length], line)) {
                         return 'done';
                     }
-                    if (this.callback(Tokens.T_NL, line.substring(nl_pos), [this.lnum, nl_pos], [this.lnum, line.length], line)) {
+                    if (callback(T_NL, line.substring(nl_pos), [this.lnum, nl_pos], [this.lnum, line.length], line)) {
                         return 'done';
                     }
                     return false;
                 }
                 else {
-                    if (this.callback(Tokens.T_NL, line.substring(pos), [this.lnum, pos], [this.lnum, line.length], line))
+                    if (callback(T_NL, line.substring(pos), [this.lnum, pos], [this.lnum, line.length], line)) {
                         return 'done';
+                    }
                     if (!this.interactive)
                         return false;
                 }
             }
             if (column > this.indents[this.indents.length - 1]) {
                 this.indents.push(column);
-                if (this.callback(Tokens.T_INDENT, line.substring(0, pos), [this.lnum, 0], [this.lnum, pos], line))
+                if (callback(T_INDENT, line.substring(0, pos), [this.lnum, 0], [this.lnum, pos], line)) {
                     return 'done';
+                }
             }
             while (column < this.indents[this.indents.length - 1]) {
                 if (!contains(this.indents, column)) {
                     throw indentationError("unindent does not match any outer indentation level", [this.lnum, 0], [this.lnum, pos], line);
                 }
                 this.indents.splice(this.indents.length - 1, 1);
-                if (this.callback(Tokens.T_DEDENT, '', [this.lnum, pos], [this.lnum, pos], line)) {
+                if (callback(T_DEDENT, '', [this.lnum, pos], [this.lnum, pos], line)) {
                     return 'done';
                 }
             }
@@ -254,20 +271,23 @@ var Tokenizer = (function () {
                 pos = end;
                 var token = line.substring(start, end);
                 var initial = line.charAt(start);
-                if (this.numchars.indexOf(initial) !== -1 || (initial === '.' && token !== '.')) {
-                    if (this.callback(Tokens.T_NUMBER, token, spos, epos, line))
+                if (NUMCHARS.indexOf(initial) !== -1 || (initial === '.' && token !== '.')) {
+                    if (callback(T_NUMBER, token, spos, epos, line)) {
                         return 'done';
+                    }
                 }
                 else if (initial === '\r' || initial === '\n') {
-                    var newl = Tokens.T_NEWLINE;
+                    var newl = T_NEWLINE;
                     if (this.parenlev > 0)
-                        newl = Tokens.T_NL;
-                    if (this.callback(newl, token, spos, epos, line))
+                        newl = T_NL;
+                    if (callback(newl, token, spos, epos, line)) {
                         return 'done';
+                    }
                 }
                 else if (initial === '#') {
-                    if (this.callback(Tokens.T_COMMENT, token, spos, epos, line))
+                    if (callback(T_COMMENT, token, spos, epos, line)) {
                         return 'done';
+                    }
                 }
                 else if (triple_quoted.hasOwnProperty(token)) {
                     this.endprog = endprogs[token];
@@ -276,8 +296,9 @@ var Tokenizer = (function () {
                     if (endmatch) {
                         pos = this.endprog.lastIndex + pos;
                         var token_1 = line.substring(start, pos);
-                        if (this.callback(Tokens.T_STRING, token_1, spos, [this.lnum, pos], line))
+                        if (callback(T_STRING, token_1, spos, [this.lnum, pos], line)) {
                             return 'done';
+                        }
                     }
                     else {
                         this.strstart = [this.lnum, start];
@@ -298,31 +319,38 @@ var Tokenizer = (function () {
                         return false;
                     }
                     else {
-                        if (this.callback(Tokens.T_STRING, token, spos, epos, line))
+                        if (callback(T_STRING, token, spos, epos, line)) {
                             return 'done';
+                        }
                     }
                 }
-                else if (this.namechars.indexOf(initial) !== -1) {
-                    if (this.callback(Tokens.T_NAME, token, spos, epos, line))
+                else if (NAMECHARS.indexOf(initial) !== -1) {
+                    if (callback(T_NAME, token, spos, epos, line)) {
                         return 'done';
+                    }
                 }
                 else if (initial === '\\') {
-                    if (this.callback(Tokens.T_NL, token, spos, [this.lnum, pos], line))
+                    if (callback(T_NL, token, spos, [this.lnum, pos], line)) {
                         return 'done';
+                    }
                     this.continued = true;
                 }
                 else {
-                    if ('([{'.indexOf(initial) !== -1)
+                    if ('([{'.indexOf(initial) !== -1) {
                         this.parenlev += 1;
-                    else if (')]}'.indexOf(initial) !== -1)
+                    }
+                    else if (')]}'.indexOf(initial) !== -1) {
                         this.parenlev -= 1;
-                    if (this.callback(Tokens.T_OP, token, spos, epos, line))
+                    }
+                    if (callback(T_OP, token, spos, epos, line)) {
                         return 'done';
+                    }
                 }
             }
             else {
-                if (this.callback(Tokens.T_ERRORTOKEN, line.charAt(pos), [this.lnum, pos], [this.lnum, pos + 1], line))
+                if (callback(T_ERRORTOKEN, line.charAt(pos), [this.lnum, pos], [this.lnum, pos + 1], line)) {
                     return 'done';
+                }
                 pos += 1;
             }
         }
@@ -331,14 +359,10 @@ var Tokenizer = (function () {
     return Tokenizer;
 }());
 export { Tokenizer };
-/** @param {...*} x */
 function group(x, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) {
     var args = Array.prototype.slice.call(arguments);
     return '(' + args.join('|') + ')';
 }
-/** @param {...*} x */
-// function any(x) { return group.apply(null, arguments) + "*"; }
-/** @param {...*} x */
 function maybe(x) { return group.apply(null, arguments) + "?"; }
 function contains(a, obj) {
     var i = a.length;
@@ -364,15 +388,15 @@ function rstrip(input, what) {
  * @param {string|undefined} text
  */
 function indentationError(message, begin, end, text) {
-    if (!isArray(begin)) {
+    if (!Array.isArray(begin)) {
         throw new Error("begin must be Array.<number>");
     }
-    if (!isArray(end)) {
+    if (!Array.isArray(end)) {
         throw new Error("end must be Array.<number>");
     }
     var e = new SyntaxError(message /*, fileName*/);
     e.name = "IndentationError";
-    if (isDef(begin)) {
+    if (begin) {
         e['lineNumber'] = begin[0];
         e['columnNumber'] = begin[1];
     }

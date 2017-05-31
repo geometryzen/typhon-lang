@@ -15,12 +15,22 @@ export interface Grammar {
         [value: number]: Dfa;
     };
     /**
-     * The index is the symbol for a transition.
+     * The first index is the symbol for a transition (a number).
+     * The second index is the haman-readable decode of the symbol, if it exists, otherwise `null`.
+     * Not all symbols have human-readable names.
+     * All symbols that have human-readable names are keywords, with one exception.
+     * The symbol 0 (zero) is an exceptional symbol and has the human-readavble name 'EMPTY'.
      */
     labels: [number, string | null][];
+    /**
+     * A mapping from a keyword to the symbol that has been assigned to it.
+     */
     keywords: {
         [keyword: string]: number;
     };
+    /**
+     * A mapping from a token to a symbol.
+     */
     tokens: {
         [token: number]: number;
     };
