@@ -280,13 +280,13 @@ describe('AST', function () {
             // FIXME: Why can't we do instanceof?
             // expect(e instanceof ParseError).toBe(true);
             // console.lg(JSON.stringify(e));
-            const message = "Unexpected T_NAME at [1,7]";
+            const message = "Unexpected T_NAME at [1,8]";
             expect(e.message).toBe(message);
             const parseError: ParseError = e;
             //      console.log("expect: " + JSON.stringify(message));
             //      console.log("actual: " + JSON.stringify(e.message));
             expect(parseError.begin.row).toBe(0);
-            expect(parseError.begin.column).toBe(6);
+            expect(parseError.begin.column).toBe(7);
             expect(parseError.toString()).toBe(e.name + ": " + message);
         }
     });

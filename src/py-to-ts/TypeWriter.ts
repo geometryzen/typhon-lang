@@ -1,4 +1,5 @@
 import { assert } from '../pytools/asserts';
+import { Position } from '../pytools/Position';
 
 export enum IndentStyle {
     None = 0,
@@ -89,6 +90,18 @@ export class TypeWriter {
      */
     constructor(private options: FormatCodeOptions = {}) {
         // Do nothing.
+    }
+    /**
+     * Writes a name (identifier).
+     * @param id The identifier string to be written.
+     * @param begin The position of the beginning of the name in the original source.
+     * @param end The position of the end of the name in the original source.
+     */
+    name(id: string, begin: Position, end: Position): void {
+        this.write(id);
+    }
+    num(text: string, begin: Position, end: Position): void {
+        this.write(text);
     }
     write(text: string): void {
         this.stack.write(text);

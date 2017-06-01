@@ -6,6 +6,7 @@ import { Tokens } from './Tokens';
 import { tokenNames } from './tokenNames';
 import { grammarName } from './grammarName';
 import { parseError } from './syntaxError';
+import { Position } from './Position';
 
 // Dereference certain tokens for performance.
 const T_COMMENT = Tokens.T_COMMENT;
@@ -70,12 +71,13 @@ export interface Grammar {
     states: any;
 }
 
-export type LineColumn = [number, number];
-
 /**
- * [begin, end, line]
+ * The first element is the line number.
+ * The line number is 1-based.
+ * The second element is the column.
+ * The column is 0-based.
  */
-export type ParseContext = [LineColumn, LineColumn, string];
+export type LineColumn = [number, number];
 
 /**
  * The parse tree (not the abstract syntax tree).
@@ -87,9 +89,8 @@ export interface PyNode {
      */
     type: Tokens;
     value: string | null;
-    context?: any;
-    lineno?: number;
-    col_offset?: number;
+    begin: Position | null;
+    end: Position | null;
     used_names?: { [name: string]: boolean };
     children: PyNode[] | null;
 }
@@ -121,8 +122,9 @@ class Parser {
 
         const newnode: PyNode = {
             type: start,
+            begin: null,
+            end: null,
             value: null,
-            context: null,
             children: []
         };
         const stackentry: StackElement = {
@@ -131,7 +133,6 @@ class Parser {
             node: newnode
         };
         this.stack.push(stackentry);
-        //        this.used_names = {};
     }
 
     /**
@@ -140,11 +141,11 @@ class Parser {
      * @param value
      * @param context [start, end, line]
      */
-    addtoken(type: Tokens, value: string, context: ParseContext): boolean {
+    addtoken(type: Tokens, value: string, begin: LineColumn, end: LineColumn, line: string): boolean {
         /**
          * The symbol for the token being added.
          */
-        const tokenSymbol = this.classify(type, value, context);
+        const tokenSymbol = this.classify(type, value, begin, end, line);
         /**
          * Local variable for performance.
          */
@@ -171,7 +172,7 @@ class Parser {
                 // const v = labels[arcSymbol][1];
                 // console.log(`t => ${t}, v => ${v}`);
                 if (tokenSymbol === arcSymbol) {
-                    this.shiftToken(type, value, newState, context);
+                    this.shiftToken(type, value, newState, begin, end, line);
                     // pop while we are in an accept-only state
                     let state = newState;
                     /**
@@ -201,7 +202,7 @@ class Parser {
                     const dfa = dfas[t];
                     const itsfirst = dfa[1];
                     if (itsfirst.hasOwnProperty(tokenSymbol)) {
-                        this.pushNonTerminal(t, dfa, newState, context);
+                        this.pushNonTerminal(t, dfa, newState, begin, end, line);
                         continue OUTERWHILE;
                     }
                 }
@@ -217,9 +218,8 @@ class Parser {
             }
             else {
                 const found = grammarName(top.state);
-                const begin = context[0];
-                const end = context[1];
-                throw parseError(`Unexpected ${found} at ${JSON.stringify(begin)}`, begin, end);
+                // FIXME:
+                throw parseError(`Unexpected ${found} at ${JSON.stringify([begin[0], begin[1] + 1])}`, begin, end);
             }
         }
     }
@@ -231,7 +231,7 @@ class Parser {
      * @param value
      * @param context [begin, end, line]
      */
-    private classify(type: Tokens, value: string, context: ParseContext): number {
+    private classify(type: Tokens, value: string, begin: LineColumn, end: LineColumn, line: string): number {
         // Assertion commented out for efficiency.
         // assertTerminal(type);
         const g = this.grammar;
@@ -250,7 +250,7 @@ class Parser {
             ilabel = tokenToSymbol[type];
         }
         if (!ilabel) {
-            throw parseError("bad token", context[0], context[1]);
+            throw parseError("bad token", begin, end);
         }
         return ilabel;
     }
@@ -261,7 +261,7 @@ class Parser {
      * 2. The new node is added as a child to the topmost node on the stack.
      * 3. The state of the topmost element on the stack is updated to be the new state.
      */
-    private shiftToken(type: Tokens, value: string, newState: number, context: ParseContext): void {
+    private shiftToken(type: Tokens, value: string, newState: number, begin: LineColumn, end: LineColumn, line: string): void {
         // assertTerminal(type);
         // Local variable for efficiency.
         const stack = this.stack;
@@ -274,12 +274,16 @@ class Parser {
         const node = stackTop.node;
         // TODO: Since this is a token, why don't we keep more of the context (even if some redundancy).
         // Further, is the value the raw text?
-        const begin = context[0];
+        // console.log(`line  => "${context[2]}"`);
+        // console.log(`value => "${value}"`);
+        // console.log(`type  => ${tokenNames[type]}`);
+        // console.log(`begin => ${JSON.stringify(begin)}`);
+        // console.log(`end   => ${JSON.stringify(end)}`);
         const newnode: PyNode = {
             type: type,
             value: value,
-            lineno: begin[0],
-            col_offset: begin[1],
+            begin: new Position(begin[0], begin[1]),
+            end: new Position(end[0], end[1]),
             children: null
         };
         if (newnode && node.children) {
@@ -302,7 +306,7 @@ class Parser {
      * 2. Push a new element onto the stack corresponding to the symbol.
      * The new stack elements uses the newDfa and has state 0.
      */
-    private pushNonTerminal(type: number, newDfa: Dfa, newState: number, context: ParseContext): void {
+    private pushNonTerminal(type: number, newDfa: Dfa, newState: number, begin: LineColumn, end: LineColumn, line: string): void {
         // Based on how this function is called, there is really no need for this assertion.
         // Retain it for now while it is not the performance bottleneck.
         // assertNonTerminal(type);
@@ -318,8 +322,9 @@ class Parser {
         // stack[stack.length - 1] = { dfa: dfa, state: newState, node: node };
 
         // TODO: Why don't we retain more of the context? Is `end` not appropriate?
-        const begin = context[0];
-        const newnode: PyNode = { type, value: null, lineno: begin[0], col_offset: begin[1], children: [] };
+        const beginPos = new Position(begin[0], begin[1]);
+        // const endPos = new Position(end[0], end[1]);
+        const newnode: PyNode = { type, value: null, begin: beginPos, end: null, children: [] };
 
         // TODO: Is there a symbolic constant for the zero state?
         stack.push({ dfa: newDfa, state: 0, node: newnode });
@@ -435,8 +440,8 @@ function makeParser(sourceKind: SourceKind): (line: string) => PyNode | boolean 
             type = OpMap[value];
         }
 
-
-        if (p.addtoken(type, value, [start, end, line])) {
+        // FIXME: We're creating an array object here for every token.
+        if (p.addtoken(type, value, start, end, line)) {
             return true;
         }
         return undefined;

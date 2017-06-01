@@ -367,6 +367,9 @@ class Printer implements Visitor {
             arg.accept(this);
         }
         for (let i = 0; i < ce.keywords.length; ++i) {
+            if (i > 0) {
+                this.writer.comma();
+            }
             ce.keywords[i].value.accept(this);
         }
         if (ce.starargs) {
@@ -553,21 +556,21 @@ class Printer implements Visitor {
         // this name as a boolean expression - avoiding this overhead.
         switch (name.id) {
             case 'True': {
-                this.writer.write('true');
+                this.writer.name('true', name.begin, name.end);
                 break;
             }
             case 'False': {
-                this.writer.write('false');
+                this.writer.name('false', name.begin, name.end);
                 break;
             }
             default: {
-                this.writer.write(name.id);
+                this.writer.name(name.id, name.begin, name.end);
             }
         }
     }
     num(num: Num): void {
         const n = num.n;
-        this.writer.write(n.toString());
+        this.writer.num(n.toString(), num.begin, num.end);
     }
     print(print: Print): void {
         this.writer.write("console.log");
@@ -579,7 +582,8 @@ class Printer implements Visitor {
     }
     returnStatement(rs: ReturnStatement): void {
         this.writer.beginStatement();
-        this.writer.write("return ");
+        this.writer.write("return");
+        this.writer.write(" ");
         rs.value.accept(this);
         this.writer.endStatement();
     }

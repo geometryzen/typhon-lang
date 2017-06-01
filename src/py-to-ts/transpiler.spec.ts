@@ -261,7 +261,7 @@ describe('transpiler', function () {
                 fail(`ECMAScript 2015 modules require the ModuleSpecifier to be a STRING.`);
             }
             catch (e) {
-                expect(`${e}`).toBe("ParseError: Unexpected T_NAME at [1,5]");
+                expect(`${e}`).toBe("ParseError: Unexpected T_NAME at [1,6]");
             }
         });
         it('should allow a single named import', function () {

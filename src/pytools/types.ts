@@ -3,6 +3,7 @@
 // It should only import modules that don't introduce circularity.
 //
 import { assert } from './asserts';
+import { Position } from './Position';
 
 /**
  * A numeric literal used in parsing.
@@ -137,8 +138,6 @@ export interface Node extends TextRange {
 
 export abstract class Expression implements Node, Visitable {
     id?: string;
-    lineno?: number;
-    col_offset?: number;
     constructor() {
         // Do noting yet.
     }
@@ -586,15 +585,11 @@ export class BinOp extends Expression {
     left: Expression;
     op: Operator;
     right: Expression;
-    lineno: number;
-    col_offset: number;
-    constructor(left: Expression, op: Operator, right: Expression, lineno: number, col_offset: number) {
+    constructor(left: Expression, op: Operator, right: Expression, readonly begin: Position, readonly end: Position) {
         super();
         this.left = left;
         this.op = op;
         this.right = right;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
     }
     accept(visitor: Visitor): void {
         visitor.binOp(this);
@@ -773,17 +768,13 @@ export class Call extends Expression {
     keywords: Keyword[];
     starargs: Expression | null;
     kwargs: Expression | null;
-    lineno?: number;
-    col_offset?: number;
-    constructor(func: Attribute | Name, args: (Expression | GeneratorExp)[], keywords: Keyword[], starargs: Expression | null, kwargs: Expression | null, lineno?: number, col_offset?: number) {
+    constructor(func: Attribute | Name, args: (Expression | GeneratorExp)[], keywords: Keyword[], starargs: Expression | null, kwargs: Expression | null, public readonly begin: Position, public readonly end: Position) {
         super();
         this.func = func;
         this.args = args;
         this.keywords = keywords;
         this.starargs = starargs;
         this.kwargs = kwargs;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
     }
     accept(visitor: Visitor): void {
         visitor.callExpression(this);
@@ -792,13 +783,9 @@ export class Call extends Expression {
 
 export class Num extends Expression {
     n: INumericLiteral;
-    lineno: number;
-    col_offset: number;
-    constructor(n: INumericLiteral, lineno: number, col_offset: number) {
+    constructor(n: INumericLiteral, public readonly begin: Position, public readonly end: Position) {
         super();
         this.n = n;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
     }
     accept(visitor: Visitor): void {
         visitor.num(this);
@@ -809,11 +796,11 @@ export class Str extends Expression {
     s: string;
     lineno: number;
     col_offset: number;
-    constructor(s: string, lineno: number, col_offset: number) {
+    constructor(s: string, begin: Position, end: Position) {
         super();
         this.s = s;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
+        this.lineno = begin.line;
+        this.col_offset = begin.column;
     }
     accept(visitor: Visitor): void {
         visitor.str(this);
@@ -824,15 +811,11 @@ export class Attribute extends Expression {
     value: Attribute | Name;
     attr: string;
     ctx: Load;
-    lineno?: number;
-    col_offset?: number;
-    constructor(value: Attribute | Name, attr: string, ctx: Load, lineno?: number, col_offset?: number) {
+    constructor(value: Attribute | Name, attr: string, ctx: Load, public readonly begin: Position, public readonly end: Position) {
         super();
         this.value = value;
         this.attr = attr;
         this.ctx = ctx;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
     }
     accept(visitor: Visitor): void {
         visitor.attribute(this);
@@ -860,14 +843,10 @@ export class Subscript extends Expression {
 export class Name extends Expression {
     id: string;
     ctx: Param;
-    lineno?: number;
-    col_offset?: number;
-    constructor(id: string, ctx: Param, lineno?: number, col_offset?: number) {
+    constructor(id: string, ctx: Param, public readonly begin: Position, public readonly end: Position) {
         super();
         this.id = id;
         this.ctx = ctx;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
     }
     accept(visitor: Visitor): void {
         visitor.name(this);

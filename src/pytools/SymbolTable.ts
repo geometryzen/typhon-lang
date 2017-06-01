@@ -165,7 +165,7 @@ export class SemanticVisitor implements Visitor {
         throw new Error("module");
     }
     name(name: Name): void {
-        this.st.addDef(name.id, name.ctx === Load ? USE : DEF_LOCAL, name.lineno);
+        this.st.addDef(name.id, name.ctx === Load ? USE : DEF_LOCAL, name.begin.line);
     }
     num(num: Num): void {
         // Do nothing, unless we are doing type inference.
@@ -287,7 +287,7 @@ export class SymbolTable {
             const arg = args[i];
             if (arg.constructor === Name) {
                 assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
-                this.addDef(arg.id, DEF_PARAM, arg.lineno);
+                this.addDef(arg.id, DEF_PARAM, arg.begin.line);
             }
             else {
                 // Tuple isn't supported
@@ -586,7 +586,7 @@ export class SymbolTable {
             this.visitSlice(e.slice);
         }
         else if (e instanceof Name) {
-            this.addDef(e.id, e.ctx === Load ? USE : DEF_LOCAL, e.lineno);
+            this.addDef(e.id, e.ctx === Load ? USE : DEF_LOCAL, e.begin.line);
         }
         else if (e instanceof List || e instanceof Tuple) {
             this.SEQExpr(e.elts);
@@ -608,17 +608,15 @@ export class SymbolTable {
 
     /**
      * This is probably not correct for names. What are they?
-     * @param {Array.<Object>} names
-     * @param {number} lineno
+     * @param names
+     * @param lineno
      */
     visitAlias(names: Alias[], lineno: number) {
         /* Compute store_name, the name actually bound by the import
             operation.  It is diferent than a->name when a->name is a
             dotted package name (e.g. spam.eggs)
         */
-        for (let i = 0; i < names.length; ++i) {
-            const a = names[i];
-            // DGH: The RHS used to be Python strings.
+        for (const a of names) {
             const name = a.asname === null ? a.name : a.asname;
             let storename = name;
             const dot = name.indexOf('.');

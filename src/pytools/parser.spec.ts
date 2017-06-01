@@ -18,10 +18,9 @@ function DECODE(n: PyNode) {
         return {
             type: tokenNames[term.type],
             value: term.value,
-            lineno: term.lineno,
-            col_offset: term.col_offset,
+            begin: term.begin,
+            end: term.end,
             children: term.children,
-            context: term.context,
             used_names: term.used_names
         };
     });
@@ -34,9 +33,8 @@ describe('parse', function () {
         if (typeof cst === 'object') {
             expect(cst.type).toBe(sym.file_input);
             expect(cst.value).toBeNull();
-            expect(cst.context).toBeNull();
-            expect(cst.lineno).toBeUndefined();
-            expect(cst.col_offset).toBeUndefined();
+            expect(cst.begin).toBeNull();
+            expect(cst.end).toBeNull();
             expect(cst.used_names).toEqual({});
             expect(cst.children).toBeDefined();
             expect(Array.isArray(cst.children)).toBeTruthy();
@@ -54,20 +52,32 @@ describe('parse', function () {
 
             expect(n0.type).toBe(Tokens.T_NUMBER);
             expect(n0.value).toBe("123");
-            expect(n0.lineno).toBe(1);
-            expect(n0.col_offset).toBe(0);
+            expect(cst.begin).toBeDefined();
+            expect(n0.begin.line).toBe(1);
+            expect(n0.begin.column).toBe(0);
+            expect(cst.end).toBeDefined();
+            expect(n0.end.line).toBe(1);
+            expect(n0.end.column).toBe(3);
             expect(n0.children).toBeNull();
 
             expect(n1.type).toBe(Tokens.T_NEWLINE);
             expect(n1.value).toBe("\n");
-            expect(n1.lineno).toBe(1);
-            expect(n1.col_offset).toBe(3);
+            expect(cst.begin).toBeDefined();
+            expect(n1.begin.line).toBe(1);
+            expect(n1.begin.column).toBe(3);
+            expect(cst.end).toBeDefined();
+            expect(n1.end.line).toBe(1);
+            expect(n1.end.column).toBe(4);
             expect(n1.children).toBeNull();
 
             expect(n2.type).toBe(Tokens.T_ENDMARKER);
             expect(n2.value).toBe("");
-            expect(n2.lineno).toBe(2);
-            expect(n2.col_offset).toBe(0);
+            expect(cst.begin).toBeDefined();
+            expect(n2.begin.line).toBe(2);
+            expect(n2.begin.column).toBe(0);
+            expect(cst.end).toBeDefined();
+            expect(n2.end.line).toBe(2);
+            expect(n2.end.column).toBe(0);
             expect(n2.children).toBeNull();
         }
     });
@@ -85,20 +95,20 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_NUMBER);
         expect(n0.value).toBe("1.23");
-        expect(n0.lineno).toBe(1);
-        expect(n0.col_offset).toBe(0);
+        expect(n0.begin.line).toBe(1);
+        expect(n0.begin.column).toBe(0);
         expect(n0.children).toBeNull();
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.lineno).toBe(1);
-        expect(n1.col_offset).toBe(4);
+        expect(n1.begin.line).toBe(1);
+        expect(n1.begin.column).toBe(4);
         expect(n1.children).toBeNull();
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.lineno).toBe(2);
-        expect(n2.col_offset).toBe(0);
+        expect(n2.begin.line).toBe(2);
+        expect(n2.begin.column).toBe(0);
         expect(n2.children).toBeNull();
     });
 
@@ -115,20 +125,22 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_NUMBER);
         expect(n0.value).toBe("123L");
-        expect(n0.lineno).toBe(1);
-        expect(n0.col_offset).toBe(0);
+        expect(n0.begin.line).toBe(1);
+        expect(n0.begin.column).toBe(0);
+        expect(n0.end.line).toBe(1);
+        expect(n0.end.column).toBe(4);
         expect(n0.children).toBeNull();
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.lineno).toBe(1);
-        expect(n1.col_offset).toBe(4);
+        expect(n1.begin.line).toBe(1);
+        expect(n1.begin.column).toBe(4);
         expect(n1.children).toBeNull();
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.lineno).toBe(2);
-        expect(n2.col_offset).toBe(0);
+        expect(n2.begin.line).toBe(2);
+        expect(n2.begin.column).toBe(0);
         expect(n2.children).toBeNull();
     });
 
@@ -145,20 +157,20 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_NUMBER);
         expect(n0.value).toBe("0xFFFFFF");
-        expect(n0.lineno).toBe(1);
-        expect(n0.col_offset).toBe(0);
+        expect(n0.begin.line).toBe(1);
+        expect(n0.begin.column).toBe(0);
         expect(n0.children).toBeNull();
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.lineno).toBe(1);
-        expect(n1.col_offset).toBe(8);
+        expect(n1.begin.line).toBe(1);
+        expect(n1.begin.column).toBe(8);
         expect(n1.children).toBeNull();
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.lineno).toBe(2);
-        expect(n2.col_offset).toBe(0);
+        expect(n2.begin.line).toBe(2);
+        expect(n2.begin.column).toBe(0);
         expect(n2.children).toBeNull();
     });
 
@@ -175,20 +187,20 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_NUMBER);
         expect(n0.value).toBe("0O0505L");
-        expect(n0.lineno).toBe(1);
-        expect(n0.col_offset).toBe(0);
+        expect(n0.begin.line).toBe(1);
+        expect(n0.begin.column).toBe(0);
         expect(n0.children).toBeNull();
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.lineno).toBe(1);
-        expect(n1.col_offset).toBe(7);
+        expect(n1.begin.line).toBe(1);
+        expect(n1.begin.column).toBe(7);
         expect(n1.children).toBeNull();
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.lineno).toBe(2);
-        expect(n2.col_offset).toBe(0);
+        expect(n2.begin.line).toBe(2);
+        expect(n2.begin.column).toBe(0);
         expect(n2.children).toBeNull();
     });
 
@@ -205,20 +217,20 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_STRING);
         expect(n0.value).toBe('"Hello"');
-        expect(n0.lineno).toBe(1);
-        expect(n0.col_offset).toBe(0);
+        expect(n0.begin.line).toBe(1);
+        expect(n0.begin.column).toBe(0);
         expect(n0.children).toBeNull();
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.lineno).toBe(1);
-        expect(n1.col_offset).toBe(7);
+        expect(n1.begin.line).toBe(1);
+        expect(n1.begin.column).toBe(7);
         expect(n1.children).toBeNull();
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.lineno).toBe(2);
-        expect(n2.col_offset).toBe(0);
+        expect(n2.begin.line).toBe(2);
+        expect(n2.begin.column).toBe(0);
         expect(n2.children).toBeNull();
     });
 
@@ -236,20 +248,20 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_NAME);
         expect(n0.value).toBe('True');
-        expect(n0.lineno).toBe(1);
-        expect(n0.col_offset).toBe(0);
+        expect(n0.begin.line).toBe(1);
+        expect(n0.begin.column).toBe(0);
         expect(n0.children).toBeNull();
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.lineno).toBe(1);
-        expect(n1.col_offset).toBe(4);
+        expect(n1.begin.line).toBe(1);
+        expect(n1.begin.column).toBe(4);
         expect(n1.children).toBeNull();
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.lineno).toBe(2);
-        expect(n2.col_offset).toBe(0);
+        expect(n2.begin.line).toBe(2);
+        expect(n2.begin.column).toBe(0);
         expect(n2.children).toBeNull();
     });
 
@@ -266,20 +278,20 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_NAME);
         expect(n0.value).toBe('False');
-        expect(n0.lineno).toBe(1);
-        expect(n0.col_offset).toBe(0);
+        expect(n0.begin.line).toBe(1);
+        expect(n0.begin.column).toBe(0);
         expect(n0.children).toBeNull();
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.lineno).toBe(1);
-        expect(n1.col_offset).toBe(5);
+        expect(n1.begin.line).toBe(1);
+        expect(n1.begin.column).toBe(5);
         expect(n1.children).toBeNull();
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.lineno).toBe(2);
-        expect(n2.col_offset).toBe(0);
+        expect(n2.begin.line).toBe(2);
+        expect(n2.begin.column).toBe(0);
         expect(n2.children).toBeNull();
     });
 
@@ -302,26 +314,26 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(n0.type).toBe(Tokens.T_LSQB);
             expect(n0.value).toBe('[');
-            expect(n0.lineno).toBe(1);
-            expect(n0.col_offset).toBe(0);
+            expect(n0.begin.line).toBe(1);
+            expect(n0.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(n1.type).toBe(Tokens.T_RSQB);
             expect(n1.value).toBe("]");
-            expect(n1.lineno).toBe(1);
-            expect(n1.col_offset).toBe(1);
+            expect(n1.begin.line).toBe(1);
+            expect(n1.begin.column).toBe(1);
             expect(n1.children).toBeNull();
 
             expect(n2.type).toBe(Tokens.T_NEWLINE);
             expect(n2.value).toBe("\n");
-            expect(n2.lineno).toBe(1);
-            expect(n2.col_offset).toBe(2);
+            expect(n2.begin.line).toBe(1);
+            expect(n2.begin.column).toBe(2);
             expect(n2.children).toBeNull();
 
             expect(n3.type).toBe(Tokens.T_ENDMARKER);
             expect(n3.value).toBe("");
-            expect(n3.lineno).toBe(2);
-            expect(n3.col_offset).toBe(0);
+            expect(n3.begin.line).toBe(2);
+            expect(n3.begin.column).toBe(0);
             expect(n3.children).toBeNull();
 
         });
@@ -345,26 +357,26 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(n0.type).toBe(Tokens.T_LBRACE);
             expect(n0.value).toBe('{');
-            expect(n0.lineno).toBe(1);
-            expect(n0.col_offset).toBe(0);
+            expect(n0.begin.line).toBe(1);
+            expect(n0.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(n1.type).toBe(Tokens.T_RBRACE);
             expect(n1.value).toBe("}");
-            expect(n1.lineno).toBe(1);
-            expect(n1.col_offset).toBe(1);
+            expect(n1.begin.line).toBe(1);
+            expect(n1.begin.column).toBe(1);
             expect(n1.children).toBeNull();
 
             expect(n2.type).toBe(Tokens.T_NEWLINE);
             expect(n2.value).toBe("\n");
-            expect(n2.lineno).toBe(1);
-            expect(n2.col_offset).toBe(2);
+            expect(n2.begin.line).toBe(1);
+            expect(n2.begin.column).toBe(2);
             expect(n2.children).toBeNull();
 
             expect(n3.type).toBe(Tokens.T_ENDMARKER);
             expect(n3.value).toBe("");
-            expect(n3.lineno).toBe(2);
-            expect(n3.col_offset).toBe(0);
+            expect(n3.begin.line).toBe(2);
+            expect(n3.begin.column).toBe(0);
             expect(n3.children).toBeNull();
 
         });
@@ -387,20 +399,20 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(n0.type).toBe(Tokens.T_NAME);
             expect(n0.value).toBe('a');
-            expect(n0.lineno).toBe(1);
-            expect(n0.col_offset).toBe(0);
+            expect(n0.begin.line).toBe(1);
+            expect(n0.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(nl.type).toBe(Tokens.T_NEWLINE);
             expect(nl.value).toBe("\n");
-            expect(nl.lineno).toBe(1);
-            expect(nl.col_offset).toBe(1);
+            expect(nl.begin.line).toBe(1);
+            expect(nl.begin.column).toBe(1);
             expect(nl.children).toBeNull();
 
             expect(em.type).toBe(Tokens.T_ENDMARKER);
             expect(em.value).toBe("");
-            expect(em.lineno).toBe(2);
-            expect(em.col_offset).toBe(0);
+            expect(em.begin.line).toBe(2);
+            expect(em.begin.column).toBe(0);
             expect(em.children).toBeNull();
 
         });
@@ -424,26 +436,26 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_PLUS]);
             expect(n0.value).toBe('+');
-            expect(n0.lineno).toBe(1);
-            expect(n0.col_offset).toBe(0);
+            expect(n0.begin.line).toBe(1);
+            expect(n0.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n1.value).toBe('a');
-            expect(n1.lineno).toBe(1);
-            expect(n1.col_offset).toBe(1);
+            expect(n1.begin.line).toBe(1);
+            expect(n1.begin.column).toBe(1);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.lineno).toBe(1);
-            expect(nl.col_offset).toBe(2);
+            expect(nl.begin.line).toBe(1);
+            expect(nl.begin.column).toBe(2);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.lineno).toBe(2);
-            expect(em.col_offset).toBe(0);
+            expect(em.begin.line).toBe(2);
+            expect(em.begin.column).toBe(0);
             expect(em.children).toBeNull();
 
         });
@@ -467,26 +479,26 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_MINUS]);
             expect(n0.value).toBe('-');
-            expect(n0.lineno).toBe(1);
-            expect(n0.col_offset).toBe(0);
+            expect(n0.begin.line).toBe(1);
+            expect(n0.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n1.value).toBe('a');
-            expect(n1.lineno).toBe(1);
-            expect(n1.col_offset).toBe(1);
+            expect(n1.begin.line).toBe(1);
+            expect(n1.begin.column).toBe(1);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.lineno).toBe(1);
-            expect(nl.col_offset).toBe(2);
+            expect(nl.begin.line).toBe(1);
+            expect(nl.begin.column).toBe(2);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.lineno).toBe(2);
-            expect(em.col_offset).toBe(0);
+            expect(em.begin.line).toBe(2);
+            expect(em.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
@@ -509,26 +521,26 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_TILDE]);
             expect(n0.value).toBe('~');
-            expect(n0.lineno).toBe(1);
-            expect(n0.col_offset).toBe(0);
+            expect(n0.begin.line).toBe(1);
+            expect(n0.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n1.value).toBe('a');
-            expect(n1.lineno).toBe(1);
-            expect(n1.col_offset).toBe(1);
+            expect(n1.begin.line).toBe(1);
+            expect(n1.begin.column).toBe(1);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.lineno).toBe(1);
-            expect(nl.col_offset).toBe(2);
+            expect(nl.begin.line).toBe(1);
+            expect(nl.begin.column).toBe(2);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.lineno).toBe(2);
-            expect(em.col_offset).toBe(0);
+            expect(em.begin.line).toBe(2);
+            expect(em.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
@@ -553,32 +565,32 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n0.value).toBe('a');
-            expect(n0.lineno).toBe(1);
-            expect(n0.col_offset).toBe(0);
+            expect(n0.begin.line).toBe(1);
+            expect(n0.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_PLUS]);
             expect(n1.value).toBe('+');
-            expect(n1.lineno).toBe(1);
-            expect(n1.col_offset).toBe(2);
+            expect(n1.begin.line).toBe(1);
+            expect(n1.begin.column).toBe(2);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[n2.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n2.value).toBe('b');
-            expect(n2.lineno).toBe(1);
-            expect(n2.col_offset).toBe(4);
+            expect(n2.begin.line).toBe(1);
+            expect(n2.begin.column).toBe(4);
             expect(n2.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.lineno).toBe(1);
-            expect(nl.col_offset).toBe(5);
+            expect(nl.begin.line).toBe(1);
+            expect(nl.begin.column).toBe(5);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.lineno).toBe(2);
-            expect(em.col_offset).toBe(0);
+            expect(em.begin.line).toBe(2);
+            expect(em.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
@@ -603,32 +615,32 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n0.value).toBe('a');
-            expect(n0.lineno).toBe(1);
-            expect(n0.col_offset).toBe(0);
+            expect(n0.begin.line).toBe(1);
+            expect(n0.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_MINUS]);
             expect(n1.value).toBe('-');
-            expect(n1.lineno).toBe(1);
-            expect(n1.col_offset).toBe(2);
+            expect(n1.begin.line).toBe(1);
+            expect(n1.begin.column).toBe(2);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[n2.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n2.value).toBe('b');
-            expect(n2.lineno).toBe(1);
-            expect(n2.col_offset).toBe(4);
+            expect(n2.begin.line).toBe(1);
+            expect(n2.begin.column).toBe(4);
             expect(n2.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.lineno).toBe(1);
-            expect(nl.col_offset).toBe(5);
+            expect(nl.begin.line).toBe(1);
+            expect(nl.begin.column).toBe(5);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.lineno).toBe(2);
-            expect(em.col_offset).toBe(0);
+            expect(em.begin.line).toBe(2);
+            expect(em.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
@@ -660,32 +672,32 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n0.value).toBe('a');
-            expect(n0.lineno).toBe(1);
-            expect(n0.col_offset).toBe(0);
+            expect(n0.begin.line).toBe(1);
+            expect(n0.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_STAR]);
             expect(n1.value).toBe('*');
-            expect(n1.lineno).toBe(1);
-            expect(n1.col_offset).toBe(2);
+            expect(n1.begin.line).toBe(1);
+            expect(n1.begin.column).toBe(2);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[n2.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n2.value).toBe('b');
-            expect(n2.lineno).toBe(1);
-            expect(n2.col_offset).toBe(4);
+            expect(n2.begin.line).toBe(1);
+            expect(n2.begin.column).toBe(4);
             expect(n2.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.lineno).toBe(1);
-            expect(nl.col_offset).toBe(5);
+            expect(nl.begin.line).toBe(1);
+            expect(nl.begin.column).toBe(5);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.lineno).toBe(2);
-            expect(em.col_offset).toBe(0);
+            expect(em.begin.line).toBe(2);
+            expect(em.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
@@ -715,64 +727,64 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[a.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(a.value).toBe('a');
-            expect(a.lineno).toBe(1);
-            expect(a.col_offset).toBe(0);
+            expect(a.begin.line).toBe(1);
+            expect(a.begin.column).toBe(0);
             expect(a.children).toBeNull();
 
             expect(tokenNames[eq.type]).toBe(tokenNames[Tokens.T_EQUAL]);
             expect(eq.value).toBe('=');
-            expect(eq.lineno).toBe(1);
-            expect(eq.col_offset).toBe(2);
+            expect(eq.begin.line).toBe(1);
+            expect(eq.begin.column).toBe(2);
             expect(eq.children).toBeNull();
 
             expect(tokenNames[b.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(b.value).toBe('b');
-            expect(b.lineno).toBe(1);
-            expect(b.col_offset).toBe(4);
+            expect(b.begin.line).toBe(1);
+            expect(b.begin.column).toBe(4);
             expect(b.children).toBeNull();
 
             expect(tokenNames[dot.type]).toBe(tokenNames[Tokens.T_DOT]);
             expect(dot.value).toBe('.');
-            expect(dot.lineno).toBe(1);
-            expect(dot.col_offset).toBe(5);
+            expect(dot.begin.line).toBe(1);
+            expect(dot.begin.column).toBe(5);
             expect(dot.children).toBeNull();
 
             expect(tokenNames[c.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(c.value).toBe('c');
-            expect(c.lineno).toBe(1);
-            expect(c.col_offset).toBe(6);
+            expect(c.begin.line).toBe(1);
+            expect(c.begin.column).toBe(6);
             expect(c.children).toBeNull();
 
             expect(tokenNames[lPar.type]).toBe(tokenNames[Tokens.T_LPAR]);
             expect(lPar.value).toBe('(');
-            expect(lPar.lineno).toBe(1);
-            expect(lPar.col_offset).toBe(7);
+            expect(lPar.begin.line).toBe(1);
+            expect(lPar.begin.column).toBe(7);
             expect(lPar.children).toBeNull();
 
             expect(tokenNames[t.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(t.value).toBe('t');
-            expect(t.lineno).toBe(1);
-            expect(t.col_offset).toBe(8);
+            expect(t.begin.line).toBe(1);
+            expect(t.begin.column).toBe(8);
             expect(t.children).toBeNull();
 
             expect(tokenNames[rPar.type]).toBe(tokenNames[Tokens.T_RPAR]);
             expect(rPar.value).toBe(')');
-            expect(rPar.lineno).toBe(1);
-            expect(rPar.col_offset).toBe(9);
+            expect(rPar.begin.line).toBe(1);
+            expect(rPar.begin.column).toBe(9);
             expect(rPar.children).toBeNull();
 
             // Newline
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.lineno).toBe(1);
-            expect(nl.col_offset).toBe(10);
+            expect(nl.begin.line).toBe(1);
+            expect(nl.begin.column).toBe(10);
             expect(nl.children).toBeNull();
 
             // End Marker
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.lineno).toBe(2);
-            expect(em.col_offset).toBe(0);
+            expect(em.begin.line).toBe(2);
+            expect(em.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
@@ -791,7 +803,7 @@ describe('parse', function () {
         it("performance should not degrade", function () {
             expect(Array.isArray(ns)).toBeTruthy();
             expect(ns.length).toBe(247);
-            // console.log(`Parser    performance parse          (${ns.length} terminals) took ${t1 - t0} ms`);
+            console.log(`Parser    performance parse          (${ns.length} terminals) took ${t1 - t0} ms`);
             // This has been benchmarked at around 20-40 ms.
             expect(t1 - t0 < 60).toBe(true);
         });
@@ -806,32 +818,32 @@ describe('parse', function () {
         xit("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n0.value).toBe('a');
-            expect(n0.lineno).toBe(1);
-            expect(n0.col_offset).toBe(0);
+            expect(n0.begin.line).toBe(1);
+            expect(n0.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_MINUS]);
             expect(n1.value).toBe('-');
-            expect(n1.lineno).toBe(1);
-            expect(n1.col_offset).toBe(2);
+            expect(n1.begin.line).toBe(1);
+            expect(n1.begin.column).toBe(2);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[n2.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n2.value).toBe('b');
-            expect(n2.lineno).toBe(1);
-            expect(n2.col_offset).toBe(4);
+            expect(n2.begin.line).toBe(1);
+            expect(n2.begin.column).toBe(4);
             expect(n2.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.lineno).toBe(1);
-            expect(nl.col_offset).toBe(5);
+            expect(nl.begin.line).toBe(1);
+            expect(nl.begin.column).toBe(5);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.lineno).toBe(2);
-            expect(em.col_offset).toBe(0);
+            expect(em.begin.line).toBe(2);
+            expect(em.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
