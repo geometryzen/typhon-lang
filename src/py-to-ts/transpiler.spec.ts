@@ -467,7 +467,7 @@ describe('transpiler', function () {
     });
 
     describe('Performance', function () {
-        xit('should be sub-second for standard graphics example', function () {
+        it('should be sub-second for standard graphics example', function () {
             const sourceText = sourceLines.join('\n');
             const result = compile(sourceText);
             /*
@@ -476,6 +476,7 @@ describe('transpiler', function () {
             */
             expect(true).toBeTruthy();
             expect(typeof result.code).toBe('string');
+            console.log(result.code);
         });
     });
 

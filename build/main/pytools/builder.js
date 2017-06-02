@@ -1694,7 +1694,8 @@ function astForPowerExpr(c, n) {
             e = tmp;
         }
         else {
-            asserts_1.assert(false, "" + JSON.stringify(e));
+            // TODO: I'm not sure waht this is but don't assert!!!
+            // assert(false, `${JSON.stringify(e)}`);
         }
     }
     if (tree_1.CHILD(n, tree_1.NCH(n) - 1).type === SYM.UnaryExpr) {

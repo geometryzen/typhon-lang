@@ -1806,7 +1806,8 @@ function astForPowerExpr(c: Compiling, n: PyNode): Name | Expression {
             e = tmp;
         }
         else {
-            assert(false, `${JSON.stringify(e)}`);
+            // TODO: I'm not sure waht this is but don't assert!!!
+            // assert(false, `${JSON.stringify(e)}`);
         }
     }
     if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr) {
