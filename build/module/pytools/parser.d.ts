@@ -1,4 +1,5 @@
 import { Tokens } from './Tokens';
+import { Range } from './Range';
 export declare type Arc = [number, number];
 export declare type Dfa = [Arc[][], {
     [value: number]: number;
@@ -48,11 +49,13 @@ export interface Grammar {
     };
     states: any;
 }
-export declare type LineColumn = [number, number];
 /**
- * [begin, end, line]
+ * The first element is the line number.
+ * The line number is 1-based.
+ * The second element is the column.
+ * The column is 0-based.
  */
-export declare type ParseContext = [LineColumn, LineColumn, string];
+export declare type LineColumn = [number, number];
 /**
  * The parse tree (not the abstract syntax tree).
  */
@@ -63,9 +66,7 @@ export interface PyNode {
      */
     type: Tokens;
     value: string | null;
-    context?: any;
-    lineno?: number;
-    col_offset?: number;
+    range: Range | null;
     used_names?: {
         [name: string]: boolean;
     };

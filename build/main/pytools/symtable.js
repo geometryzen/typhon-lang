@@ -8,7 +8,7 @@ var SymbolConstants_1 = require("./SymbolConstants");
  */
 function semanticsOfModule(mod) {
     var st = new SymbolTable_1.SymbolTable();
-    st.enterBlock("top", SymbolConstants_1.ModuleBlock, mod, 0);
+    st.enterBlock("top", SymbolConstants_1.ModuleBlock, mod, null);
     st.top = st.cur;
     // This is a good place to dump the AST for debugging.
     for (var _i = 0, _a = mod.body; _i < _a.length; _i++) {
@@ -61,7 +61,7 @@ function dumpSymbolTable(st) {
         var ret = "";
         ret += indent + "type: '" + obj.get_type() + "'\n";
         ret += indent + "name: '" + obj.get_name() + "'\n";
-        ret += indent + "lineno: " + obj.get_lineno() + "\n";
+        ret += indent + "lineno: " + JSON.stringify(obj.get_range()) + "\n";
         ret += indent + "nested: " + pyBoolStr(obj.is_nested()) + "\n";
         ret += indent + "haschildren: " + pyBoolStr(obj.has_children()) + "\n";
         if (obj.get_type() === "class") {
@@ -101,7 +101,6 @@ function dumpSymbolTable(st) {
         }
         return ret;
     };
-    console.log("dumpSymbolTable()");
     return getIdents(st.top, '');
 }
 exports.dumpSymbolTable = dumpSymbolTable;

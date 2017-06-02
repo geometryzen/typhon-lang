@@ -13,6 +13,8 @@ describe('transpiler', function () {
     describe('NumericLiteral', function () {
         it('Float', function () {
             const result = compile('0.01');
+            // console.lg(JSON.stringify(result.sourceMap, null, 2));
+            // console.lg(JSON.stringify(result.mod, null, 2));
             expect(result.code).toBe("0.01;");
         });
     });
@@ -39,6 +41,17 @@ describe('transpiler', function () {
         it('should provide a declaration', function () {
             const result = compile('x = 0.01');
             expect(result.code).toBe("let x=0.01;");
+            // console.lg(JSON.stringify(result.sourceMap, null, 2));
+            const source = result.sourceMap.source;
+            expect(source.begin.line).toBe(1);
+            expect(source.begin.column).toBe(0);
+            expect(source.end.line).toBe(1);
+            expect(source.end.column).toBe(8);
+            const target = result.sourceMap.target;
+            expect(target.begin.line).toBe(1);
+            expect(target.begin.column).toBe(0);
+            expect(target.end.line).toBe(1);
+            expect(target.end.column).toBe(10);
         });
         it('should provide a declaration', function () {
             const sourceText = "the_world_is_flat = True";
@@ -62,6 +75,9 @@ describe('transpiler', function () {
             expect(typeof result).toBe('object');
             expect(typeof result.code).toBe('string');
             expect(result.code).toBe("let x=1;");
+            const sourceMap = result.sourceMap;
+            // console.lg(JSON.stringify(result.sourceMap, null, 2));
+            expect(sourceMap.children.length).toBe(3);
         });
     });
 
@@ -211,8 +227,9 @@ describe('transpiler', function () {
                 "}"
             ].join("\n");
             */
-            // console.log(dumpSymbolTable(result.symbolTable));
+            // console.lg(dumpSymbolTable(result.symbolTable));
             expect(result.code).toBe("class MyClass{f(name){return 'Hello'+name;}}");
+            // console.lg(JSON.stringify(result.sourceMap, null, 2));
         });
     });
 
@@ -224,6 +241,7 @@ describe('transpiler', function () {
         it('should allow a dictionary of many items', function () {
             const result = compile("{'a': 1, 'b': 23, 'c': 'eggs'}");
             expect(result.code).toBe("{'a':1,'b':23,'c':'eggs'};");
+            // console.lg(JSON.stringify(result.sourceMap, null, 2));
         });
     });
 
@@ -270,7 +288,7 @@ describe('transpiler', function () {
                 ""
             ].join("\n");
             const result = compile(sourceText);
-            // console.log(parseTreeDump(result.cst));
+            // console.lg(parseTreeDump(result.cst));
             expect(result.code).toBe("import {Engine} from 'eight';");
         });
         it('should allow a multiple named imports', function () {
@@ -279,7 +297,7 @@ describe('transpiler', function () {
                 ""
             ].join("\n");
             const result = compile(sourceText);
-            // console.log(parseTreeDump(result.cst));
+            // console.lg(parseTreeDump(result.cst));
             expect(result.code).toBe("import {Engine,Scene} from 'eight';");
         });
         it('should allow a single alias named import', function () {
@@ -394,7 +412,7 @@ describe('transpiler', function () {
             ].join("\n");
             const result = compile(sourceText);
             // const mod = result.mod;
-            // console.log(astDump(mod));
+            // console.lg(astDump(mod));
             expect(result.code).toBe("a.b(c);x.y(z);");
         });
     });

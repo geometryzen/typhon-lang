@@ -1,3 +1,6 @@
+import { Position } from '../pytools/Position';
+import { Range } from '../pytools/Range';
+import { MappingTree } from './MappingTree';
 export declare enum IndentStyle {
     None = 0,
     Block = 1,
@@ -28,6 +31,10 @@ export interface FormatCodeOptions extends EditorOptions {
     placeOpenBraceOnNewLineForFunctions?: boolean;
     placeOpenBraceOnNewLineForControlBlocks?: boolean;
 }
+export interface TextAndMappings {
+    text: string;
+    tree: MappingTree;
+}
 /**
  * A smart buffer for writing TypeScript code.
  */
@@ -41,10 +48,19 @@ export declare class TypeWriter {
      * Constructs a TypeWriter instance using the specified options.
      */
     constructor(options?: FormatCodeOptions);
-    write(text: string): void;
-    snapshot(): string;
-    binOp(binOp: '+' | '-' | '*' | '/' | '|' | '^' | '&' | '<<' | '>>' | '%' | '//'): void;
-    comma(): void;
+    assign(text: '=', source: Range): void;
+    /**
+     * Writes a name (identifier).
+     * @param id The identifier string to be written.
+     * @param begin The position of the beginning of the name in the original source.
+     * @param end The position of the end of the name in the original source.
+     */
+    name(id: string, source: Range): void;
+    num(text: string, source: Range): void;
+    write(text: string, tree: MappingTree): void;
+    snapshot(): TextAndMappings;
+    binOp(binOp: '+' | '-' | '*' | '/' | '|' | '^' | '&' | '<<' | '>>' | '%' | '//', source: Range): void;
+    comma(begin: Position | null, end: Position | null): void;
     space(): void;
     beginBlock(): void;
     endBlock(): void;

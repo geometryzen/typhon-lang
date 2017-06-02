@@ -110,14 +110,12 @@ var SYM = ParseTables.sym;
 var LONG_THRESHOLD = Math.pow(2, 53);
 /**
  * FIXME: Consolidate with parseError in parser.
- * @param message
- * @param lineNumber
  */
-function syntaxError(message, lineNumber) {
+function syntaxError(message, range) {
     assert(isString(message), "message must be a string");
-    assert(isNumber(lineNumber), "lineNumber must be a number");
+    assert(isNumber(range.begin.line), "lineNumber must be a number");
     var e = new SyntaxError(message /*, fileName*/);
-    e['lineNumber'] = lineNumber;
+    e['lineNumber'] = range.begin.line;
     return e;
 }
 var Compiling = (function () {
@@ -184,11 +182,11 @@ function numStmts(n) {
         }
     }
 }
-function forbiddenCheck(c, n, x, lineno) {
+function forbiddenCheck(c, n, x, range) {
     if (x === "None")
-        throw syntaxError("assignment to None", lineno);
+        throw syntaxError("assignment to None", range);
     if (x === "True" || x === "False")
-        throw syntaxError("assignment to True or False is forbidden", lineno);
+        throw syntaxError("assignment to True or False is forbidden", range);
 }
 /**
  * Set the context ctx for e, recursively traversing e.
@@ -202,12 +200,12 @@ function setContext(c, e, ctx, n) {
     var exprName = null;
     if (e instanceof Attribute) {
         if (ctx === Store)
-            forbiddenCheck(c, n, e.attr, n.lineno);
+            forbiddenCheck(c, n, e.attr, n.range);
         e.ctx = ctx;
     }
     else if (e instanceof Name) {
         if (ctx === Store)
-            forbiddenCheck(c, n, /*e.attr*/ void 0, n.lineno);
+            forbiddenCheck(c, n, /*e.attr*/ void 0, n.range);
         e.ctx = ctx;
     }
     else if (e instanceof Subscript) {
@@ -219,7 +217,7 @@ function setContext(c, e, ctx, n) {
     }
     else if (e instanceof Tuple) {
         if (e.elts.length === 0) {
-            throw syntaxError("can't assign to ()", n.lineno);
+            throw syntaxError("can't assign to ()", n.range);
         }
         e.ctx = ctx;
         s = e.elts;
@@ -266,11 +264,12 @@ function setContext(c, e, ctx, n) {
         }
     }
     if (exprName) {
-        throw syntaxError("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, n.lineno);
+        throw syntaxError("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, n.range);
     }
     if (s) {
-        for (var i = 0; i < s.length; ++i) {
-            setContext(c, s[i], ctx, n);
+        for (var _i = 0, s_1 = s; _i < s_1.length; _i++) {
+            var e_1 = s_1[_i];
+            setContext(c, e_1, ctx, n);
         }
     }
 }
@@ -293,7 +292,7 @@ var operatorMap = {};
 }());
 function getOperator(n) {
     assert(operatorMap[n.type] !== undefined, "" + n.type);
-    return operatorMap[n.type];
+    return { op: operatorMap[n.type], range: n.range };
 }
 function astForCompOp(c, n) {
     // comp_op: '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is' |'is' 'not'
@@ -386,14 +385,15 @@ function astForExceptClause(c, exc, body) {
     /* except_clause: 'except' [test [(',' | 'as') test]] */
     REQ(exc, SYM.except_clause);
     REQ(body, SYM.suite);
-    if (NCH(exc) === 1)
-        return new ExceptHandler(null, null, astForSuite(c, body), exc.lineno, exc.col_offset);
+    if (NCH(exc) === 1) {
+        return new ExceptHandler(null, null, astForSuite(c, body), exc.range);
+    }
     else if (NCH(exc) === 2)
-        return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.lineno, exc.col_offset);
+        return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.range);
     else if (NCH(exc) === 4) {
         var e = astForExpr(c, CHILD(exc, 3));
         setContext(c, e, Store, CHILD(exc, 3));
-        return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.lineno, exc.col_offset);
+        return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.range);
     }
     else {
         throw new Error("wrong number of children for except clause");
@@ -426,13 +426,14 @@ function astForTryStmt(c, n) {
         }
     }
     else if (CHILD(n, nc - 3).type !== SYM.except_clause) {
-        throw syntaxError("malformed 'try' statement", n.lineno);
+        throw syntaxError("malformed 'try' statement", n.range);
     }
     if (nexcept > 0) {
         var handlers = [];
-        for (var i = 0; i < nexcept; ++i)
+        for (var i = 0; i < nexcept; ++i) {
             handlers[i] = astForExceptClause(c, CHILD(n, 3 + i * 3), CHILD(n, 5 + i * 3));
-        var exceptSt = new TryExcept(body, handlers, orelse, n.lineno, n.col_offset);
+        }
+        var exceptSt = new TryExcept(body, handlers, orelse, n.range);
         if (!finally_)
             return exceptSt;
         /* if a 'finally' is present too, we nest the TryExcept within a
@@ -440,17 +441,15 @@ function astForTryStmt(c, n) {
         body = [exceptSt];
     }
     assert(finally_ !== null);
-    return new TryFinally(body, finally_, n.lineno, n.col_offset);
+    return new TryFinally(body, finally_, n.range);
 }
 function astForDottedName(c, n) {
     REQ(n, SYM.dotted_name);
-    var lineno = n.lineno;
-    var col_offset = n.col_offset;
     var id = strobj(CHILD(n, 0).value);
-    var e = new Name(id, Load, lineno, col_offset);
+    var e = new Name(id, Load, n.range);
     for (var i = 2; i < NCH(n); i += 2) {
         id = strobj(CHILD(n, i).value);
-        e = new Attribute(e, id, Load, lineno, col_offset);
+        e = new Attribute(e, id, Load, n.range);
     }
     return e;
 }
@@ -463,7 +462,7 @@ function astForDecorator(c, n) {
     if (NCH(n) === 3)
         return nameExpr;
     else if (NCH(n) === 5)
-        return new Call(nameExpr, [], [], null, null, n.lineno, n.col_offset);
+        return new Call(nameExpr, [], [], null, null, n.range);
     else
         return astForCall(c, CHILD(n, 3), nameExpr);
 }
@@ -490,8 +489,8 @@ function astForDecorated(c, n) {
         throw new Error("astForDecorated");
     }
     if (thing) {
-        thing.lineno = n.lineno;
-        thing.col_offset = n.col_offset;
+        // FIXME: Pass into functions above?
+        // thing.range = n.range;
     }
     return thing;
 }
@@ -510,7 +509,7 @@ function astForWithStmt(c, n) {
         setContext(c, optionalVars, Store, n);
         suiteIndex = 4;
     }
-    return new WithStatement(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
+    return new WithStatement(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.range);
 }
 function astForExecStmt(c, n) {
     var globals = null;
@@ -526,7 +525,7 @@ function astForExecStmt(c, n) {
     if (nchildren === 6) {
         locals = astForExpr(c, CHILD(n, 5));
     }
-    return new Exec(expr1, globals, locals, n.lineno, n.col_offset);
+    return new Exec(expr1, globals, locals, n.range);
 }
 function astForIfStmt(c, n) {
     /* if_stmt: 'if' test ':' suite ('elif' test ':' suite)*
@@ -534,11 +533,11 @@ function astForIfStmt(c, n) {
     */
     REQ(n, SYM.if_stmt);
     if (NCH(n) === 4)
-        return new IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
+        return new IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.range);
     var s = CHILD(n, 4).value;
     var decider = s.charAt(2); // elSe or elIf
     if (decider === 's') {
-        return new IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
+        return new IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.range);
     }
     else if (decider === 'i') {
         var nElif = NCH(n) - 4;
@@ -553,17 +552,17 @@ function astForIfStmt(c, n) {
         nElif /= 4;
         if (hasElse) {
             orelse = [
-                new IfStatement(astForExpr(c, CHILD(n, NCH(n) - 6)), astForSuite(c, CHILD(n, NCH(n) - 4)), astForSuite(c, CHILD(n, NCH(n) - 1)), CHILD(n, NCH(n) - 6).lineno, CHILD(n, NCH(n) - 6).col_offset)
+                new IfStatement(astForExpr(c, CHILD(n, NCH(n) - 6)), astForSuite(c, CHILD(n, NCH(n) - 4)), astForSuite(c, CHILD(n, NCH(n) - 1)), CHILD(n, NCH(n) - 6).range)
             ];
             nElif--;
         }
         for (var i = 0; i < nElif; ++i) {
             var off = 5 + (nElif - i - 1) * 4;
             orelse = [
-                new IfStatement(astForExpr(c, CHILD(n, off)), astForSuite(c, CHILD(n, off + 2)), orelse, CHILD(n, off).lineno, CHILD(n, off).col_offset)
+                new IfStatement(astForExpr(c, CHILD(n, off)), astForSuite(c, CHILD(n, off + 2)), orelse, CHILD(n, off).range)
             ];
         }
-        return new IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), orelse, n.lineno, n.col_offset);
+        return new IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), orelse, n.range);
     }
     throw new Error("unexpected token in 'if' statement");
 }
@@ -580,7 +579,7 @@ function astForExprlist(c, n, context) {
 }
 function astForDelStmt(c, n) {
     REQ(n, SYM.del_stmt);
-    return new DeleteStatement(astForExprlist(c, CHILD(n, 1), Del), n.lineno, n.col_offset);
+    return new DeleteStatement(astForExprlist(c, CHILD(n, 1), Del), n.range);
 }
 function astForGlobalStmt(c, n) {
     REQ(n, SYM.GlobalStmt);
@@ -588,7 +587,7 @@ function astForGlobalStmt(c, n) {
     for (var i = 1; i < NCH(n); i += 2) {
         s[(i - 1) / 2] = strobj(CHILD(n, i).value);
     }
-    return new Global(s, n.lineno, n.col_offset);
+    return new Global(s, n.range);
 }
 function astForNonLocalStmt(c, n) {
     REQ(n, SYM.NonLocalStmt);
@@ -596,16 +595,16 @@ function astForNonLocalStmt(c, n) {
     for (var i = 1; i < NCH(n); i += 2) {
         s[(i - 1) / 2] = strobj(CHILD(n, i).value);
     }
-    return new NonLocal(s, n.lineno, n.col_offset);
+    return new NonLocal(s, n.range);
 }
 function astForAssertStmt(c, n) {
     /* assert_stmt: 'assert' test [',' test] */
     REQ(n, SYM.assert_stmt);
     if (NCH(n) === 2) {
-        return new Assert(astForExpr(c, CHILD(n, 1)), null, n.lineno, n.col_offset);
+        return new Assert(astForExpr(c, CHILD(n, 1)), null, n.range);
     }
     else if (NCH(n) === 4) {
-        return new Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.lineno, n.col_offset);
+        return new Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.range);
     }
     throw new Error("improper number of parts to assert stmt");
 }
@@ -654,7 +653,7 @@ function aliasForImportName(c, n) {
                 return new Alias(strobj(n.value), null);
             }
             default: {
-                throw syntaxError("unexpected import name " + grammarName(n.type), n.lineno);
+                throw syntaxError("unexpected import name " + grammarName(n.type), n.range);
             }
         }
     }
@@ -671,8 +670,6 @@ function parseModuleSpecifier(c, moduleSpecifierNode) {
 }
 function astForImportStmt(c, importStatementNode) {
     REQ(importStatementNode, SYM.import_stmt);
-    var lineno = importStatementNode.lineno;
-    var col_offset = importStatementNode.col_offset;
     var nameOrFrom = CHILD(importStatementNode, 0);
     if (nameOrFrom.type === SYM.import_name) {
         var n = CHILD(nameOrFrom, 1);
@@ -681,7 +678,7 @@ function astForImportStmt(c, importStatementNode) {
         for (var i = 0; i < NCH(n); i += 2) {
             aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
         }
-        return new ImportStatement(aliases, lineno, col_offset);
+        return new ImportStatement(aliases, importStatementNode.range);
     }
     else if (nameOrFrom.type === SYM.import_from) {
         var mod = null;
@@ -694,7 +691,7 @@ function astForImportStmt(c, importStatementNode) {
             var childType = child.type;
             if (childType === SYM.dotted_name) {
                 // This should be dead code since we support ECMAScript 2015 modules.
-                throw syntaxError("unknown import statement " + grammarName(childType) + ".", child.lineno);
+                throw syntaxError("unknown import statement " + grammarName(childType) + ".", child.range);
                 // mod = aliasForImportName(c, child);
                 // idx++;
                 // break;
@@ -705,7 +702,7 @@ function astForImportStmt(c, importStatementNode) {
             }
             else if (childType !== TOK.T_DOT) {
                 // Let's be more specific...
-                throw syntaxError("unknown import statement " + grammarName(childType) + ".", child.lineno);
+                throw syntaxError("unknown import statement " + grammarName(childType) + ".", child.range);
                 // break;
             }
             ndots++;
@@ -730,7 +727,7 @@ function astForImportStmt(c, importStatementNode) {
                 n = CHILD(n, idx);
                 nchildren = NCH(n);
                 if (nchildren % 2 === 0)
-                    throw syntaxError("trailing comma not allowed without surrounding parentheses", n.lineno);
+                    throw syntaxError("trailing comma not allowed without surrounding parentheses", n.range);
             }
         }
         var aliases = [];
@@ -743,10 +740,10 @@ function astForImportStmt(c, importStatementNode) {
             astForImportList(c, importListNode, aliases);
         }
         moduleName = mod ? mod.name : moduleName;
-        return new ImportFrom(strobj(moduleName), aliases, ndots, lineno, col_offset);
+        return new ImportFrom(strobj(moduleName), aliases, ndots, importStatementNode.range);
     }
     else {
-        throw syntaxError("unknown import statement " + grammarName(nameOrFrom.type) + ".", nameOrFrom.lineno);
+        throw syntaxError("unknown import statement " + grammarName(nameOrFrom.type) + ".", nameOrFrom.range);
     }
 }
 function astForImportList(c, importListNode, aliases) {
@@ -825,7 +822,7 @@ function astForListcomp(c, n) {
         if (NCH(forch) === 1)
             lc = new Comprehension(t[0], expression, []);
         else
-            lc = new Comprehension(new Tuple(t, Store, ch.lineno, ch.col_offset), expression, []);
+            lc = new Comprehension(new Tuple(t, Store, ch.range), expression, []);
         if (NCH(ch) === 5) {
             ch = CHILD(ch, 4);
             var nifs = countListIfs(c, ch);
@@ -844,7 +841,7 @@ function astForListcomp(c, n) {
         }
         listcomps[i] = lc;
     }
-    return new ListComp(elt, listcomps, n.lineno, n.col_offset);
+    return new ListComp(elt, listcomps, n.range);
 }
 function astForUnaryExpr(c, n) {
     if (CHILD(n, 0).type === TOK.T_MINUS && NCH(n) === 2) {
@@ -865,9 +862,9 @@ function astForUnaryExpr(c, n) {
     }
     var expression = astForExpr(c, CHILD(n, 1));
     switch (CHILD(n, 0).type) {
-        case TOK.T_PLUS: return new UnaryOp(UAdd, expression, n.lineno, n.col_offset);
-        case TOK.T_MINUS: return new UnaryOp(USub, expression, n.lineno, n.col_offset);
-        case TOK.T_TILDE: return new UnaryOp(Invert, expression, n.lineno, n.col_offset);
+        case TOK.T_PLUS: return new UnaryOp(UAdd, expression, n.range);
+        case TOK.T_MINUS: return new UnaryOp(USub, expression, n.range);
+        case TOK.T_TILDE: return new UnaryOp(Invert, expression, n.range);
     }
     throw new Error("unhandled UnaryExpr");
 }
@@ -883,8 +880,8 @@ function astForForStmt(c, n) {
     if (NCH(nodeTarget) === 1)
         target = _target[0];
     else
-        target = new Tuple(_target, Store, n.lineno, n.col_offset);
-    return new ForStatement(target, astForTestlist(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 5)), seq, n.lineno, n.col_offset);
+        target = new Tuple(_target, Store, n.range);
+    return new ForStatement(target, astForTestlist(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 5)), seq, n.range);
 }
 function astForCall(c, n, func) {
     /*
@@ -908,9 +905,9 @@ function astForCall(c, n, func) {
         }
     }
     if (ngens > 1 || (ngens && (nargs || nkeywords)))
-        throw syntaxError("Generator expression must be parenthesized if not sole argument", n.lineno);
+        throw syntaxError("Generator expression must be parenthesized if not sole argument", n.range);
     if (nargs + nkeywords + ngens > 255)
-        throw syntaxError("more than 255 arguments", n.lineno);
+        throw syntaxError("more than 255 arguments", n.range);
     var args = [];
     var keywords = [];
     nargs = 0;
@@ -922,9 +919,9 @@ function astForCall(c, n, func) {
         if (ch.type === SYM.argument) {
             if (NCH(ch) === 1) {
                 if (nkeywords)
-                    throw syntaxError("non-keyword arg after keyword arg", n.lineno);
+                    throw syntaxError("non-keyword arg after keyword arg", n.range);
                 if (vararg)
-                    throw syntaxError("only named arguments may follow *expression", n.lineno);
+                    throw syntaxError("only named arguments may follow *expression", n.range);
                 args[nargs++] = astForExpr(c, CHILD(ch, 0));
             }
             else if (CHILD(ch, 1).type === SYM.gen_for)
@@ -932,15 +929,15 @@ function astForCall(c, n, func) {
             else {
                 var e = astForExpr(c, CHILD(ch, 0));
                 if (e.constructor === Lambda)
-                    throw syntaxError("lambda cannot contain assignment", n.lineno);
+                    throw syntaxError("lambda cannot contain assignment", n.range);
                 else if (e.constructor !== Name)
-                    throw syntaxError("keyword can't be an expression", n.lineno);
+                    throw syntaxError("keyword can't be an expression", n.range);
                 var key = e.id;
-                forbiddenCheck(c, CHILD(ch, 0), key, n.lineno);
+                forbiddenCheck(c, CHILD(ch, 0), key, n.range);
                 for (var k = 0; k < nkeywords; ++k) {
                     var tmp = keywords[k].arg;
                     if (tmp === key)
-                        throw syntaxError("keyword argument repeated", n.lineno);
+                        throw syntaxError("keyword argument repeated", n.range);
                 }
                 keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
             }
@@ -950,7 +947,7 @@ function astForCall(c, n, func) {
         else if (ch.type === TOK.T_DOUBLESTAR)
             kwarg = astForExpr(c, CHILD(n, ++i));
     }
-    return new Call(func, args, keywords, vararg, kwarg, func.lineno, func.col_offset);
+    return new Call(func, args, keywords, vararg, kwarg, func.range);
 }
 function astForTrailer(c, n, leftExpr) {
     /* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
@@ -960,18 +957,18 @@ function astForTrailer(c, n, leftExpr) {
     REQ(n, SYM.trailer);
     if (CHILD(n, 0).type === TOK.T_LPAR) {
         if (NCH(n) === 2)
-            return new Call(leftExpr, [], [], null, null, n.lineno, n.col_offset);
+            return new Call(leftExpr, [], [], null, null, n.range);
         else
             return astForCall(c, CHILD(n, 1), leftExpr);
     }
     else if (CHILD(n, 0).type === TOK.T_DOT)
-        return new Attribute(leftExpr, strobj(CHILD(n, 1).value), Load, n.lineno, n.col_offset);
+        return new Attribute(leftExpr, strobj(CHILD(n, 1).value), Load, n.range);
     else {
         REQ(CHILD(n, 0), TOK.T_LSQB);
         REQ(CHILD(n, 2), TOK.T_RSQB);
         n = CHILD(n, 1);
         if (NCH(n) === 1)
-            return new Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), Load, n.lineno, n.col_offset);
+            return new Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), Load, n.range);
         else {
             /* The grammar is ambiguous here. The ambiguity is resolved
                 by treating the sequence as a tuple literal if there are
@@ -987,7 +984,7 @@ function astForTrailer(c, n, leftExpr) {
                 slices[j / 2] = slc;
             }
             if (!simple) {
-                return new Subscript(leftExpr, new ExtSlice(slices), Load, n.lineno, n.col_offset);
+                return new Subscript(leftExpr, new ExtSlice(slices), Load, n.range);
             }
             var elts = [];
             for (var j = 0; j < slices.length; ++j) {
@@ -1000,8 +997,8 @@ function astForTrailer(c, n, leftExpr) {
                     assert(slc instanceof Index);
                 }
             }
-            var e = new Tuple(elts, Load, n.lineno, n.col_offset);
-            return new Subscript(leftExpr, new Index(e), Load, n.lineno, n.col_offset);
+            var e = new Tuple(elts, Load, n.range);
+            return new Subscript(leftExpr, new Index(e), Load, n.range);
         }
     }
 }
@@ -1009,24 +1006,24 @@ function astForFlowStmt(c, n) {
     REQ(n, SYM.flow_stmt);
     var ch = CHILD(n, 0);
     switch (ch.type) {
-        case SYM.break_stmt: return new BreakStatement(n.lineno, n.col_offset);
-        case SYM.continue_stmt: return new ContinueStatement(n.lineno, n.col_offset);
+        case SYM.break_stmt: return new BreakStatement(n.range);
+        case SYM.continue_stmt: return new ContinueStatement(n.range);
         case SYM.yield_stmt:
-            return new ExpressionStatement(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
+            return new ExpressionStatement(astForExpr(c, CHILD(ch, 0)), n.range);
         case SYM.return_stmt:
             if (NCH(ch) === 1)
-                return new ReturnStatement(null, n.lineno, n.col_offset);
+                return new ReturnStatement(null, n.range);
             else
-                return new ReturnStatement(astForTestlist(c, CHILD(ch, 1)), n.lineno, n.col_offset);
+                return new ReturnStatement(astForTestlist(c, CHILD(ch, 1)), n.range);
         case SYM.raise_stmt: {
             if (NCH(ch) === 1)
-                return new Raise(null, null, null, n.lineno, n.col_offset);
+                return new Raise(null, null, null, n.range);
             else if (NCH(ch) === 2)
-                return new Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.lineno, n.col_offset);
+                return new Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.range);
             else if (NCH(ch) === 4)
-                return new Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), null, n.lineno, n.col_offset);
+                return new Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), null, n.range);
             else if (NCH(ch) === 6)
-                return new Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), astForExpr(c, CHILD(ch, 5)), n.lineno, n.col_offset);
+                return new Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), astForExpr(c, CHILD(ch, 5)), n.range);
             else {
                 throw new Error("unhandled flow statement");
             }
@@ -1075,14 +1072,14 @@ function astForArguments(c, n) {
                         /* def f((x)=4): pass should raise an error.
                             def f((x, (y))): pass will just incur the tuple unpacking warning. */
                         if (parenthesized && !complexArgs)
-                            throw syntaxError("parenthesized arg with default", n.lineno);
-                        throw syntaxError("non-default argument follows default argument", n.lineno);
+                            throw syntaxError("parenthesized arg with default", n.range);
+                        throw syntaxError("non-default argument follows default argument", n.range);
                     }
                     if (NCH(ch) === 3) {
                         ch = CHILD(ch, 1);
                         // def foo((x)): is not complex, special case.
                         if (NCH(ch) !== 1) {
-                            throw syntaxError("tuple parameter unpacking has been removed", n.lineno);
+                            throw syntaxError("tuple parameter unpacking has been removed", n.range);
                         }
                         else {
                             /* def foo((x)): setup for checking NAME below. */
@@ -1095,23 +1092,23 @@ function astForArguments(c, n) {
                         }
                     }
                     if (CHILD(ch, 0).type === TOK.T_NAME) {
-                        forbiddenCheck(c, n, CHILD(ch, 0).value, n.lineno);
+                        forbiddenCheck(c, n, CHILD(ch, 0).value, n.range);
                         var id = strobj(CHILD(ch, 0).value);
-                        args[k++] = new Name(id, Param, ch.lineno, ch.col_offset);
+                        args[k++] = new Name(id, Param, ch.range);
                     }
                     i += 2;
                     if (parenthesized)
-                        throw syntaxError("parenthesized argument names are invalid", n.lineno);
+                        throw syntaxError("parenthesized argument names are invalid", n.range);
                     break;
                 }
                 break;
             case TOK.T_STAR:
-                forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.lineno);
+                forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.range);
                 vararg = strobj(CHILD(n, i + 1).value);
                 i += 3;
                 break;
             case TOK.T_DOUBLESTAR:
-                forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.lineno);
+                forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.range);
                 kwarg = strobj(CHILD(n, i + 1).value);
                 i += 3;
                 break;
@@ -1126,10 +1123,10 @@ function astForFuncdef(c, n, decoratorSeq) {
     /* funcdef: 'def' NAME parameters ':' suite */
     REQ(n, SYM.funcdef);
     var name = strobj(CHILD(n, 1).value);
-    forbiddenCheck(c, CHILD(n, 1), CHILD(n, 1).value, n.lineno);
+    forbiddenCheck(c, CHILD(n, 1), CHILD(n, 1).value, n.range);
     var args = astForArguments(c, CHILD(n, 2));
     var body = astForSuite(c, CHILD(n, 4));
-    return new FunctionDef(name, args, body, decoratorSeq, n.lineno, n.col_offset);
+    return new FunctionDef(name, args, body, decoratorSeq, n.range);
 }
 function astForClassBases(c, n) {
     assert(NCH(n) > 0);
@@ -1141,15 +1138,17 @@ function astForClassBases(c, n) {
 }
 function astForClassdef(c, n, decoratorSeq) {
     REQ(n, SYM.classdef);
-    forbiddenCheck(c, n, CHILD(n, 1).value, n.lineno);
+    forbiddenCheck(c, n, CHILD(n, 1).value, n.range);
     var classname = strobj(CHILD(n, 1).value);
-    if (NCH(n) === 4)
-        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.lineno, n.col_offset);
-    if (CHILD(n, 3).type === TOK.T_RPAR)
-        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.lineno, n.col_offset);
+    if (NCH(n) === 4) {
+        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
+    }
+    if (CHILD(n, 3).type === TOK.T_RPAR) {
+        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
+    }
     var bases = astForClassBases(c, CHILD(n, 3));
     var s = astForSuite(c, CHILD(n, 6));
-    return new ClassDef(classname, bases, s, decoratorSeq, n.lineno, n.col_offset);
+    return new ClassDef(classname, bases, s, decoratorSeq, n.range);
 }
 function astForLambdef(c, n) {
     var args;
@@ -1162,7 +1161,7 @@ function astForLambdef(c, n) {
         args = astForArguments(c, CHILD(n, 1));
         expression = astForExpr(c, CHILD(n, 3));
     }
-    return new Lambda(args, expression, n.lineno, n.col_offset);
+    return new Lambda(args, expression, n.range);
 }
 function astForGenexp(c, n) {
     /* testlist_gexp: test ( gen_for | (',' test)* [','] )
@@ -1225,7 +1224,7 @@ function astForGenexp(c, n) {
         if (NCH(forch) === 1)
             ge = new Comprehension(t[0], expression, []);
         else
-            ge = new Comprehension(new Tuple(t, Store, ch.lineno, ch.col_offset), expression, []);
+            ge = new Comprehension(new Tuple(t, Store, ch.range), expression, []);
         if (NCH(ch) === 5) {
             ch = CHILD(ch, 4);
             var nifs = countGenIfs(c, ch);
@@ -1245,15 +1244,15 @@ function astForGenexp(c, n) {
         }
         genexps[i] = ge;
     }
-    return new GeneratorExp(elt, genexps, n.lineno, n.col_offset);
+    return new GeneratorExp(elt, genexps, n.range);
 }
 function astForWhileStmt(c, n) {
     /* while_stmt: 'while' test ':' suite ['else' ':' suite] */
     REQ(n, SYM.while_stmt);
     if (NCH(n) === 4)
-        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
+        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.range);
     else if (NCH(n) === 7)
-        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
+        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.range);
     throw new Error("wrong number of tokens for 'while' stmt");
 }
 function astForAugassign(c, n) {
@@ -1294,13 +1293,12 @@ function astForBinop(c, n) {
         How should A op B op C by represented?
         BinOp(BinOp(A, op, B), op, C).
     */
-    var result = new BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.lineno, n.col_offset);
+    var result = new BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.range);
     var nops = (NCH(n) - 1) / 2;
     for (var i = 1; i < nops; ++i) {
         var nextOper = CHILD(n, i * 2 + 1);
-        var newoperator = getOperator(nextOper);
         var tmp = astForExpr(c, CHILD(n, i * 2 + 2));
-        result = new BinOp(result, newoperator, tmp, nextOper.lineno, nextOper.col_offset);
+        result = new BinOp(result, getOperator(nextOper), tmp, nextOper.range);
     }
     return result;
 }
@@ -1322,28 +1320,31 @@ function astForTestlist(c, n) {
         return astForExpr(c, CHILD(n, 0));
     }
     else {
-        return new Tuple(seqForTestlist(c, n), Load, n.lineno, n.col_offset);
+        return new Tuple(seqForTestlist(c, n), Load, n.range);
     }
 }
-function astForExprStmt(c, n) {
+function astForExprStmt(c, node) {
+    // Prevent assignment.
+    var n = node;
     REQ(n, SYM.ExprStmt);
-    if (NCH(n) === 1)
-        return new ExpressionStatement(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
+    if (NCH(n) === 1) {
+        return new ExpressionStatement(astForTestlist(c, CHILD(n, 0)), n.range);
+    }
     else if (CHILD(n, 1).type === SYM.augassign) {
         var ch = CHILD(n, 0);
         var expr1 = astForTestlist(c, ch);
         switch (expr1.constructor) {
-            case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.lineno);
-            case Yield: throw syntaxError("augmented assignment to yield expression not possible", n.lineno);
+            case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.range);
+            case Yield: throw syntaxError("augmented assignment to yield expression not possible", n.range);
             case Name:
                 var varName = expr1.id;
-                forbiddenCheck(c, ch, varName, n.lineno);
+                forbiddenCheck(c, ch, varName, n.range);
                 break;
             case Attribute:
             case Subscript:
                 break;
             default:
-                throw syntaxError("illegal expression for augmented assignment", n.lineno);
+                throw syntaxError("illegal expression for augmented assignment", n.range);
         }
         setContext(c, expr1, Store, ch);
         ch = CHILD(n, 2);
@@ -1352,32 +1353,34 @@ function astForExprStmt(c, n) {
             expr2 = astForTestlist(c, ch);
         else
             expr2 = astForExpr(c, ch);
-        return new AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.lineno, n.col_offset);
+        return new AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.range);
     }
     else {
         // normal assignment
-        REQ(CHILD(n, 1), TOK.T_EQUAL);
+        var eq = CHILD(n, 1);
+        REQ(eq, TOK.T_EQUAL);
         var targets = [];
-        for (var i = 0; i < NCH(n) - 2; i += 2) {
+        var N = NCH(n);
+        for (var i = 0; i < N - 2; i += 2) {
             var ch = CHILD(n, i);
             if (ch.type === SYM.YieldExpr)
-                throw syntaxError("assignment to yield expression not possible", n.lineno);
+                throw syntaxError("assignment to yield expression not possible", n.range);
             var e = astForTestlist(c, ch);
             setContext(c, e, Store, CHILD(n, i));
             targets[i / 2] = e;
         }
-        var value = CHILD(n, NCH(n) - 1);
+        var value = CHILD(n, N - 1);
         var expression = void 0;
         if (value.type === SYM.testlist)
             expression = astForTestlist(c, value);
         else
             expression = astForExpr(c, value);
-        return new Assign(targets, expression, n.lineno, n.col_offset);
+        return new Assign(targets, expression, n.range, eq.range);
     }
 }
 function astForIfexpr(c, n) {
     assert(NCH(n) === 5);
-    return new IfExp(astForExpr(c, CHILD(n, 2)), astForExpr(c, CHILD(n, 0)), astForExpr(c, CHILD(n, 4)), n.lineno, n.col_offset);
+    return new IfExp(astForExpr(c, CHILD(n, 2)), astForExpr(c, CHILD(n, 0)), astForExpr(c, CHILD(n, 4)), n.range);
 }
 // escape() was deprecated in JavaScript 1.5. Use encodeURI or encodeURIComponent instead.
 function escape(s) {
@@ -1477,15 +1480,15 @@ function parsestrplus(c, n) {
             ret = ret + parsestr(c, child.value);
         }
         catch (x) {
-            throw syntaxError("invalid string (possibly contains a unicode character)", child.lineno);
+            throw syntaxError("invalid string (possibly contains a unicode character)", child.range);
         }
     }
     return ret;
 }
-function parsenumber(c, s, lineno) {
-    var end = s.charAt(s.length - 1);
-    if (end === 'j' || end === 'J') {
-        throw syntaxError("complex numbers are currently unsupported", lineno);
+function parsenumber(c, s, range) {
+    var endChar = s.charAt(s.length - 1);
+    if (endChar === 'j' || endChar === 'J') {
+        throw syntaxError("complex numbers are currently unsupported", range);
     }
     if (s.indexOf('.') !== -1) {
         return floatAST(s);
@@ -1522,7 +1525,7 @@ function parsenumber(c, s, lineno) {
         }
         else {
             // Octal (Leading zero, but not actually zero)
-            if (end === 'l' || end === 'L') {
+            if (endChar === 'l' || endChar === 'L') {
                 return longAST(s.substr(0, s.length - 1), 8);
             }
             else {
@@ -1537,7 +1540,7 @@ function parsenumber(c, s, lineno) {
     }
     else {
         // Decimal
-        if (end === 'l' || end === 'L') {
+        if (endChar === 'l' || endChar === 'L') {
             return longAST(s.substr(0, s.length - 1), radix);
         }
         else {
@@ -1549,7 +1552,7 @@ function parsenumber(c, s, lineno) {
         // TODO: Does radix zero make sense?
         return longAST(s, 0);
     }
-    if (end === 'l' || end === 'L') {
+    if (endChar === 'l' || endChar === 'L') {
         return longAST(s.substr(0, s.length - 1), radix);
     }
     else {
@@ -1592,7 +1595,7 @@ function astForSlice(c, n) {
     if (ch.type === SYM.sliceop) {
         if (NCH(ch) === 1) {
             ch = CHILD(ch, 0);
-            step = new Name(strobj("None"), Load, ch.lineno, ch.col_offset);
+            step = new Name(strobj("None"), Load, ch.range);
         }
         else {
             ch = CHILD(ch, 1);
@@ -1607,16 +1610,17 @@ function astForAtomExpr(c, n) {
     switch (c0.type) {
         case TOK.T_NAME:
             // All names start in Load context, but may be changed later
-            return new Name(strobj(c0.value), Load, n.lineno, n.col_offset);
+            return new Name(strobj(c0.value), Load, n.range);
         case TOK.T_STRING: {
-            return new Str(parsestrplus(c, n), n.lineno, n.col_offset);
+            return new Str(parsestrplus(c, n), n.range);
         }
-        case TOK.T_NUMBER:
-            return new Num(parsenumber(c, c0.value, n.lineno), n.lineno, n.col_offset);
+        case TOK.T_NUMBER: {
+            return new Num(parsenumber(c, c0.value, c0.range), n.range);
+        }
         case TOK.T_LPAR: {
             var c1 = CHILD(n, 1);
             if (c1.type === TOK.T_RPAR) {
-                return new Tuple([], Load, n.lineno, n.col_offset);
+                return new Tuple([], Load, n.range);
             }
             if (c1.type === SYM.YieldExpr) {
                 return astForExpr(c, c1);
@@ -1629,10 +1633,10 @@ function astForAtomExpr(c, n) {
         case TOK.T_LSQB: {
             var c1 = CHILD(n, 1);
             if (c1.type === TOK.T_RSQB)
-                return new List([], Load, n.lineno, n.col_offset);
+                return new List([], Load, n.range);
             REQ(c1, SYM.listmaker);
             if (NCH(c1) === 1 || CHILD(c1, 1).type === TOK.T_COMMA)
-                return new List(seqForTestlist(c, c1), Load, n.lineno, n.col_offset);
+                return new List(seqForTestlist(c, c1), Load, n.range);
             else
                 return astForListcomp(c, c1);
         }
@@ -1647,10 +1651,10 @@ function astForAtomExpr(c, n) {
                 keys[i / 4] = astForExpr(c, CHILD(c1, i));
                 values[i / 4] = astForExpr(c, CHILD(c1, i + 2));
             }
-            return new Dict(keys, values, n.lineno, n.col_offset);
+            return new Dict(keys, values, n.range);
         }
         case TOK.T_BACKQUOTE: {
-            throw syntaxError("backquote not supported, use repr()", n.lineno);
+            throw syntaxError("backquote not supported, use repr()", n.range);
         }
         default: {
             throw new Error("unhandled atom '" + grammarName(c0.type) + "'");
@@ -1667,14 +1671,20 @@ function astForPowerExpr(c, n) {
         if (ch.type !== SYM.trailer) {
             break;
         }
-        var tmp = astForTrailer(c, ch, e);
-        tmp.lineno = e.lineno;
-        tmp.col_offset = e.col_offset;
-        e = tmp;
+        if (e instanceof Name || e instanceof Attribute) {
+            var tmp = astForTrailer(c, ch, e);
+            // FIXME
+            // tmp.lineno = e.begin;
+            // tmp.col_offset = e.end;
+            e = tmp;
+        }
+        else {
+            assert(false, "" + JSON.stringify(e));
+        }
     }
     if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr) {
         var f = astForExpr(c, CHILD(n, NCH(n) - 1));
-        return new BinOp(e, Pow, f, n.lineno, n.col_offset);
+        return new BinOp(e, { op: Pow, range: null }, f, n.range);
     }
     else {
         return e;
@@ -1701,17 +1711,17 @@ function astForExpr(c, n) {
                     seq[i / 2] = astForExpr(c, CHILD(n, i));
                 }
                 if (CHILD(n, 1).value === "and") {
-                    return new BoolOp(And, seq, n.lineno, n.col_offset);
+                    return new BoolOp(And, seq, n.range);
                 }
                 assert(CHILD(n, 1).value === "or");
-                return new BoolOp(Or, seq, n.lineno, n.col_offset);
+                return new BoolOp(Or, seq, n.range);
             case SYM.NotExpr:
                 if (NCH(n) === 1) {
                     n = CHILD(n, 0);
                     continue LOOP;
                 }
                 else {
-                    return new UnaryOp(Not, astForExpr(c, CHILD(n, 1)), n.lineno, n.col_offset);
+                    return new UnaryOp(Not, astForExpr(c, CHILD(n, 1)), n.range);
                 }
             case SYM.ComparisonExpr:
                 if (NCH(n) === 1) {
@@ -1725,7 +1735,7 @@ function astForExpr(c, n) {
                         ops[(i - 1) / 2] = astForCompOp(c, CHILD(n, i));
                         cmps[(i - 1) / 2] = astForExpr(c, CHILD(n, i + 1));
                     }
-                    return new Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.lineno, n.col_offset);
+                    return new Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.range);
                 }
             case SYM.ArithmeticExpr:
             case SYM.GeometricExpr:
@@ -1743,7 +1753,7 @@ function astForExpr(c, n) {
                 if (NCH(n) === 2) {
                     exp = astForTestlist(c, CHILD(n, 1));
                 }
-                return new Yield(exp, n.lineno, n.col_offset);
+                return new Yield(exp, n.range);
             case SYM.UnaryExpr:
                 if (NCH(n) === 1) {
                     n = CHILD(n, 0);
@@ -1771,7 +1781,7 @@ function astForPrintStmt(c, n) {
         seq[j] = astForExpr(c, CHILD(n, i));
     }
     var nl = (CHILD(n, NCH(n) - 1)).type === TOK.T_COMMA ? false : true;
-    return new Print(dest, seq, nl, n.lineno, n.col_offset);
+    return new Print(dest, seq, nl, n.range);
 }
 function astForStmt(c, n) {
     if (n.type === SYM.stmt) {
@@ -1789,7 +1799,7 @@ function astForStmt(c, n) {
             case SYM.ExprStmt: return astForExprStmt(c, n);
             case SYM.print_stmt: return astForPrintStmt(c, n);
             case SYM.del_stmt: return astForDelStmt(c, n);
-            case SYM.pass_stmt: return new Pass(n.lineno, n.col_offset);
+            case SYM.pass_stmt: return new Pass(n.range);
             case SYM.flow_stmt: return astForFlowStmt(c, n);
             case SYM.import_stmt: return astForImportStmt(c, n);
             case SYM.GlobalStmt: return astForGlobalStmt(c, n);

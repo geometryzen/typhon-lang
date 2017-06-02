@@ -79,6 +79,7 @@ import { ModuleBlock } from './SymbolConstants';
 import { USE } from './SymbolConstants';
 import { SCOPE_OFF } from './SymbolConstants';
 import { SymbolFlags } from './SymbolConstants';
+import { Range } from './Range';
 
 //
 // TODO: This should be refactored into a SemanticVisitor implementing the Visitor.
@@ -99,8 +100,8 @@ export class SemanticVisitor implements Visitor {
         attribute.value.accept(this);
     }
     binOp(be: BinOp): void {
-        be.left.accept(this);
-        be.right.accept(this);
+        be.lhs.accept(this);
+        be.rhs.accept(this);
     }
     callExpression(ce: Call): void {
         ce.func.accept(this);
@@ -117,10 +118,10 @@ export class SemanticVisitor implements Visitor {
         }
     }
     classDef(cd: ClassDef): void {
-        this.st.addDef(cd.name, DEF_LOCAL, cd.lineno);
+        this.st.addDef(cd.name, DEF_LOCAL, cd.range);
         this.st.SEQExpr(cd.bases);
         if (cd.decorator_list) this.st.SEQExpr(cd.decorator_list);
-        this.st.enterBlock(cd.name, ClassBlock, cd, cd.lineno);
+        this.st.enterBlock(cd.name, ClassBlock, cd, cd.range);
         const tmp = this.st.curClass;
         this.st.curClass = cd.name;
         this.st.SEQStmt(cd.body);
@@ -139,11 +140,11 @@ export class SemanticVisitor implements Visitor {
         expressionStatement.accept(this);
     }
     functionDef(fd: FunctionDef) {
-        this.st.addDef(fd.name, DEF_LOCAL, fd.lineno);
+        this.st.addDef(fd.name, DEF_LOCAL, fd.range);
         if (fd.args.defaults) this.st.SEQExpr(fd.args.defaults);
         if (fd.decorator_list) this.st.SEQExpr(fd.decorator_list);
-        this.st.enterBlock(fd.name, FunctionBlock, fd, fd.lineno);
-        this.st.visitArguments(fd.args, fd.lineno);
+        this.st.enterBlock(fd.name, FunctionBlock, fd, fd.range);
+        this.st.visitArguments(fd.args, fd.range);
         this.st.SEQStmt(fd.body);
         this.st.exitBlock();
     }
@@ -156,7 +157,7 @@ export class SemanticVisitor implements Visitor {
         throw new Error("SemanticVistor.IfStatement");
     }
     importFrom(importFrom: ImportFrom): void {
-        this.st.visitAlias(importFrom.names, importFrom.lineno);
+        this.st.visitAlias(importFrom.names, importFrom.range);
     }
     list(list: List): void {
         this.st.SEQExpr(list.elts);
@@ -165,7 +166,7 @@ export class SemanticVisitor implements Visitor {
         throw new Error("module");
     }
     name(name: Name): void {
-        this.st.addDef(name.id, name.ctx === Load ? USE : DEF_LOCAL, name.begin.line);
+        this.st.addDef(name.id, name.ctx === Load ? USE : DEF_LOCAL, name.range);
     }
     num(num: Num): void {
         // Do nothing, unless we are doing type inference.
@@ -259,14 +260,14 @@ export class SymbolTable {
      * @param astNode The AST node that is defining the block.
      * @param lineno
      */
-    enterBlock(name: string, blockType: BlockType, astNode: { scopeId: number }, lineno: number) {
+    enterBlock(name: string, blockType: BlockType, astNode: { scopeId: number }, range: Range) {
         //  name = fixReservedNames(name);
         let prev: SymbolTableScope = null;
         if (this.cur) {
             prev = this.cur;
             this.stack.push(this.cur);
         }
-        this.cur = new SymbolTableScope(this, name, blockType, astNode, lineno);
+        this.cur = new SymbolTableScope(this, name, blockType, astNode, range);
         if (name === 'top') {
             this.global = this.cur.symFlags;
         }
@@ -287,7 +288,7 @@ export class SymbolTable {
             const arg = args[i];
             if (arg.constructor === Name) {
                 assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
-                this.addDef(arg.id, DEF_PARAM, arg.begin.line);
+                this.addDef(arg.id, DEF_PARAM, arg.range);
             }
             else {
                 // Tuple isn't supported
@@ -296,24 +297,23 @@ export class SymbolTable {
         }
     }
 
-    visitArguments(a: Arguments, lineno: number) {
+    visitArguments(a: Arguments, range: Range) {
         if (a.args) this.visitParams(a.args, true);
         if (a.vararg) {
-            this.addDef(a.vararg, DEF_PARAM, lineno);
+            this.addDef(a.vararg, DEF_PARAM, range);
             this.cur.varargs = true;
         }
         if (a.kwarg) {
-            this.addDef(a.kwarg, DEF_PARAM, lineno);
+            this.addDef(a.kwarg, DEF_PARAM, range);
             this.cur.varkeywords = true;
         }
     }
 
     /**
-     * @param {number} lineno
-     * @return {void}
+     *
      */
-    newTmpname(lineno: number): void {
-        this.addDef("_[" + (++this.tmpname) + "]", DEF_LOCAL, lineno);
+    newTmpname(range: Range): void {
+        this.addDef("_[" + (++this.tmpname) + "]", DEF_LOCAL, range);
     }
 
     /**
@@ -324,7 +324,7 @@ export class SymbolTable {
      * @param flags
      * @param lineno
      */
-    addDef(name: string, flags: SymbolFlags, lineno: number): void {
+    addDef(name: string, flags: SymbolFlags, range: Range): void {
         const mangled = mangleName(this.curClass, name);
         //  mangled = fixReservedNames(mangled);
 
@@ -332,7 +332,7 @@ export class SymbolTable {
         let val: SymbolFlags = this.cur.symFlags[mangled];
         if (val !== undefined) {
             if ((flags & DEF_PARAM) && (val & DEF_PARAM)) {
-                throw syntaxError("duplicate argument '" + name + "' in function definition", lineno);
+                throw syntaxError("duplicate argument '" + name + "' in function definition", range);
             }
             val |= flags;
         }
@@ -378,19 +378,19 @@ export class SymbolTable {
     visitStmt(s: Statement): void {
         assert(s !== undefined, "visitStmt called with undefined");
         if (s instanceof FunctionDef) {
-            this.addDef(s.name, DEF_LOCAL, s.lineno);
+            this.addDef(s.name, DEF_LOCAL, s.range);
             if (s.args.defaults) this.SEQExpr(s.args.defaults);
             if (s.decorator_list) this.SEQExpr(s.decorator_list);
-            this.enterBlock(s.name, FunctionBlock, s, s.lineno);
-            this.visitArguments(s.args, s.lineno);
+            this.enterBlock(s.name, FunctionBlock, s, s.range);
+            this.visitArguments(s.args, s.range);
             this.SEQStmt(s.body);
             this.exitBlock();
         }
         else if (s instanceof ClassDef) {
-            this.addDef(s.name, DEF_LOCAL, s.lineno);
+            this.addDef(s.name, DEF_LOCAL, s.range);
             this.SEQExpr(s.bases);
             if (s.decorator_list) this.SEQExpr(s.decorator_list);
-            this.enterBlock(s.name, ClassBlock, s, s.lineno);
+            this.enterBlock(s.name, ClassBlock, s, s.range);
             const tmp = this.curClass;
             this.curClass = s.name;
             this.SEQStmt(s.body);
@@ -464,11 +464,11 @@ export class SymbolTable {
         }
         else if (s instanceof ImportStatement) {
             const imps: ImportStatement = s;
-            this.visitAlias(imps.names, imps.lineno);
+            this.visitAlias(imps.names, imps.range);
         }
         else if (s instanceof ImportFrom) {
             const impFrom: ImportFrom = s;
-            this.visitAlias(impFrom.names, impFrom.lineno);
+            this.visitAlias(impFrom.names, impFrom.range);
         }
         else if (s instanceof Exec) {
             this.visitExpr(s.body);
@@ -486,13 +486,13 @@ export class SymbolTable {
                 const cur = this.cur.symFlags[name];
                 if (cur & (DEF_LOCAL | USE)) {
                     if (cur & DEF_LOCAL) {
-                        throw syntaxError("name '" + name + "' is assigned to before global declaration", s.lineno);
+                        throw syntaxError("name '" + name + "' is assigned to before global declaration", s.range);
                     }
                     else {
-                        throw syntaxError("name '" + name + "' is used prior to global declaration", s.lineno);
+                        throw syntaxError("name '" + name + "' is used prior to global declaration", s.range);
                     }
                 }
-                this.addDef(name, DEF_GLOBAL, s.lineno);
+                this.addDef(name, DEF_GLOBAL, s.range);
             }
         }
         else if (s instanceof ExpressionStatement) {
@@ -503,10 +503,10 @@ export class SymbolTable {
         }
         else if (s instanceof WithStatement) {
             const ws: WithStatement = s;
-            this.newTmpname(ws.lineno);
+            this.newTmpname(ws.range);
             this.visitExpr(ws.context_expr);
             if (ws.optional_vars) {
-                this.newTmpname(ws.lineno);
+                this.newTmpname(ws.range);
                 this.visitExpr(ws.optional_vars);
             }
             this.SEQStmt(ws.body);
@@ -522,18 +522,18 @@ export class SymbolTable {
             this.SEQExpr(e.values);
         }
         else if (e instanceof BinOp) {
-            this.visitExpr(e.left);
-            this.visitExpr(e.right);
+            this.visitExpr(e.lhs);
+            this.visitExpr(e.rhs);
         }
         else if (e instanceof UnaryOp) {
             this.visitExpr(e.operand);
         }
         else if (e instanceof Lambda) {
-            this.addDef("lambda", DEF_LOCAL, e.lineno);
+            this.addDef("lambda", DEF_LOCAL, e.range);
             if (e.args.defaults)
                 this.SEQExpr(e.args.defaults);
-            this.enterBlock("lambda", FunctionBlock, e, e.lineno);
-            this.visitArguments(e.args, e.lineno);
+            this.enterBlock("lambda", FunctionBlock, e, e.range);
+            this.visitArguments(e.args, e.range);
             this.visitExpr(e.body);
             this.exitBlock();
         }
@@ -547,7 +547,7 @@ export class SymbolTable {
             this.SEQExpr(e.values);
         }
         else if (e instanceof ListComp) {
-            this.newTmpname(e.lineno);
+            this.newTmpname(e.range);
             this.visitExpr(e.elt);
             this.visitComprehension(e.generators, 0);
         }
@@ -586,7 +586,7 @@ export class SymbolTable {
             this.visitSlice(e.slice);
         }
         else if (e instanceof Name) {
-            this.addDef(e.id, e.ctx === Load ? USE : DEF_LOCAL, e.begin.line);
+            this.addDef(e.id, e.ctx === Load ? USE : DEF_LOCAL, e.range);
         }
         else if (e instanceof List || e instanceof Tuple) {
             this.SEQExpr(e.elts);
@@ -609,9 +609,9 @@ export class SymbolTable {
     /**
      * This is probably not correct for names. What are they?
      * @param names
-     * @param lineno
+     * @param range
      */
-    visitAlias(names: Alias[], lineno: number) {
+    visitAlias(names: Alias[], range: Range) {
         /* Compute store_name, the name actually bound by the import
             operation.  It is diferent than a->name when a->name is a
             dotted package name (e.g. spam.eggs)
@@ -623,7 +623,7 @@ export class SymbolTable {
             if (dot !== -1)
                 storename = name.substr(0, dot);
             if (name !== "*") {
-                this.addDef(storename, DEF_IMPORT, lineno);
+                this.addDef(storename, DEF_IMPORT, range);
             }
             else {
                 if (this.cur.blockType !== ModuleBlock) {
@@ -640,9 +640,9 @@ export class SymbolTable {
         const outermost = e.generators[0];
         // outermost is evaled in current scope
         this.visitExpr(outermost.iter);
-        this.enterBlock("genexpr", FunctionBlock, e, e.lineno);
+        this.enterBlock("genexpr", FunctionBlock, e, e.range);
         this.cur.generator = true;
-        this.addDef(".0", DEF_PARAM, e.lineno);
+        this.addDef(".0", DEF_PARAM, e.range);
         this.visitExpr(outermost.target);
         this.SEQExpr(outermost.ifs);
         this.visitComprehension(e.generators, 1);
@@ -769,7 +769,7 @@ export class SymbolTable {
      */
     analyzeName(ste: SymbolTableScope, dict: { [name: string]: DictionaryKind }, name: string, flags: number, bound: {}, local: {}, free: {}, global: {}) {
         if (flags & DEF_GLOBAL) {
-            if (flags & DEF_PARAM) throw syntaxError("name '" + name + "' is local and global", ste.lineno);
+            if (flags & DEF_PARAM) throw syntaxError("name '" + name + "' is local and global", ste.range);
             dict[name] = GLOBAL_EXPLICIT;
             global[name] = null;
             if (bound && bound[name] !== undefined) delete bound[name];

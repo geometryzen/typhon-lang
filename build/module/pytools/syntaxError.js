@@ -5,14 +5,14 @@ import { isDef, isNumber, isString } from './base';
  * @param message
  * @param lineNumber
  */
-export function syntaxError(message, lineNumber) {
+export function syntaxError(message, range) {
     assert(isString(message), "message must be a string");
-    if (isDef(lineNumber)) {
-        assert(isNumber(lineNumber), "lineNumber must be a number");
+    if (isDef(range)) {
+        assert(isNumber(range.begin.line), "lineNumber must be a number");
     }
     var e = new SyntaxError(message /*, fileName*/);
-    if (typeof lineNumber === 'number') {
-        e['lineNumber'] = lineNumber;
+    if (typeof range.begin.line === 'number') {
+        e['lineNumber'] = range.begin.line;
     }
     return e;
 }
@@ -33,11 +33,14 @@ export { ParseError };
  */
 export function parseError(message, begin, end) {
     var e = new ParseError(message);
+    // Copying from begin and end is important because they change for each token.
+    // Notice that the Line is 1-based, but that row is 0-based.
+    // Both column and Column are 0-based.
     if (Array.isArray(begin)) {
-        e.begin = { row: begin[0] - 1, column: begin[1] - 1 };
+        e.begin = { row: begin[0] - 1, column: begin[1] };
     }
     if (Array.isArray(end)) {
-        e.end = { row: end[0] - 1, column: end[1] - 1 };
+        e.end = { row: end[0] - 1, column: end[1] };
     }
     return e;
 }

@@ -19,9 +19,9 @@ var SymbolTableScope = (function () {
      * @param name The name of the node defining the scope.
      * @param blockType
      * @param astNode
-     * @param lineno
+     * @param range
      */
-    function SymbolTableScope(table, name, blockType, astNode, lineno) {
+    function SymbolTableScope(table, name, blockType, astNode, range) {
         /**
          * A mapping from the name of a symbol to its flags.
          */
@@ -39,7 +39,7 @@ var SymbolTableScope = (function () {
         this.blockType = blockType;
         astNode.scopeId = astScopeCounter++;
         table.stss[astNode.scopeId] = this;
-        this.lineno = lineno;
+        this.range = range;
         if (table.cur && (table.cur.isNested || table.cur.blockType === FunctionBlock)) {
             this.isNested = true;
         }
@@ -57,7 +57,7 @@ var SymbolTableScope = (function () {
     }
     SymbolTableScope.prototype.get_type = function () { return this.blockType; };
     SymbolTableScope.prototype.get_name = function () { return this.name; };
-    SymbolTableScope.prototype.get_lineno = function () { return this.lineno; };
+    SymbolTableScope.prototype.get_range = function () { return this.range; };
     SymbolTableScope.prototype.is_nested = function () { return this.isNested; };
     SymbolTableScope.prototype.has_children = function () { return this.children.length > 0; };
     SymbolTableScope.prototype.get_identifiers = function () { return this._identsMatching(function (x) { return true; }); };

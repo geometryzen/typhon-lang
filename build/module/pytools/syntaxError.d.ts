@@ -1,8 +1,9 @@
+import { Range } from './Range';
 /**
  * @param message
  * @param lineNumber
  */
-export declare function syntaxError(message: string, lineNumber?: number): SyntaxError;
+export declare function syntaxError(message: string, range?: Range): SyntaxError;
 export declare type LineColumn = [number, number];
 export interface Position {
     row: number;

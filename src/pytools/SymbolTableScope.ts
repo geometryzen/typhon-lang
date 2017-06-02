@@ -10,6 +10,7 @@ import { GLOBAL_IMPLICIT } from './SymbolConstants';
 import { SCOPE_MASK } from './SymbolConstants';
 import { SCOPE_OFF } from './SymbolConstants';
 import { SymbolFlags } from './SymbolConstants';
+import { Range } from './Range';
 
 let astScopeCounter = 0;
 
@@ -52,7 +53,7 @@ export class SymbolTableScope {
     varargs: boolean;
     varkeywords: boolean;
     returnsValue: boolean;
-    lineno: number;
+    range: Range;
     private table: SymbolTable;
     private symbols: { [name: string]: Symbol };
     private _classMethods: string[];
@@ -65,9 +66,9 @@ export class SymbolTableScope {
      * @param name The name of the node defining the scope.
      * @param blockType
      * @param astNode
-     * @param lineno
+     * @param range
      */
-    constructor(table: SymbolTable, name: string, blockType: BlockType, astNode: { scopeId: number }, lineno: number) {
+    constructor(table: SymbolTable, name: string, blockType: BlockType, astNode: { scopeId: number }, range: Range) {
         this.table = table;
         this.name = name;
         this.blockType = blockType;
@@ -75,7 +76,7 @@ export class SymbolTableScope {
         astNode.scopeId = astScopeCounter++;
         table.stss[astNode.scopeId] = this;
 
-        this.lineno = lineno;
+        this.range = range;
 
         if (table.cur && (table.cur.isNested || table.cur.blockType === FunctionBlock)) {
             this.isNested = true;
@@ -97,7 +98,7 @@ export class SymbolTableScope {
     }
     get_type(): BlockType { return this.blockType; }
     get_name(): string { return this.name; }
-    get_lineno(): number { return this.lineno; }
+    get_range(): Range { return this.range; }
     is_nested(): boolean { return this.isNested; }
     has_children(): boolean { return this.children.length > 0; }
     get_identifiers(): string[] { return this._identsMatching(function (x) { return true; }); }

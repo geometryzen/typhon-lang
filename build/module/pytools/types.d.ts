@@ -1,3 +1,4 @@
+import { Range } from './Range';
 /**
  * A numeric literal used in parsing.
  */
@@ -122,12 +123,9 @@ export declare class ModuleElement extends AST {
 export interface TextRange {
 }
 export interface Node extends TextRange {
-    col_offset?: number;
 }
 export declare abstract class Expression implements Node, Visitable {
     id?: string;
-    lineno?: number;
-    col_offset?: number;
     constructor();
     accept(visitor: Visitor): void;
 }
@@ -155,339 +153,302 @@ export declare class Suite {
 }
 export declare type Decorator = Attribute | Call | Name;
 export declare class FunctionDef extends Statement {
+    readonly range: Range;
     name: string;
     args: Arguments;
     body: Statement[];
     decorator_list: Decorator[];
-    lineno: number;
-    col_offset: number;
     scopeId: number;
-    constructor(name: string, args: Arguments, body: Statement[], decorator_list: Decorator[], lineno: number, col_offset: number);
+    constructor(name: string, args: Arguments, body: Statement[], decorator_list: Decorator[], range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class ClassDef extends Statement {
+    readonly range: Range;
     name: string;
     bases: Expression[];
     body: Statement[];
     decorator_list: Decorator[];
-    lineno?: number;
-    col_offset?: number;
     scopeId: number;
-    constructor(name: string, bases: Expression[], body: Statement[], decorator_list: Decorator[], lineno: number, col_offset: number);
+    constructor(name: string, bases: Expression[], body: Statement[], decorator_list: Decorator[], range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class ReturnStatement extends Statement {
+    readonly range: Range;
     /**
      * An expression, and probably should be optional.
      */
     value: Expression | Tuple | null;
-    lineno: number;
-    col_offset: number;
-    constructor(value: Expression | Tuple | null, lineno: number, col_offset: number);
+    constructor(value: Expression | Tuple | null, range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class DeleteStatement extends Statement {
+    readonly range: Range;
     targets: Expression[];
-    lineno: number;
-    col_offset: number;
-    constructor(targets: Expression[], lineno: number, col_offset: number);
+    constructor(targets: Expression[], range?: Range);
 }
 export declare type Target = Expression | Tuple;
 export declare class Assign extends Statement {
+    readonly range: Range;
+    readonly eqRange: Range;
     targets: Target[];
     value: Target;
-    lineno: number;
-    col_offset: number;
-    constructor(targets: Target[], value: Target, lineno: number, col_offset: number);
+    constructor(targets: Target[], value: Target, range: Range, eqRange: Range);
     accept(visitor: Visitor): void;
 }
 export declare type AugAssignOperator = Add | Sub | FloorDiv | Div | Mod | LShift | RShift | BitAnd | BitXor | BitOr | Pow | Mult;
 export declare class AugAssign extends Statement {
+    readonly range: Range;
     target: Expression | Tuple;
     op: AugAssignOperator;
     value: Expression | Tuple;
-    lineno: number;
-    col_offset: number;
-    constructor(target: Expression | Tuple, op: AugAssignOperator, value: Expression | Tuple, lineno: number, col_offset: number);
+    constructor(target: Expression | Tuple, op: AugAssignOperator, value: Expression | Tuple, range?: Range);
 }
 export declare class Print extends Statement {
+    readonly range: Range;
     dest: Expression;
     values: Expression[];
     nl: boolean;
-    lineno: number;
-    col_offset: number;
-    constructor(dest: Expression, values: Expression[], nl: boolean, lineno: number, col_offset: number);
+    constructor(dest: Expression, values: Expression[], nl: boolean, range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class ForStatement extends IterationStatement {
+    readonly range: Range;
     target: Target;
     iter: Expression | Tuple;
     body: Statement[];
     orelse: Statement[];
-    lineno: number;
-    col_offset: number;
-    constructor(target: Target, iter: Expression | Tuple, body: Statement[], orelse: Statement[], lineno: number, col_offset: number);
+    constructor(target: Target, iter: Expression | Tuple, body: Statement[], orelse: Statement[], range?: Range);
 }
 export declare class WhileStatement extends IterationStatement {
+    readonly range: Range;
     test: Expression;
     body: Statement[];
     orelse: Statement[];
-    lineno: number;
-    col_offset: number;
-    constructor(test: Expression, body: Statement[], orelse: Statement[], lineno: number, col_offset: number);
+    constructor(test: Expression, body: Statement[], orelse: Statement[], range?: Range);
 }
 export declare class IfStatement extends Statement {
+    readonly range: Range;
     test: Expression;
     consequent: Statement[];
     alternate: Statement[];
-    lineno: number;
-    col_offset: number;
-    constructor(test: Expression, consequent: Statement[], alternate: Statement[], lineno: number, col_offset: number);
+    constructor(test: Expression, consequent: Statement[], alternate: Statement[], range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class WithStatement extends Statement {
+    readonly range: Range;
     context_expr: Expression;
     optional_vars: Expression | undefined;
     body: Statement[];
-    lineno?: number;
-    col_offset?: number;
-    constructor(context_expr: Expression, optional_vars: Expression | undefined, body: Statement[], lineno?: number, col_offset?: number);
+    constructor(context_expr: Expression, optional_vars: Expression | undefined, body: Statement[], range?: Range);
 }
 export declare class Raise extends Statement {
+    readonly range: Range;
     type: Expression;
     inst: Expression;
     tback: Expression;
-    lineno: number;
-    col_offset: number;
-    constructor(type: Expression, inst: Expression, tback: Expression, lineno: number, col_offset: number);
+    constructor(type: Expression, inst: Expression, tback: Expression, range?: Range);
 }
 export declare class TryExcept extends Statement {
+    readonly range: Range;
     body: Statement[];
     handlers: ExceptHandler[];
     orelse: Statement[];
-    lineno?: number;
-    col_offset?: number;
-    constructor(body: Statement[], handlers: ExceptHandler[], orelse: Statement[], lineno?: number, col_offset?: number);
+    constructor(body: Statement[], handlers: ExceptHandler[], orelse: Statement[], range?: Range);
 }
 export declare class TryFinally extends Statement {
+    readonly range: Range;
     body: Statement[];
     finalbody: Statement[];
-    lineno?: number;
-    col_offset?: number;
-    constructor(body: Statement[], finalbody: Statement[], lineno?: number, col_offset?: number);
+    constructor(body: Statement[], finalbody: Statement[], range?: Range);
 }
 export declare class Assert extends Statement {
+    readonly range: Range;
     test: Expression;
     msg: Expression;
-    lineno: number;
-    col_offset: number;
-    constructor(test: Expression, msg: Expression, lineno: number, col_offset: number);
+    constructor(test: Expression, msg: Expression, range?: Range);
 }
 export declare class ImportStatement extends Statement {
+    readonly range: Range;
     names: Alias[];
-    lineno: number;
-    col_offset: number;
-    constructor(names: Alias[], lineno: number, col_offset: number);
+    constructor(names: Alias[], range?: Range);
 }
 export declare class ImportFrom extends Statement {
+    readonly range: Range;
     module: string;
     names: Alias[];
     level: number;
-    lineno: number;
-    col_offset: number;
-    constructor(module: string, names: Alias[], level: number, lineno: number, col_offset: number);
+    constructor(module: string, names: Alias[], level: number, range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class Exec extends Statement {
+    readonly range: Range;
     body: Expression;
     globals: Expression | null;
     locals: Expression | null;
-    lineno?: number;
-    col_offset?: number;
-    constructor(body: Expression, globals: Expression | null, locals: Expression | null, lineno?: number, col_offset?: number);
+    constructor(body: Expression, globals: Expression | null, locals: Expression | null, range?: Range);
 }
 export declare class Global extends Statement {
+    readonly range: Range;
     names: string[];
-    lineno: number;
-    col_offset: number;
-    constructor(names: string[], lineno: number, col_offset: number);
+    constructor(names: string[], range?: Range);
 }
 export declare class NonLocal extends Statement {
+    readonly range: Range;
     names: string[];
-    lineno: number;
-    col_offset: number;
-    constructor(names: string[], lineno: number, col_offset: number);
+    constructor(names: string[], range?: Range);
 }
 export declare class ExpressionStatement extends Statement {
+    readonly range: Range;
     value: Expression;
-    lineno: number;
-    col_offset: number;
-    constructor(value: Expression, lineno: number, col_offset: number);
+    constructor(value: Expression, range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class Pass extends Statement {
-    lineno: number;
-    col_offset: number;
-    constructor(lineno: number, col_offset: number);
+    readonly range: Range;
+    constructor(range?: Range);
 }
 export declare class BreakStatement extends Statement {
-    lineno: number;
-    col_offset: number;
-    constructor(lineno: number, col_offset: number);
+    readonly range: Range;
+    constructor(range?: Range);
 }
 export declare class ContinueStatement extends Statement {
-    lineno: number;
-    col_offset: number;
-    constructor(lineno: number, col_offset: number);
+    readonly range: Range;
+    constructor(range?: Range);
 }
 export declare class BoolOp extends Expression {
+    readonly range: Range;
     op: And;
     values: Expression[];
-    lineno: number;
-    col_offset: number;
-    constructor(op: And, values: Expression[], lineno: number, col_offset: number);
+    constructor(op: And, values: Expression[], range?: Range);
 }
 export declare class BinOp extends Expression {
-    left: Expression;
+    readonly range: Range;
+    lhs: Expression;
     op: Operator;
-    right: Expression;
-    lineno: number;
-    col_offset: number;
-    constructor(left: Expression, op: Operator, right: Expression, lineno: number, col_offset: number);
+    opRange: Range;
+    rhs: Expression;
+    constructor(lhs: Expression, ops: {
+        op: Operator;
+        range: Range;
+    }, rhs: Expression, range: Range);
     accept(visitor: Visitor): void;
 }
 export declare type UnaryOperator = UAdd | USub | Invert | Not;
 export declare class UnaryOp extends Expression {
+    readonly range: Range;
     op: UnaryOperator;
     operand: Expression;
-    lineno: number;
-    col_offset: number;
-    constructor(op: UnaryOperator, operand: Expression, lineno: number, col_offset: number);
+    constructor(op: UnaryOperator, operand: Expression, range?: Range);
 }
 export declare class Lambda extends Expression {
+    readonly range: Range;
     args: Arguments;
     body: Expression;
-    lineno: number;
-    col_offset: number;
     scopeId: number;
-    constructor(args: Arguments, body: Expression, lineno: number, col_offset: number);
+    constructor(args: Arguments, body: Expression, range?: Range);
 }
 export declare class IfExp extends Expression {
+    readonly range: Range;
     test: Expression;
     body: Expression;
     orelse: Expression;
-    lineno: number;
-    col_offset: number;
-    constructor(test: Expression, body: Expression, orelse: Expression, lineno: number, col_offset: number);
+    constructor(test: Expression, body: Expression, orelse: Expression, range?: Range);
 }
 export declare class Dict extends Expression {
+    readonly range: Range;
     keys: Expression[];
     values: Expression[];
-    lineno: number;
-    col_offset: number;
-    constructor(keys: Expression[], values: Expression[], lineno: number, col_offset: number);
+    constructor(keys: Expression[], values: Expression[], range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class ListComp extends Expression {
+    readonly range: Range;
     elt: Expression;
     generators: Comprehension[];
-    lineno: number;
-    col_offset: number;
-    constructor(elt: Expression, generators: Comprehension[], lineno: number, col_offset: number);
+    constructor(elt: Expression, generators: Comprehension[], range?: Range);
 }
 export declare class GeneratorExp extends Expression {
+    readonly range: Range;
     elt: Expression;
     generators: Comprehension[];
-    lineno: number;
-    col_offset: number;
     scopeId: number;
-    constructor(elt: Expression, generators: Comprehension[], lineno: number, col_offset: number);
+    constructor(elt: Expression, generators: Comprehension[], range?: Range);
 }
 export declare class Yield extends Expression {
-    value: Expression | Tuple;
-    lineno: number;
-    col_offset: number;
-    constructor(value: Expression | Tuple, lineno: number, col_offset: number);
+    readonly range: Range;
+    value: Expression;
+    constructor(value: Expression, range?: Range);
 }
 /**
  * TODO: Consider replacing with an enum.
  */
 export declare type CompareOperator = Eq | NotEq | Gt | GtE | Lt | LtE | Is | IsNot | In | NotIn;
 export declare class Compare extends Expression {
+    readonly range: Range;
     left: Expression;
     ops: CompareOperator[];
     comparators: Expression[];
-    lineno: number;
-    col_offset: number;
-    constructor(left: Expression, ops: CompareOperator[], comparators: Expression[], lineno: number, col_offset: number);
+    constructor(left: Expression, ops: CompareOperator[], comparators: Expression[], range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class Call extends Expression {
+    readonly range: Range;
     func: Attribute | Name;
     args: (Expression | GeneratorExp)[];
     keywords: Keyword[];
     starargs: Expression | null;
     kwargs: Expression | null;
-    lineno?: number;
-    col_offset?: number;
-    constructor(func: Attribute | Name, args: (Expression | GeneratorExp)[], keywords: Keyword[], starargs: Expression | null, kwargs: Expression | null, lineno?: number, col_offset?: number);
+    constructor(func: Attribute | Name, args: (Expression | GeneratorExp)[], keywords: Keyword[], starargs: Expression | null, kwargs: Expression | null, range: Range);
     accept(visitor: Visitor): void;
 }
 export declare class Num extends Expression {
+    readonly range: Range;
     n: INumericLiteral;
-    lineno: number;
-    col_offset: number;
-    constructor(n: INumericLiteral, lineno: number, col_offset: number);
+    constructor(n: INumericLiteral, range: Range);
     accept(visitor: Visitor): void;
 }
 export declare class Str extends Expression {
+    readonly range: Range;
     s: string;
-    lineno: number;
-    col_offset: number;
-    constructor(s: string, lineno: number, col_offset: number);
+    constructor(s: string, range: Range);
     accept(visitor: Visitor): void;
 }
 export declare class Attribute extends Expression {
+    readonly range: Range;
     value: Attribute | Name;
     attr: string;
     ctx: Load;
-    lineno?: number;
-    col_offset?: number;
-    constructor(value: Attribute | Name, attr: string, ctx: Load, lineno?: number, col_offset?: number);
+    constructor(value: Attribute | Name, attr: string, ctx: Load, range: Range);
     accept(visitor: Visitor): void;
 }
 export declare type SubscriptContext = AugLoad | AugStore | Load | Store | Del | Param;
 export declare class Subscript extends Expression {
+    readonly range: Range;
     value: Attribute | Name;
     slice: Ellipsis | Index | Name | Slice;
     ctx: SubscriptContext;
-    lineno: number;
-    col_offset: number;
-    constructor(value: Attribute | Name, slice: Ellipsis | Index | Name | Slice, ctx: SubscriptContext, lineno: number, col_offset: number);
+    constructor(value: Attribute | Name, slice: Ellipsis | Index | Name | Slice, ctx: SubscriptContext, range?: Range);
 }
 export declare class Name extends Expression {
+    readonly range: Range;
     id: string;
     ctx: Param;
-    lineno?: number;
-    col_offset?: number;
-    constructor(id: string, ctx: Param, lineno?: number, col_offset?: number);
+    constructor(id: string, ctx: Param, range: Range);
     accept(visitor: Visitor): void;
 }
 export declare class List extends Expression {
+    readonly range: Range;
     elts: Expression[];
     ctx: Load;
-    lineno: number;
-    col_offset: number;
-    constructor(elts: Expression[], ctx: Load, lineno: number, col_offset: number);
+    constructor(elts: Expression[], ctx: Load, range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class Tuple extends Expression {
-    elts: (Expression | Tuple)[];
+    readonly range: Range;
+    elts: Expression[];
     ctx: Load;
-    lineno: number;
-    col_offset: number;
     id?: string;
-    constructor(elts: (Expression | Tuple)[], ctx: Load, lineno: number, col_offset: number);
+    constructor(elts: Expression[], ctx: Load, range?: Range);
 }
 export declare class Ellipsis {
     constructor();
@@ -507,18 +468,18 @@ export declare class Index {
     constructor(value: Tuple);
 }
 export declare class Comprehension {
+    readonly range: Range;
     target: Expression | Tuple;
     iter: Expression;
     ifs: any[];
-    constructor(target: Expression | Tuple, iter: Expression, ifs: any[]);
+    constructor(target: Expression | Tuple, iter: Expression, ifs: any[], range?: Range);
 }
 export declare class ExceptHandler {
+    readonly range: Range;
     type: Expression | null;
     name: Expression | null;
     body: Statement[];
-    lineno?: number;
-    col_offset?: number;
-    constructor(type: Expression | null, name: Expression | null, body: Statement[], lineno?: number, col_offset?: number);
+    constructor(type: Expression | null, name: Expression | null, body: Statement[], range?: Range);
 }
 export declare class Arguments {
     args: Name[];

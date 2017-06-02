@@ -524,8 +524,8 @@ var ParseTables = {
         286: [[[[99, 1],
                     [100, 1],
                     [7, 2],
-                    [99, 1],
                     [101, 1],
+                    [99, 1],
                     [102, 1],
                     [103, 1],
                     [104, 3],
@@ -1107,8 +1107,8 @@ var ParseTables = {
         [[[99, 1],
                 [100, 1],
                 [7, 2],
-                [99, 1],
                 [101, 1],
+                [99, 1],
                 [102, 1],
                 [103, 1],
                 [104, 3],
@@ -1390,9 +1390,9 @@ var ParseTables = {
         [37, null],
         [44, null],
         [49, null],
-        [40, null],
-        [38, null],
         [45, null],
+        [38, null],
+        [40, null],
         [331, null],
         [29, null],
         [21, null],
@@ -1534,12 +1534,12 @@ var ParseTables = {
         37: 92,
         38: 96,
         39: 87,
-        40: 95,
+        40: 97,
         41: 88,
         42: 90,
         43: 91,
         44: 93,
-        45: 97,
+        45: 95,
         46: 86,
         47: 89,
         48: 62,
@@ -1726,7 +1726,7 @@ var TokenError = (function () {
     return TokenError;
 }());
 
-// Cache a few tokens for performance
+// Cache a few tokens for performance.
 var T_COMMENT$1 = Tokens.T_COMMENT;
 var T_DEDENT = Tokens.T_DEDENT;
 var T_ENDMARKER$1 = Tokens.T_ENDMARKER;
@@ -1825,6 +1825,23 @@ var tabsize = 8;
 var NAMECHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
 var NUMCHARS = '0123456789';
 /**
+ * For performance, let V8 know the size of an array.
+ * The first element is the line number.
+ * The line number is 1-based. This is intuitive because it maps to the way we think about line numbers.
+ * The second element is the column.
+ * The column is 0-based. This works well because it is the standard index for accessing strings.
+ */
+/**
+ * The index of the line in the LineColumn array.
+ */
+var LINE = 0;
+/**
+ * The index of the column in the LineColumn array.
+ */
+var COLUMN = 1;
+var Done = 'done';
+var Failed = 'failed';
+/**
  * This is a port of tokenize.py by Ka-Ping Yee.
  *
  * each call to readline should return one line of input as a string, or
@@ -1845,26 +1862,45 @@ var Tokenizer = (function () {
      */
     function Tokenizer(interactive, callback) {
         this.callback = callback;
+        /**
+         * Cache of the beginning of a token.
+         * This will change by token so consumers must copy the values out.
+         */
+        this.begin = [-1, -1];
+        /**
+         * Cache of the end of a token.
+         * This will change by token so consumers must copy the values out.
+         */
+        this.end = [-1, -1];
+        /**
+         * The line number. This must be copied into the begin[LINE] and end[LINE] properties.
+         */
         this.lnum = 0;
         this.parenlev = 0;
+        this.strstart = [-1, -1];
+        this.callback = callback;
         this.continued = false;
         this.contstr = '';
         this.needcont = false;
         this.contline = undefined;
         this.indents = [0];
         this.endprog = /.*/;
-        this.strstart = [-1, -1];
         this.interactive = interactive;
         this.doneFunc = function doneOrFailed() {
-            for (var i = 1; i < this.indents.length; ++i) {
-                if (this.callback(T_DEDENT, '', [this.lnum, 0], [this.lnum, 0], '')) {
-                    return 'done';
+            var begin = this.begin;
+            var end = this.end;
+            begin[LINE] = end[LINE] = this.lnum;
+            begin[COLUMN] = end[COLUMN] = 0;
+            var N = this.indents.length;
+            for (var i = 1; i < N; ++i) {
+                if (callback(T_DEDENT, '', begin, end, '')) {
+                    return Done;
                 }
             }
-            if (this.callback(T_ENDMARKER$1, '', [this.lnum, 0], [this.lnum, 0], '')) {
-                return 'done';
+            if (callback(T_ENDMARKER$1, '', begin, end, '')) {
+                return Done;
             }
-            return 'failed';
+            return Failed;
         };
     }
     /**
@@ -1874,7 +1910,7 @@ var Tokenizer = (function () {
     Tokenizer.prototype.generateTokens = function (line) {
         var endmatch;
         var column;
-        var end;
+        var endIndex;
         if (!line) {
             line = '';
         }
@@ -1885,24 +1921,32 @@ var Tokenizer = (function () {
          * Local variable for performance and brevity.
          */
         var callback = this.callback;
+        var begin = this.begin;
+        begin[LINE] = this.lnum;
+        var end = this.end;
+        end[LINE] = this.lnum;
         if (this.contstr.length > 0) {
             if (!line) {
-                throw new TokenError("EOF in multi-line string", this.strstart[0], this.strstart[1]);
+                throw new TokenError("EOF in multi-line string", this.strstart[LINE], this.strstart[COLUMN]);
             }
             this.endprog.lastIndex = 0;
             endmatch = this.endprog.test(line);
             if (endmatch) {
-                pos = end = this.endprog.lastIndex;
-                if (callback(T_STRING, this.contstr + line.substring(0, end), this.strstart, [this.lnum, end], this.contline + line)) {
-                    return 'done';
+                pos = endIndex = this.endprog.lastIndex;
+                end[COLUMN] = endIndex;
+                if (callback(T_STRING, this.contstr + line.substring(0, endIndex), this.strstart, end, this.contline + line)) {
+                    return Done;
                 }
                 this.contstr = '';
                 this.needcont = false;
                 this.contline = undefined;
             }
             else if (this.needcont && line.substring(line.length - 2) !== "\\\n" && line.substring(line.length - 3) !== "\\\r\n") {
-                if (callback(T_ERRORTOKEN, this.contstr + line, this.strstart, [this.lnum, line.length], this.contline)) {
-                    return 'done';
+                // Either contline is a string or the callback must allow undefined.
+                assert(typeof this.contline === 'string');
+                end[COLUMN] = line.length;
+                if (callback(T_ERRORTOKEN, this.contstr + line, this.strstart, end, this.contline)) {
+                    return Done;
                 }
                 this.contstr = '';
                 this.contline = undefined;
@@ -1940,17 +1984,23 @@ var Tokenizer = (function () {
                 if (line.charAt(pos) === '#') {
                     var comment_token = rstrip(line.substring(pos), '\r\n');
                     var nl_pos = pos + comment_token.length;
-                    if (callback(T_COMMENT$1, comment_token, [this.lnum, pos], [this.lnum, pos + comment_token.length], line)) {
-                        return 'done';
+                    begin[COLUMN] = pos;
+                    end[COLUMN] = nl_pos;
+                    if (callback(T_COMMENT$1, comment_token, begin, end, line)) {
+                        return Done;
                     }
-                    if (callback(T_NL$1, line.substring(nl_pos), [this.lnum, nl_pos], [this.lnum, line.length], line)) {
-                        return 'done';
+                    begin[COLUMN] = nl_pos;
+                    end[COLUMN] = line.length;
+                    if (callback(T_NL$1, line.substring(nl_pos), begin, end, line)) {
+                        return Done;
                     }
                     return false;
                 }
                 else {
-                    if (callback(T_NL$1, line.substring(pos), [this.lnum, pos], [this.lnum, line.length], line)) {
-                        return 'done';
+                    begin[COLUMN] = pos;
+                    end[COLUMN] = line.length;
+                    if (callback(T_NL$1, line.substring(pos), begin, end, line)) {
+                        return Done;
                     }
                     if (!this.interactive)
                         return false;
@@ -1958,17 +2008,23 @@ var Tokenizer = (function () {
             }
             if (column > this.indents[this.indents.length - 1]) {
                 this.indents.push(column);
-                if (callback(T_INDENT, line.substring(0, pos), [this.lnum, 0], [this.lnum, pos], line)) {
-                    return 'done';
+                begin[COLUMN] = 0;
+                end[COLUMN] = pos;
+                if (callback(T_INDENT, line.substring(0, pos), begin, end, line)) {
+                    return Done;
                 }
             }
             while (column < this.indents[this.indents.length - 1]) {
                 if (!contains(this.indents, column)) {
-                    throw indentationError("unindent does not match any outer indentation level", [this.lnum, 0], [this.lnum, pos], line);
+                    begin[COLUMN] = 0;
+                    end[COLUMN] = pos;
+                    throw indentationError("unindent does not match any outer indentation level", begin, end, line);
                 }
                 this.indents.splice(this.indents.length - 1, 1);
-                if (callback(T_DEDENT, '', [this.lnum, pos], [this.lnum, pos], line)) {
-                    return 'done';
+                begin[COLUMN] = pos;
+                end[COLUMN] = pos;
+                if (callback(T_DEDENT, '', begin, end, line)) {
+                    return Done;
                 }
             }
         }
@@ -1990,29 +2046,29 @@ var Tokenizer = (function () {
             pseudoprog.lastIndex = 0;
             var pseudomatch = pseudoprog.exec(line.substring(pos));
             if (pseudomatch) {
-                var start = pos;
-                end = start + pseudomatch[1].length;
-                var spos = [this.lnum, start];
-                var epos = [this.lnum, end];
-                pos = end;
-                var token = line.substring(start, end);
-                var initial = line.charAt(start);
+                var startIndex = pos;
+                endIndex = startIndex + pseudomatch[1].length;
+                begin[COLUMN] = startIndex;
+                end[COLUMN] = endIndex;
+                pos = endIndex;
+                var token = line.substring(startIndex, endIndex);
+                var initial = line.charAt(startIndex);
                 if (NUMCHARS.indexOf(initial) !== -1 || (initial === '.' && token !== '.')) {
-                    if (callback(T_NUMBER, token, spos, epos, line)) {
-                        return 'done';
+                    if (callback(T_NUMBER, token, begin, end, line)) {
+                        return Done;
                     }
                 }
                 else if (initial === '\r' || initial === '\n') {
                     var newl = T_NEWLINE;
                     if (this.parenlev > 0)
                         newl = T_NL$1;
-                    if (callback(newl, token, spos, epos, line)) {
-                        return 'done';
+                    if (callback(newl, token, begin, end, line)) {
+                        return Done;
                     }
                 }
                 else if (initial === '#') {
-                    if (callback(T_COMMENT$1, token, spos, epos, line)) {
-                        return 'done';
+                    if (callback(T_COMMENT$1, token, begin, end, line)) {
+                        return Done;
                     }
                 }
                 else if (triple_quoted.hasOwnProperty(token)) {
@@ -2021,14 +2077,16 @@ var Tokenizer = (function () {
                     endmatch = this.endprog.test(line.substring(pos));
                     if (endmatch) {
                         pos = this.endprog.lastIndex + pos;
-                        var token_1 = line.substring(start, pos);
-                        if (callback(T_STRING, token_1, spos, [this.lnum, pos], line)) {
-                            return 'done';
+                        var token_1 = line.substring(startIndex, pos);
+                        end[COLUMN] = pos;
+                        if (callback(T_STRING, token_1, begin, end, line)) {
+                            return Done;
                         }
                     }
                     else {
-                        this.strstart = [this.lnum, start];
-                        this.contstr = line.substring(start);
+                        this.strstart[LINE] = this.lnum;
+                        this.strstart[COLUMN] = startIndex;
+                        this.contstr = line.substring(startIndex);
                         this.contline = line;
                         return false;
                     }
@@ -2037,27 +2095,28 @@ var Tokenizer = (function () {
                     single_quoted.hasOwnProperty(token.substring(0, 2)) ||
                     single_quoted.hasOwnProperty(token.substring(0, 3))) {
                     if (token[token.length - 1] === '\n') {
-                        this.strstart = [this.lnum, start];
                         this.endprog = endprogs[initial] || endprogs[token[1]] || endprogs[token[2]];
-                        this.contstr = line.substring(start);
+                        assert(this.endprog instanceof RegExp);
+                        this.contstr = line.substring(startIndex);
                         this.needcont = true;
                         this.contline = line;
                         return false;
                     }
                     else {
-                        if (callback(T_STRING, token, spos, epos, line)) {
-                            return 'done';
+                        if (callback(T_STRING, token, begin, end, line)) {
+                            return Done;
                         }
                     }
                 }
                 else if (NAMECHARS.indexOf(initial) !== -1) {
-                    if (callback(T_NAME$1, token, spos, epos, line)) {
-                        return 'done';
+                    if (callback(T_NAME$1, token, begin, end, line)) {
+                        return Done;
                     }
                 }
                 else if (initial === '\\') {
-                    if (callback(T_NL$1, token, spos, [this.lnum, pos], line)) {
-                        return 'done';
+                    end[COLUMN] = pos;
+                    if (callback(T_NL$1, token, begin, end, line)) {
+                        return Done;
                     }
                     this.continued = true;
                 }
@@ -2068,14 +2127,16 @@ var Tokenizer = (function () {
                     else if (')]}'.indexOf(initial) !== -1) {
                         this.parenlev -= 1;
                     }
-                    if (callback(T_OP$1, token, spos, epos, line)) {
-                        return 'done';
+                    if (callback(T_OP$1, token, begin, end, line)) {
+                        return Done;
                     }
                 }
             }
             else {
-                if (callback(T_ERRORTOKEN, line.charAt(pos), [this.lnum, pos], [this.lnum, pos + 1], line)) {
-                    return 'done';
+                begin[COLUMN] = pos;
+                end[COLUMN] = pos + 1;
+                if (callback(T_ERRORTOKEN, line.charAt(pos), begin, end, line)) {
+                    return Done;
                 }
                 pos += 1;
             }
@@ -2113,17 +2174,13 @@ function rstrip(input, what) {
  * @param {string|undefined} text
  */
 function indentationError(message, begin, end, text) {
-    if (!Array.isArray(begin)) {
-        throw new Error("begin must be Array.<number>");
-    }
-    if (!Array.isArray(end)) {
-        throw new Error("end must be Array.<number>");
-    }
+    assert(Array.isArray(begin), "begin must be an Array");
+    assert(Array.isArray(end), "end must be an Array");
     var e = new SyntaxError(message /*, fileName*/);
     e.name = "IndentationError";
     if (begin) {
-        e['lineNumber'] = begin[0];
-        e['columnNumber'] = begin[1];
+        e['lineNumber'] = begin[LINE];
+        e['columnNumber'] = begin[COLUMN];
     }
     return e;
 }
@@ -2231,14 +2288,14 @@ function __extends(d, b) {
  * @param message
  * @param lineNumber
  */
-function syntaxError(message, lineNumber) {
+function syntaxError(message, range) {
     assert(isString(message), "message must be a string");
-    if (isDef(lineNumber)) {
-        assert(isNumber(lineNumber), "lineNumber must be a number");
+    if (isDef(range)) {
+        assert(isNumber(range.begin.line), "lineNumber must be a number");
     }
     var e = new SyntaxError(message /*, fileName*/);
-    if (typeof lineNumber === 'number') {
-        e['lineNumber'] = lineNumber;
+    if (typeof range.begin.line === 'number') {
+        e['lineNumber'] = range.begin.line;
     }
     return e;
 }
@@ -2258,14 +2315,39 @@ var ParseError = (function (_super) {
  */
 function parseError(message, begin, end) {
     var e = new ParseError(message);
+    // Copying from begin and end is important because they change for each token.
+    // Notice that the Line is 1-based, but that row is 0-based.
+    // Both column and Column are 0-based.
     if (Array.isArray(begin)) {
-        e.begin = { row: begin[0] - 1, column: begin[1] - 1 };
+        e.begin = { row: begin[0] - 1, column: begin[1] };
     }
     if (Array.isArray(end)) {
-        e.end = { row: end[0] - 1, column: end[1] - 1 };
+        e.end = { row: end[0] - 1, column: end[1] };
     }
     return e;
 }
+
+var Position = (function () {
+    /**
+     *
+     */
+    function Position(line, column) {
+        this.line = line;
+        this.column = column;
+    }
+    return Position;
+}());
+
+var Range = (function () {
+    /**
+     *
+     */
+    function Range(begin, end) {
+        this.begin = begin;
+        this.end = end;
+    }
+    return Range;
+}());
 
 // import { assert } from './asserts';
 // Dereference certain tokens for performance.
@@ -2305,8 +2387,8 @@ var Parser = (function () {
         start = start || this.grammar.start;
         var newnode = {
             type: start,
+            range: null,
             value: null,
-            context: null,
             children: []
         };
         var stackentry = {
@@ -2315,7 +2397,6 @@ var Parser = (function () {
             node: newnode
         };
         this.stack.push(stackentry);
-        //        this.used_names = {};
     };
     /**
      * Add a token; return true if we're done.
@@ -2323,11 +2404,11 @@ var Parser = (function () {
      * @param value
      * @param context [start, end, line]
      */
-    Parser.prototype.addtoken = function (type, value, context) {
+    Parser.prototype.addtoken = function (type, value, begin, end, line) {
         /**
          * The symbol for the token being added.
          */
-        var tokenSymbol = this.classify(type, value, context);
+        var tokenSymbol = this.classify(type, value, begin, end, line);
         /**
          * Local variable for performance.
          */
@@ -2350,9 +2431,9 @@ var Parser = (function () {
                 var newState = arc[ARC_TO_STATE];
                 var t = labels[arcSymbol][0];
                 // const v = labels[arcSymbol][1];
-                // console.log(`t => ${t}, v => ${v}`);
+                // console.lg(`t => ${t}, v => ${v}`);
                 if (tokenSymbol === arcSymbol) {
-                    this.shiftToken(type, value, newState, context);
+                    this.shiftToken(type, value, newState, begin, end, line);
                     // pop while we are in an accept-only state
                     var state = newState;
                     /**
@@ -2382,7 +2463,7 @@ var Parser = (function () {
                     var dfa = dfas[t];
                     var itsfirst = dfa[1];
                     if (itsfirst.hasOwnProperty(tokenSymbol)) {
-                        this.pushNonTerminal(t, dfa, newState, context);
+                        this.pushNonTerminal(t, dfa, newState, begin, end, line);
                         continue OUTERWHILE;
                     }
                 }
@@ -2397,9 +2478,8 @@ var Parser = (function () {
             }
             else {
                 var found = grammarName(top_1.state);
-                var begin = context[0];
-                var end = context[1];
-                throw parseError("Unexpected " + found + " at " + JSON.stringify(begin), begin, end);
+                // FIXME:
+                throw parseError("Unexpected " + found + " at " + JSON.stringify([begin[0], begin[1] + 1]), begin, end);
             }
         }
     };
@@ -2410,7 +2490,7 @@ var Parser = (function () {
      * @param value
      * @param context [begin, end, line]
      */
-    Parser.prototype.classify = function (type, value, context) {
+    Parser.prototype.classify = function (type, value, begin, end, line) {
         // Assertion commented out for efficiency.
         // assertTerminal(type);
         var g = this.grammar;
@@ -2429,7 +2509,7 @@ var Parser = (function () {
             ilabel = tokenToSymbol[type];
         }
         if (!ilabel) {
-            throw parseError("bad token", context[0], context[1]);
+            throw parseError("bad token", begin, end);
         }
         return ilabel;
     };
@@ -2439,7 +2519,7 @@ var Parser = (function () {
      * 2. The new node is added as a child to the topmost node on the stack.
      * 3. The state of the topmost element on the stack is updated to be the new state.
      */
-    Parser.prototype.shiftToken = function (type, value, newState, context) {
+    Parser.prototype.shiftToken = function (type, value, newState, begin, end, line) {
         // assertTerminal(type);
         // Local variable for efficiency.
         var stack = this.stack;
@@ -2447,29 +2527,17 @@ var Parser = (function () {
          * The topmost element in the stack is affected by shifting a token.
          */
         var stackTop = stack[stack.length - 1];
-        // const dfa = stackTop.dfa;
-        // const oldState = stackTop.state;
         var node = stackTop.node;
-        // TODO: Since this is a token, why don't we keep more of the context (even if some redundancy).
-        // Further, is the value the raw text?
-        var begin = context[0];
         var newnode = {
             type: type,
             value: value,
-            lineno: begin[0],
-            col_offset: begin[1],
+            range: new Range(new Position(begin[0], begin[1]), new Position(end[0], end[1])),
             children: null
         };
         if (newnode && node.children) {
             node.children.push(newnode);
         }
-        // TODO: Is it necessary to replace the topmost stack element with a new object.
-        // Can't we simply update the state?
-        // console.log(`oldState = ${oldState} => newState = ${newState}`);
-        // New Code:
         stackTop.state = newState;
-        // Old Code:
-        // this.stack[this.stack.length - 1] = { dfa: dfa, state: newState, node: node };
     };
     /**
      * Push a non-terminal symbol onto the stack as a new node.
@@ -2477,22 +2545,17 @@ var Parser = (function () {
      * 2. Push a new element onto the stack corresponding to the symbol.
      * The new stack elements uses the newDfa and has state 0.
      */
-    Parser.prototype.pushNonTerminal = function (type, newDfa, newState, context) {
+    Parser.prototype.pushNonTerminal = function (type, newDfa, newState, begin, end, line) {
         // Based on how this function is called, there is really no need for this assertion.
         // Retain it for now while it is not the performance bottleneck.
         // assertNonTerminal(type);
         // Local variable for efficiency.
         var stack = this.stack;
         var stackTop = stack[stack.length - 1];
-        // const dfa = stackTop.dfa;
-        // const node = stackTop.node;
-        // New Code:
         stackTop.state = newState;
-        // Old Code
-        // stack[stack.length - 1] = { dfa: dfa, state: newState, node: node };
-        // TODO: Why don't we retain more of the context? Is `end` not appropriate?
-        var begin = context[0];
-        var newnode = { type: type, value: null, lineno: begin[0], col_offset: begin[1], children: [] };
+        var beginPos = begin ? new Position(begin[0], begin[1]) : null;
+        var endPos = end ? new Position(end[0], end[1]) : null;
+        var newnode = { type: type, value: null, range: new Range(beginPos, endPos), children: [] };
         // TODO: Is there a symbolic constant for the zero state?
         stack.push({ dfa: newDfa, state: 0, node: newnode });
     };
@@ -2602,7 +2665,8 @@ function makeParser(sourceKind) {
         if (type === T_OP) {
             type = OpMap[value];
         }
-        if (p.addtoken(type, value, [start, end, line])) {
+        // FIXME: We're creating an array object here for every token.
+        if (p.addtoken(type, value, start, end, line)) {
             return true;
         }
         return undefined;
@@ -2946,14 +3010,13 @@ var Suite = (function () {
 }());
 var FunctionDef = (function (_super) {
     __extends(FunctionDef, _super);
-    function FunctionDef(name, args, body, decorator_list, lineno, col_offset) {
+    function FunctionDef(name, args, body, decorator_list, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.name = name;
         _this.args = args;
         _this.body = body;
         _this.decorator_list = decorator_list;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     FunctionDef.prototype.accept = function (visitor) {
@@ -2963,14 +3026,13 @@ var FunctionDef = (function (_super) {
 }(Statement));
 var ClassDef = (function (_super) {
     __extends(ClassDef, _super);
-    function ClassDef(name, bases, body, decorator_list, lineno, col_offset) {
+    function ClassDef(name, bases, body, decorator_list, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.name = name;
         _this.bases = bases;
         _this.body = body;
         _this.decorator_list = decorator_list;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     ClassDef.prototype.accept = function (visitor) {
@@ -2980,11 +3042,10 @@ var ClassDef = (function (_super) {
 }(Statement));
 var ReturnStatement = (function (_super) {
     __extends(ReturnStatement, _super);
-    function ReturnStatement(value, lineno, col_offset) {
+    function ReturnStatement(value, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.value = value;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     ReturnStatement.prototype.accept = function (visitor) {
@@ -2994,23 +3055,22 @@ var ReturnStatement = (function (_super) {
 }(Statement));
 var DeleteStatement = (function (_super) {
     __extends(DeleteStatement, _super);
-    function DeleteStatement(targets, lineno, col_offset) {
+    function DeleteStatement(targets, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.targets = targets;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return DeleteStatement;
 }(Statement));
 var Assign = (function (_super) {
     __extends(Assign, _super);
-    function Assign(targets, value, lineno, col_offset) {
+    function Assign(targets, value, range, eqRange) {
         var _this = _super.call(this) || this;
+        _this.range = range;
+        _this.eqRange = eqRange;
         _this.targets = targets;
         _this.value = value;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     Assign.prototype.accept = function (visitor) {
@@ -3020,26 +3080,24 @@ var Assign = (function (_super) {
 }(Statement));
 var AugAssign = (function (_super) {
     __extends(AugAssign, _super);
-    function AugAssign(target, op, value, lineno, col_offset) {
+    function AugAssign(target, op, value, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.target = target;
         _this.op = op;
         _this.value = value;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return AugAssign;
 }(Statement));
 var Print = (function (_super) {
     __extends(Print, _super);
-    function Print(dest, values, nl, lineno, col_offset) {
+    function Print(dest, values, nl, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.dest = dest;
         _this.values = values;
         _this.nl = nl;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     Print.prototype.accept = function (visitor) {
@@ -3049,40 +3107,37 @@ var Print = (function (_super) {
 }(Statement));
 var ForStatement = (function (_super) {
     __extends(ForStatement, _super);
-    function ForStatement(target, iter, body, orelse, lineno, col_offset) {
+    function ForStatement(target, iter, body, orelse, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.target = target;
         _this.iter = iter;
         _this.body = body;
         _this.orelse = orelse;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return ForStatement;
 }(IterationStatement));
 var WhileStatement = (function (_super) {
     __extends(WhileStatement, _super);
-    function WhileStatement(test, body, orelse, lineno, col_offset) {
+    function WhileStatement(test, body, orelse, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.test = test;
         _this.body = body;
         _this.orelse = orelse;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return WhileStatement;
 }(IterationStatement));
 var IfStatement = (function (_super) {
     __extends(IfStatement, _super);
-    function IfStatement(test, consequent, alternate, lineno, col_offset) {
+    function IfStatement(test, consequent, alternate, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.test = test;
         _this.consequent = consequent;
         _this.alternate = alternate;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     IfStatement.prototype.accept = function (visitor) {
@@ -3092,89 +3147,82 @@ var IfStatement = (function (_super) {
 }(Statement));
 var WithStatement = (function (_super) {
     __extends(WithStatement, _super);
-    function WithStatement(context_expr, optional_vars, body, lineno, col_offset) {
+    function WithStatement(context_expr, optional_vars, body, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.context_expr = context_expr;
         _this.optional_vars = optional_vars;
         _this.body = body;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return WithStatement;
 }(Statement));
 var Raise = (function (_super) {
     __extends(Raise, _super);
-    function Raise(type, inst, tback, lineno, col_offset) {
+    function Raise(type, inst, tback, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.type = type;
         _this.inst = inst;
         _this.tback = tback;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return Raise;
 }(Statement));
 var TryExcept = (function (_super) {
     __extends(TryExcept, _super);
-    function TryExcept(body, handlers, orelse, lineno, col_offset) {
+    function TryExcept(body, handlers, orelse, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.body = body;
         _this.handlers = handlers;
         _this.orelse = orelse;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return TryExcept;
 }(Statement));
 var TryFinally = (function (_super) {
     __extends(TryFinally, _super);
-    function TryFinally(body, finalbody, lineno, col_offset) {
+    function TryFinally(body, finalbody, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.body = body;
         _this.finalbody = finalbody;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return TryFinally;
 }(Statement));
 var Assert = (function (_super) {
     __extends(Assert, _super);
-    function Assert(test, msg, lineno, col_offset) {
+    function Assert(test, msg, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.test = test;
         _this.msg = msg;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return Assert;
 }(Statement));
 var ImportStatement = (function (_super) {
     __extends(ImportStatement, _super);
-    function ImportStatement(names, lineno, col_offset) {
+    function ImportStatement(names, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.names = names;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return ImportStatement;
 }(Statement));
 var ImportFrom = (function (_super) {
     __extends(ImportFrom, _super);
-    function ImportFrom(module, names, level, lineno, col_offset) {
+    function ImportFrom(module, names, level, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         assert(typeof module === 'string', "module must be a string.");
         assert(Array.isArray(names), "names must be an Array.");
         _this.module = module;
         _this.names = names;
         _this.level = level;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     ImportFrom.prototype.accept = function (visitor) {
@@ -3184,46 +3232,42 @@ var ImportFrom = (function (_super) {
 }(Statement));
 var Exec = (function (_super) {
     __extends(Exec, _super);
-    function Exec(body, globals, locals, lineno, col_offset) {
+    function Exec(body, globals, locals, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.body = body;
         _this.globals = globals;
         _this.locals = locals;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return Exec;
 }(Statement));
 var Global = (function (_super) {
     __extends(Global, _super);
-    function Global(names, lineno, col_offset) {
+    function Global(names, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.names = names;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return Global;
 }(Statement));
 var NonLocal = (function (_super) {
     __extends(NonLocal, _super);
-    function NonLocal(names, lineno, col_offset) {
+    function NonLocal(names, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.names = names;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return NonLocal;
 }(Statement));
 var ExpressionStatement = (function (_super) {
     __extends(ExpressionStatement, _super);
-    function ExpressionStatement(value, lineno, col_offset) {
+    function ExpressionStatement(value, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.value = value;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     ExpressionStatement.prototype.accept = function (visitor) {
@@ -3233,55 +3277,51 @@ var ExpressionStatement = (function (_super) {
 }(Statement));
 var Pass = (function (_super) {
     __extends(Pass, _super);
-    function Pass(lineno, col_offset) {
+    function Pass(range) {
         var _this = _super.call(this) || this;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
+        _this.range = range;
         return _this;
     }
     return Pass;
 }(Statement));
 var BreakStatement = (function (_super) {
     __extends(BreakStatement, _super);
-    function BreakStatement(lineno, col_offset) {
+    function BreakStatement(range) {
         var _this = _super.call(this) || this;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
+        _this.range = range;
         return _this;
     }
     return BreakStatement;
 }(Statement));
 var ContinueStatement = (function (_super) {
     __extends(ContinueStatement, _super);
-    function ContinueStatement(lineno, col_offset) {
+    function ContinueStatement(range) {
         var _this = _super.call(this) || this;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
+        _this.range = range;
         return _this;
     }
     return ContinueStatement;
 }(Statement));
 var BoolOp = (function (_super) {
     __extends(BoolOp, _super);
-    function BoolOp(op, values, lineno, col_offset) {
+    function BoolOp(op, values, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.op = op;
         _this.values = values;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return BoolOp;
 }(Expression));
 var BinOp = (function (_super) {
     __extends(BinOp, _super);
-    function BinOp(left, op, right, lineno, col_offset) {
+    function BinOp(lhs, ops, rhs, range) {
         var _this = _super.call(this) || this;
-        _this.left = left;
-        _this.op = op;
-        _this.right = right;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
+        _this.range = range;
+        _this.lhs = lhs;
+        _this.op = ops.op;
+        _this.opRange = ops.range;
+        _this.rhs = rhs;
         return _this;
     }
     BinOp.prototype.accept = function (visitor) {
@@ -3291,49 +3331,45 @@ var BinOp = (function (_super) {
 }(Expression));
 var UnaryOp = (function (_super) {
     __extends(UnaryOp, _super);
-    function UnaryOp(op, operand, lineno, col_offset) {
+    function UnaryOp(op, operand, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.op = op;
         _this.operand = operand;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return UnaryOp;
 }(Expression));
 var Lambda = (function (_super) {
     __extends(Lambda, _super);
-    function Lambda(args, body, lineno, col_offset) {
+    function Lambda(args, body, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.args = args;
         _this.body = body;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return Lambda;
 }(Expression));
 var IfExp = (function (_super) {
     __extends(IfExp, _super);
-    function IfExp(test, body, orelse, lineno, col_offset) {
+    function IfExp(test, body, orelse, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.test = test;
         _this.body = body;
         _this.orelse = orelse;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return IfExp;
 }(Expression));
 var Dict = (function (_super) {
     __extends(Dict, _super);
-    function Dict(keys, values, lineno, col_offset) {
+    function Dict(keys, values, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.keys = keys;
         _this.values = values;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     Dict.prototype.accept = function (visitor) {
@@ -3343,43 +3379,41 @@ var Dict = (function (_super) {
 }(Expression));
 var ListComp = (function (_super) {
     __extends(ListComp, _super);
-    function ListComp(elt, generators, lineno, col_offset) {
+    function ListComp(elt, generators, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.elt = elt;
         _this.generators = generators;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return ListComp;
 }(Expression));
 var GeneratorExp = (function (_super) {
     __extends(GeneratorExp, _super);
-    function GeneratorExp(elt, generators, lineno, col_offset) {
+    function GeneratorExp(elt, generators, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.elt = elt;
         _this.generators = generators;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return GeneratorExp;
 }(Expression));
 var Yield = (function (_super) {
     __extends(Yield, _super);
-    function Yield(value, lineno, col_offset) {
+    function Yield(value, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.value = value;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return Yield;
 }(Expression));
 var Compare = (function (_super) {
     __extends(Compare, _super);
-    function Compare(left, ops, comparators, lineno, col_offset) {
+    function Compare(left, ops, comparators, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.left = left;
         for (var _i = 0, ops_1 = ops; _i < ops_1.length; _i++) {
             var op = ops_1[_i];
@@ -3421,8 +3455,6 @@ var Compare = (function (_super) {
         }
         _this.ops = ops;
         _this.comparators = comparators;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     Compare.prototype.accept = function (visitor) {
@@ -3432,15 +3464,14 @@ var Compare = (function (_super) {
 }(Expression));
 var Call = (function (_super) {
     __extends(Call, _super);
-    function Call(func, args, keywords, starargs, kwargs, lineno, col_offset) {
+    function Call(func, args, keywords, starargs, kwargs, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.func = func;
         _this.args = args;
         _this.keywords = keywords;
         _this.starargs = starargs;
         _this.kwargs = kwargs;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     Call.prototype.accept = function (visitor) {
@@ -3450,11 +3481,10 @@ var Call = (function (_super) {
 }(Expression));
 var Num = (function (_super) {
     __extends(Num, _super);
-    function Num(n, lineno, col_offset) {
+    function Num(n, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.n = n;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     Num.prototype.accept = function (visitor) {
@@ -3464,11 +3494,10 @@ var Num = (function (_super) {
 }(Expression));
 var Str = (function (_super) {
     __extends(Str, _super);
-    function Str(s, lineno, col_offset) {
+    function Str(s, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.s = s;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     Str.prototype.accept = function (visitor) {
@@ -3478,13 +3507,12 @@ var Str = (function (_super) {
 }(Expression));
 var Attribute = (function (_super) {
     __extends(Attribute, _super);
-    function Attribute(value, attr, ctx, lineno, col_offset) {
+    function Attribute(value, attr, ctx, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.value = value;
         _this.attr = attr;
         _this.ctx = ctx;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     Attribute.prototype.accept = function (visitor) {
@@ -3494,25 +3522,23 @@ var Attribute = (function (_super) {
 }(Expression));
 var Subscript = (function (_super) {
     __extends(Subscript, _super);
-    function Subscript(value, slice, ctx, lineno, col_offset) {
+    function Subscript(value, slice, ctx, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.value = value;
         _this.slice = slice;
         _this.ctx = ctx;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return Subscript;
 }(Expression));
 var Name = (function (_super) {
     __extends(Name, _super);
-    function Name(id, ctx, lineno, col_offset) {
+    function Name(id, ctx, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.id = id;
         _this.ctx = ctx;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     Name.prototype.accept = function (visitor) {
@@ -3522,12 +3548,11 @@ var Name = (function (_super) {
 }(Expression));
 var List = (function (_super) {
     __extends(List, _super);
-    function List(elts, ctx, lineno, col_offset) {
+    function List(elts, ctx, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.elts = elts;
         _this.ctx = ctx;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     List.prototype.accept = function (visitor) {
@@ -3537,12 +3562,11 @@ var List = (function (_super) {
 }(Expression));
 var Tuple = (function (_super) {
     __extends(Tuple, _super);
-    function Tuple(elts, ctx, lineno, col_offset) {
+    function Tuple(elts, ctx, range) {
         var _this = _super.call(this) || this;
+        _this.range = range;
         _this.elts = elts;
         _this.ctx = ctx;
-        _this.lineno = lineno;
-        _this.col_offset = col_offset;
         return _this;
     }
     return Tuple;
@@ -3574,7 +3598,8 @@ var Index = (function () {
     return Index;
 }());
 var Comprehension = (function () {
-    function Comprehension(target, iter, ifs) {
+    function Comprehension(target, iter, ifs, range) {
+        this.range = range;
         this.target = target;
         this.iter = iter;
         this.ifs = ifs;
@@ -3582,12 +3607,11 @@ var Comprehension = (function () {
     return Comprehension;
 }());
 var ExceptHandler = (function () {
-    function ExceptHandler(type, name, body, lineno, col_offset) {
+    function ExceptHandler(type, name, body, range) {
+        this.range = range;
         this.type = type;
         this.name = name;
         this.body = body;
-        this.lineno = lineno;
-        this.col_offset = col_offset;
     }
     return ExceptHandler;
 }());
@@ -3765,9 +3789,9 @@ BoolOp.prototype['_fields'] = [
 ];
 BinOp.prototype['_astname'] = 'BinOp';
 BinOp.prototype['_fields'] = [
-    'left', function (n) { return n.left; },
+    'lhs', function (n) { return n.lhs; },
     'op', function (n) { return n.op; },
-    'right', function (n) { return n.right; }
+    'rhs', function (n) { return n.rhs; }
 ];
 UnaryOp.prototype['_astname'] = 'UnaryOp';
 UnaryOp.prototype['_fields'] = [
@@ -4029,14 +4053,12 @@ var SYM = ParseTables.sym;
 var LONG_THRESHOLD = Math.pow(2, 53);
 /**
  * FIXME: Consolidate with parseError in parser.
- * @param message
- * @param lineNumber
  */
-function syntaxError$1(message, lineNumber) {
+function syntaxError$1(message, range) {
     assert(isString(message), "message must be a string");
-    assert(isNumber(lineNumber), "lineNumber must be a number");
+    assert(isNumber(range.begin.line), "lineNumber must be a number");
     var e = new SyntaxError(message /*, fileName*/);
-    e['lineNumber'] = lineNumber;
+    e['lineNumber'] = range.begin.line;
     return e;
 }
 var Compiling = (function () {
@@ -4103,11 +4125,11 @@ function numStmts(n) {
         }
     }
 }
-function forbiddenCheck(c, n, x, lineno) {
+function forbiddenCheck(c, n, x, range) {
     if (x === "None")
-        throw syntaxError$1("assignment to None", lineno);
+        throw syntaxError$1("assignment to None", range);
     if (x === "True" || x === "False")
-        throw syntaxError$1("assignment to True or False is forbidden", lineno);
+        throw syntaxError$1("assignment to True or False is forbidden", range);
 }
 /**
  * Set the context ctx for e, recursively traversing e.
@@ -4121,12 +4143,12 @@ function setContext(c, e, ctx, n) {
     var exprName = null;
     if (e instanceof Attribute) {
         if (ctx === Store)
-            forbiddenCheck(c, n, e.attr, n.lineno);
+            forbiddenCheck(c, n, e.attr, n.range);
         e.ctx = ctx;
     }
     else if (e instanceof Name) {
         if (ctx === Store)
-            forbiddenCheck(c, n, /*e.attr*/ void 0, n.lineno);
+            forbiddenCheck(c, n, /*e.attr*/ void 0, n.range);
         e.ctx = ctx;
     }
     else if (e instanceof Subscript) {
@@ -4138,7 +4160,7 @@ function setContext(c, e, ctx, n) {
     }
     else if (e instanceof Tuple) {
         if (e.elts.length === 0) {
-            throw syntaxError$1("can't assign to ()", n.lineno);
+            throw syntaxError$1("can't assign to ()", n.range);
         }
         e.ctx = ctx;
         s = e.elts;
@@ -4185,11 +4207,12 @@ function setContext(c, e, ctx, n) {
         }
     }
     if (exprName) {
-        throw syntaxError$1("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, n.lineno);
+        throw syntaxError$1("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, n.range);
     }
     if (s) {
-        for (var i = 0; i < s.length; ++i) {
-            setContext(c, s[i], ctx, n);
+        for (var _i = 0, s_1 = s; _i < s_1.length; _i++) {
+            var e_1 = s_1[_i];
+            setContext(c, e_1, ctx, n);
         }
     }
 }
@@ -4212,7 +4235,7 @@ var operatorMap = {};
 }());
 function getOperator(n) {
     assert(operatorMap[n.type] !== undefined, "" + n.type);
-    return operatorMap[n.type];
+    return { op: operatorMap[n.type], range: n.range };
 }
 function astForCompOp(c, n) {
     // comp_op: '<'|'>'|'=='|'>='|'<='|'<>'|'!='|'in'|'not' 'in'|'is' |'is' 'not'
@@ -4305,14 +4328,15 @@ function astForExceptClause(c, exc, body) {
     /* except_clause: 'except' [test [(',' | 'as') test]] */
     REQ(exc, SYM.except_clause);
     REQ(body, SYM.suite);
-    if (NCH(exc) === 1)
-        return new ExceptHandler(null, null, astForSuite(c, body), exc.lineno, exc.col_offset);
+    if (NCH(exc) === 1) {
+        return new ExceptHandler(null, null, astForSuite(c, body), exc.range);
+    }
     else if (NCH(exc) === 2)
-        return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.lineno, exc.col_offset);
+        return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.range);
     else if (NCH(exc) === 4) {
         var e = astForExpr(c, CHILD(exc, 3));
         setContext(c, e, Store, CHILD(exc, 3));
-        return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.lineno, exc.col_offset);
+        return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.range);
     }
     else {
         throw new Error("wrong number of children for except clause");
@@ -4345,13 +4369,14 @@ function astForTryStmt(c, n) {
         }
     }
     else if (CHILD(n, nc - 3).type !== SYM.except_clause) {
-        throw syntaxError$1("malformed 'try' statement", n.lineno);
+        throw syntaxError$1("malformed 'try' statement", n.range);
     }
     if (nexcept > 0) {
         var handlers = [];
-        for (var i = 0; i < nexcept; ++i)
+        for (var i = 0; i < nexcept; ++i) {
             handlers[i] = astForExceptClause(c, CHILD(n, 3 + i * 3), CHILD(n, 5 + i * 3));
-        var exceptSt = new TryExcept(body, handlers, orelse, n.lineno, n.col_offset);
+        }
+        var exceptSt = new TryExcept(body, handlers, orelse, n.range);
         if (!finally_)
             return exceptSt;
         /* if a 'finally' is present too, we nest the TryExcept within a
@@ -4359,17 +4384,15 @@ function astForTryStmt(c, n) {
         body = [exceptSt];
     }
     assert(finally_ !== null);
-    return new TryFinally(body, finally_, n.lineno, n.col_offset);
+    return new TryFinally(body, finally_, n.range);
 }
 function astForDottedName(c, n) {
     REQ(n, SYM.dotted_name);
-    var lineno = n.lineno;
-    var col_offset = n.col_offset;
     var id = strobj(CHILD(n, 0).value);
-    var e = new Name(id, Load, lineno, col_offset);
+    var e = new Name(id, Load, n.range);
     for (var i = 2; i < NCH(n); i += 2) {
         id = strobj(CHILD(n, i).value);
-        e = new Attribute(e, id, Load, lineno, col_offset);
+        e = new Attribute(e, id, Load, n.range);
     }
     return e;
 }
@@ -4382,7 +4405,7 @@ function astForDecorator(c, n) {
     if (NCH(n) === 3)
         return nameExpr;
     else if (NCH(n) === 5)
-        return new Call(nameExpr, [], [], null, null, n.lineno, n.col_offset);
+        return new Call(nameExpr, [], [], null, null, n.range);
     else
         return astForCall(c, CHILD(n, 3), nameExpr);
 }
@@ -4409,8 +4432,8 @@ function astForDecorated(c, n) {
         throw new Error("astForDecorated");
     }
     if (thing) {
-        thing.lineno = n.lineno;
-        thing.col_offset = n.col_offset;
+        // FIXME: Pass into functions above?
+        // thing.range = n.range;
     }
     return thing;
 }
@@ -4429,7 +4452,7 @@ function astForWithStmt(c, n) {
         setContext(c, optionalVars, Store, n);
         suiteIndex = 4;
     }
-    return new WithStatement(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.lineno, n.col_offset);
+    return new WithStatement(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.range);
 }
 function astForExecStmt(c, n) {
     var globals = null;
@@ -4445,7 +4468,7 @@ function astForExecStmt(c, n) {
     if (nchildren === 6) {
         locals = astForExpr(c, CHILD(n, 5));
     }
-    return new Exec(expr1, globals, locals, n.lineno, n.col_offset);
+    return new Exec(expr1, globals, locals, n.range);
 }
 function astForIfStmt(c, n) {
     /* if_stmt: 'if' test ':' suite ('elif' test ':' suite)*
@@ -4453,11 +4476,11 @@ function astForIfStmt(c, n) {
     */
     REQ(n, SYM.if_stmt);
     if (NCH(n) === 4)
-        return new IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
+        return new IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.range);
     var s = CHILD(n, 4).value;
     var decider = s.charAt(2); // elSe or elIf
     if (decider === 's') {
-        return new IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
+        return new IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.range);
     }
     else if (decider === 'i') {
         var nElif = NCH(n) - 4;
@@ -4472,17 +4495,17 @@ function astForIfStmt(c, n) {
         nElif /= 4;
         if (hasElse) {
             orelse = [
-                new IfStatement(astForExpr(c, CHILD(n, NCH(n) - 6)), astForSuite(c, CHILD(n, NCH(n) - 4)), astForSuite(c, CHILD(n, NCH(n) - 1)), CHILD(n, NCH(n) - 6).lineno, CHILD(n, NCH(n) - 6).col_offset)
+                new IfStatement(astForExpr(c, CHILD(n, NCH(n) - 6)), astForSuite(c, CHILD(n, NCH(n) - 4)), astForSuite(c, CHILD(n, NCH(n) - 1)), CHILD(n, NCH(n) - 6).range)
             ];
             nElif--;
         }
         for (var i = 0; i < nElif; ++i) {
             var off = 5 + (nElif - i - 1) * 4;
             orelse = [
-                new IfStatement(astForExpr(c, CHILD(n, off)), astForSuite(c, CHILD(n, off + 2)), orelse, CHILD(n, off).lineno, CHILD(n, off).col_offset)
+                new IfStatement(astForExpr(c, CHILD(n, off)), astForSuite(c, CHILD(n, off + 2)), orelse, CHILD(n, off).range)
             ];
         }
-        return new IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), orelse, n.lineno, n.col_offset);
+        return new IfStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), orelse, n.range);
     }
     throw new Error("unexpected token in 'if' statement");
 }
@@ -4499,7 +4522,7 @@ function astForExprlist(c, n, context) {
 }
 function astForDelStmt(c, n) {
     REQ(n, SYM.del_stmt);
-    return new DeleteStatement(astForExprlist(c, CHILD(n, 1), Del), n.lineno, n.col_offset);
+    return new DeleteStatement(astForExprlist(c, CHILD(n, 1), Del), n.range);
 }
 function astForGlobalStmt(c, n) {
     REQ(n, SYM.GlobalStmt);
@@ -4507,7 +4530,7 @@ function astForGlobalStmt(c, n) {
     for (var i = 1; i < NCH(n); i += 2) {
         s[(i - 1) / 2] = strobj(CHILD(n, i).value);
     }
-    return new Global(s, n.lineno, n.col_offset);
+    return new Global(s, n.range);
 }
 function astForNonLocalStmt(c, n) {
     REQ(n, SYM.NonLocalStmt);
@@ -4515,16 +4538,16 @@ function astForNonLocalStmt(c, n) {
     for (var i = 1; i < NCH(n); i += 2) {
         s[(i - 1) / 2] = strobj(CHILD(n, i).value);
     }
-    return new NonLocal(s, n.lineno, n.col_offset);
+    return new NonLocal(s, n.range);
 }
 function astForAssertStmt(c, n) {
     /* assert_stmt: 'assert' test [',' test] */
     REQ(n, SYM.assert_stmt);
     if (NCH(n) === 2) {
-        return new Assert(astForExpr(c, CHILD(n, 1)), null, n.lineno, n.col_offset);
+        return new Assert(astForExpr(c, CHILD(n, 1)), null, n.range);
     }
     else if (NCH(n) === 4) {
-        return new Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.lineno, n.col_offset);
+        return new Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.range);
     }
     throw new Error("improper number of parts to assert stmt");
 }
@@ -4573,7 +4596,7 @@ function aliasForImportName(c, n) {
                 return new Alias(strobj(n.value), null);
             }
             default: {
-                throw syntaxError$1("unexpected import name " + grammarName(n.type), n.lineno);
+                throw syntaxError$1("unexpected import name " + grammarName(n.type), n.range);
             }
         }
     }
@@ -4590,8 +4613,6 @@ function parseModuleSpecifier(c, moduleSpecifierNode) {
 }
 function astForImportStmt(c, importStatementNode) {
     REQ(importStatementNode, SYM.import_stmt);
-    var lineno = importStatementNode.lineno;
-    var col_offset = importStatementNode.col_offset;
     var nameOrFrom = CHILD(importStatementNode, 0);
     if (nameOrFrom.type === SYM.import_name) {
         var n = CHILD(nameOrFrom, 1);
@@ -4600,7 +4621,7 @@ function astForImportStmt(c, importStatementNode) {
         for (var i = 0; i < NCH(n); i += 2) {
             aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
         }
-        return new ImportStatement(aliases, lineno, col_offset);
+        return new ImportStatement(aliases, importStatementNode.range);
     }
     else if (nameOrFrom.type === SYM.import_from) {
         var mod = null;
@@ -4613,7 +4634,7 @@ function astForImportStmt(c, importStatementNode) {
             var childType = child.type;
             if (childType === SYM.dotted_name) {
                 // This should be dead code since we support ECMAScript 2015 modules.
-                throw syntaxError$1("unknown import statement " + grammarName(childType) + ".", child.lineno);
+                throw syntaxError$1("unknown import statement " + grammarName(childType) + ".", child.range);
                 // mod = aliasForImportName(c, child);
                 // idx++;
                 // break;
@@ -4624,7 +4645,7 @@ function astForImportStmt(c, importStatementNode) {
             }
             else if (childType !== Tokens.T_DOT) {
                 // Let's be more specific...
-                throw syntaxError$1("unknown import statement " + grammarName(childType) + ".", child.lineno);
+                throw syntaxError$1("unknown import statement " + grammarName(childType) + ".", child.range);
                 // break;
             }
             ndots++;
@@ -4649,7 +4670,7 @@ function astForImportStmt(c, importStatementNode) {
                 n = CHILD(n, idx);
                 nchildren = NCH(n);
                 if (nchildren % 2 === 0)
-                    throw syntaxError$1("trailing comma not allowed without surrounding parentheses", n.lineno);
+                    throw syntaxError$1("trailing comma not allowed without surrounding parentheses", n.range);
             }
         }
         var aliases = [];
@@ -4662,10 +4683,10 @@ function astForImportStmt(c, importStatementNode) {
             astForImportList(c, importListNode, aliases);
         }
         moduleName = mod ? mod.name : moduleName;
-        return new ImportFrom(strobj(moduleName), aliases, ndots, lineno, col_offset);
+        return new ImportFrom(strobj(moduleName), aliases, ndots, importStatementNode.range);
     }
     else {
-        throw syntaxError$1("unknown import statement " + grammarName(nameOrFrom.type) + ".", nameOrFrom.lineno);
+        throw syntaxError$1("unknown import statement " + grammarName(nameOrFrom.type) + ".", nameOrFrom.range);
     }
 }
 function astForImportList(c, importListNode, aliases) {
@@ -4744,7 +4765,7 @@ function astForListcomp(c, n) {
         if (NCH(forch) === 1)
             lc = new Comprehension(t[0], expression, []);
         else
-            lc = new Comprehension(new Tuple(t, Store, ch.lineno, ch.col_offset), expression, []);
+            lc = new Comprehension(new Tuple(t, Store, ch.range), expression, []);
         if (NCH(ch) === 5) {
             ch = CHILD(ch, 4);
             var nifs = countListIfs(c, ch);
@@ -4763,7 +4784,7 @@ function astForListcomp(c, n) {
         }
         listcomps[i] = lc;
     }
-    return new ListComp(elt, listcomps, n.lineno, n.col_offset);
+    return new ListComp(elt, listcomps, n.range);
 }
 function astForUnaryExpr(c, n) {
     if (CHILD(n, 0).type === Tokens.T_MINUS && NCH(n) === 2) {
@@ -4784,9 +4805,9 @@ function astForUnaryExpr(c, n) {
     }
     var expression = astForExpr(c, CHILD(n, 1));
     switch (CHILD(n, 0).type) {
-        case Tokens.T_PLUS: return new UnaryOp(UAdd, expression, n.lineno, n.col_offset);
-        case Tokens.T_MINUS: return new UnaryOp(USub, expression, n.lineno, n.col_offset);
-        case Tokens.T_TILDE: return new UnaryOp(Invert, expression, n.lineno, n.col_offset);
+        case Tokens.T_PLUS: return new UnaryOp(UAdd, expression, n.range);
+        case Tokens.T_MINUS: return new UnaryOp(USub, expression, n.range);
+        case Tokens.T_TILDE: return new UnaryOp(Invert, expression, n.range);
     }
     throw new Error("unhandled UnaryExpr");
 }
@@ -4802,8 +4823,8 @@ function astForForStmt(c, n) {
     if (NCH(nodeTarget) === 1)
         target = _target[0];
     else
-        target = new Tuple(_target, Store, n.lineno, n.col_offset);
-    return new ForStatement(target, astForTestlist(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 5)), seq, n.lineno, n.col_offset);
+        target = new Tuple(_target, Store, n.range);
+    return new ForStatement(target, astForTestlist(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 5)), seq, n.range);
 }
 function astForCall(c, n, func) {
     /*
@@ -4827,9 +4848,9 @@ function astForCall(c, n, func) {
         }
     }
     if (ngens > 1 || (ngens && (nargs || nkeywords)))
-        throw syntaxError$1("Generator expression must be parenthesized if not sole argument", n.lineno);
+        throw syntaxError$1("Generator expression must be parenthesized if not sole argument", n.range);
     if (nargs + nkeywords + ngens > 255)
-        throw syntaxError$1("more than 255 arguments", n.lineno);
+        throw syntaxError$1("more than 255 arguments", n.range);
     var args = [];
     var keywords = [];
     nargs = 0;
@@ -4841,9 +4862,9 @@ function astForCall(c, n, func) {
         if (ch.type === SYM.argument) {
             if (NCH(ch) === 1) {
                 if (nkeywords)
-                    throw syntaxError$1("non-keyword arg after keyword arg", n.lineno);
+                    throw syntaxError$1("non-keyword arg after keyword arg", n.range);
                 if (vararg)
-                    throw syntaxError$1("only named arguments may follow *expression", n.lineno);
+                    throw syntaxError$1("only named arguments may follow *expression", n.range);
                 args[nargs++] = astForExpr(c, CHILD(ch, 0));
             }
             else if (CHILD(ch, 1).type === SYM.gen_for)
@@ -4851,15 +4872,15 @@ function astForCall(c, n, func) {
             else {
                 var e = astForExpr(c, CHILD(ch, 0));
                 if (e.constructor === Lambda)
-                    throw syntaxError$1("lambda cannot contain assignment", n.lineno);
+                    throw syntaxError$1("lambda cannot contain assignment", n.range);
                 else if (e.constructor !== Name)
-                    throw syntaxError$1("keyword can't be an expression", n.lineno);
+                    throw syntaxError$1("keyword can't be an expression", n.range);
                 var key = e.id;
-                forbiddenCheck(c, CHILD(ch, 0), key, n.lineno);
+                forbiddenCheck(c, CHILD(ch, 0), key, n.range);
                 for (var k = 0; k < nkeywords; ++k) {
                     var tmp = keywords[k].arg;
                     if (tmp === key)
-                        throw syntaxError$1("keyword argument repeated", n.lineno);
+                        throw syntaxError$1("keyword argument repeated", n.range);
                 }
                 keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
             }
@@ -4869,7 +4890,7 @@ function astForCall(c, n, func) {
         else if (ch.type === Tokens.T_DOUBLESTAR)
             kwarg = astForExpr(c, CHILD(n, ++i));
     }
-    return new Call(func, args, keywords, vararg, kwarg, func.lineno, func.col_offset);
+    return new Call(func, args, keywords, vararg, kwarg, func.range);
 }
 function astForTrailer(c, n, leftExpr) {
     /* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
@@ -4879,18 +4900,18 @@ function astForTrailer(c, n, leftExpr) {
     REQ(n, SYM.trailer);
     if (CHILD(n, 0).type === Tokens.T_LPAR) {
         if (NCH(n) === 2)
-            return new Call(leftExpr, [], [], null, null, n.lineno, n.col_offset);
+            return new Call(leftExpr, [], [], null, null, n.range);
         else
             return astForCall(c, CHILD(n, 1), leftExpr);
     }
     else if (CHILD(n, 0).type === Tokens.T_DOT)
-        return new Attribute(leftExpr, strobj(CHILD(n, 1).value), Load, n.lineno, n.col_offset);
+        return new Attribute(leftExpr, strobj(CHILD(n, 1).value), Load, n.range);
     else {
         REQ(CHILD(n, 0), Tokens.T_LSQB);
         REQ(CHILD(n, 2), Tokens.T_RSQB);
         n = CHILD(n, 1);
         if (NCH(n) === 1)
-            return new Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), Load, n.lineno, n.col_offset);
+            return new Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), Load, n.range);
         else {
             /* The grammar is ambiguous here. The ambiguity is resolved
                 by treating the sequence as a tuple literal if there are
@@ -4906,7 +4927,7 @@ function astForTrailer(c, n, leftExpr) {
                 slices[j / 2] = slc;
             }
             if (!simple) {
-                return new Subscript(leftExpr, new ExtSlice(slices), Load, n.lineno, n.col_offset);
+                return new Subscript(leftExpr, new ExtSlice(slices), Load, n.range);
             }
             var elts = [];
             for (var j = 0; j < slices.length; ++j) {
@@ -4919,8 +4940,8 @@ function astForTrailer(c, n, leftExpr) {
                     assert(slc instanceof Index);
                 }
             }
-            var e = new Tuple(elts, Load, n.lineno, n.col_offset);
-            return new Subscript(leftExpr, new Index(e), Load, n.lineno, n.col_offset);
+            var e = new Tuple(elts, Load, n.range);
+            return new Subscript(leftExpr, new Index(e), Load, n.range);
         }
     }
 }
@@ -4928,24 +4949,24 @@ function astForFlowStmt(c, n) {
     REQ(n, SYM.flow_stmt);
     var ch = CHILD(n, 0);
     switch (ch.type) {
-        case SYM.break_stmt: return new BreakStatement(n.lineno, n.col_offset);
-        case SYM.continue_stmt: return new ContinueStatement(n.lineno, n.col_offset);
+        case SYM.break_stmt: return new BreakStatement(n.range);
+        case SYM.continue_stmt: return new ContinueStatement(n.range);
         case SYM.yield_stmt:
-            return new ExpressionStatement(astForExpr(c, CHILD(ch, 0)), n.lineno, n.col_offset);
+            return new ExpressionStatement(astForExpr(c, CHILD(ch, 0)), n.range);
         case SYM.return_stmt:
             if (NCH(ch) === 1)
-                return new ReturnStatement(null, n.lineno, n.col_offset);
+                return new ReturnStatement(null, n.range);
             else
-                return new ReturnStatement(astForTestlist(c, CHILD(ch, 1)), n.lineno, n.col_offset);
+                return new ReturnStatement(astForTestlist(c, CHILD(ch, 1)), n.range);
         case SYM.raise_stmt: {
             if (NCH(ch) === 1)
-                return new Raise(null, null, null, n.lineno, n.col_offset);
+                return new Raise(null, null, null, n.range);
             else if (NCH(ch) === 2)
-                return new Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.lineno, n.col_offset);
+                return new Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.range);
             else if (NCH(ch) === 4)
-                return new Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), null, n.lineno, n.col_offset);
+                return new Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), null, n.range);
             else if (NCH(ch) === 6)
-                return new Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), astForExpr(c, CHILD(ch, 5)), n.lineno, n.col_offset);
+                return new Raise(astForExpr(c, CHILD(ch, 1)), astForExpr(c, CHILD(ch, 3)), astForExpr(c, CHILD(ch, 5)), n.range);
             else {
                 throw new Error("unhandled flow statement");
             }
@@ -4994,14 +5015,14 @@ function astForArguments(c, n) {
                         /* def f((x)=4): pass should raise an error.
                             def f((x, (y))): pass will just incur the tuple unpacking warning. */
                         if (parenthesized && !complexArgs)
-                            throw syntaxError$1("parenthesized arg with default", n.lineno);
-                        throw syntaxError$1("non-default argument follows default argument", n.lineno);
+                            throw syntaxError$1("parenthesized arg with default", n.range);
+                        throw syntaxError$1("non-default argument follows default argument", n.range);
                     }
                     if (NCH(ch) === 3) {
                         ch = CHILD(ch, 1);
                         // def foo((x)): is not complex, special case.
                         if (NCH(ch) !== 1) {
-                            throw syntaxError$1("tuple parameter unpacking has been removed", n.lineno);
+                            throw syntaxError$1("tuple parameter unpacking has been removed", n.range);
                         }
                         else {
                             /* def foo((x)): setup for checking NAME below. */
@@ -5014,23 +5035,23 @@ function astForArguments(c, n) {
                         }
                     }
                     if (CHILD(ch, 0).type === Tokens.T_NAME) {
-                        forbiddenCheck(c, n, CHILD(ch, 0).value, n.lineno);
+                        forbiddenCheck(c, n, CHILD(ch, 0).value, n.range);
                         var id = strobj(CHILD(ch, 0).value);
-                        args[k++] = new Name(id, Param, ch.lineno, ch.col_offset);
+                        args[k++] = new Name(id, Param, ch.range);
                     }
                     i += 2;
                     if (parenthesized)
-                        throw syntaxError$1("parenthesized argument names are invalid", n.lineno);
+                        throw syntaxError$1("parenthesized argument names are invalid", n.range);
                     break;
                 }
                 break;
             case Tokens.T_STAR:
-                forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.lineno);
+                forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.range);
                 vararg = strobj(CHILD(n, i + 1).value);
                 i += 3;
                 break;
             case Tokens.T_DOUBLESTAR:
-                forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.lineno);
+                forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.range);
                 kwarg = strobj(CHILD(n, i + 1).value);
                 i += 3;
                 break;
@@ -5045,10 +5066,10 @@ function astForFuncdef(c, n, decoratorSeq) {
     /* funcdef: 'def' NAME parameters ':' suite */
     REQ(n, SYM.funcdef);
     var name = strobj(CHILD(n, 1).value);
-    forbiddenCheck(c, CHILD(n, 1), CHILD(n, 1).value, n.lineno);
+    forbiddenCheck(c, CHILD(n, 1), CHILD(n, 1).value, n.range);
     var args = astForArguments(c, CHILD(n, 2));
     var body = astForSuite(c, CHILD(n, 4));
-    return new FunctionDef(name, args, body, decoratorSeq, n.lineno, n.col_offset);
+    return new FunctionDef(name, args, body, decoratorSeq, n.range);
 }
 function astForClassBases(c, n) {
     assert(NCH(n) > 0);
@@ -5060,15 +5081,17 @@ function astForClassBases(c, n) {
 }
 function astForClassdef(c, n, decoratorSeq) {
     REQ(n, SYM.classdef);
-    forbiddenCheck(c, n, CHILD(n, 1).value, n.lineno);
+    forbiddenCheck(c, n, CHILD(n, 1).value, n.range);
     var classname = strobj(CHILD(n, 1).value);
-    if (NCH(n) === 4)
-        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.lineno, n.col_offset);
-    if (CHILD(n, 3).type === Tokens.T_RPAR)
-        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.lineno, n.col_offset);
+    if (NCH(n) === 4) {
+        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
+    }
+    if (CHILD(n, 3).type === Tokens.T_RPAR) {
+        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
+    }
     var bases = astForClassBases(c, CHILD(n, 3));
     var s = astForSuite(c, CHILD(n, 6));
-    return new ClassDef(classname, bases, s, decoratorSeq, n.lineno, n.col_offset);
+    return new ClassDef(classname, bases, s, decoratorSeq, n.range);
 }
 function astForLambdef(c, n) {
     var args;
@@ -5081,7 +5104,7 @@ function astForLambdef(c, n) {
         args = astForArguments(c, CHILD(n, 1));
         expression = astForExpr(c, CHILD(n, 3));
     }
-    return new Lambda(args, expression, n.lineno, n.col_offset);
+    return new Lambda(args, expression, n.range);
 }
 function astForGenexp(c, n) {
     /* testlist_gexp: test ( gen_for | (',' test)* [','] )
@@ -5144,7 +5167,7 @@ function astForGenexp(c, n) {
         if (NCH(forch) === 1)
             ge = new Comprehension(t[0], expression, []);
         else
-            ge = new Comprehension(new Tuple(t, Store, ch.lineno, ch.col_offset), expression, []);
+            ge = new Comprehension(new Tuple(t, Store, ch.range), expression, []);
         if (NCH(ch) === 5) {
             ch = CHILD(ch, 4);
             var nifs = countGenIfs(c, ch);
@@ -5164,15 +5187,15 @@ function astForGenexp(c, n) {
         }
         genexps[i] = ge;
     }
-    return new GeneratorExp(elt, genexps, n.lineno, n.col_offset);
+    return new GeneratorExp(elt, genexps, n.range);
 }
 function astForWhileStmt(c, n) {
     /* while_stmt: 'while' test ':' suite ['else' ':' suite] */
     REQ(n, SYM.while_stmt);
     if (NCH(n) === 4)
-        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.lineno, n.col_offset);
+        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.range);
     else if (NCH(n) === 7)
-        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.lineno, n.col_offset);
+        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.range);
     throw new Error("wrong number of tokens for 'while' stmt");
 }
 function astForAugassign(c, n) {
@@ -5213,13 +5236,12 @@ function astForBinop(c, n) {
         How should A op B op C by represented?
         BinOp(BinOp(A, op, B), op, C).
     */
-    var result = new BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.lineno, n.col_offset);
+    var result = new BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.range);
     var nops = (NCH(n) - 1) / 2;
     for (var i = 1; i < nops; ++i) {
         var nextOper = CHILD(n, i * 2 + 1);
-        var newoperator = getOperator(nextOper);
         var tmp = astForExpr(c, CHILD(n, i * 2 + 2));
-        result = new BinOp(result, newoperator, tmp, nextOper.lineno, nextOper.col_offset);
+        result = new BinOp(result, getOperator(nextOper), tmp, nextOper.range);
     }
     return result;
 }
@@ -5241,28 +5263,31 @@ function astForTestlist(c, n) {
         return astForExpr(c, CHILD(n, 0));
     }
     else {
-        return new Tuple(seqForTestlist(c, n), Load, n.lineno, n.col_offset);
+        return new Tuple(seqForTestlist(c, n), Load, n.range);
     }
 }
-function astForExprStmt(c, n) {
+function astForExprStmt(c, node) {
+    // Prevent assignment.
+    var n = node;
     REQ(n, SYM.ExprStmt);
-    if (NCH(n) === 1)
-        return new ExpressionStatement(astForTestlist(c, CHILD(n, 0)), n.lineno, n.col_offset);
+    if (NCH(n) === 1) {
+        return new ExpressionStatement(astForTestlist(c, CHILD(n, 0)), n.range);
+    }
     else if (CHILD(n, 1).type === SYM.augassign) {
         var ch = CHILD(n, 0);
         var expr1 = astForTestlist(c, ch);
         switch (expr1.constructor) {
-            case GeneratorExp: throw syntaxError$1("augmented assignment to generator expression not possible", n.lineno);
-            case Yield: throw syntaxError$1("augmented assignment to yield expression not possible", n.lineno);
+            case GeneratorExp: throw syntaxError$1("augmented assignment to generator expression not possible", n.range);
+            case Yield: throw syntaxError$1("augmented assignment to yield expression not possible", n.range);
             case Name:
                 var varName = expr1.id;
-                forbiddenCheck(c, ch, varName, n.lineno);
+                forbiddenCheck(c, ch, varName, n.range);
                 break;
             case Attribute:
             case Subscript:
                 break;
             default:
-                throw syntaxError$1("illegal expression for augmented assignment", n.lineno);
+                throw syntaxError$1("illegal expression for augmented assignment", n.range);
         }
         setContext(c, expr1, Store, ch);
         ch = CHILD(n, 2);
@@ -5271,32 +5296,34 @@ function astForExprStmt(c, n) {
             expr2 = astForTestlist(c, ch);
         else
             expr2 = astForExpr(c, ch);
-        return new AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.lineno, n.col_offset);
+        return new AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.range);
     }
     else {
         // normal assignment
-        REQ(CHILD(n, 1), Tokens.T_EQUAL);
+        var eq = CHILD(n, 1);
+        REQ(eq, Tokens.T_EQUAL);
         var targets = [];
-        for (var i = 0; i < NCH(n) - 2; i += 2) {
+        var N = NCH(n);
+        for (var i = 0; i < N - 2; i += 2) {
             var ch = CHILD(n, i);
             if (ch.type === SYM.YieldExpr)
-                throw syntaxError$1("assignment to yield expression not possible", n.lineno);
+                throw syntaxError$1("assignment to yield expression not possible", n.range);
             var e = astForTestlist(c, ch);
             setContext(c, e, Store, CHILD(n, i));
             targets[i / 2] = e;
         }
-        var value = CHILD(n, NCH(n) - 1);
+        var value = CHILD(n, N - 1);
         var expression = void 0;
         if (value.type === SYM.testlist)
             expression = astForTestlist(c, value);
         else
             expression = astForExpr(c, value);
-        return new Assign(targets, expression, n.lineno, n.col_offset);
+        return new Assign(targets, expression, n.range, eq.range);
     }
 }
 function astForIfexpr(c, n) {
     assert(NCH(n) === 5);
-    return new IfExp(astForExpr(c, CHILD(n, 2)), astForExpr(c, CHILD(n, 0)), astForExpr(c, CHILD(n, 4)), n.lineno, n.col_offset);
+    return new IfExp(astForExpr(c, CHILD(n, 2)), astForExpr(c, CHILD(n, 0)), astForExpr(c, CHILD(n, 4)), n.range);
 }
 // escape() was deprecated in JavaScript 1.5. Use encodeURI or encodeURIComponent instead.
 function escape(s) {
@@ -5396,15 +5423,15 @@ function parsestrplus(c, n) {
             ret = ret + parsestr(c, child.value);
         }
         catch (x) {
-            throw syntaxError$1("invalid string (possibly contains a unicode character)", child.lineno);
+            throw syntaxError$1("invalid string (possibly contains a unicode character)", child.range);
         }
     }
     return ret;
 }
-function parsenumber(c, s, lineno) {
-    var end = s.charAt(s.length - 1);
-    if (end === 'j' || end === 'J') {
-        throw syntaxError$1("complex numbers are currently unsupported", lineno);
+function parsenumber(c, s, range) {
+    var endChar = s.charAt(s.length - 1);
+    if (endChar === 'j' || endChar === 'J') {
+        throw syntaxError$1("complex numbers are currently unsupported", range);
     }
     if (s.indexOf('.') !== -1) {
         return floatAST(s);
@@ -5441,7 +5468,7 @@ function parsenumber(c, s, lineno) {
         }
         else {
             // Octal (Leading zero, but not actually zero)
-            if (end === 'l' || end === 'L') {
+            if (endChar === 'l' || endChar === 'L') {
                 return longAST(s.substr(0, s.length - 1), 8);
             }
             else {
@@ -5456,7 +5483,7 @@ function parsenumber(c, s, lineno) {
     }
     else {
         // Decimal
-        if (end === 'l' || end === 'L') {
+        if (endChar === 'l' || endChar === 'L') {
             return longAST(s.substr(0, s.length - 1), radix);
         }
         else {
@@ -5468,7 +5495,7 @@ function parsenumber(c, s, lineno) {
         // TODO: Does radix zero make sense?
         return longAST(s, 0);
     }
-    if (end === 'l' || end === 'L') {
+    if (endChar === 'l' || endChar === 'L') {
         return longAST(s.substr(0, s.length - 1), radix);
     }
     else {
@@ -5511,7 +5538,7 @@ function astForSlice(c, n) {
     if (ch.type === SYM.sliceop) {
         if (NCH(ch) === 1) {
             ch = CHILD(ch, 0);
-            step = new Name(strobj("None"), Load, ch.lineno, ch.col_offset);
+            step = new Name(strobj("None"), Load, ch.range);
         }
         else {
             ch = CHILD(ch, 1);
@@ -5526,16 +5553,17 @@ function astForAtomExpr(c, n) {
     switch (c0.type) {
         case Tokens.T_NAME:
             // All names start in Load context, but may be changed later
-            return new Name(strobj(c0.value), Load, n.lineno, n.col_offset);
+            return new Name(strobj(c0.value), Load, n.range);
         case Tokens.T_STRING: {
-            return new Str(parsestrplus(c, n), n.lineno, n.col_offset);
+            return new Str(parsestrplus(c, n), n.range);
         }
-        case Tokens.T_NUMBER:
-            return new Num(parsenumber(c, c0.value, n.lineno), n.lineno, n.col_offset);
+        case Tokens.T_NUMBER: {
+            return new Num(parsenumber(c, c0.value, c0.range), n.range);
+        }
         case Tokens.T_LPAR: {
             var c1 = CHILD(n, 1);
             if (c1.type === Tokens.T_RPAR) {
-                return new Tuple([], Load, n.lineno, n.col_offset);
+                return new Tuple([], Load, n.range);
             }
             if (c1.type === SYM.YieldExpr) {
                 return astForExpr(c, c1);
@@ -5548,10 +5576,10 @@ function astForAtomExpr(c, n) {
         case Tokens.T_LSQB: {
             var c1 = CHILD(n, 1);
             if (c1.type === Tokens.T_RSQB)
-                return new List([], Load, n.lineno, n.col_offset);
+                return new List([], Load, n.range);
             REQ(c1, SYM.listmaker);
             if (NCH(c1) === 1 || CHILD(c1, 1).type === Tokens.T_COMMA)
-                return new List(seqForTestlist(c, c1), Load, n.lineno, n.col_offset);
+                return new List(seqForTestlist(c, c1), Load, n.range);
             else
                 return astForListcomp(c, c1);
         }
@@ -5566,10 +5594,10 @@ function astForAtomExpr(c, n) {
                 keys[i / 4] = astForExpr(c, CHILD(c1, i));
                 values[i / 4] = astForExpr(c, CHILD(c1, i + 2));
             }
-            return new Dict(keys, values, n.lineno, n.col_offset);
+            return new Dict(keys, values, n.range);
         }
         case Tokens.T_BACKQUOTE: {
-            throw syntaxError$1("backquote not supported, use repr()", n.lineno);
+            throw syntaxError$1("backquote not supported, use repr()", n.range);
         }
         default: {
             throw new Error("unhandled atom '" + grammarName(c0.type) + "'");
@@ -5586,14 +5614,20 @@ function astForPowerExpr(c, n) {
         if (ch.type !== SYM.trailer) {
             break;
         }
-        var tmp = astForTrailer(c, ch, e);
-        tmp.lineno = e.lineno;
-        tmp.col_offset = e.col_offset;
-        e = tmp;
+        if (e instanceof Name || e instanceof Attribute) {
+            var tmp = astForTrailer(c, ch, e);
+            // FIXME
+            // tmp.lineno = e.begin;
+            // tmp.col_offset = e.end;
+            e = tmp;
+        }
+        else {
+            assert(false, "" + JSON.stringify(e));
+        }
     }
     if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr) {
         var f = astForExpr(c, CHILD(n, NCH(n) - 1));
-        return new BinOp(e, Pow, f, n.lineno, n.col_offset);
+        return new BinOp(e, { op: Pow, range: null }, f, n.range);
     }
     else {
         return e;
@@ -5620,17 +5654,17 @@ function astForExpr(c, n) {
                     seq[i / 2] = astForExpr(c, CHILD(n, i));
                 }
                 if (CHILD(n, 1).value === "and") {
-                    return new BoolOp(And, seq, n.lineno, n.col_offset);
+                    return new BoolOp(And, seq, n.range);
                 }
                 assert(CHILD(n, 1).value === "or");
-                return new BoolOp(Or, seq, n.lineno, n.col_offset);
+                return new BoolOp(Or, seq, n.range);
             case SYM.NotExpr:
                 if (NCH(n) === 1) {
                     n = CHILD(n, 0);
                     continue LOOP;
                 }
                 else {
-                    return new UnaryOp(Not, astForExpr(c, CHILD(n, 1)), n.lineno, n.col_offset);
+                    return new UnaryOp(Not, astForExpr(c, CHILD(n, 1)), n.range);
                 }
             case SYM.ComparisonExpr:
                 if (NCH(n) === 1) {
@@ -5644,7 +5678,7 @@ function astForExpr(c, n) {
                         ops[(i - 1) / 2] = astForCompOp(c, CHILD(n, i));
                         cmps[(i - 1) / 2] = astForExpr(c, CHILD(n, i + 1));
                     }
-                    return new Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.lineno, n.col_offset);
+                    return new Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.range);
                 }
             case SYM.ArithmeticExpr:
             case SYM.GeometricExpr:
@@ -5662,7 +5696,7 @@ function astForExpr(c, n) {
                 if (NCH(n) === 2) {
                     exp = astForTestlist(c, CHILD(n, 1));
                 }
-                return new Yield(exp, n.lineno, n.col_offset);
+                return new Yield(exp, n.range);
             case SYM.UnaryExpr:
                 if (NCH(n) === 1) {
                     n = CHILD(n, 0);
@@ -5690,7 +5724,7 @@ function astForPrintStmt(c, n) {
         seq[j] = astForExpr(c, CHILD(n, i));
     }
     var nl = (CHILD(n, NCH(n) - 1)).type === Tokens.T_COMMA ? false : true;
-    return new Print(dest, seq, nl, n.lineno, n.col_offset);
+    return new Print(dest, seq, nl, n.range);
 }
 function astForStmt(c, n) {
     if (n.type === SYM.stmt) {
@@ -5708,7 +5742,7 @@ function astForStmt(c, n) {
             case SYM.ExprStmt: return astForExprStmt(c, n);
             case SYM.print_stmt: return astForPrintStmt(c, n);
             case SYM.del_stmt: return astForDelStmt(c, n);
-            case SYM.pass_stmt: return new Pass(n.lineno, n.col_offset);
+            case SYM.pass_stmt: return new Pass(n.range);
             case SYM.flow_stmt: return astForFlowStmt(c, n);
             case SYM.import_stmt: return astForImportStmt(c, n);
             case SYM.GlobalStmt: return astForGlobalStmt(c, n);
@@ -5940,9 +5974,9 @@ var SymbolTableScope = (function () {
      * @param name The name of the node defining the scope.
      * @param blockType
      * @param astNode
-     * @param lineno
+     * @param range
      */
-    function SymbolTableScope(table, name, blockType, astNode, lineno) {
+    function SymbolTableScope(table, name, blockType, astNode, range) {
         /**
          * A mapping from the name of a symbol to its flags.
          */
@@ -5960,7 +5994,7 @@ var SymbolTableScope = (function () {
         this.blockType = blockType;
         astNode.scopeId = astScopeCounter++;
         table.stss[astNode.scopeId] = this;
-        this.lineno = lineno;
+        this.range = range;
         if (table.cur && (table.cur.isNested || table.cur.blockType === FunctionBlock)) {
             this.isNested = true;
         }
@@ -5978,7 +6012,7 @@ var SymbolTableScope = (function () {
     }
     SymbolTableScope.prototype.get_type = function () { return this.blockType; };
     SymbolTableScope.prototype.get_name = function () { return this.name; };
-    SymbolTableScope.prototype.get_lineno = function () { return this.lineno; };
+    SymbolTableScope.prototype.get_range = function () { return this.range; };
     SymbolTableScope.prototype.is_nested = function () { return this.isNested; };
     SymbolTableScope.prototype.has_children = function () { return this.children.length > 0; };
     SymbolTableScope.prototype.get_identifiers = function () { return this._identsMatching(function (x) { return true; }); };
@@ -6151,14 +6185,14 @@ var SymbolTable = (function () {
      * @param astNode The AST node that is defining the block.
      * @param lineno
      */
-    SymbolTable.prototype.enterBlock = function (name, blockType, astNode, lineno) {
+    SymbolTable.prototype.enterBlock = function (name, blockType, astNode, range) {
         //  name = fixReservedNames(name);
         var prev = null;
         if (this.cur) {
             prev = this.cur;
             this.stack.push(this.cur);
         }
-        this.cur = new SymbolTableScope(this, name, blockType, astNode, lineno);
+        this.cur = new SymbolTableScope(this, name, blockType, astNode, range);
         if (name === 'top') {
             this.global = this.cur.symFlags;
         }
@@ -6177,7 +6211,7 @@ var SymbolTable = (function () {
             var arg = args[i];
             if (arg.constructor === Name) {
                 assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
-                this.addDef(arg.id, DEF_PARAM, arg.lineno);
+                this.addDef(arg.id, DEF_PARAM, arg.range);
             }
             else {
                 // Tuple isn't supported
@@ -6185,24 +6219,23 @@ var SymbolTable = (function () {
             }
         }
     };
-    SymbolTable.prototype.visitArguments = function (a, lineno) {
+    SymbolTable.prototype.visitArguments = function (a, range) {
         if (a.args)
             this.visitParams(a.args, true);
         if (a.vararg) {
-            this.addDef(a.vararg, DEF_PARAM, lineno);
+            this.addDef(a.vararg, DEF_PARAM, range);
             this.cur.varargs = true;
         }
         if (a.kwarg) {
-            this.addDef(a.kwarg, DEF_PARAM, lineno);
+            this.addDef(a.kwarg, DEF_PARAM, range);
             this.cur.varkeywords = true;
         }
     };
     /**
-     * @param {number} lineno
-     * @return {void}
+     *
      */
-    SymbolTable.prototype.newTmpname = function (lineno) {
-        this.addDef("_[" + (++this.tmpname) + "]", DEF_LOCAL, lineno);
+    SymbolTable.prototype.newTmpname = function (range) {
+        this.addDef("_[" + (++this.tmpname) + "]", DEF_LOCAL, range);
     };
     /**
      * 1. Modifies symbol flags for the current scope.
@@ -6212,14 +6245,14 @@ var SymbolTable = (function () {
      * @param flags
      * @param lineno
      */
-    SymbolTable.prototype.addDef = function (name, flags, lineno) {
+    SymbolTable.prototype.addDef = function (name, flags, range) {
         var mangled = mangleName(this.curClass, name);
         //  mangled = fixReservedNames(mangled);
         // Modify symbol flags for the current scope.
         var val = this.cur.symFlags[mangled];
         if (val !== undefined) {
             if ((flags & DEF_PARAM) && (val & DEF_PARAM)) {
-                throw syntaxError("duplicate argument '" + name + "' in function definition", lineno);
+                throw syntaxError("duplicate argument '" + name + "' in function definition", range);
             }
             val |= flags;
         }
@@ -6265,22 +6298,22 @@ var SymbolTable = (function () {
     SymbolTable.prototype.visitStmt = function (s) {
         assert(s !== undefined, "visitStmt called with undefined");
         if (s instanceof FunctionDef) {
-            this.addDef(s.name, DEF_LOCAL, s.lineno);
+            this.addDef(s.name, DEF_LOCAL, s.range);
             if (s.args.defaults)
                 this.SEQExpr(s.args.defaults);
             if (s.decorator_list)
                 this.SEQExpr(s.decorator_list);
-            this.enterBlock(s.name, FunctionBlock, s, s.lineno);
-            this.visitArguments(s.args, s.lineno);
+            this.enterBlock(s.name, FunctionBlock, s, s.range);
+            this.visitArguments(s.args, s.range);
             this.SEQStmt(s.body);
             this.exitBlock();
         }
         else if (s instanceof ClassDef) {
-            this.addDef(s.name, DEF_LOCAL, s.lineno);
+            this.addDef(s.name, DEF_LOCAL, s.range);
             this.SEQExpr(s.bases);
             if (s.decorator_list)
                 this.SEQExpr(s.decorator_list);
-            this.enterBlock(s.name, ClassBlock, s, s.lineno);
+            this.enterBlock(s.name, ClassBlock, s, s.range);
             var tmp = this.curClass;
             this.curClass = s.name;
             this.SEQStmt(s.body);
@@ -6358,11 +6391,11 @@ var SymbolTable = (function () {
         }
         else if (s instanceof ImportStatement) {
             var imps = s;
-            this.visitAlias(imps.names, imps.lineno);
+            this.visitAlias(imps.names, imps.range);
         }
         else if (s instanceof ImportFrom) {
             var impFrom = s;
-            this.visitAlias(impFrom.names, impFrom.lineno);
+            this.visitAlias(impFrom.names, impFrom.range);
         }
         else if (s instanceof Exec) {
             this.visitExpr(s.body);
@@ -6380,13 +6413,13 @@ var SymbolTable = (function () {
                 var cur = this.cur.symFlags[name_1];
                 if (cur & (DEF_LOCAL | USE)) {
                     if (cur & DEF_LOCAL) {
-                        throw syntaxError("name '" + name_1 + "' is assigned to before global declaration", s.lineno);
+                        throw syntaxError("name '" + name_1 + "' is assigned to before global declaration", s.range);
                     }
                     else {
-                        throw syntaxError("name '" + name_1 + "' is used prior to global declaration", s.lineno);
+                        throw syntaxError("name '" + name_1 + "' is used prior to global declaration", s.range);
                     }
                 }
-                this.addDef(name_1, DEF_GLOBAL, s.lineno);
+                this.addDef(name_1, DEF_GLOBAL, s.range);
             }
         }
         else if (s instanceof ExpressionStatement) {
@@ -6397,10 +6430,10 @@ var SymbolTable = (function () {
         }
         else if (s instanceof WithStatement) {
             var ws = s;
-            this.newTmpname(ws.lineno);
+            this.newTmpname(ws.range);
             this.visitExpr(ws.context_expr);
             if (ws.optional_vars) {
-                this.newTmpname(ws.lineno);
+                this.newTmpname(ws.range);
                 this.visitExpr(ws.optional_vars);
             }
             this.SEQStmt(ws.body);
@@ -6415,18 +6448,18 @@ var SymbolTable = (function () {
             this.SEQExpr(e.values);
         }
         else if (e instanceof BinOp) {
-            this.visitExpr(e.left);
-            this.visitExpr(e.right);
+            this.visitExpr(e.lhs);
+            this.visitExpr(e.rhs);
         }
         else if (e instanceof UnaryOp) {
             this.visitExpr(e.operand);
         }
         else if (e instanceof Lambda) {
-            this.addDef("lambda", DEF_LOCAL, e.lineno);
+            this.addDef("lambda", DEF_LOCAL, e.range);
             if (e.args.defaults)
                 this.SEQExpr(e.args.defaults);
-            this.enterBlock("lambda", FunctionBlock, e, e.lineno);
-            this.visitArguments(e.args, e.lineno);
+            this.enterBlock("lambda", FunctionBlock, e, e.range);
+            this.visitArguments(e.args, e.range);
             this.visitExpr(e.body);
             this.exitBlock();
         }
@@ -6440,7 +6473,7 @@ var SymbolTable = (function () {
             this.SEQExpr(e.values);
         }
         else if (e instanceof ListComp) {
-            this.newTmpname(e.lineno);
+            this.newTmpname(e.range);
             this.visitExpr(e.elt);
             this.visitComprehension(e.generators, 0);
         }
@@ -6482,7 +6515,7 @@ var SymbolTable = (function () {
             this.visitSlice(e.slice);
         }
         else if (e instanceof Name) {
-            this.addDef(e.id, e.ctx === Load ? USE : DEF_LOCAL, e.lineno);
+            this.addDef(e.id, e.ctx === Load ? USE : DEF_LOCAL, e.range);
         }
         else if (e instanceof List || e instanceof Tuple) {
             this.SEQExpr(e.elts);
@@ -6502,24 +6535,23 @@ var SymbolTable = (function () {
     };
     /**
      * This is probably not correct for names. What are they?
-     * @param {Array.<Object>} names
-     * @param {number} lineno
+     * @param names
+     * @param range
      */
-    SymbolTable.prototype.visitAlias = function (names, lineno) {
+    SymbolTable.prototype.visitAlias = function (names, range) {
         /* Compute store_name, the name actually bound by the import
             operation.  It is diferent than a->name when a->name is a
             dotted package name (e.g. spam.eggs)
         */
-        for (var i = 0; i < names.length; ++i) {
-            var a = names[i];
-            // DGH: The RHS used to be Python strings.
+        for (var _i = 0, names_1 = names; _i < names_1.length; _i++) {
+            var a = names_1[_i];
             var name_2 = a.asname === null ? a.name : a.asname;
             var storename = name_2;
             var dot = name_2.indexOf('.');
             if (dot !== -1)
                 storename = name_2.substr(0, dot);
             if (name_2 !== "*") {
-                this.addDef(storename, DEF_IMPORT, lineno);
+                this.addDef(storename, DEF_IMPORT, range);
             }
             else {
                 if (this.cur.blockType !== ModuleBlock) {
@@ -6535,9 +6567,9 @@ var SymbolTable = (function () {
         var outermost = e.generators[0];
         // outermost is evaled in current scope
         this.visitExpr(outermost.iter);
-        this.enterBlock("genexpr", FunctionBlock, e, e.lineno);
+        this.enterBlock("genexpr", FunctionBlock, e, e.range);
         this.cur.generator = true;
-        this.addDef(".0", DEF_PARAM, e.lineno);
+        this.addDef(".0", DEF_PARAM, e.range);
         this.visitExpr(outermost.target);
         this.SEQExpr(outermost.ifs);
         this.visitComprehension(e.generators, 1);
@@ -6657,7 +6689,7 @@ var SymbolTable = (function () {
     SymbolTable.prototype.analyzeName = function (ste, dict, name, flags, bound, local, free, global) {
         if (flags & DEF_GLOBAL) {
             if (flags & DEF_PARAM)
-                throw syntaxError("name '" + name + "' is local and global", ste.lineno);
+                throw syntaxError("name '" + name + "' is local and global", ste.range);
             dict[name] = GLOBAL_EXPLICIT;
             global[name] = null;
             if (bound && bound[name] !== undefined)
@@ -6698,7 +6730,7 @@ var SymbolTable = (function () {
  */
 function semanticsOfModule(mod) {
     var st = new SymbolTable();
-    st.enterBlock("top", ModuleBlock, mod, 0);
+    st.enterBlock("top", ModuleBlock, mod, null);
     st.top = st.cur;
     // This is a good place to dump the AST for debugging.
     for (var _i = 0, _a = mod.body; _i < _a.length; _i++) {
@@ -6789,6 +6821,59 @@ function isMethod(functionDef) {
     return false;
 }
 
+var MutablePosition = (function () {
+    function MutablePosition(line, column) {
+        this.line = line;
+        this.column = column;
+        // TODO
+    }
+    MutablePosition.prototype.offset = function (rows, cols) {
+        this.line += rows;
+        this.column += cols;
+    };
+    return MutablePosition;
+}());
+var MutableRange = (function () {
+    /**
+     *
+     */
+    function MutableRange(begin, end) {
+        this.begin = begin;
+        this.end = end;
+        this.begin = begin;
+        this.end = end;
+    }
+    MutableRange.prototype.offset = function (rows, cols) {
+        this.begin.offset(rows, cols);
+        this.end.offset(rows, cols);
+    };
+    return MutableRange;
+}());
+
+var MappingTree = (function () {
+    function MappingTree(source, target, children) {
+        this.source = source;
+        this.target = target;
+        this.children = children;
+        assert(source, "source must be defined");
+        assert(target, "target must be defined");
+    }
+    MappingTree.prototype.offset = function (rows, cols) {
+        if (this.target) {
+            this.target.offset(rows, cols);
+        }
+        if (this.children) {
+            for (var _i = 0, _a = this.children; _i < _a.length; _i++) {
+                var child = _a[_i];
+                child.offset(rows, cols);
+            }
+        }
+    };
+    return MappingTree;
+}());
+
+// import { RangeMapping } from '../pytools/RangeMapping';
+var BEGIN_LINE = 1;
 var IndentStyle;
 (function (IndentStyle) {
     IndentStyle[IndentStyle["None"] = 0] = "None";
@@ -6799,14 +6884,76 @@ var StackElement = (function () {
     function StackElement(begin, end) {
         this.begin = begin;
         this.end = end;
-        this.buffer = [];
+        this.texts = [];
+        this.trees = [];
         // Do nothing yet.
     }
-    StackElement.prototype.write = function (text) {
-        this.buffer.push(text);
+    StackElement.prototype.write = function (text, tree) {
+        this.texts.push(text);
+        this.trees.push(tree);
     };
     StackElement.prototype.snapshot = function () {
-        return this.buffer.join("");
+        var texts = this.texts;
+        var trees = this.trees;
+        var N = texts.length;
+        if (N === 0) {
+            return { text: '', tree: null };
+        }
+        else if (N === 1) {
+            var text = texts[0];
+            var tree = trees[0];
+            var line = BEGIN_LINE;
+            var beginColumn = 0;
+            var endColumn = beginColumn + text.length;
+            if (tree) {
+                tree.target = new MutableRange(new MutablePosition(line, beginColumn), new MutablePosition(line, endColumn));
+                return { text: text, tree: tree };
+            }
+            else {
+                return { text: text, tree: null };
+            }
+        }
+        else {
+            var sourceBeginLine = Number.MAX_SAFE_INTEGER;
+            var sourceBeginColumn = Number.MAX_SAFE_INTEGER;
+            var sourceEndLine = Number.MIN_SAFE_INTEGER;
+            var sourceEndColumn = Number.MIN_SAFE_INTEGER;
+            var targetBeginLine = Number.MAX_SAFE_INTEGER;
+            var children = [];
+            var line = BEGIN_LINE;
+            var beginColumn = 0;
+            for (var i = 0; i < N; i++) {
+                var text_1 = texts[i];
+                var tree = trees[i];
+                var endColumn = beginColumn + text_1.length;
+                if (tree) {
+                    assert(tree, "mapping must be defined");
+                    if (tree.source.begin) {
+                        sourceBeginLine = Math.min(sourceBeginLine, tree.source.begin.line);
+                        sourceBeginColumn = Math.min(sourceBeginColumn, tree.source.begin.column);
+                    }
+                    if (tree.source.end) {
+                        sourceEndLine = Math.max(sourceEndLine, tree.source.end.line);
+                        sourceEndColumn = Math.max(sourceEndColumn, tree.source.end.column);
+                    }
+                    tree.target = new MutableRange(new MutablePosition(line, beginColumn), new MutablePosition(line, endColumn));
+                    children.push(tree);
+                }
+                beginColumn = endColumn;
+            }
+            var text = texts.join("");
+            if (children.length > 1) {
+                var source = new Range(new Position(sourceBeginLine, sourceBeginColumn), new Position(sourceEndLine, sourceEndColumn));
+                var target = new MutableRange(new MutablePosition(targetBeginLine, -10), new MutablePosition(-10, -10));
+                return { text: text, tree: new MappingTree(source, target, children) };
+            }
+            else if (children.length === 1) {
+                return { text: text, tree: children[0] };
+            }
+            else {
+                return { text: text, tree: null };
+            }
+        }
     };
     return StackElement;
 }());
@@ -6831,15 +6978,15 @@ var Stack = (function () {
     Stack.prototype.pop = function () {
         return this.elements.pop();
     };
-    Stack.prototype.write = function (text) {
-        this.elements[IDXLAST$1(this.elements)].write(text);
+    Stack.prototype.write = function (text, tree) {
+        this.elements[IDXLAST$1(this.elements)].write(text, tree);
     };
     Stack.prototype.dispose = function () {
         assert(this.elements.length === 1, "stack length should be 1");
-        var text = this.elements[IDXLAST$1(this.elements)].snapshot();
+        var textAndMappings = this.elements[IDXLAST$1(this.elements)].snapshot();
         this.pop();
         assert(this.elements.length === 0, "stack length should be 0");
-        return text;
+        return textAndMappings;
     };
     return Stack;
 }());
@@ -6861,32 +7008,62 @@ var TypeWriter = (function () {
         this.stack = new Stack();
         // Do nothing.
     }
-    TypeWriter.prototype.write = function (text) {
-        this.stack.write(text);
+    TypeWriter.prototype.assign = function (text, source) {
+        var target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
+        var tree = new MappingTree(source, target, null);
+        this.stack.write(text, tree);
+    };
+    /**
+     * Writes a name (identifier).
+     * @param id The identifier string to be written.
+     * @param begin The position of the beginning of the name in the original source.
+     * @param end The position of the end of the name in the original source.
+     */
+    TypeWriter.prototype.name = function (id, source) {
+        var target = new MutableRange(new MutablePosition(-2, -2), new MutablePosition(-2, -2));
+        var tree = new MappingTree(source, target, null);
+        this.stack.write(id, tree);
+    };
+    TypeWriter.prototype.num = function (text, source) {
+        var target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
+        var tree = new MappingTree(source, target, null);
+        this.stack.write(text, tree);
+    };
+    TypeWriter.prototype.write = function (text, tree) {
+        this.stack.write(text, tree);
     };
     TypeWriter.prototype.snapshot = function () {
         assert(this.stack.length === 1, "stack length is not zero");
-        var text = this.stack.dispose();
-        return text;
+        return this.stack.dispose();
     };
-    TypeWriter.prototype.binOp = function (binOp) {
+    TypeWriter.prototype.binOp = function (binOp, source) {
+        var target = new MutableRange(new MutablePosition(-5, -5), new MutablePosition(-5, -5));
+        var tree = new MappingTree(source, target, null);
         if (this.options.insertSpaceBeforeAndAfterBinaryOperators) {
             this.space();
-            this.stack.write(binOp);
+            this.stack.write(binOp, tree);
             this.space();
         }
         else {
-            this.stack.write(binOp);
+            this.stack.write(binOp, tree);
         }
     };
-    TypeWriter.prototype.comma = function () {
-        this.stack.write(',');
+    TypeWriter.prototype.comma = function (begin, end) {
+        if (begin && end) {
+            var source = new Range(begin, end);
+            var target = new MutableRange(new MutablePosition(-4, -4), new MutablePosition(-4, -4));
+            var tree = new MappingTree(source, target, null);
+            this.stack.write(',', tree);
+        }
+        else {
+            this.stack.write(',', null);
+        }
         if (this.options.insertSpaceAfterCommaDelimiter) {
-            this.stack.write(' ');
+            this.stack.write(' ', null);
         }
     };
     TypeWriter.prototype.space = function () {
-        this.stack.write(' ');
+        this.stack.write(' ', null);
     };
     TypeWriter.prototype.beginBlock = function () {
         this.prolog('{', '}');
@@ -6929,17 +7106,31 @@ var TypeWriter = (function () {
     };
     TypeWriter.prototype.epilog = function (insertSpaceAfterOpeningAndBeforeClosingNonempty) {
         var popped = this.stack.pop();
-        var text = popped.snapshot();
-        this.write(popped.begin);
+        var textAndMappings = popped.snapshot();
+        var text = textAndMappings.text;
+        var tree = textAndMappings.tree;
         if (text.length > 0 && insertSpaceAfterOpeningAndBeforeClosingNonempty) {
+            this.write(popped.begin, null);
             this.space();
-            this.write(text);
+            var rows = 0;
+            var cols = popped.begin.length + 1;
+            if (tree) {
+                tree.offset(rows, cols);
+            }
+            this.write(text, tree);
             this.space();
+            this.write(popped.end, null);
         }
         else {
-            this.write(text);
+            this.write(popped.begin, null);
+            var rows = 0;
+            var cols = popped.begin.length;
+            if (tree) {
+                tree.offset(rows, cols);
+            }
+            this.write(text, tree);
+            this.write(popped.end, null);
         }
-        this.write(popped.end);
     };
     return TypeWriter;
 }());
@@ -7080,7 +7271,6 @@ var Printer = (function () {
             var target = _a[_i];
             if (target instanceof Name) {
                 var flags = this.u.ste.symFlags[target.id];
-                // console.log(`${target.id} => ${flags.toString(2)}`);
                 if (flags && DEF_LOCAL) {
                     if (this.u.declared[target.id]) {
                         // The variable has already been declared.
@@ -7088,86 +7278,88 @@ var Printer = (function () {
                     else {
                         // We use let for now because we would need to look ahead for more assignments.
                         // The smenatic analysis could count the number of assignments in the current scope?
-                        this.writer.write("let ");
+                        this.writer.write("let ", null);
                         this.u.declared[target.id] = true;
                     }
                 }
             }
             target.accept(this);
         }
-        this.writer.write("=");
+        this.writer.assign("=", assign.eqRange);
         assign.value.accept(this);
         this.writer.endStatement();
     };
     Printer.prototype.attribute = function (attribute) {
         attribute.value.accept(this);
-        this.writer.write(".");
-        this.writer.write(attribute.attr);
+        this.writer.write(".", null);
+        this.writer.write(attribute.attr, null);
     };
     Printer.prototype.binOp = function (be) {
-        be.left.accept(this);
-        switch (be.op) {
+        be.lhs.accept(this);
+        var op = be.op;
+        var opRange = be.opRange;
+        switch (op) {
             case Add: {
-                this.writer.binOp("+");
+                this.writer.binOp("+", opRange);
                 break;
             }
             case Sub: {
-                this.writer.binOp("-");
+                this.writer.binOp("-", opRange);
                 break;
             }
             case Mult: {
-                this.writer.binOp("*");
+                this.writer.binOp("*", opRange);
                 break;
             }
             case Div: {
-                this.writer.binOp("/");
+                this.writer.binOp("/", opRange);
                 break;
             }
             case BitOr: {
-                this.writer.binOp("|");
+                this.writer.binOp("|", opRange);
                 break;
             }
             case BitXor: {
-                this.writer.binOp("^");
+                this.writer.binOp("^", opRange);
                 break;
             }
             case BitAnd: {
-                this.writer.binOp("&");
+                this.writer.binOp("&", opRange);
                 break;
             }
             case LShift: {
-                this.writer.binOp("<<");
+                this.writer.binOp("<<", opRange);
                 break;
             }
             case RShift: {
-                this.writer.binOp(">>");
+                this.writer.binOp(">>", opRange);
                 break;
             }
             case Mod: {
-                this.writer.binOp("%");
+                this.writer.binOp("%", opRange);
                 break;
             }
             case FloorDiv: {
                 // TODO: What is the best way to handle FloorDiv.
                 // This doesn't actually exist in TypeScript.
-                this.writer.binOp("//");
+                this.writer.binOp("//", opRange);
                 break;
             }
             default: {
-                throw new Error("Unexpected binary operator " + be.op + ": " + typeof be.op);
+                throw new Error("Unexpected binary operator " + op + ": " + typeof op);
             }
         }
-        be.right.accept(this);
+        be.rhs.accept(this);
     };
     Printer.prototype.callExpression = function (ce) {
         if (ce.func instanceof Name) {
             if (isClassNameByConvention(ce.func)) {
-                this.writer.write("new ");
+                this.writer.write("new ", null);
             }
         }
         else if (ce.func instanceof Attribute) {
             if (isClassNameByConvention(ce.func)) {
-                this.writer.write("new ");
+                this.writer.write("new ", null);
             }
         }
         else {
@@ -7177,12 +7369,15 @@ var Printer = (function () {
         this.writer.openParen();
         for (var i = 0; i < ce.args.length; i++) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             var arg = ce.args[i];
             arg.accept(this);
         }
         for (var i = 0; i < ce.keywords.length; ++i) {
+            if (i > 0) {
+                this.writer.comma(null, null);
+            }
             ce.keywords[i].value.accept(this);
         }
         if (ce.starargs) {
@@ -7194,8 +7389,8 @@ var Printer = (function () {
         this.writer.closeParen();
     };
     Printer.prototype.classDef = function (cd) {
-        this.writer.write("class ");
-        this.writer.write(cd.name);
+        this.writer.write("class ", null);
+        this.writer.write(cd.name, null);
         // this.writer.openParen();
         // this.writer.closeParen();
         this.writer.beginBlock();
@@ -7218,43 +7413,43 @@ var Printer = (function () {
             var op = _a[_i];
             switch (op) {
                 case Eq: {
-                    this.writer.write("===");
+                    this.writer.write("===", null);
                     break;
                 }
                 case NotEq: {
-                    this.writer.write("!==");
+                    this.writer.write("!==", null);
                     break;
                 }
                 case Lt: {
-                    this.writer.write("<");
+                    this.writer.write("<", null);
                     break;
                 }
                 case LtE: {
-                    this.writer.write("<=");
+                    this.writer.write("<=", null);
                     break;
                 }
                 case Gt: {
-                    this.writer.write(">");
+                    this.writer.write(">", null);
                     break;
                 }
                 case GtE: {
-                    this.writer.write(">=");
+                    this.writer.write(">=", null);
                     break;
                 }
                 case Is: {
-                    this.writer.write("===");
+                    this.writer.write("===", null);
                     break;
                 }
                 case IsNot: {
-                    this.writer.write("!==");
+                    this.writer.write("!==", null);
                     break;
                 }
                 case In: {
-                    this.writer.write(" in ");
+                    this.writer.write(" in ", null);
                     break;
                 }
                 case NotIn: {
-                    this.writer.write(" not in ");
+                    this.writer.write(" not in ", null);
                     break;
                 }
                 default: {
@@ -7274,10 +7469,10 @@ var Printer = (function () {
         this.writer.beginObject();
         for (var i = 0; i < N; i++) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             keys[i].accept(this);
-            this.writer.write(":");
+            this.writer.write(":", null);
             values[i].accept(this);
         }
         this.writer.endObject();
@@ -7290,9 +7485,9 @@ var Printer = (function () {
     Printer.prototype.functionDef = function (functionDef) {
         var isClassMethod = isMethod(functionDef);
         if (!isClassMethod) {
-            this.writer.write("function ");
+            this.writer.write("function ", null);
         }
-        this.writer.write(functionDef.name);
+        this.writer.write(functionDef.name, null);
         this.writer.openParen();
         for (var i = 0; i < functionDef.args.args.length; i++) {
             var arg = functionDef.args.args[i];
@@ -7317,7 +7512,7 @@ var Printer = (function () {
         this.writer.endBlock();
     };
     Printer.prototype.ifStatement = function (i) {
-        this.writer.write("if");
+        this.writer.write("if", null);
         this.writer.openParen();
         i.test.accept(this);
         this.writer.closeParen();
@@ -7330,38 +7525,38 @@ var Printer = (function () {
     };
     Printer.prototype.importFrom = function (importFrom) {
         this.writer.beginStatement();
-        this.writer.write("import ");
+        this.writer.write("import ", null);
         this.writer.beginBlock();
         for (var i = 0; i < importFrom.names.length; i++) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             var alias = importFrom.names[i];
-            this.writer.write(alias.name);
+            this.writer.write(alias.name, null);
             if (alias.asname) {
-                this.writer.write(" as ");
-                this.writer.write(alias.asname);
+                this.writer.write(" as ", null);
+                this.writer.write(alias.asname, null);
             }
         }
         this.writer.endBlock();
-        this.writer.write(" from ");
+        this.writer.write(" from ", null);
         this.writer.beginQuote();
         // TODO: Escaping?
-        this.writer.write(importFrom.module);
+        this.writer.write(importFrom.module, null);
         this.writer.endQuote();
         this.writer.endStatement();
     };
     Printer.prototype.list = function (list) {
         var elements = list.elts;
         var N = elements.length;
-        this.writer.write('[');
+        this.writer.write('[', null);
         for (var i = 0; i < N; i++) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             elements[i].accept(this);
         }
-        this.writer.write(']');
+        this.writer.write(']', null);
     };
     Printer.prototype.module = function (m) {
         for (var _i = 0, _a = m.body; _i < _a.length; _i++) {
@@ -7375,24 +7570,26 @@ var Printer = (function () {
         // this name as a boolean expression - avoiding this overhead.
         switch (name.id) {
             case 'True': {
-                this.writer.write('true');
+                this.writer.name('true', name.range);
                 break;
             }
             case 'False': {
-                this.writer.write('false');
+                this.writer.name('false', name.range);
                 break;
             }
             default: {
-                this.writer.write(name.id);
+                this.writer.name(name.id, name.range);
             }
         }
     };
     Printer.prototype.num = function (num) {
         var n = num.n;
-        this.writer.write(n.toString());
+        this.writer.num(n.toString(), num.range);
     };
     Printer.prototype.print = function (print) {
-        this.writer.write("console.log");
+        this.writer.name("console", null);
+        this.writer.write(".", null);
+        this.writer.name("log", null);
         this.writer.openParen();
         for (var _i = 0, _a = print.values; _i < _a.length; _i++) {
             var value = _a[_i];
@@ -7402,14 +7599,17 @@ var Printer = (function () {
     };
     Printer.prototype.returnStatement = function (rs) {
         this.writer.beginStatement();
-        this.writer.write("return ");
+        this.writer.write("return", null);
+        this.writer.write(" ", null);
         rs.value.accept(this);
         this.writer.endStatement();
     };
     Printer.prototype.str = function (str) {
         var s = str.s;
+        // const begin = str.begin;
+        // const end = str.end;
         // TODO: AST is not preserving the original quoting, or maybe a hint.
-        this.writer.write(toStringLiteralJS(s));
+        this.writer.write(toStringLiteralJS(s), null);
     };
     return Printer;
 }());
@@ -7420,8 +7620,10 @@ function transpileModule(sourceText) {
         var mod = new Module(stmts);
         var symbolTable = semanticsOfModule(mod);
         var printer = new Printer(symbolTable, 0, sourceText);
-        var code = printer.transpileModule(mod);
-        return { code: code, cst: cst, mod: mod, symbolTable: symbolTable };
+        var textAndMappings = printer.transpileModule(mod);
+        var code = textAndMappings.text;
+        var sourceMap = textAndMappings.tree;
+        return { code: code, sourceMap: sourceMap, cst: cst, mod: mod, symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");

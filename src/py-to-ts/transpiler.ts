@@ -27,7 +27,8 @@ import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 import { SymbolFlags } from '../pytools/SymbolConstants';
 import { DEF_LOCAL } from '../pytools/SymbolConstants';
 import { isClassNameByConvention, isMethod } from './utils';
-import { TypeWriter } from './TypeWriter';
+import { TypeWriter, TextAndMappings } from './TypeWriter';
+import { MappingTree } from './MappingTree';
 
 /**
  * Provides enhanced scope information beyond the SymbolTableScope.
@@ -192,7 +193,7 @@ class Printer implements Visitor {
     /**
      * This is the entry point for this visitor.
      */
-    transpileModule(module: Module): string {
+    transpileModule(module: Module): TextAndMappings {
 
         this.enterScope("<module>", module, 0);
         this.module(module);
@@ -264,7 +265,6 @@ class Printer implements Visitor {
         for (const target of assign.targets) {
             if (target instanceof Name) {
                 const flags: SymbolFlags = this.u.ste.symFlags[target.id];
-                // console.log(`${target.id} => ${flags.toString(2)}`);
                 if (flags && DEF_LOCAL) {
                     if (this.u.declared[target.id]) {
                         // The variable has already been declared.
@@ -272,86 +272,88 @@ class Printer implements Visitor {
                     else {
                         // We use let for now because we would need to look ahead for more assignments.
                         // The smenatic analysis could count the number of assignments in the current scope?
-                        this.writer.write("let ");
+                        this.writer.write("let ", null);
                         this.u.declared[target.id] = true;
                     }
                 }
             }
             target.accept(this);
         }
-        this.writer.write("=");
+        this.writer.assign("=", assign.eqRange);
         assign.value.accept(this);
         this.writer.endStatement();
     }
     attribute(attribute: Attribute): void {
         attribute.value.accept(this);
-        this.writer.write(".");
-        this.writer.write(attribute.attr);
+        this.writer.write(".", null);
+        this.writer.write(attribute.attr, null);
     }
     binOp(be: BinOp): void {
-        be.left.accept(this);
-        switch (be.op) {
+        be.lhs.accept(this);
+        const op = be.op;
+        const opRange = be.opRange;
+        switch (op) {
             case Add: {
-                this.writer.binOp("+");
+                this.writer.binOp("+", opRange);
                 break;
             }
             case Sub: {
-                this.writer.binOp("-");
+                this.writer.binOp("-", opRange);
                 break;
             }
             case Mult: {
-                this.writer.binOp("*");
+                this.writer.binOp("*", opRange);
                 break;
             }
             case Div: {
-                this.writer.binOp("/");
+                this.writer.binOp("/", opRange);
                 break;
             }
             case BitOr: {
-                this.writer.binOp("|");
+                this.writer.binOp("|", opRange);
                 break;
             }
             case BitXor: {
-                this.writer.binOp("^");
+                this.writer.binOp("^", opRange);
                 break;
             }
             case BitAnd: {
-                this.writer.binOp("&");
+                this.writer.binOp("&", opRange);
                 break;
             }
             case LShift: {
-                this.writer.binOp("<<");
+                this.writer.binOp("<<", opRange);
                 break;
             }
             case RShift: {
-                this.writer.binOp(">>");
+                this.writer.binOp(">>", opRange);
                 break;
             }
             case Mod: {
-                this.writer.binOp("%");
+                this.writer.binOp("%", opRange);
                 break;
             }
             case FloorDiv: {
                 // TODO: What is the best way to handle FloorDiv.
                 // This doesn't actually exist in TypeScript.
-                this.writer.binOp("//");
+                this.writer.binOp("//", opRange);
                 break;
             }
             default: {
-                throw new Error(`Unexpected binary operator ${be.op}: ${typeof be.op}`);
+                throw new Error(`Unexpected binary operator ${op}: ${typeof op}`);
             }
         }
-        be.right.accept(this);
+        be.rhs.accept(this);
     }
     callExpression(ce: Call): void {
         if (ce.func instanceof Name) {
             if (isClassNameByConvention(ce.func)) {
-                this.writer.write("new ");
+                this.writer.write("new ", null);
             }
         }
         else if (ce.func instanceof Attribute) {
             if (isClassNameByConvention(ce.func)) {
-                this.writer.write("new ");
+                this.writer.write("new ", null);
             }
         }
         else {
@@ -361,14 +363,14 @@ class Printer implements Visitor {
         this.writer.openParen();
         for (let i = 0; i < ce.args.length; i++) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             const arg = ce.args[i];
             arg.accept(this);
         }
         for (let i = 0; i < ce.keywords.length; ++i) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             ce.keywords[i].value.accept(this);
         }
@@ -381,8 +383,9 @@ class Printer implements Visitor {
         this.writer.closeParen();
     }
     classDef(cd: ClassDef): void {
-        this.writer.write("class ");
-        this.writer.write(cd.name);
+        this.writer.write("class", null);
+        this.writer.space();
+        this.writer.name(cd.name, cd.nameRange);
         // this.writer.openParen();
         // this.writer.closeParen();
         this.writer.beginBlock();
@@ -403,43 +406,43 @@ class Printer implements Visitor {
         for (const op of ce.ops) {
             switch (op) {
                 case Eq: {
-                    this.writer.write("===");
+                    this.writer.write("===", null);
                     break;
                 }
                 case NotEq: {
-                    this.writer.write("!==");
+                    this.writer.write("!==", null);
                     break;
                 }
                 case Lt: {
-                    this.writer.write("<");
+                    this.writer.write("<", null);
                     break;
                 }
                 case LtE: {
-                    this.writer.write("<=");
+                    this.writer.write("<=", null);
                     break;
                 }
                 case Gt: {
-                    this.writer.write(">");
+                    this.writer.write(">", null);
                     break;
                 }
                 case GtE: {
-                    this.writer.write(">=");
+                    this.writer.write(">=", null);
                     break;
                 }
                 case Is: {
-                    this.writer.write("===");
+                    this.writer.write("===", null);
                     break;
                 }
                 case IsNot: {
-                    this.writer.write("!==");
+                    this.writer.write("!==", null);
                     break;
                 }
                 case In: {
-                    this.writer.write(" in ");
+                    this.writer.write(" in ", null);
                     break;
                 }
                 case NotIn: {
-                    this.writer.write(" not in ");
+                    this.writer.write(" not in ", null);
                     break;
                 }
                 default: {
@@ -458,10 +461,10 @@ class Printer implements Visitor {
         this.writer.beginObject();
         for (let i = 0; i < N; i++) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             keys[i].accept(this);
-            this.writer.write(":");
+            this.writer.write(":", null);
             values[i].accept(this);
         }
         this.writer.endObject();
@@ -474,9 +477,9 @@ class Printer implements Visitor {
     functionDef(functionDef: FunctionDef): void {
         const isClassMethod = isMethod(functionDef);
         if (!isClassMethod) {
-            this.writer.write("function ");
+            this.writer.write("function ", null);
         }
-        this.writer.write(functionDef.name);
+        this.writer.write(functionDef.name, null);
         this.writer.openParen();
         for (let i = 0; i < functionDef.args.args.length; i++) {
             const arg = functionDef.args.args[i];
@@ -500,7 +503,7 @@ class Printer implements Visitor {
         this.writer.endBlock();
     }
     ifStatement(i: IfStatement): void {
-        this.writer.write("if");
+        this.writer.write("if", null);
         this.writer.openParen();
         i.test.accept(this);
         this.writer.closeParen();
@@ -512,38 +515,38 @@ class Printer implements Visitor {
     }
     importFrom(importFrom: ImportFrom): void {
         this.writer.beginStatement();
-        this.writer.write("import ");
+        this.writer.write("import ", null);
         this.writer.beginBlock();
         for (let i = 0; i < importFrom.names.length; i++) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             const alias = importFrom.names[i];
-            this.writer.write(alias.name);
+            this.writer.write(alias.name, null);
             if (alias.asname) {
-                this.writer.write(" as ");
-                this.writer.write(alias.asname);
+                this.writer.write(" as ", null);
+                this.writer.write(alias.asname, null);
             }
         }
         this.writer.endBlock();
-        this.writer.write(" from ");
+        this.writer.write(" from ", null);
         this.writer.beginQuote();
         // TODO: Escaping?
-        this.writer.write(importFrom.module);
+        this.writer.write(importFrom.module, null);
         this.writer.endQuote();
         this.writer.endStatement();
     }
     list(list: List): void {
         const elements = list.elts;
         const N = elements.length;
-        this.writer.write('[');
+        this.writer.write('[', null);
         for (let i = 0; i < N; i++) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             elements[i].accept(this);
         }
-        this.writer.write(']');
+        this.writer.write(']', null);
     }
     module(m: Module): void {
         for (const stmt of m.body) {
@@ -556,24 +559,26 @@ class Printer implements Visitor {
         // this name as a boolean expression - avoiding this overhead.
         switch (name.id) {
             case 'True': {
-                this.writer.name('true', name.begin, name.end);
+                this.writer.name('true', name.range);
                 break;
             }
             case 'False': {
-                this.writer.name('false', name.begin, name.end);
+                this.writer.name('false', name.range);
                 break;
             }
             default: {
-                this.writer.name(name.id, name.begin, name.end);
+                this.writer.name(name.id, name.range);
             }
         }
     }
     num(num: Num): void {
         const n = num.n;
-        this.writer.num(n.toString(), num.begin, num.end);
+        this.writer.num(n.toString(), num.range);
     }
     print(print: Print): void {
-        this.writer.write("console.log");
+        this.writer.name("console", null);
+        this.writer.write(".", null);
+        this.writer.name("log", null);
         this.writer.openParen();
         for (const value of print.values) {
             value.accept(this);
@@ -582,27 +587,31 @@ class Printer implements Visitor {
     }
     returnStatement(rs: ReturnStatement): void {
         this.writer.beginStatement();
-        this.writer.write("return");
-        this.writer.write(" ");
+        this.writer.write("return", null);
+        this.writer.write(" ", null);
         rs.value.accept(this);
         this.writer.endStatement();
     }
     str(str: Str): void {
         const s = str.s;
+        // const begin = str.begin;
+        // const end = str.end;
         // TODO: AST is not preserving the original quoting, or maybe a hint.
-        this.writer.write(toStringLiteralJS(s));
+        this.writer.write(toStringLiteralJS(s), null);
     }
 }
 
-export function transpileModule(sourceText: string): { code: string, cst: PyNode, mod: Module, symbolTable: SymbolTable } {
+export function transpileModule(sourceText: string): { code: string; sourceMap: MappingTree; cst: PyNode; mod: Module; symbolTable: SymbolTable; } {
     const cst = parse(sourceText, SourceKind.File);
     if (typeof cst === 'object') {
         const stmts = astFromParse(cst);
         const mod = new Module(stmts);
         const symbolTable = semanticsOfModule(mod);
         const printer = new Printer(symbolTable, 0, sourceText);
-        const code = printer.transpileModule(mod);
-        return { code, cst, mod, symbolTable };
+        const textAndMappings = printer.transpileModule(mod);
+        const code = textAndMappings.text;
+        const sourceMap = textAndMappings.tree;
+        return { code, sourceMap, cst, mod, symbolTable };
     }
     else {
         throw new Error(`Error parsing source for file.`);

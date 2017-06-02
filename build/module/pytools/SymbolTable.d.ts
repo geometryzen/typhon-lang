@@ -31,6 +31,7 @@ import { Str } from './types';
 import { Visitor } from './types';
 import { DictionaryKind } from './SymbolConstants';
 import { SymbolFlags } from './SymbolConstants';
+import { Range } from './Range';
 /**
  * Migrate to using this class to providing the implementation for the SymbolTable.
  */
@@ -99,15 +100,14 @@ export declare class SymbolTable {
      */
     enterBlock(name: string, blockType: BlockType, astNode: {
         scopeId: number;
-    }, lineno: number): void;
+    }, range: Range): void;
     exitBlock(): void;
     visitParams(args: Name[], toplevel: boolean): void;
-    visitArguments(a: Arguments, lineno: number): void;
+    visitArguments(a: Arguments, range: Range): void;
     /**
-     * @param {number} lineno
-     * @return {void}
+     *
      */
-    newTmpname(lineno: number): void;
+    newTmpname(range: Range): void;
     /**
      * 1. Modifies symbol flags for the current scope.
      * 2.a Adds a variable name for the current scope, OR
@@ -116,7 +116,7 @@ export declare class SymbolTable {
      * @param flags
      * @param lineno
      */
-    addDef(name: string, flags: SymbolFlags, lineno: number): void;
+    addDef(name: string, flags: SymbolFlags, range: Range): void;
     visitSlice(s: Slice | ExtSlice | Index | Ellipsis): void;
     /**
      *
@@ -126,10 +126,10 @@ export declare class SymbolTable {
     visitComprehension(lcs: Comprehension[], startAt: number): void;
     /**
      * This is probably not correct for names. What are they?
-     * @param {Array.<Object>} names
-     * @param {number} lineno
+     * @param names
+     * @param range
      */
-    visitAlias(names: Alias[], lineno: number): void;
+    visitAlias(names: Alias[], range: Range): void;
     /**
      *
      */

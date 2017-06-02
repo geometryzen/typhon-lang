@@ -1,4 +1,11 @@
 import { assert } from '../pytools/asserts';
+import { Position } from '../pytools/Position';
+import { Range } from '../pytools/Range';
+// import { RangeMapping } from '../pytools/RangeMapping';
+import { MutablePosition } from '../pytools/MutableRange';
+import { MutableRange } from '../pytools/MutableRange';
+import { MappingTree } from './MappingTree';
+var BEGIN_LINE = 1;
 export var IndentStyle;
 (function (IndentStyle) {
     IndentStyle[IndentStyle["None"] = 0] = "None";
@@ -9,14 +16,76 @@ var StackElement = (function () {
     function StackElement(begin, end) {
         this.begin = begin;
         this.end = end;
-        this.buffer = [];
+        this.texts = [];
+        this.trees = [];
         // Do nothing yet.
     }
-    StackElement.prototype.write = function (text) {
-        this.buffer.push(text);
+    StackElement.prototype.write = function (text, tree) {
+        this.texts.push(text);
+        this.trees.push(tree);
     };
     StackElement.prototype.snapshot = function () {
-        return this.buffer.join("");
+        var texts = this.texts;
+        var trees = this.trees;
+        var N = texts.length;
+        if (N === 0) {
+            return { text: '', tree: null };
+        }
+        else if (N === 1) {
+            var text = texts[0];
+            var tree = trees[0];
+            var line = BEGIN_LINE;
+            var beginColumn = 0;
+            var endColumn = beginColumn + text.length;
+            if (tree) {
+                tree.target = new MutableRange(new MutablePosition(line, beginColumn), new MutablePosition(line, endColumn));
+                return { text: text, tree: tree };
+            }
+            else {
+                return { text: text, tree: null };
+            }
+        }
+        else {
+            var sourceBeginLine = Number.MAX_SAFE_INTEGER;
+            var sourceBeginColumn = Number.MAX_SAFE_INTEGER;
+            var sourceEndLine = Number.MIN_SAFE_INTEGER;
+            var sourceEndColumn = Number.MIN_SAFE_INTEGER;
+            var targetBeginLine = Number.MAX_SAFE_INTEGER;
+            var children = [];
+            var line = BEGIN_LINE;
+            var beginColumn = 0;
+            for (var i = 0; i < N; i++) {
+                var text_1 = texts[i];
+                var tree = trees[i];
+                var endColumn = beginColumn + text_1.length;
+                if (tree) {
+                    assert(tree, "mapping must be defined");
+                    if (tree.source.begin) {
+                        sourceBeginLine = Math.min(sourceBeginLine, tree.source.begin.line);
+                        sourceBeginColumn = Math.min(sourceBeginColumn, tree.source.begin.column);
+                    }
+                    if (tree.source.end) {
+                        sourceEndLine = Math.max(sourceEndLine, tree.source.end.line);
+                        sourceEndColumn = Math.max(sourceEndColumn, tree.source.end.column);
+                    }
+                    tree.target = new MutableRange(new MutablePosition(line, beginColumn), new MutablePosition(line, endColumn));
+                    children.push(tree);
+                }
+                beginColumn = endColumn;
+            }
+            var text = texts.join("");
+            if (children.length > 1) {
+                var source = new Range(new Position(sourceBeginLine, sourceBeginColumn), new Position(sourceEndLine, sourceEndColumn));
+                var target = new MutableRange(new MutablePosition(targetBeginLine, -10), new MutablePosition(-10, -10));
+                return { text: text, tree: new MappingTree(source, target, children) };
+            }
+            else if (children.length === 1) {
+                return { text: text, tree: children[0] };
+            }
+            else {
+                return { text: text, tree: null };
+            }
+        }
     };
     return StackElement;
 }());
@@ -41,15 +110,15 @@ var Stack = (function () {
     Stack.prototype.pop = function () {
         return this.elements.pop();
     };
-    Stack.prototype.write = function (text) {
-        this.elements[IDXLAST(this.elements)].write(text);
+    Stack.prototype.write = function (text, tree) {
+        this.elements[IDXLAST(this.elements)].write(text, tree);
     };
     Stack.prototype.dispose = function () {
         assert(this.elements.length === 1, "stack length should be 1");
-        var text = this.elements[IDXLAST(this.elements)].snapshot();
+        var textAndMappings = this.elements[IDXLAST(this.elements)].snapshot();
         this.pop();
         assert(this.elements.length === 0, "stack length should be 0");
-        return text;
+        return textAndMappings;
     };
     return Stack;
 }());
@@ -71,32 +140,62 @@ var TypeWriter = (function () {
         this.stack = new Stack();
         // Do nothing.
     }
-    TypeWriter.prototype.write = function (text) {
-        this.stack.write(text);
+    TypeWriter.prototype.assign = function (text, source) {
+        var target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
+        var tree = new MappingTree(source, target, null);
+        this.stack.write(text, tree);
+    };
+    /**
+     * Writes a name (identifier).
+     * @param id The identifier string to be written.
+     * @param begin The position of the beginning of the name in the original source.
+     * @param end The position of the end of the name in the original source.
+     */
+    TypeWriter.prototype.name = function (id, source) {
+        var target = new MutableRange(new MutablePosition(-2, -2), new MutablePosition(-2, -2));
+        var tree = new MappingTree(source, target, null);
+        this.stack.write(id, tree);
+    };
+    TypeWriter.prototype.num = function (text, source) {
+        var target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
+        var tree = new MappingTree(source, target, null);
+        this.stack.write(text, tree);
+    };
+    TypeWriter.prototype.write = function (text, tree) {
+        this.stack.write(text, tree);
     };
     TypeWriter.prototype.snapshot = function () {
         assert(this.stack.length === 1, "stack length is not zero");
-        var text = this.stack.dispose();
-        return text;
+        return this.stack.dispose();
     };
-    TypeWriter.prototype.binOp = function (binOp) {
+    TypeWriter.prototype.binOp = function (binOp, source) {
+        var target = new MutableRange(new MutablePosition(-5, -5), new MutablePosition(-5, -5));
+        var tree = new MappingTree(source, target, null);
         if (this.options.insertSpaceBeforeAndAfterBinaryOperators) {
             this.space();
-            this.stack.write(binOp);
+            this.stack.write(binOp, tree);
             this.space();
         }
         else {
-            this.stack.write(binOp);
+            this.stack.write(binOp, tree);
         }
     };
-    TypeWriter.prototype.comma = function () {
-        this.stack.write(',');
+    TypeWriter.prototype.comma = function (begin, end) {
+        if (begin && end) {
+            var source = new Range(begin, end);
+            var target = new MutableRange(new MutablePosition(-4, -4), new MutablePosition(-4, -4));
+            var tree = new MappingTree(source, target, null);
+            this.stack.write(',', tree);
+        }
+        else {
+            this.stack.write(',', null);
+        }
         if (this.options.insertSpaceAfterCommaDelimiter) {
-            this.stack.write(' ');
+            this.stack.write(' ', null);
         }
     };
     TypeWriter.prototype.space = function () {
-        this.stack.write(' ');
+        this.stack.write(' ', null);
     };
     TypeWriter.prototype.beginBlock = function () {
         this.prolog('{', '}');
@@ -139,17 +238,31 @@ var TypeWriter = (function () {
     };
     TypeWriter.prototype.epilog = function (insertSpaceAfterOpeningAndBeforeClosingNonempty) {
         var popped = this.stack.pop();
-        var text = popped.snapshot();
-        this.write(popped.begin);
+        var textAndMappings = popped.snapshot();
+        var text = textAndMappings.text;
+        var tree = textAndMappings.tree;
         if (text.length > 0 && insertSpaceAfterOpeningAndBeforeClosingNonempty) {
+            this.write(popped.begin, null);
             this.space();
-            this.write(text);
+            var rows = 0;
+            var cols = popped.begin.length + 1;
+            if (tree) {
+                tree.offset(rows, cols);
+            }
+            this.write(text, tree);
             this.space();
+            this.write(popped.end, null);
         }
         else {
-            this.write(text);
+            this.write(popped.begin, null);
+            var rows = 0;
+            var cols = popped.begin.length;
+            if (tree) {
+                tree.offset(rows, cols);
+            }
+            this.write(text, tree);
+            this.write(popped.end, null);
         }
-        this.write(popped.end);
     };
     return TypeWriter;
 }());

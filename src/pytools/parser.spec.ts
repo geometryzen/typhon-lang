@@ -1,5 +1,4 @@
 import { parse, PyNode, parseTreeDump, SourceKind } from './parser';
-import { ParseTables } from './tables';
 import { IDXLAST, TERMS } from './tree';
 import { sourceLines } from '../data/eight';
 import { Tokens } from './Tokens';
@@ -9,8 +8,6 @@ import { tokenNames } from './tokenNames';
 // import { dumpSymbolTable } from './symtable';
 // import { Module } from './types';
 
-const sym = ParseTables.sym;
-
 // Helper function to compute the terminals of a node and convert the type(s) to human-readable strings.
 
 function DECODE(n: PyNode) {
@@ -18,8 +15,7 @@ function DECODE(n: PyNode) {
         return {
             type: tokenNames[term.type],
             value: term.value,
-            begin: term.begin,
-            end: term.end,
+            range: term.range,
             children: term.children,
             used_names: term.used_names
         };
@@ -28,64 +24,10 @@ function DECODE(n: PyNode) {
 
 describe('parse', function () {
 
-    it('123', function () {
-        const cst: boolean | PyNode = parse('123');
-        if (typeof cst === 'object') {
-            expect(cst.type).toBe(sym.file_input);
-            expect(cst.value).toBeNull();
-            expect(cst.begin).toBeNull();
-            expect(cst.end).toBeNull();
-            expect(cst.used_names).toEqual({});
-            expect(cst.children).toBeDefined();
-            expect(Array.isArray(cst.children)).toBeTruthy();
-
-            // Working with the parse tree would make the tests fragile.
-            // (Unless you want to closely monitor the grammar).
-            // Instead, we will inspect the leaf nodes.
-            const ns = TERMS(cst);
-            expect(Array.isArray(ns)).toBeTruthy();
-            expect(ns.length).toBe(3);
-
-            const n0 = ns[0];
-            const n1 = ns[1];
-            const n2 = ns[2];
-
-            expect(n0.type).toBe(Tokens.T_NUMBER);
-            expect(n0.value).toBe("123");
-            expect(cst.begin).toBeDefined();
-            expect(n0.begin.line).toBe(1);
-            expect(n0.begin.column).toBe(0);
-            expect(cst.end).toBeDefined();
-            expect(n0.end.line).toBe(1);
-            expect(n0.end.column).toBe(3);
-            expect(n0.children).toBeNull();
-
-            expect(n1.type).toBe(Tokens.T_NEWLINE);
-            expect(n1.value).toBe("\n");
-            expect(cst.begin).toBeDefined();
-            expect(n1.begin.line).toBe(1);
-            expect(n1.begin.column).toBe(3);
-            expect(cst.end).toBeDefined();
-            expect(n1.end.line).toBe(1);
-            expect(n1.end.column).toBe(4);
-            expect(n1.children).toBeNull();
-
-            expect(n2.type).toBe(Tokens.T_ENDMARKER);
-            expect(n2.value).toBe("");
-            expect(cst.begin).toBeDefined();
-            expect(n2.begin.line).toBe(2);
-            expect(n2.begin.column).toBe(0);
-            expect(cst.end).toBeDefined();
-            expect(n2.end.line).toBe(2);
-            expect(n2.end.column).toBe(0);
-            expect(n2.children).toBeNull();
-        }
-    });
-
     it('1.23', function () {
         const cst = parse('1.23') as PyNode;
         const ns = TERMS(cst);
-        // console.log(JSON.stringify(ns, null, 2));
+        // console.lg(JSON.stringify(ns, null, 2));
         expect(Array.isArray(ns)).toBeTruthy();
         expect(ns.length).toBe(3);
 
@@ -95,27 +37,61 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_NUMBER);
         expect(n0.value).toBe("1.23");
-        expect(n0.begin.line).toBe(1);
-        expect(n0.begin.column).toBe(0);
+        expect(n0.range.begin.line).toBe(1);
+        expect(n0.range.begin.column).toBe(0);
+        expect(n0.range.end.line).toBe(1);
+        expect(n0.range.end.column).toBe(4);
         expect(n0.children).toBeNull();
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.begin.line).toBe(1);
-        expect(n1.begin.column).toBe(4);
+        expect(n1.range.begin.line).toBe(1);
+        expect(n1.range.begin.column).toBe(4);
         expect(n1.children).toBeNull();
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.begin.line).toBe(2);
-        expect(n2.begin.column).toBe(0);
+        expect(n2.range.begin.line).toBe(2);
+        expect(n2.range.begin.column).toBe(0);
+        expect(n2.children).toBeNull();
+    });
+
+    it('1.23', function () {
+        const cst = parse('1.23') as PyNode;
+        const ns = TERMS(cst);
+        // console.lg(JSON.stringify(ns, null, 2));
+        expect(Array.isArray(ns)).toBeTruthy();
+        expect(ns.length).toBe(3);
+
+        const n0 = ns[0];
+        const n1 = ns[1];
+        const n2 = ns[2];
+
+        expect(n0.type).toBe(Tokens.T_NUMBER);
+        expect(n0.value).toBe("1.23");
+        expect(n0.range.begin.line).toBe(1);
+        expect(n0.range.begin.column).toBe(0);
+        expect(n0.range.end.line).toBe(1);
+        expect(n0.range.end.column).toBe(4);
+        expect(n0.children).toBeNull();
+
+        expect(n1.type).toBe(Tokens.T_NEWLINE);
+        expect(n1.value).toBe("\n");
+        expect(n1.range.begin.line).toBe(1);
+        expect(n1.range.begin.column).toBe(4);
+        expect(n1.children).toBeNull();
+
+        expect(n2.type).toBe(Tokens.T_ENDMARKER);
+        expect(n2.value).toBe("");
+        expect(n2.range.begin.line).toBe(2);
+        expect(n2.range.begin.column).toBe(0);
         expect(n2.children).toBeNull();
     });
 
     it('123L', function () {
         const cst = parse('123L') as PyNode;
         const ns = TERMS(cst);
-        // console.log(JSON.stringify(ns, null, 2));
+        // console.lg(JSON.stringify(ns, null, 2));
         expect(Array.isArray(ns)).toBeTruthy();
         expect(ns.length).toBe(3);
 
@@ -125,29 +101,29 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_NUMBER);
         expect(n0.value).toBe("123L");
-        expect(n0.begin.line).toBe(1);
-        expect(n0.begin.column).toBe(0);
-        expect(n0.end.line).toBe(1);
-        expect(n0.end.column).toBe(4);
+        expect(n0.range.begin.line).toBe(1);
+        expect(n0.range.begin.column).toBe(0);
+        expect(n0.range.end.line).toBe(1);
+        expect(n0.range.end.column).toBe(4);
         expect(n0.children).toBeNull();
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.begin.line).toBe(1);
-        expect(n1.begin.column).toBe(4);
+        expect(n1.range.begin.line).toBe(1);
+        expect(n1.range.begin.column).toBe(4);
         expect(n1.children).toBeNull();
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.begin.line).toBe(2);
-        expect(n2.begin.column).toBe(0);
+        expect(n2.range.begin.line).toBe(2);
+        expect(n2.range.begin.column).toBe(0);
         expect(n2.children).toBeNull();
     });
 
     it('0xFFFFFF', function () {
         const cst = parse('0xFFFFFF') as PyNode;
         const ns = TERMS(cst);
-        // console.log(JSON.stringify(ns, null, 2));
+        // console.lg(JSON.stringify(ns, null, 2));
         expect(Array.isArray(ns)).toBeTruthy();
         expect(ns.length).toBe(3);
 
@@ -157,27 +133,28 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_NUMBER);
         expect(n0.value).toBe("0xFFFFFF");
-        expect(n0.begin.line).toBe(1);
-        expect(n0.begin.column).toBe(0);
+        expect(n0.range.begin.line).toBe(1);
+        expect(n0.range.begin.column).toBe(0);
+        expect(n0.range.end.line).toBe(1);
+        expect(n0.range.end.column).toBe(8);
         expect(n0.children).toBeNull();
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.begin.line).toBe(1);
-        expect(n1.begin.column).toBe(8);
+        expect(n1.range.begin.line).toBe(1);
+        expect(n1.range.begin.column).toBe(8);
         expect(n1.children).toBeNull();
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.begin.line).toBe(2);
-        expect(n2.begin.column).toBe(0);
+        expect(n2.range.begin.line).toBe(2);
+        expect(n2.range.begin.column).toBe(0);
         expect(n2.children).toBeNull();
     });
 
     it('0O0505L', function () {
         const cst = parse('0O0505L') as PyNode;
         const ns = TERMS(cst);
-        // console.log(JSON.stringify(ns, null, 2));
         expect(Array.isArray(ns)).toBeTruthy();
         expect(ns.length).toBe(3);
 
@@ -187,27 +164,29 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_NUMBER);
         expect(n0.value).toBe("0O0505L");
-        expect(n0.begin.line).toBe(1);
-        expect(n0.begin.column).toBe(0);
+        expect(n0.range.begin.line).toBe(1);
+        expect(n0.range.begin.column).toBe(0);
+        expect(n0.range.end.line).toBe(1);
+        expect(n0.range.end.column).toBe(7);
         expect(n0.children).toBeNull();
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.begin.line).toBe(1);
-        expect(n1.begin.column).toBe(7);
+        expect(n1.range.begin.line).toBe(1);
+        expect(n1.range.begin.column).toBe(7);
         expect(n1.children).toBeNull();
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.begin.line).toBe(2);
-        expect(n2.begin.column).toBe(0);
+        expect(n2.range.begin.line).toBe(2);
+        expect(n2.range.begin.column).toBe(0);
         expect(n2.children).toBeNull();
     });
 
     it('"Hello"', function () {
         const cst = parse('"Hello"') as PyNode;
         const ns = TERMS(cst);
-        // console.log(JSON.stringify(ns, null, 2));
+        // console.lg(JSON.stringify(ns, null, 2));
         expect(Array.isArray(ns)).toBeTruthy();
         expect(ns.length).toBe(3);
 
@@ -217,28 +196,25 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_STRING);
         expect(n0.value).toBe('"Hello"');
-        expect(n0.begin.line).toBe(1);
-        expect(n0.begin.column).toBe(0);
-        expect(n0.children).toBeNull();
+        expect(n0.range.begin.line).toBe(1);
+        expect(n0.range.begin.column).toBe(0);
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.begin.line).toBe(1);
-        expect(n1.begin.column).toBe(7);
-        expect(n1.children).toBeNull();
+        expect(n1.range.begin.line).toBe(1);
+        expect(n1.range.begin.column).toBe(7);
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.begin.line).toBe(2);
-        expect(n2.begin.column).toBe(0);
-        expect(n2.children).toBeNull();
+        expect(n2.range.begin.line).toBe(2);
+        expect(n2.range.begin.column).toBe(0);
     });
 
 
     it('True', function () {
         const cst = parse('True') as PyNode;
         const ns = TERMS(cst);
-        // console.log(JSON.stringify(ns, null, 2));
+        // console.lg(JSON.stringify(ns, null, 2));
         expect(Array.isArray(ns)).toBeTruthy();
         expect(ns.length).toBe(3);
 
@@ -248,27 +224,24 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_NAME);
         expect(n0.value).toBe('True');
-        expect(n0.begin.line).toBe(1);
-        expect(n0.begin.column).toBe(0);
-        expect(n0.children).toBeNull();
+        expect(n0.range.begin.line).toBe(1);
+        expect(n0.range.begin.column).toBe(0);
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.begin.line).toBe(1);
-        expect(n1.begin.column).toBe(4);
-        expect(n1.children).toBeNull();
+        expect(n1.range.begin.line).toBe(1);
+        expect(n1.range.begin.column).toBe(4);
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.begin.line).toBe(2);
-        expect(n2.begin.column).toBe(0);
-        expect(n2.children).toBeNull();
+        expect(n2.range.begin.line).toBe(2);
+        expect(n2.range.begin.column).toBe(0);
     });
 
     it('False', function () {
         const cst = parse('False') as PyNode;
         const ns = TERMS(cst);
-        // console.log(JSON.stringify(ns, null, 2));
+        // console.lg(JSON.stringify(ns, null, 2));
         expect(Array.isArray(ns)).toBeTruthy();
         expect(ns.length).toBe(3);
 
@@ -278,27 +251,24 @@ describe('parse', function () {
 
         expect(n0.type).toBe(Tokens.T_NAME);
         expect(n0.value).toBe('False');
-        expect(n0.begin.line).toBe(1);
-        expect(n0.begin.column).toBe(0);
-        expect(n0.children).toBeNull();
+        expect(n0.range.begin.line).toBe(1);
+        expect(n0.range.begin.column).toBe(0);
 
         expect(n1.type).toBe(Tokens.T_NEWLINE);
         expect(n1.value).toBe("\n");
-        expect(n1.begin.line).toBe(1);
-        expect(n1.begin.column).toBe(5);
-        expect(n1.children).toBeNull();
+        expect(n1.range.begin.line).toBe(1);
+        expect(n1.range.begin.column).toBe(5);
 
         expect(n2.type).toBe(Tokens.T_ENDMARKER);
         expect(n2.value).toBe("");
-        expect(n2.begin.line).toBe(2);
-        expect(n2.begin.column).toBe(0);
-        expect(n2.children).toBeNull();
+        expect(n2.range.begin.line).toBe(2);
+        expect(n2.range.begin.column).toBe(0);
     });
 
     describe('[]', function () {
         const cst = parse('[]') as PyNode;
 
-        // console.log(JSON.stringify(DECODE(cst), null, 2));
+        // console.lg(JSON.stringify(DECODE(cst), null, 2));
 
         const ns = TERMS(cst);
         it("should have correct number of terminals", function () {
@@ -314,26 +284,24 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(n0.type).toBe(Tokens.T_LSQB);
             expect(n0.value).toBe('[');
-            expect(n0.begin.line).toBe(1);
-            expect(n0.begin.column).toBe(0);
-            expect(n0.children).toBeNull();
+            expect(n0.range.begin.line).toBe(1);
+            expect(n0.range.begin.column).toBe(0);
 
             expect(n1.type).toBe(Tokens.T_RSQB);
             expect(n1.value).toBe("]");
-            expect(n1.begin.line).toBe(1);
-            expect(n1.begin.column).toBe(1);
-            expect(n1.children).toBeNull();
+            expect(n1.range.begin.line).toBe(1);
+            expect(n1.range.begin.column).toBe(1);
 
             expect(n2.type).toBe(Tokens.T_NEWLINE);
             expect(n2.value).toBe("\n");
-            expect(n2.begin.line).toBe(1);
-            expect(n2.begin.column).toBe(2);
+            expect(n2.range.begin.line).toBe(1);
+            expect(n2.range.begin.column).toBe(2);
             expect(n2.children).toBeNull();
 
             expect(n3.type).toBe(Tokens.T_ENDMARKER);
             expect(n3.value).toBe("");
-            expect(n3.begin.line).toBe(2);
-            expect(n3.begin.column).toBe(0);
+            expect(n3.range.begin.line).toBe(2);
+            expect(n3.range.begin.column).toBe(0);
             expect(n3.children).toBeNull();
 
         });
@@ -341,7 +309,7 @@ describe('parse', function () {
 
     describe('{}', function () {
         const cst = parse('{}') as PyNode;
-        // console.log(JSON.stringify(DECODE(cst), null, 2));
+        // console.lg(JSON.stringify(DECODE(cst), null, 2));
         const ns = TERMS(cst);
 
         it("should have correct number of terminals", function () {
@@ -357,26 +325,23 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(n0.type).toBe(Tokens.T_LBRACE);
             expect(n0.value).toBe('{');
-            expect(n0.begin.line).toBe(1);
-            expect(n0.begin.column).toBe(0);
-            expect(n0.children).toBeNull();
+            expect(n0.range.begin.line).toBe(1);
+            expect(n0.range.begin.column).toBe(0);
 
             expect(n1.type).toBe(Tokens.T_RBRACE);
             expect(n1.value).toBe("}");
-            expect(n1.begin.line).toBe(1);
-            expect(n1.begin.column).toBe(1);
-            expect(n1.children).toBeNull();
+            expect(n1.range.begin.line).toBe(1);
+            expect(n1.range.begin.column).toBe(1);
 
             expect(n2.type).toBe(Tokens.T_NEWLINE);
             expect(n2.value).toBe("\n");
-            expect(n2.begin.line).toBe(1);
-            expect(n2.begin.column).toBe(2);
-            expect(n2.children).toBeNull();
+            expect(n2.range.begin.line).toBe(1);
+            expect(n2.range.begin.column).toBe(2);
 
             expect(n3.type).toBe(Tokens.T_ENDMARKER);
             expect(n3.value).toBe("");
-            expect(n3.begin.line).toBe(2);
-            expect(n3.begin.column).toBe(0);
+            expect(n3.range.begin.line).toBe(2);
+            expect(n3.range.begin.column).toBe(0);
             expect(n3.children).toBeNull();
 
         });
@@ -384,7 +349,7 @@ describe('parse', function () {
 
     describe('a', function () {
         const cst = parse('a') as PyNode;
-        // console.log(JSON.stringify(DECODE(cst), null, 2));
+        // console.lg(JSON.stringify(DECODE(cst), null, 2));
         const ns = TERMS(cst);
 
         it("should have correct number of terminals", function () {
@@ -399,20 +364,20 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(n0.type).toBe(Tokens.T_NAME);
             expect(n0.value).toBe('a');
-            expect(n0.begin.line).toBe(1);
-            expect(n0.begin.column).toBe(0);
+            expect(n0.range.begin.line).toBe(1);
+            expect(n0.range.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(nl.type).toBe(Tokens.T_NEWLINE);
             expect(nl.value).toBe("\n");
-            expect(nl.begin.line).toBe(1);
-            expect(nl.begin.column).toBe(1);
+            expect(nl.range.begin.line).toBe(1);
+            expect(nl.range.begin.column).toBe(1);
             expect(nl.children).toBeNull();
 
             expect(em.type).toBe(Tokens.T_ENDMARKER);
             expect(em.value).toBe("");
-            expect(em.begin.line).toBe(2);
-            expect(em.begin.column).toBe(0);
+            expect(em.range.begin.line).toBe(2);
+            expect(em.range.begin.column).toBe(0);
             expect(em.children).toBeNull();
 
         });
@@ -420,7 +385,7 @@ describe('parse', function () {
 
     describe('Unary Plus', function () {
         const cst = parse('+a') as PyNode;
-        // console.log(JSON.stringify(DECODE(cst), null, 2));
+        // console.lg(JSON.stringify(DECODE(cst), null, 2));
         const ns = TERMS(cst);
 
         it("should have correct number of terminals", function () {
@@ -436,26 +401,26 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_PLUS]);
             expect(n0.value).toBe('+');
-            expect(n0.begin.line).toBe(1);
-            expect(n0.begin.column).toBe(0);
+            expect(n0.range.begin.line).toBe(1);
+            expect(n0.range.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n1.value).toBe('a');
-            expect(n1.begin.line).toBe(1);
-            expect(n1.begin.column).toBe(1);
+            expect(n1.range.begin.line).toBe(1);
+            expect(n1.range.begin.column).toBe(1);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.begin.line).toBe(1);
-            expect(nl.begin.column).toBe(2);
+            expect(nl.range.begin.line).toBe(1);
+            expect(nl.range.begin.column).toBe(2);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.begin.line).toBe(2);
-            expect(em.begin.column).toBe(0);
+            expect(em.range.begin.line).toBe(2);
+            expect(em.range.begin.column).toBe(0);
             expect(em.children).toBeNull();
 
         });
@@ -463,7 +428,7 @@ describe('parse', function () {
 
     describe('Unary Minus', function () {
         const cst = parse('-a') as PyNode;
-        // console.log(JSON.stringify(DECODE(cst), null, 2));
+        // console.lg(JSON.stringify(DECODE(cst), null, 2));
         const ns = TERMS(cst);
 
         it("should have correct number of terminals", function () {
@@ -479,33 +444,33 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_MINUS]);
             expect(n0.value).toBe('-');
-            expect(n0.begin.line).toBe(1);
-            expect(n0.begin.column).toBe(0);
+            expect(n0.range.begin.line).toBe(1);
+            expect(n0.range.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n1.value).toBe('a');
-            expect(n1.begin.line).toBe(1);
-            expect(n1.begin.column).toBe(1);
+            expect(n1.range.begin.line).toBe(1);
+            expect(n1.range.begin.column).toBe(1);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.begin.line).toBe(1);
-            expect(nl.begin.column).toBe(2);
+            expect(nl.range.begin.line).toBe(1);
+            expect(nl.range.begin.column).toBe(2);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.begin.line).toBe(2);
-            expect(em.begin.column).toBe(0);
+            expect(em.range.begin.line).toBe(2);
+            expect(em.range.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
 
     describe('Unary Tilde', function () {
         const cst = parse('~a') as PyNode;
-        // console.log(JSON.stringify(DECODE(cst), null, 2));
+        // console.lg(JSON.stringify(DECODE(cst), null, 2));
         const ns = TERMS(cst);
 
         it("should have correct number of terminals", function () {
@@ -521,33 +486,33 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_TILDE]);
             expect(n0.value).toBe('~');
-            expect(n0.begin.line).toBe(1);
-            expect(n0.begin.column).toBe(0);
+            expect(n0.range.begin.line).toBe(1);
+            expect(n0.range.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n1.value).toBe('a');
-            expect(n1.begin.line).toBe(1);
-            expect(n1.begin.column).toBe(1);
+            expect(n1.range.begin.line).toBe(1);
+            expect(n1.range.begin.column).toBe(1);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.begin.line).toBe(1);
-            expect(nl.begin.column).toBe(2);
+            expect(nl.range.begin.line).toBe(1);
+            expect(nl.range.begin.column).toBe(2);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.begin.line).toBe(2);
-            expect(em.begin.column).toBe(0);
+            expect(em.range.begin.line).toBe(2);
+            expect(em.range.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
 
     describe('Binary Addition', function () {
         const cst = parse('a + b') as PyNode;
-        // console.log(JSON.stringify(DECODE(cst), null, 2));
+        // console.lg(JSON.stringify(DECODE(cst), null, 2));
         const ns = TERMS(cst);
 
         it("should have correct number of terminals", function () {
@@ -565,39 +530,39 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n0.value).toBe('a');
-            expect(n0.begin.line).toBe(1);
-            expect(n0.begin.column).toBe(0);
+            expect(n0.range.begin.line).toBe(1);
+            expect(n0.range.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_PLUS]);
             expect(n1.value).toBe('+');
-            expect(n1.begin.line).toBe(1);
-            expect(n1.begin.column).toBe(2);
+            expect(n1.range.begin.line).toBe(1);
+            expect(n1.range.begin.column).toBe(2);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[n2.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n2.value).toBe('b');
-            expect(n2.begin.line).toBe(1);
-            expect(n2.begin.column).toBe(4);
+            expect(n2.range.begin.line).toBe(1);
+            expect(n2.range.begin.column).toBe(4);
             expect(n2.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.begin.line).toBe(1);
-            expect(nl.begin.column).toBe(5);
+            expect(nl.range.begin.line).toBe(1);
+            expect(nl.range.begin.column).toBe(5);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.begin.line).toBe(2);
-            expect(em.begin.column).toBe(0);
+            expect(em.range.begin.line).toBe(2);
+            expect(em.range.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
 
     describe('Binary Subtraction', function () {
         const cst = parse('a - b') as PyNode;
-        // console.log(JSON.stringify(DECODE(cst), null, 2));
+        // console.lg(JSON.stringify(DECODE(cst), null, 2));
         const ns = TERMS(cst);
 
         it("should have correct number of terminals", function () {
@@ -615,32 +580,32 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n0.value).toBe('a');
-            expect(n0.begin.line).toBe(1);
-            expect(n0.begin.column).toBe(0);
+            expect(n0.range.begin.line).toBe(1);
+            expect(n0.range.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_MINUS]);
             expect(n1.value).toBe('-');
-            expect(n1.begin.line).toBe(1);
-            expect(n1.begin.column).toBe(2);
+            expect(n1.range.begin.line).toBe(1);
+            expect(n1.range.begin.column).toBe(2);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[n2.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n2.value).toBe('b');
-            expect(n2.begin.line).toBe(1);
-            expect(n2.begin.column).toBe(4);
+            expect(n2.range.begin.line).toBe(1);
+            expect(n2.range.begin.column).toBe(4);
             expect(n2.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.begin.line).toBe(1);
-            expect(nl.begin.column).toBe(5);
+            expect(nl.range.begin.line).toBe(1);
+            expect(nl.range.begin.column).toBe(5);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.begin.line).toBe(2);
-            expect(em.begin.column).toBe(0);
+            expect(em.range.begin.line).toBe(2);
+            expect(em.range.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
@@ -672,32 +637,32 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n0.value).toBe('a');
-            expect(n0.begin.line).toBe(1);
-            expect(n0.begin.column).toBe(0);
+            expect(n0.range.begin.line).toBe(1);
+            expect(n0.range.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_STAR]);
             expect(n1.value).toBe('*');
-            expect(n1.begin.line).toBe(1);
-            expect(n1.begin.column).toBe(2);
+            expect(n1.range.begin.line).toBe(1);
+            expect(n1.range.begin.column).toBe(2);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[n2.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n2.value).toBe('b');
-            expect(n2.begin.line).toBe(1);
-            expect(n2.begin.column).toBe(4);
+            expect(n2.range.begin.line).toBe(1);
+            expect(n2.range.begin.column).toBe(4);
             expect(n2.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.begin.line).toBe(1);
-            expect(nl.begin.column).toBe(5);
+            expect(nl.range.begin.line).toBe(1);
+            expect(nl.range.begin.column).toBe(5);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.begin.line).toBe(2);
-            expect(em.begin.column).toBe(0);
+            expect(em.range.begin.line).toBe(2);
+            expect(em.range.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
@@ -727,64 +692,64 @@ describe('parse', function () {
         it("should have the correct terminals", function () {
             expect(tokenNames[a.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(a.value).toBe('a');
-            expect(a.begin.line).toBe(1);
-            expect(a.begin.column).toBe(0);
+            expect(a.range.begin.line).toBe(1);
+            expect(a.range.begin.column).toBe(0);
             expect(a.children).toBeNull();
 
             expect(tokenNames[eq.type]).toBe(tokenNames[Tokens.T_EQUAL]);
             expect(eq.value).toBe('=');
-            expect(eq.begin.line).toBe(1);
-            expect(eq.begin.column).toBe(2);
+            expect(eq.range.begin.line).toBe(1);
+            expect(eq.range.begin.column).toBe(2);
             expect(eq.children).toBeNull();
 
             expect(tokenNames[b.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(b.value).toBe('b');
-            expect(b.begin.line).toBe(1);
-            expect(b.begin.column).toBe(4);
+            expect(b.range.begin.line).toBe(1);
+            expect(b.range.begin.column).toBe(4);
             expect(b.children).toBeNull();
 
             expect(tokenNames[dot.type]).toBe(tokenNames[Tokens.T_DOT]);
             expect(dot.value).toBe('.');
-            expect(dot.begin.line).toBe(1);
-            expect(dot.begin.column).toBe(5);
+            expect(dot.range.begin.line).toBe(1);
+            expect(dot.range.begin.column).toBe(5);
             expect(dot.children).toBeNull();
 
             expect(tokenNames[c.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(c.value).toBe('c');
-            expect(c.begin.line).toBe(1);
-            expect(c.begin.column).toBe(6);
+            expect(c.range.begin.line).toBe(1);
+            expect(c.range.begin.column).toBe(6);
             expect(c.children).toBeNull();
 
             expect(tokenNames[lPar.type]).toBe(tokenNames[Tokens.T_LPAR]);
             expect(lPar.value).toBe('(');
-            expect(lPar.begin.line).toBe(1);
-            expect(lPar.begin.column).toBe(7);
+            expect(lPar.range.begin.line).toBe(1);
+            expect(lPar.range.begin.column).toBe(7);
             expect(lPar.children).toBeNull();
 
             expect(tokenNames[t.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(t.value).toBe('t');
-            expect(t.begin.line).toBe(1);
-            expect(t.begin.column).toBe(8);
+            expect(t.range.begin.line).toBe(1);
+            expect(t.range.begin.column).toBe(8);
             expect(t.children).toBeNull();
 
             expect(tokenNames[rPar.type]).toBe(tokenNames[Tokens.T_RPAR]);
             expect(rPar.value).toBe(')');
-            expect(rPar.begin.line).toBe(1);
-            expect(rPar.begin.column).toBe(9);
+            expect(rPar.range.begin.line).toBe(1);
+            expect(rPar.range.begin.column).toBe(9);
             expect(rPar.children).toBeNull();
 
             // Newline
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.begin.line).toBe(1);
-            expect(nl.begin.column).toBe(10);
+            expect(nl.range.begin.line).toBe(1);
+            expect(nl.range.begin.column).toBe(10);
             expect(nl.children).toBeNull();
 
             // End Marker
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.begin.line).toBe(2);
-            expect(em.begin.column).toBe(0);
+            expect(em.range.begin.line).toBe(2);
+            expect(em.range.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });
@@ -797,13 +762,13 @@ describe('parse', function () {
         const decode = JSON.stringify(DECODE(cst), null, 2);
         let view = decode;
         view = view;
-        // console.log(decode);
+        // console.lg(decode);
         const ns = TERMS(cst);
 
         it("performance should not degrade", function () {
             expect(Array.isArray(ns)).toBeTruthy();
             expect(ns.length).toBe(247);
-            console.log(`Parser    performance parse          (${ns.length} terminals) took ${t1 - t0} ms`);
+            // console.lg(`Parser    performance parse          (${ns.length} terminals) took ${t1 - t0} ms`);
             // This has been benchmarked at around 20-40 ms.
             expect(t1 - t0 < 60).toBe(true);
         });
@@ -818,32 +783,32 @@ describe('parse', function () {
         xit("should have the correct terminals", function () {
             expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n0.value).toBe('a');
-            expect(n0.begin.line).toBe(1);
-            expect(n0.begin.column).toBe(0);
+            expect(n0.range.begin.line).toBe(1);
+            expect(n0.range.begin.column).toBe(0);
             expect(n0.children).toBeNull();
 
             expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_MINUS]);
             expect(n1.value).toBe('-');
-            expect(n1.begin.line).toBe(1);
-            expect(n1.begin.column).toBe(2);
+            expect(n1.range.begin.line).toBe(1);
+            expect(n1.range.begin.column).toBe(2);
             expect(n1.children).toBeNull();
 
             expect(tokenNames[n2.type]).toBe(tokenNames[Tokens.T_NAME]);
             expect(n2.value).toBe('b');
-            expect(n2.begin.line).toBe(1);
-            expect(n2.begin.column).toBe(4);
+            expect(n2.range.begin.line).toBe(1);
+            expect(n2.range.begin.column).toBe(4);
             expect(n2.children).toBeNull();
 
             expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
             expect(nl.value).toBe("\n");
-            expect(nl.begin.line).toBe(1);
-            expect(nl.begin.column).toBe(5);
+            expect(nl.range.begin.line).toBe(1);
+            expect(nl.range.begin.column).toBe(5);
             expect(nl.children).toBeNull();
 
             expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
             expect(em.value).toBe("");
-            expect(em.begin.line).toBe(2);
-            expect(em.begin.column).toBe(0);
+            expect(em.range.begin.line).toBe(2);
+            expect(em.range.begin.column).toBe(0);
             expect(em.children).toBeNull();
         });
     });

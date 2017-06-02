@@ -1,6 +1,7 @@
+import { assert } from './asserts';
 import { TokenError } from './TokenError';
 import { Tokens } from './Tokens';
-// Cache a few tokens for performance
+// Cache a few tokens for performance.
 var T_COMMENT = Tokens.T_COMMENT;
 var T_DEDENT = Tokens.T_DEDENT;
 var T_ENDMARKER = Tokens.T_ENDMARKER;
@@ -99,6 +100,23 @@ var tabsize = 8;
 var NAMECHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
 var NUMCHARS = '0123456789';
 /**
+ * For performance, let V8 know the size of an array.
+ * The first element is the line number.
+ * The line number is 1-based. This is intuitive because it maps to the way we think about line numbers.
+ * The second element is the column.
+ * The column is 0-based. This works well because it is the standard index for accessing strings.
+ */
+/**
+ * The index of the line in the LineColumn array.
+ */
+var LINE = 0;
+/**
+ * The index of the column in the LineColumn array.
+ */
+var COLUMN = 1;
+export var Done = 'done';
+export var Failed = 'failed';
+/**
  * This is a port of tokenize.py by Ka-Ping Yee.
  *
  * each call to readline should return one line of input as a string, or
@@ -119,26 +137,45 @@ var Tokenizer = (function () {
      */
     function Tokenizer(interactive, callback) {
         this.callback = callback;
+        /**
+         * Cache of the beginning of a token.
+         * This will change by token so consumers must copy the values out.
+         */
+        this.begin = [-1, -1];
+        /**
+         * Cache of the end of a token.
+         * This will change by token so consumers must copy the values out.
+         */
+        this.end = [-1, -1];
+        /**
+         * The line number. This must be copied into the begin[LINE] and end[LINE] properties.
+         */
         this.lnum = 0;
         this.parenlev = 0;
+        this.strstart = [-1, -1];
+        this.callback = callback;
         this.continued = false;
         this.contstr = '';
         this.needcont = false;
         this.contline = undefined;
         this.indents = [0];
         this.endprog = /.*/;
-        this.strstart = [-1, -1];
         this.interactive = interactive;
         this.doneFunc = function doneOrFailed() {
-            for (var i = 1; i < this.indents.length; ++i) {
-                if (this.callback(T_DEDENT, '', [this.lnum, 0], [this.lnum, 0], '')) {
-                    return 'done';
+            var begin = this.begin;
+            var end = this.end;
+            begin[LINE] = end[LINE] = this.lnum;
+            begin[COLUMN] = end[COLUMN] = 0;
+            var N = this.indents.length;
+            for (var i = 1; i < N; ++i) {
+                if (callback(T_DEDENT, '', begin, end, '')) {
+                    return Done;
                 }
             }
-            if (this.callback(T_ENDMARKER, '', [this.lnum, 0], [this.lnum, 0], '')) {
-                return 'done';
+            if (callback(T_ENDMARKER, '', begin, end, '')) {
+                return Done;
             }
-            return 'failed';
+            return Failed;
         };
     }
     /**
@@ -148,7 +185,7 @@ var Tokenizer = (function () {
     Tokenizer.prototype.generateTokens = function (line) {
         var endmatch;
         var column;
-        var end;
+        var endIndex;
         if (!line) {
             line = '';
         }
@@ -159,24 +196,32 @@ var Tokenizer = (function () {
          * Local variable for performance and brevity.
          */
         var callback = this.callback;
+        var begin = this.begin;
+        begin[LINE] = this.lnum;
+        var end = this.end;
+        end[LINE] = this.lnum;
         if (this.contstr.length > 0) {
             if (!line) {
-                throw new TokenError("EOF in multi-line string", this.strstart[0], this.strstart[1]);
+                throw new TokenError("EOF in multi-line string", this.strstart[LINE], this.strstart[COLUMN]);
             }
             this.endprog.lastIndex = 0;
             endmatch = this.endprog.test(line);
             if (endmatch) {
-                pos = end = this.endprog.lastIndex;
-                if (callback(T_STRING, this.contstr + line.substring(0, end), this.strstart, [this.lnum, end], this.contline + line)) {
-                    return 'done';
+                pos = endIndex = this.endprog.lastIndex;
+                end[COLUMN] = endIndex;
+                if (callback(T_STRING, this.contstr + line.substring(0, endIndex), this.strstart, end, this.contline + line)) {
+                    return Done;
                 }
                 this.contstr = '';
                 this.needcont = false;
                 this.contline = undefined;
             }
             else if (this.needcont && line.substring(line.length - 2) !== "\\\n" && line.substring(line.length - 3) !== "\\\r\n") {
-                if (callback(T_ERRORTOKEN, this.contstr + line, this.strstart, [this.lnum, line.length], this.contline)) {
-                    return 'done';
+                // Either contline is a string or the callback must allow undefined.
+                assert(typeof this.contline === 'string');
+                end[COLUMN] = line.length;
+                if (callback(T_ERRORTOKEN, this.contstr + line, this.strstart, end, this.contline)) {
+                    return Done;
                 }
                 this.contstr = '';
                 this.contline = undefined;
@@ -214,17 +259,23 @@ var Tokenizer = (function () {
                 if (line.charAt(pos) === '#') {
                     var comment_token = rstrip(line.substring(pos), '\r\n');
                     var nl_pos = pos + comment_token.length;
-                    if (callback(T_COMMENT, comment_token, [this.lnum, pos], [this.lnum, pos + comment_token.length], line)) {
-                        return 'done';
+                    begin[COLUMN] = pos;
+                    end[COLUMN] = nl_pos;
+                    if (callback(T_COMMENT, comment_token, begin, end, line)) {
+                        return Done;
                     }
-                    if (callback(T_NL, line.substring(nl_pos), [this.lnum, nl_pos], [this.lnum, line.length], line)) {
-                        return 'done';
+                    begin[COLUMN] = nl_pos;
+                    end[COLUMN] = line.length;
+                    if (callback(T_NL, line.substring(nl_pos), begin, end, line)) {
+                        return Done;
                     }
                     return false;
                 }
                 else {
-                    if (callback(T_NL, line.substring(pos), [this.lnum, pos], [this.lnum, line.length], line)) {
-                        return 'done';
+                    begin[COLUMN] = pos;
+                    end[COLUMN] = line.length;
+                    if (callback(T_NL, line.substring(pos), begin, end, line)) {
+                        return Done;
                     }
                     if (!this.interactive)
                         return false;
@@ -232,17 +283,23 @@ var Tokenizer = (function () {
             }
             if (column > this.indents[this.indents.length - 1]) {
                 this.indents.push(column);
-                if (callback(T_INDENT, line.substring(0, pos), [this.lnum, 0], [this.lnum, pos], line)) {
-                    return 'done';
+                begin[COLUMN] = 0;
+                end[COLUMN] = pos;
+                if (callback(T_INDENT, line.substring(0, pos), begin, end, line)) {
+                    return Done;
                 }
             }
             while (column < this.indents[this.indents.length - 1]) {
                 if (!contains(this.indents, column)) {
-                    throw indentationError("unindent does not match any outer indentation level", [this.lnum, 0], [this.lnum, pos], line);
+                    begin[COLUMN] = 0;
+                    end[COLUMN] = pos;
+                    throw indentationError("unindent does not match any outer indentation level", begin, end, line);
                 }
                 this.indents.splice(this.indents.length - 1, 1);
-                if (callback(T_DEDENT, '', [this.lnum, pos], [this.lnum, pos], line)) {
-                    return 'done';
+                begin[COLUMN] = pos;
+                end[COLUMN] = pos;
+                if (callback(T_DEDENT, '', begin, end, line)) {
+                    return Done;
                 }
             }
         }
@@ -264,29 +321,29 @@ var Tokenizer = (function () {
             pseudoprog.lastIndex = 0;
             var pseudomatch = pseudoprog.exec(line.substring(pos));
             if (pseudomatch) {
-                var start = pos;
-                end = start + pseudomatch[1].length;
-                var spos = [this.lnum, start];
-                var epos = [this.lnum, end];
-                pos = end;
-                var token = line.substring(start, end);
-                var initial = line.charAt(start);
+                var startIndex = pos;
+                endIndex = startIndex + pseudomatch[1].length;
+                begin[COLUMN] = startIndex;
+                end[COLUMN] = endIndex;
+                pos = endIndex;
+                var token = line.substring(startIndex, endIndex);
+                var initial = line.charAt(startIndex);
                 if (NUMCHARS.indexOf(initial) !== -1 || (initial === '.' && token !== '.')) {
-                    if (callback(T_NUMBER, token, spos, epos, line)) {
-                        return 'done';
+                    if (callback(T_NUMBER, token, begin, end, line)) {
+                        return Done;
                     }
                 }
                 else if (initial === '\r' || initial === '\n') {
                     var newl = T_NEWLINE;
                     if (this.parenlev > 0)
                         newl = T_NL;
-                    if (callback(newl, token, spos, epos, line)) {
-                        return 'done';
+                    if (callback(newl, token, begin, end, line)) {
+                        return Done;
                     }
                 }
                 else if (initial === '#') {
-                    if (callback(T_COMMENT, token, spos, epos, line)) {
-                        return 'done';
+                    if (callback(T_COMMENT, token, begin, end, line)) {
+                        return Done;
                     }
                 }
                 else if (triple_quoted.hasOwnProperty(token)) {
@@ -295,14 +352,16 @@ var Tokenizer = (function () {
                     endmatch = this.endprog.test(line.substring(pos));
                     if (endmatch) {
                         pos = this.endprog.lastIndex + pos;
-                        var token_1 = line.substring(start, pos);
-                        if (callback(T_STRING, token_1, spos, [this.lnum, pos], line)) {
-                            return 'done';
+                        var token_1 = line.substring(startIndex, pos);
+                        end[COLUMN] = pos;
+                        if (callback(T_STRING, token_1, begin, end, line)) {
+                            return Done;
                         }
                     }
                     else {
-                        this.strstart = [this.lnum, start];
-                        this.contstr = line.substring(start);
+                        this.strstart[LINE] = this.lnum;
+                        this.strstart[COLUMN] = startIndex;
+                        this.contstr = line.substring(startIndex);
                         this.contline = line;
                         return false;
                     }
@@ -311,27 +370,28 @@ var Tokenizer = (function () {
                     single_quoted.hasOwnProperty(token.substring(0, 2)) ||
                     single_quoted.hasOwnProperty(token.substring(0, 3))) {
                     if (token[token.length - 1] === '\n') {
-                        this.strstart = [this.lnum, start];
                         this.endprog = endprogs[initial] || endprogs[token[1]] || endprogs[token[2]];
-                        this.contstr = line.substring(start);
+                        assert(this.endprog instanceof RegExp);
+                        this.contstr = line.substring(startIndex);
                         this.needcont = true;
                         this.contline = line;
                         return false;
                     }
                     else {
-                        if (callback(T_STRING, token, spos, epos, line)) {
-                            return 'done';
+                        if (callback(T_STRING, token, begin, end, line)) {
+                            return Done;
                         }
                     }
                 }
                 else if (NAMECHARS.indexOf(initial) !== -1) {
-                    if (callback(T_NAME, token, spos, epos, line)) {
-                        return 'done';
+                    if (callback(T_NAME, token, begin, end, line)) {
+                        return Done;
                     }
                 }
                 else if (initial === '\\') {
-                    if (callback(T_NL, token, spos, [this.lnum, pos], line)) {
-                        return 'done';
+                    end[COLUMN] = pos;
+                    if (callback(T_NL, token, begin, end, line)) {
+                        return Done;
                     }
                     this.continued = true;
                 }
@@ -342,14 +402,16 @@ var Tokenizer = (function () {
                     else if (')]}'.indexOf(initial) !== -1) {
                         this.parenlev -= 1;
                     }
-                    if (callback(T_OP, token, spos, epos, line)) {
-                        return 'done';
+                    if (callback(T_OP, token, begin, end, line)) {
+                        return Done;
                     }
                 }
             }
             else {
-                if (callback(T_ERRORTOKEN, line.charAt(pos), [this.lnum, pos], [this.lnum, pos + 1], line)) {
-                    return 'done';
+                begin[COLUMN] = pos;
+                end[COLUMN] = pos + 1;
+                if (callback(T_ERRORTOKEN, line.charAt(pos), begin, end, line)) {
+                    return Done;
                 }
                 pos += 1;
             }
@@ -388,17 +450,13 @@ function rstrip(input, what) {
  * @param {string|undefined} text
  */
 function indentationError(message, begin, end, text) {
-    if (!Array.isArray(begin)) {
-        throw new Error("begin must be Array.<number>");
-    }
-    if (!Array.isArray(end)) {
-        throw new Error("end must be Array.<number>");
-    }
+    assert(Array.isArray(begin), "begin must be an Array");
+    assert(Array.isArray(end), "end must be an Array");
     var e = new SyntaxError(message /*, fileName*/);
     e.name = "IndentationError";
     if (begin) {
-        e['lineNumber'] = begin[0];
-        e['columnNumber'] = begin[1];
+        e['lineNumber'] = begin[LINE];
+        e['columnNumber'] = begin[COLUMN];
     }
     return e;
 }

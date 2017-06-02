@@ -8,6 +8,8 @@ var Tokens_1 = require("./Tokens");
 var tokenNames_1 = require("./tokenNames");
 var grammarName_1 = require("./grammarName");
 var syntaxError_1 = require("./syntaxError");
+var Position_1 = require("./Position");
+var Range_1 = require("./Range");
 // Dereference certain tokens for performance.
 var T_COMMENT = Tokens_1.Tokens.T_COMMENT;
 var T_ENDMARKER = Tokens_1.Tokens.T_ENDMARKER;
@@ -45,8 +47,8 @@ var Parser = (function () {
         start = start || this.grammar.start;
         var newnode = {
             type: start,
+            range: null,
             value: null,
-            context: null,
             children: []
         };
         var stackentry = {
@@ -55,7 +57,6 @@ var Parser = (function () {
             node: newnode
         };
         this.stack.push(stackentry);
-        //        this.used_names = {};
     };
     /**
      * Add a token; return true if we're done.
@@ -63,11 +64,11 @@ var Parser = (function () {
      * @param value
      * @param context [start, end, line]
      */
-    Parser.prototype.addtoken = function (type, value, context) {
+    Parser.prototype.addtoken = function (type, value, begin, end, line) {
         /**
          * The symbol for the token being added.
          */
-        var tokenSymbol = this.classify(type, value, context);
+        var tokenSymbol = this.classify(type, value, begin, end, line);
         /**
          * Local variable for performance.
          */
@@ -90,9 +91,9 @@ var Parser = (function () {
                 var newState = arc[ARC_TO_STATE];
                 var t = labels[arcSymbol][0];
                 // const v = labels[arcSymbol][1];
-                // console.log(`t => ${t}, v => ${v}`);
+                // console.lg(`t => ${t}, v => ${v}`);
                 if (tokenSymbol === arcSymbol) {
-                    this.shiftToken(type, value, newState, context);
+                    this.shiftToken(type, value, newState, begin, end, line);
                     // pop while we are in an accept-only state
                     var state = newState;
                     /**
@@ -122,7 +123,7 @@ var Parser = (function () {
                     var dfa = dfas[t];
                     var itsfirst = dfa[1];
                     if (itsfirst.hasOwnProperty(tokenSymbol)) {
-                        this.pushNonTerminal(t, dfa, newState, context);
+                        this.pushNonTerminal(t, dfa, newState, begin, end, line);
                         continue OUTERWHILE;
                     }
                 }
@@ -137,9 +138,8 @@ var Parser = (function () {
             }
             else {
                 var found = grammarName_1.grammarName(top_1.state);
-                var begin = context[0];
-                var end = context[1];
-                throw syntaxError_1.parseError("Unexpected " + found + " at " + JSON.stringify(begin), begin, end);
+                // FIXME:
+                throw syntaxError_1.parseError("Unexpected " + found + " at " + JSON.stringify([begin[0], begin[1] + 1]), begin, end);
             }
         }
     };
@@ -150,7 +150,7 @@ var Parser = (function () {
      * @param value
      * @param context [begin, end, line]
      */
-    Parser.prototype.classify = function (type, value, context) {
+    Parser.prototype.classify = function (type, value, begin, end, line) {
         // Assertion commented out for efficiency.
         // assertTerminal(type);
         var g = this.grammar;
@@ -169,7 +169,7 @@ var Parser = (function () {
             ilabel = tokenToSymbol[type];
         }
         if (!ilabel) {
-            throw syntaxError_1.parseError("bad token", context[0], context[1]);
+            throw syntaxError_1.parseError("bad token", begin, end);
         }
         return ilabel;
     };
@@ -179,7 +179,7 @@ var Parser = (function () {
      * 2. The new node is added as a child to the topmost node on the stack.
      * 3. The state of the topmost element on the stack is updated to be the new state.
      */
-    Parser.prototype.shiftToken = function (type, value, newState, context) {
+    Parser.prototype.shiftToken = function (type, value, newState, begin, end, line) {
         // assertTerminal(type);
         // Local variable for efficiency.
         var stack = this.stack;
@@ -187,29 +187,17 @@ var Parser = (function () {
          * The topmost element in the stack is affected by shifting a token.
          */
         var stackTop = stack[stack.length - 1];
-        // const dfa = stackTop.dfa;
-        // const oldState = stackTop.state;
         var node = stackTop.node;
-        // TODO: Since this is a token, why don't we keep more of the context (even if some redundancy).
-        // Further, is the value the raw text?
-        var begin = context[0];
         var newnode = {
             type: type,
             value: value,
-            lineno: begin[0],
-            col_offset: begin[1],
+            range: new Range_1.Range(new Position_1.Position(begin[0], begin[1]), new Position_1.Position(end[0], end[1])),
             children: null
         };
         if (newnode && node.children) {
             node.children.push(newnode);
         }
-        // TODO: Is it necessary to replace the topmost stack element with a new object.
-        // Can't we simply update the state?
-        // console.log(`oldState = ${oldState} => newState = ${newState}`);
-        // New Code:
         stackTop.state = newState;
-        // Old Code:
-        // this.stack[this.stack.length - 1] = { dfa: dfa, state: newState, node: node };
     };
     /**
      * Push a non-terminal symbol onto the stack as a new node.
@@ -217,22 +205,17 @@ var Parser = (function () {
      * 2. Push a new element onto the stack corresponding to the symbol.
      * The new stack elements uses the newDfa and has state 0.
      */
-    Parser.prototype.pushNonTerminal = function (type, newDfa, newState, context) {
+    Parser.prototype.pushNonTerminal = function (type, newDfa, newState, begin, end, line) {
         // Based on how this function is called, there is really no need for this assertion.
         // Retain it for now while it is not the performance bottleneck.
         // assertNonTerminal(type);
         // Local variable for efficiency.
         var stack = this.stack;
         var stackTop = stack[stack.length - 1];
-        // const dfa = stackTop.dfa;
-        // const node = stackTop.node;
-        // New Code:
         stackTop.state = newState;
-        // Old Code
-        // stack[stack.length - 1] = { dfa: dfa, state: newState, node: node };
-        // TODO: Why don't we retain more of the context? Is `end` not appropriate?
-        var begin = context[0];
-        var newnode = { type: type, value: null, lineno: begin[0], col_offset: begin[1], children: [] };
+        var beginPos = begin ? new Position_1.Position(begin[0], begin[1]) : null;
+        var endPos = end ? new Position_1.Position(end[0], end[1]) : null;
+        var newnode = { type: type, value: null, range: new Range_1.Range(beginPos, endPos), children: [] };
         // TODO: Is there a symbolic constant for the zero state?
         stack.push({ dfa: newDfa, state: 0, node: newnode });
     };
@@ -342,7 +325,8 @@ function makeParser(sourceKind) {
         if (type === T_OP) {
             type = tables_1.OpMap[value];
         }
-        if (p.addtoken(type, value, [start, end, line])) {
+        // FIXME: We're creating an array object here for every token.
+        if (p.addtoken(type, value, start, end, line)) {
             return true;
         }
         return undefined;

@@ -3,6 +3,7 @@ import { SymbolTable } from './SymbolTable';
 import { ModuleBlock } from './SymbolConstants';
 import { Module } from './types';
 import { Statement } from './types';
+import { Range } from './Range';
 
 /**
  * Creates a SymbolTable for the specified Module.
@@ -10,7 +11,7 @@ import { Statement } from './types';
 export function semanticsOfModule(mod: Module): SymbolTable {
     const st = new SymbolTable();
 
-    st.enterBlock("top", ModuleBlock, mod, 0);
+    st.enterBlock("top", ModuleBlock, mod, null);
     st.top = st.cur;
 
     // This is a good place to dump the AST for debugging.
@@ -60,7 +61,7 @@ export interface SymbolInfo {
 export interface SymbolObj {
     get_type(): string;
     get_name(): string;
-    get_lineno(): number;
+    get_range(): Range;
     is_nested(): boolean;
     has_children(): boolean;
     get_methods(): string[];
@@ -98,7 +99,7 @@ export function dumpSymbolTable(st: SymbolTable): string {
         let ret = "";
         ret += indent + "type: '" + obj.get_type() + "'\n";
         ret += indent + "name: '" + obj.get_name() + "'\n";
-        ret += indent + "lineno: " + obj.get_lineno() + "\n";
+        ret += indent + "lineno: " + JSON.stringify(obj.get_range()) + "\n";
         ret += indent + "nested: " + pyBoolStr(obj.is_nested()) + "\n";
         ret += indent + "haschildren: " + pyBoolStr(obj.has_children()) + "\n";
         if (obj.get_type() === "class") {
@@ -138,6 +139,5 @@ export function dumpSymbolTable(st: SymbolTable): string {
         }
         return ret;
     };
-    console.log("dumpSymbolTable()");
     return getIdents(st.top, '');
 }

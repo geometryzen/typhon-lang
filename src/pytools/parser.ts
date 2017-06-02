@@ -7,6 +7,7 @@ import { tokenNames } from './tokenNames';
 import { grammarName } from './grammarName';
 import { parseError } from './syntaxError';
 import { Position } from './Position';
+import { Range } from './Range';
 
 // Dereference certain tokens for performance.
 const T_COMMENT = Tokens.T_COMMENT;
@@ -89,8 +90,7 @@ export interface PyNode {
      */
     type: Tokens;
     value: string | null;
-    begin: Position | null;
-    end: Position | null;
+    range: Range | null;
     used_names?: { [name: string]: boolean };
     children: PyNode[] | null;
 }
@@ -122,8 +122,7 @@ class Parser {
 
         const newnode: PyNode = {
             type: start,
-            begin: null,
-            end: null,
+            range: null,
             value: null,
             children: []
         };
@@ -170,7 +169,7 @@ class Parser {
                 const newState = arc[ARC_TO_STATE];
                 const t = labels[arcSymbol][0];
                 // const v = labels[arcSymbol][1];
-                // console.log(`t => ${t}, v => ${v}`);
+                // console.lg(`t => ${t}, v => ${v}`);
                 if (tokenSymbol === arcSymbol) {
                     this.shiftToken(type, value, newState, begin, end, line);
                     // pop while we are in an accept-only state
@@ -269,35 +268,19 @@ class Parser {
          * The topmost element in the stack is affected by shifting a token.
          */
         const stackTop = stack[stack.length - 1];
-        // const dfa = stackTop.dfa;
-        // const oldState = stackTop.state;
+
         const node = stackTop.node;
-        // TODO: Since this is a token, why don't we keep more of the context (even if some redundancy).
-        // Further, is the value the raw text?
-        // console.log(`line  => "${context[2]}"`);
-        // console.log(`value => "${value}"`);
-        // console.log(`type  => ${tokenNames[type]}`);
-        // console.log(`begin => ${JSON.stringify(begin)}`);
-        // console.log(`end   => ${JSON.stringify(end)}`);
         const newnode: PyNode = {
             type: type,
             value: value,
-            begin: new Position(begin[0], begin[1]),
-            end: new Position(end[0], end[1]),
+            range: new Range(new Position(begin[0], begin[1]), new Position(end[0], end[1])),
             children: null
         };
         if (newnode && node.children) {
             node.children.push(newnode);
         }
-        // TODO: Is it necessary to replace the topmost stack element with a new object.
-        // Can't we simply update the state?
-        // console.log(`oldState = ${oldState} => newState = ${newState}`);
 
-        // New Code:
         stackTop.state = newState;
-
-        // Old Code:
-        // this.stack[this.stack.length - 1] = { dfa: dfa, state: newState, node: node };
     }
 
     /**
@@ -313,18 +296,12 @@ class Parser {
         // Local variable for efficiency.
         const stack = this.stack;
         const stackTop = stack[stack.length - 1];
-        // const dfa = stackTop.dfa;
-        // const node = stackTop.node;
 
-        // New Code:
         stackTop.state = newState;
-        // Old Code
-        // stack[stack.length - 1] = { dfa: dfa, state: newState, node: node };
 
-        // TODO: Why don't we retain more of the context? Is `end` not appropriate?
-        const beginPos = new Position(begin[0], begin[1]);
-        // const endPos = new Position(end[0], end[1]);
-        const newnode: PyNode = { type, value: null, begin: beginPos, end: null, children: [] };
+        const beginPos = begin ? new Position(begin[0], begin[1]) : null;
+        const endPos = end ? new Position(end[0], end[1]) : null;
+        const newnode: PyNode = { type, value: null, range: new Range(beginPos, endPos), children: [] };
 
         // TODO: Is there a symbolic constant for the zero state?
         stack.push({ dfa: newDfa, state: 0, node: newnode });

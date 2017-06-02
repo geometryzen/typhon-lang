@@ -1,6 +1,7 @@
 import { Symbol } from './Symbol';
 import { SymbolTable } from './SymbolTable';
 import { SymbolFlags } from './SymbolConstants';
+import { Range } from './Range';
 export declare type BlockType = 'class' | 'function' | 'module';
 /**
  * A SymbolTableScope is created for nodes in the AST.
@@ -41,7 +42,7 @@ export declare class SymbolTableScope {
     varargs: boolean;
     varkeywords: boolean;
     returnsValue: boolean;
-    lineno: number;
+    range: Range;
     private table;
     private symbols;
     private _classMethods;
@@ -54,14 +55,14 @@ export declare class SymbolTableScope {
      * @param name The name of the node defining the scope.
      * @param blockType
      * @param astNode
-     * @param lineno
+     * @param range
      */
     constructor(table: SymbolTable, name: string, blockType: BlockType, astNode: {
         scopeId: number;
-    }, lineno: number);
+    }, range: Range);
     get_type(): BlockType;
     get_name(): string;
-    get_lineno(): number;
+    get_range(): Range;
     is_nested(): boolean;
     has_children(): boolean;
     get_identifiers(): string[];

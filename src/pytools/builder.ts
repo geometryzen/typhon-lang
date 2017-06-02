@@ -99,7 +99,7 @@ import { Tokens as TOK } from './Tokens';
 import { floatAST, intAST, longAST } from './numericLiteral';
 import { INumericLiteral } from './types';
 import { PyNode } from './parser';
-import { Position } from './Position';
+import { Range } from './Range';
 // import { parseTreeDump } from './parser';
 import { grammarName } from './grammarName';
 
@@ -122,11 +122,11 @@ const LONG_THRESHOLD = Math.pow(2, 53);
 /**
  * FIXME: Consolidate with parseError in parser.
  */
-function syntaxError(message: string, begin: Position, end: Position): SyntaxError {
+function syntaxError(message: string, range: Range): SyntaxError {
     assert(isString(message), "message must be a string");
-    assert(isNumber(begin.line), "lineNumber must be a number");
+    assert(isNumber(range.begin.line), "lineNumber must be a number");
     const e = new SyntaxError(message/*, fileName*/);
-    e['lineNumber'] = begin.line;
+    e['lineNumber'] = range.begin.line;
     return e;
 }
 
@@ -198,9 +198,9 @@ function numStmts(n: PyNode): number {
     }
 }
 
-function forbiddenCheck(c: Compiling, n: PyNode, x: string | undefined, begin: Position, end: Position): void {
-    if (x === "None") throw syntaxError("assignment to None", begin, end);
-    if (x === "True" || x === "False") throw syntaxError("assignment to True or False is forbidden", begin, end);
+function forbiddenCheck(c: Compiling, n: PyNode, x: string | undefined, range: Range): void {
+    if (x === "None") throw syntaxError("assignment to None", range);
+    if (x === "True" || x === "False") throw syntaxError("assignment to True or False is forbidden", range);
 }
 
 /**
@@ -215,11 +215,11 @@ function setContext(c: Compiling, e: Expression, ctx: Store, n: PyNode): void {
     let exprName: string = null;
 
     if (e instanceof Attribute) {
-        if (ctx === Store) forbiddenCheck(c, n, e.attr, n.begin, n.end);
+        if (ctx === Store) forbiddenCheck(c, n, e.attr, n.range);
         e.ctx = ctx;
     }
     else if (e instanceof Name) {
-        if (ctx === Store) forbiddenCheck(c, n, /*e.attr*/void 0, n.begin, n.end);
+        if (ctx === Store) forbiddenCheck(c, n, /*e.attr*/void 0, n.range);
         e.ctx = ctx;
     }
     else if (e instanceof Subscript) {
@@ -231,7 +231,7 @@ function setContext(c: Compiling, e: Expression, ctx: Store, n: PyNode): void {
     }
     else if (e instanceof Tuple) {
         if (e.elts.length === 0) {
-            throw syntaxError("can't assign to ()", n.begin, n.end);
+            throw syntaxError("can't assign to ()", n.range);
         }
         e.ctx = ctx;
         s = e.elts;
@@ -279,7 +279,7 @@ function setContext(c: Compiling, e: Expression, ctx: Store, n: PyNode): void {
 
     }
     if (exprName) {
-        throw syntaxError("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, n.begin, n.end);
+        throw syntaxError("can't " + (ctx === Store ? "assign to" : "delete") + " " + exprName, n.range);
     }
 
     if (s) {
@@ -307,9 +307,9 @@ const operatorMap: { [token: number]: Operator } = {};
     operatorMap[TOK.T_PERCENT] = Mod;
 }());
 
-function getOperator(n: PyNode): Operator {
+function getOperator(n: PyNode): { op: Operator; range: Range } {
     assert(operatorMap[n.type] !== undefined, `${n.type}`);
-    return operatorMap[n.type];
+    return { op: operatorMap[n.type], range: n.range };
 }
 
 function astForCompOp(c: Compiling, n: PyNode): Lt | Gt | Eq | LtE | GtE | NotEq | In | Is | NotIn | IsNot {
@@ -402,14 +402,15 @@ function astForExceptClause(c: Compiling, exc: PyNode, body: PyNode): ExceptHand
     /* except_clause: 'except' [test [(',' | 'as') test]] */
     REQ(exc, SYM.except_clause);
     REQ(body, SYM.suite);
-    if (NCH(exc) === 1)
-        return new ExceptHandler(null, null, astForSuite(c, body), exc.begin.line, exc.begin.column);
+    if (NCH(exc) === 1) {
+        return new ExceptHandler(null, null, astForSuite(c, body), exc.range);
+    }
     else if (NCH(exc) === 2)
-        return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.begin.line, exc.begin.column);
+        return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), null, astForSuite(c, body), exc.range);
     else if (NCH(exc) === 4) {
         const e = astForExpr(c, CHILD(exc, 3));
         setContext(c, e, Store, CHILD(exc, 3));
-        return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.begin.line, exc.begin.column);
+        return new ExceptHandler(astForExpr(c, CHILD(exc, 1)), e, astForSuite(c, body), exc.range);
     }
     else {
         throw new Error("wrong number of children for except clause");
@@ -445,14 +446,15 @@ function astForTryStmt(c: Compiling, n: PyNode): TryExcept | TryFinally {
         }
     }
     else if (CHILD(n, nc - 3).type !== SYM.except_clause) {
-        throw syntaxError("malformed 'try' statement", n.begin, n.end);
+        throw syntaxError("malformed 'try' statement", n.range);
     }
 
     if (nexcept > 0) {
         const handlers: ExceptHandler[] = [];
-        for (let i = 0; i < nexcept; ++i)
+        for (let i = 0; i < nexcept; ++i) {
             handlers[i] = astForExceptClause(c, CHILD(n, 3 + i * 3), CHILD(n, 5 + i * 3));
-        const exceptSt = new TryExcept(body, handlers, orelse, n.begin.line, n.begin.column);
+        }
+        const exceptSt = new TryExcept(body, handlers, orelse, n.range);
 
         if (!finally_)
             return exceptSt;
@@ -463,17 +465,17 @@ function astForTryStmt(c: Compiling, n: PyNode): TryExcept | TryFinally {
     }
 
     assert(finally_ !== null);
-    return new TryFinally(body, finally_ as Statement[], n.begin.line, n.begin.column);
+    return new TryFinally(body, finally_ as Statement[], n.range);
 }
 
 
 function astForDottedName(c: Compiling, n: PyNode): Attribute | Name {
     REQ(n, SYM.dotted_name);
     let id = strobj(CHILD(n, 0).value as string);
-    let e: Attribute | Name = new Name(id, Load, n.begin, n.end);
+    let e: Attribute | Name = new Name(id, Load, n.range);
     for (let i = 2; i < NCH(n); i += 2) {
         id = strobj(CHILD(n, i).value as string);
-        e = new Attribute(e, id, Load, n.begin, n.end);
+        e = new Attribute(e, id, Load, n.range);
     }
     return e;
 }
@@ -487,7 +489,7 @@ function astForDecorator(c: Compiling, n: PyNode): Attribute | Call | Name {
     if (NCH(n) === 3) // no args
         return nameExpr;
     else if (NCH(n) === 5) // call with no args
-        return new Call(nameExpr, [], [], null, null, n.begin, n.end);
+        return new Call(nameExpr, [], [], null, null, n.range);
     else
         return astForCall(c, CHILD(n, 3), nameExpr);
 }
@@ -517,8 +519,8 @@ function astForDecorated(c: Compiling, n: PyNode): FunctionDef | ClassDef {
         throw new Error("astForDecorated");
     }
     if (thing) {
-        thing.lineno = n.begin.line;
-        thing.col_offset = n.begin.column;
+        // FIXME: Pass into functions above?
+        // thing.range = n.range;
     }
     return thing as (FunctionDef | ClassDef);
 }
@@ -539,7 +541,7 @@ function astForWithStmt(c: Compiling, n: PyNode): WithStatement {
         setContext(c, optionalVars, Store, n);
         suiteIndex = 4;
     }
-    return new WithStatement(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.begin.line, n.begin.column);
+    return new WithStatement(contextExpr, optionalVars, astForSuite(c, CHILD(n, suiteIndex)), n.range);
 }
 
 function astForExecStmt(c: Compiling, n: PyNode): Exec {
@@ -557,7 +559,7 @@ function astForExecStmt(c: Compiling, n: PyNode): Exec {
     if (nchildren === 6) {
         locals = astForExpr(c, CHILD(n, 5));
     }
-    return new Exec(expr1, globals, locals, n.begin.line, n.begin.column);
+    return new Exec(expr1, globals, locals, n.range);
 }
 
 function astForIfStmt(c: Compiling, n: PyNode): IfStatement {
@@ -569,7 +571,7 @@ function astForIfStmt(c: Compiling, n: PyNode): IfStatement {
         return new IfStatement(
             astForExpr(c, CHILD(n, 1)),
             astForSuite(c, CHILD(n, 3)),
-            [], n.begin.line, n.begin.column);
+            [], n.range);
 
     const s = CHILD(n, 4).value;
     const decider = s.charAt(2); // elSe or elIf
@@ -578,7 +580,7 @@ function astForIfStmt(c: Compiling, n: PyNode): IfStatement {
             astForExpr(c, CHILD(n, 1)),
             astForSuite(c, CHILD(n, 3)),
             astForSuite(c, CHILD(n, 6)),
-            n.begin.line, n.begin.column);
+            n.range);
     }
     else if (decider === 'i') {
         let nElif = NCH(n) - 4;
@@ -598,8 +600,7 @@ function astForIfStmt(c: Compiling, n: PyNode): IfStatement {
                     astForExpr(c, CHILD(n, NCH(n) - 6)),
                     astForSuite(c, CHILD(n, NCH(n) - 4)),
                     astForSuite(c, CHILD(n, NCH(n) - 1)),
-                    CHILD(n, NCH(n) - 6).begin.line,
-                    CHILD(n, NCH(n) - 6).begin.column)];
+                    CHILD(n, NCH(n) - 6).range)];
             nElif--;
         }
 
@@ -610,13 +611,12 @@ function astForIfStmt(c: Compiling, n: PyNode): IfStatement {
                     astForExpr(c, CHILD(n, off)),
                     astForSuite(c, CHILD(n, off + 2)),
                     orelse,
-                    CHILD(n, off).begin.line,
-                    CHILD(n, off).begin.column)];
+                    CHILD(n, off).range)];
         }
         return new IfStatement(
             astForExpr(c, CHILD(n, 1)),
             astForSuite(c, CHILD(n, 3)),
-            orelse, n.begin.line, n.begin.column);
+            orelse, n.range);
     }
     throw new Error("unexpected token in 'if' statement");
 }
@@ -634,7 +634,7 @@ function astForExprlist(c: Compiling, n: PyNode, context: Del | Store): Expressi
 
 function astForDelStmt(c: Compiling, n: PyNode): DeleteStatement {
     REQ(n, SYM.del_stmt);
-    return new DeleteStatement(astForExprlist(c, CHILD(n, 1), Del), n.begin.line, n.begin.column);
+    return new DeleteStatement(astForExprlist(c, CHILD(n, 1), Del), n.range);
 }
 
 function astForGlobalStmt(c: Compiling, n: PyNode): Global {
@@ -643,7 +643,7 @@ function astForGlobalStmt(c: Compiling, n: PyNode): Global {
     for (let i = 1; i < NCH(n); i += 2) {
         s[(i - 1) / 2] = strobj(CHILD(n, i).value);
     }
-    return new Global(s, n.begin.line, n.begin.column);
+    return new Global(s, n.range);
 }
 
 function astForNonLocalStmt(c: Compiling, n: PyNode): NonLocal {
@@ -652,17 +652,17 @@ function astForNonLocalStmt(c: Compiling, n: PyNode): NonLocal {
     for (let i = 1; i < NCH(n); i += 2) {
         s[(i - 1) / 2] = strobj(CHILD(n, i).value);
     }
-    return new NonLocal(s, n.begin.line, n.begin.column);
+    return new NonLocal(s, n.range);
 }
 
 function astForAssertStmt(c: Compiling, n: PyNode): Assert {
     /* assert_stmt: 'assert' test [',' test] */
     REQ(n, SYM.assert_stmt);
     if (NCH(n) === 2) {
-        return new Assert(astForExpr(c, CHILD(n, 1)), null, n.begin.line, n.begin.column);
+        return new Assert(astForExpr(c, CHILD(n, 1)), null, n.range);
     }
     else if (NCH(n) === 4) {
-        return new Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.begin.line, n.begin.column);
+        return new Assert(astForExpr(c, CHILD(n, 1)), astForExpr(c, CHILD(n, 3)), n.range);
     }
     throw new Error("improper number of parts to assert stmt");
 }
@@ -713,7 +713,7 @@ function aliasForImportName(c: Compiling, n: PyNode): Alias {
                 return new Alias(strobj(n.value), null);
             }
             default: {
-                throw syntaxError(`unexpected import name ${grammarName(n.type)}`, n.begin, n.end);
+                throw syntaxError(`unexpected import name ${grammarName(n.type)}`, n.range);
             }
         }
     }
@@ -733,8 +733,6 @@ function parseModuleSpecifier(c: Compiling, moduleSpecifierNode: PyNode): string
 
 function astForImportStmt(c: Compiling, importStatementNode: PyNode): ImportStatement | ImportFrom {
     REQ(importStatementNode, SYM.import_stmt);
-    let lineno = importStatementNode.begin.line;
-    const col_offset = importStatementNode.begin.column;
     let nameOrFrom = CHILD(importStatementNode, 0);
     if (nameOrFrom.type === SYM.import_name) {
         const n = CHILD(nameOrFrom, 1);
@@ -743,7 +741,7 @@ function astForImportStmt(c: Compiling, importStatementNode: PyNode): ImportStat
         for (let i = 0; i < NCH(n); i += 2) {
             aliases[i / 2] = aliasForImportName(c, CHILD(n, i));
         }
-        return new ImportStatement(aliases, lineno, col_offset);
+        return new ImportStatement(aliases, importStatementNode.range);
     }
     else if (nameOrFrom.type === SYM.import_from) {
         let mod: Alias = null;
@@ -756,7 +754,7 @@ function astForImportStmt(c: Compiling, importStatementNode: PyNode): ImportStat
             const childType = child.type;
             if (childType === SYM.dotted_name) {
                 // This should be dead code since we support ECMAScript 2015 modules.
-                throw syntaxError(`unknown import statement ${grammarName(childType)}.`, child.begin, child.end);
+                throw syntaxError(`unknown import statement ${grammarName(childType)}.`, child.range);
                 // mod = aliasForImportName(c, child);
                 // idx++;
                 // break;
@@ -767,7 +765,7 @@ function astForImportStmt(c: Compiling, importStatementNode: PyNode): ImportStat
             }
             else if (childType !== TOK.T_DOT) {
                 // Let's be more specific...
-                throw syntaxError(`unknown import statement ${grammarName(childType)}.`, child.begin, child.end);
+                throw syntaxError(`unknown import statement ${grammarName(childType)}.`, child.range);
                 // break;
             }
             ndots++;
@@ -792,7 +790,7 @@ function astForImportStmt(c: Compiling, importStatementNode: PyNode): ImportStat
                 n = CHILD(n, idx);
                 nchildren = NCH(n);
                 if (nchildren % 2 === 0)
-                    throw syntaxError("trailing comma not allowed without surrounding parentheses", n.begin, n.end);
+                    throw syntaxError("trailing comma not allowed without surrounding parentheses", n.range);
             }
         }
         const aliases: Alias[] = [];
@@ -805,10 +803,10 @@ function astForImportStmt(c: Compiling, importStatementNode: PyNode): ImportStat
             astForImportList(c, importListNode, aliases);
         }
         moduleName = mod ? mod.name : moduleName;
-        return new ImportFrom(strobj(moduleName), aliases, ndots, lineno, col_offset);
+        return new ImportFrom(strobj(moduleName), aliases, ndots, importStatementNode.range);
     }
     else {
-        throw syntaxError(`unknown import statement ${grammarName(nameOrFrom.type)}.`, nameOrFrom.begin, nameOrFrom.end);
+        throw syntaxError(`unknown import statement ${grammarName(nameOrFrom.type)}.`, nameOrFrom.range);
     }
 }
 
@@ -892,7 +890,7 @@ function astForListcomp(c: Compiling, n: PyNode): ListComp {
         if (NCH(forch) === 1)
             lc = new Comprehension(t[0], expression, []);
         else
-            lc = new Comprehension(new Tuple(t, Store, ch.begin.line, ch.begin.column), expression, []);
+            lc = new Comprehension(new Tuple(t, Store, ch.range), expression, []);
 
         if (NCH(ch) === 5) {
             ch = CHILD(ch, 4);
@@ -912,7 +910,7 @@ function astForListcomp(c: Compiling, n: PyNode): ListComp {
         }
         listcomps[i] = lc;
     }
-    return new ListComp(elt, listcomps, n.begin.line, n.begin.column);
+    return new ListComp(elt, listcomps, n.range);
 }
 
 function astForUnaryExpr(c: Compiling, n: PyNode): Expression {
@@ -935,9 +933,9 @@ function astForUnaryExpr(c: Compiling, n: PyNode): Expression {
 
     const expression = astForExpr(c, CHILD(n, 1));
     switch (CHILD(n, 0).type) {
-        case TOK.T_PLUS: return new UnaryOp(UAdd, expression, n.begin.line, n.begin.column);
-        case TOK.T_MINUS: return new UnaryOp(USub, expression, n.begin.line, n.begin.column);
-        case TOK.T_TILDE: return new UnaryOp(Invert, expression, n.begin.line, n.begin.column);
+        case TOK.T_PLUS: return new UnaryOp(UAdd, expression, n.range);
+        case TOK.T_MINUS: return new UnaryOp(USub, expression, n.range);
+        case TOK.T_TILDE: return new UnaryOp(Invert, expression, n.range);
     }
 
     throw new Error("unhandled UnaryExpr");
@@ -955,12 +953,12 @@ function astForForStmt(c: Compiling, n: PyNode): ForStatement {
     if (NCH(nodeTarget) === 1)
         target = _target[0];
     else
-        target = new Tuple(_target, Store, n.begin.line, n.begin.column);
+        target = new Tuple(_target, Store, n.range);
 
     return new ForStatement(target,
         astForTestlist(c, CHILD(n, 3)),
         astForSuite(c, CHILD(n, 5)),
-        seq, n.begin.line, n.begin.column);
+        seq, n.range);
 }
 
 function astForCall(c: Compiling, n: PyNode, func: Attribute | Name): Call {
@@ -982,9 +980,9 @@ function astForCall(c: Compiling, n: PyNode, func: Attribute | Name): Call {
         }
     }
     if (ngens > 1 || (ngens && (nargs || nkeywords)))
-        throw syntaxError("Generator expression must be parenthesized if not sole argument", n.begin, n.end);
+        throw syntaxError("Generator expression must be parenthesized if not sole argument", n.range);
     if (nargs + nkeywords + ngens > 255)
-        throw syntaxError("more than 255 arguments", n.begin, n.end);
+        throw syntaxError("more than 255 arguments", n.range);
     const args: Expression[] = [];
     const keywords: Keyword[] = [];
     nargs = 0;
@@ -995,21 +993,21 @@ function astForCall(c: Compiling, n: PyNode, func: Attribute | Name): Call {
         const ch = CHILD(n, i);
         if (ch.type === SYM.argument) {
             if (NCH(ch) === 1) {
-                if (nkeywords) throw syntaxError("non-keyword arg after keyword arg", n.begin, n.end);
-                if (vararg) throw syntaxError("only named arguments may follow *expression", n.begin, n.end);
+                if (nkeywords) throw syntaxError("non-keyword arg after keyword arg", n.range);
+                if (vararg) throw syntaxError("only named arguments may follow *expression", n.range);
                 args[nargs++] = astForExpr(c, CHILD(ch, 0));
             }
             else if (CHILD(ch, 1).type === SYM.gen_for)
                 args[nargs++] = astForGenexp(c, ch);
             else {
                 const e = astForExpr(c, CHILD(ch, 0));
-                if (e.constructor === Lambda) throw syntaxError("lambda cannot contain assignment", n.begin, n.end);
-                else if (e.constructor !== Name) throw syntaxError("keyword can't be an expression", n.begin, n.end);
+                if (e.constructor === Lambda) throw syntaxError("lambda cannot contain assignment", n.range);
+                else if (e.constructor !== Name) throw syntaxError("keyword can't be an expression", n.range);
                 const key = e.id;
-                forbiddenCheck(c, CHILD(ch, 0), key, n.begin, n.end);
+                forbiddenCheck(c, CHILD(ch, 0), key, n.range);
                 for (let k = 0; k < nkeywords; ++k) {
                     const tmp = keywords[k].arg;
-                    if (tmp === key) throw syntaxError("keyword argument repeated", n.begin, n.end);
+                    if (tmp === key) throw syntaxError("keyword argument repeated", n.range);
                 }
                 keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
             }
@@ -1019,7 +1017,7 @@ function astForCall(c: Compiling, n: PyNode, func: Attribute | Name): Call {
         else if (ch.type === TOK.T_DOUBLESTAR)
             kwarg = astForExpr(c, CHILD(n, ++i));
     }
-    return new Call(func, args, keywords, vararg, kwarg, func.begin, func.end);
+    return new Call(func, args, keywords, vararg, kwarg, func.range);
 }
 
 function astForTrailer(c: Compiling, n: PyNode, leftExpr: Attribute | Name): Attribute | Call | Subscript {
@@ -1030,18 +1028,18 @@ function astForTrailer(c: Compiling, n: PyNode, leftExpr: Attribute | Name): Att
     REQ(n, SYM.trailer);
     if (CHILD(n, 0).type === TOK.T_LPAR) {
         if (NCH(n) === 2)
-            return new Call(leftExpr, [], [], null, null, n.begin, n.end);
+            return new Call(leftExpr, [], [], null, null, n.range);
         else
             return astForCall(c, CHILD(n, 1), leftExpr);
     }
     else if (CHILD(n, 0).type === TOK.T_DOT)
-        return new Attribute(leftExpr, strobj(CHILD(n, 1).value), Load, n.begin, n.end);
+        return new Attribute(leftExpr, strobj(CHILD(n, 1).value), Load, n.range);
     else {
         REQ(CHILD(n, 0), TOK.T_LSQB);
         REQ(CHILD(n, 2), TOK.T_RSQB);
         n = CHILD(n, 1);
         if (NCH(n) === 1)
-            return new Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), Load, n.begin.line, n.begin.column);
+            return new Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), Load, n.range);
         else {
             /* The grammar is ambiguous here. The ambiguity is resolved
                 by treating the sequence as a tuple literal if there are
@@ -1057,7 +1055,7 @@ function astForTrailer(c: Compiling, n: PyNode, leftExpr: Attribute | Name): Att
                 slices[j / 2] = slc;
             }
             if (!simple) {
-                return new Subscript(leftExpr, new ExtSlice(slices), Load, n.begin.line, n.begin.column);
+                return new Subscript(leftExpr, new ExtSlice(slices), Load, n.range);
             }
             const elts: Tuple[] = [];
             for (let j = 0; j < slices.length; ++j) {
@@ -1070,8 +1068,8 @@ function astForTrailer(c: Compiling, n: PyNode, leftExpr: Attribute | Name): Att
                     assert(slc instanceof Index);
                 }
             }
-            const e = new Tuple(elts, Load, n.begin.line, n.begin.column);
-            return new Subscript(leftExpr, new Index(e), Load, n.begin.line, n.begin.column);
+            const e = new Tuple(elts, Load, n.range);
+            return new Subscript(leftExpr, new Index(e), Load, n.range);
         }
     }
 }
@@ -1080,31 +1078,31 @@ function astForFlowStmt(c: Compiling, n: PyNode): BreakStatement | ExpressionSta
     REQ(n, SYM.flow_stmt);
     const ch = CHILD(n, 0);
     switch (ch.type) {
-        case SYM.break_stmt: return new BreakStatement(n.begin.line, n.begin.column);
-        case SYM.continue_stmt: return new ContinueStatement(n.begin.line, n.begin.column);
+        case SYM.break_stmt: return new BreakStatement(n.range);
+        case SYM.continue_stmt: return new ContinueStatement(n.range);
         case SYM.yield_stmt:
-            return new ExpressionStatement(astForExpr(c, CHILD(ch, 0)), n.begin.line, n.begin.column);
+            return new ExpressionStatement(astForExpr(c, CHILD(ch, 0)), n.range);
         case SYM.return_stmt:
             if (NCH(ch) === 1)
-                return new ReturnStatement(null, n.begin.line, n.begin.column);
+                return new ReturnStatement(null, n.range);
             else
-                return new ReturnStatement(astForTestlist(c, CHILD(ch, 1)), n.begin.line, n.begin.column);
+                return new ReturnStatement(astForTestlist(c, CHILD(ch, 1)), n.range);
         case SYM.raise_stmt: {
             if (NCH(ch) === 1)
-                return new Raise(null, null, null, n.begin.line, n.begin.column);
+                return new Raise(null, null, null, n.range);
             else if (NCH(ch) === 2)
-                return new Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.begin.line, n.begin.column);
+                return new Raise(astForExpr(c, CHILD(ch, 1)), null, null, n.range);
             else if (NCH(ch) === 4)
                 return new Raise(
                     astForExpr(c, CHILD(ch, 1)),
                     astForExpr(c, CHILD(ch, 3)),
-                    null, n.begin.line, n.begin.column);
+                    null, n.range);
             else if (NCH(ch) === 6)
                 return new Raise(
                     astForExpr(c, CHILD(ch, 1)),
                     astForExpr(c, CHILD(ch, 3)),
                     astForExpr(c, CHILD(ch, 5)),
-                    n.begin.line, n.begin.column);
+                    n.range);
             else {
                 throw new Error("unhandled flow statement");
             }
@@ -1156,15 +1154,15 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
                         /* def f((x)=4): pass should raise an error.
                             def f((x, (y))): pass will just incur the tuple unpacking warning. */
                         if (parenthesized && !complexArgs)
-                            throw syntaxError("parenthesized arg with default", n.begin, n.end);
-                        throw syntaxError("non-default argument follows default argument", n.begin, n.end);
+                            throw syntaxError("parenthesized arg with default", n.range);
+                        throw syntaxError("non-default argument follows default argument", n.range);
                     }
 
                     if (NCH(ch) === 3) {
                         ch = CHILD(ch, 1);
                         // def foo((x)): is not complex, special case.
                         if (NCH(ch) !== 1) {
-                            throw syntaxError("tuple parameter unpacking has been removed", n.begin, n.end);
+                            throw syntaxError("tuple parameter unpacking has been removed", n.range);
                         }
                         else {
                             /* def foo((x)): setup for checking NAME below. */
@@ -1177,23 +1175,23 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
                         }
                     }
                     if (CHILD(ch, 0).type === TOK.T_NAME) {
-                        forbiddenCheck(c, n, CHILD(ch, 0).value, n.begin, n.end);
+                        forbiddenCheck(c, n, CHILD(ch, 0).value, n.range);
                         const id = strobj(CHILD(ch, 0).value);
-                        args[k++] = new Name(id, Param, ch.begin, ch.end);
+                        args[k++] = new Name(id, Param, ch.range);
                     }
                     i += 2;
                     if (parenthesized)
-                        throw syntaxError("parenthesized argument names are invalid", n.begin, n.end);
+                        throw syntaxError("parenthesized argument names are invalid", n.range);
                     break;
                 }
                 break;
             case TOK.T_STAR:
-                forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.begin, n.end);
+                forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.range);
                 vararg = strobj(CHILD(n, i + 1).value);
                 i += 3;
                 break;
             case TOK.T_DOUBLESTAR:
-                forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.begin, n.end);
+                forbiddenCheck(c, CHILD(n, i + 1), CHILD(n, i + 1).value, n.range);
                 kwarg = strobj(CHILD(n, i + 1).value);
                 i += 3;
                 break;
@@ -1209,10 +1207,10 @@ function astForFuncdef(c: Compiling, n: PyNode, decoratorSeq: (Attribute | Call 
     /* funcdef: 'def' NAME parameters ':' suite */
     REQ(n, SYM.funcdef);
     const name = strobj(CHILD(n, 1).value);
-    forbiddenCheck(c, CHILD(n, 1), CHILD(n, 1).value, n.begin, n.end);
+    forbiddenCheck(c, CHILD(n, 1), CHILD(n, 1).value, n.range);
     const args = astForArguments(c, CHILD(n, 2));
     const body = astForSuite(c, CHILD(n, 4));
-    return new FunctionDef(name, args, body, decoratorSeq, n.begin.line, n.begin.column);
+    return new FunctionDef(name, args, body, decoratorSeq, n.range);
 }
 
 function astForClassBases(c: Compiling, n: PyNode): Expression[] {
@@ -1224,20 +1222,24 @@ function astForClassBases(c: Compiling, n: PyNode): Expression[] {
     return seqForTestlist(c, n);
 }
 
-function astForClassdef(c: Compiling, n: PyNode, decoratorSeq: (Attribute | Call | Name)[]) {
+function astForClassdef(c: Compiling, node: PyNode, decoratorSeq: (Attribute | Call | Name)[]) {
+    const n = node;
     REQ(n, SYM.classdef);
-    forbiddenCheck(c, n, CHILD(n, 1).value, n.begin, n.end);
-    const classname = strobj(CHILD(n, 1).value);
+    const c1 = CHILD(n, 1);
+    forbiddenCheck(c, n, c1.value, n.range);
+    const className = strobj(c1.value);
+    const nameRange = c1.range;
     if (NCH(n) === 4) {
-        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.begin.line, n.begin.column);
+        return new ClassDef(className, nameRange, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
     }
-    if (CHILD(n, 3).type === TOK.T_RPAR) {
-        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.begin.line, n.begin.column);
+    const c3 = CHILD(n, 3);
+    if (c3.type === TOK.T_RPAR) {
+        return new ClassDef(className, nameRange, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
     }
 
-    const bases = astForClassBases(c, CHILD(n, 3));
+    const bases = astForClassBases(c, c3);
     const s = astForSuite(c, CHILD(n, 6));
-    return new ClassDef(classname, bases, s, decoratorSeq, n.begin.line, n.begin.column);
+    return new ClassDef(className, nameRange, bases, s, decoratorSeq, n.range);
 }
 
 function astForLambdef(c: Compiling, n: PyNode): Lambda {
@@ -1251,7 +1253,7 @@ function astForLambdef(c: Compiling, n: PyNode): Lambda {
         args = astForArguments(c, CHILD(n, 1));
         expression = astForExpr(c, CHILD(n, 3));
     }
-    return new Lambda(args, expression, n.begin.line, n.begin.column);
+    return new Lambda(args, expression, n.range);
 }
 
 function astForGenexp(c: Compiling, n: PyNode): GeneratorExp {
@@ -1318,7 +1320,7 @@ function astForGenexp(c: Compiling, n: PyNode): GeneratorExp {
         if (NCH(forch) === 1)
             ge = new Comprehension(t[0], expression, []);
         else
-            ge = new Comprehension(new Tuple(t, Store, ch.begin.line, ch.begin.column), expression, []);
+            ge = new Comprehension(new Tuple(t, Store, ch.range), expression, []);
         if (NCH(ch) === 5) {
             ch = CHILD(ch, 4);
             const nifs = countGenIfs(c, ch);
@@ -1338,16 +1340,16 @@ function astForGenexp(c: Compiling, n: PyNode): GeneratorExp {
         }
         genexps[i] = ge;
     }
-    return new GeneratorExp(elt, genexps, n.begin.line, n.begin.column);
+    return new GeneratorExp(elt, genexps, n.range);
 }
 
 function astForWhileStmt(c: Compiling, n: PyNode): WhileStatement {
     /* while_stmt: 'while' test ':' suite ['else' ':' suite] */
     REQ(n, SYM.while_stmt);
     if (NCH(n) === 4)
-        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.begin.line, n.begin.column);
+        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), [], n.range);
     else if (NCH(n) === 7)
-        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.begin.line, n.begin.column);
+        return new WhileStatement(astForExpr(c, CHILD(n, 1)), astForSuite(c, CHILD(n, 3)), astForSuite(c, CHILD(n, 6)), n.range);
     throw new Error("wrong number of tokens for 'while' stmt");
 }
 
@@ -1389,13 +1391,12 @@ function astForBinop(c: Compiling, n: PyNode): BinOp {
         How should A op B op C by represented?
         BinOp(BinOp(A, op, B), op, C).
     */
-    let result = new BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.begin, n.end);
+    let result = new BinOp(astForExpr(c, CHILD(n, 0)), getOperator(CHILD(n, 1)), astForExpr(c, CHILD(n, 2)), n.range);
     const nops = (NCH(n) - 1) / 2;
     for (let i = 1; i < nops; ++i) {
         const nextOper = CHILD(n, i * 2 + 1);
-        const newoperator = getOperator(nextOper);
         const tmp = astForExpr(c, CHILD(n, i * 2 + 2));
-        result = new BinOp(result, newoperator, tmp, nextOper.begin, nextOper.end);
+        result = new BinOp(result, getOperator(nextOper), tmp, nextOper.range);
     }
     return result;
 
@@ -1420,30 +1421,33 @@ function astForTestlist(c: Compiling, n: PyNode): Expression | Tuple {
         return astForExpr(c, CHILD(n, 0));
     }
     else {
-        return new Tuple(seqForTestlist(c, n), Load, n.begin.line, n.begin.column);
+        return new Tuple(seqForTestlist(c, n), Load, n.range);
     }
 
 }
 
-function astForExprStmt(c: Compiling, n: PyNode): ExpressionStatement {
+function astForExprStmt(c: Compiling, node: PyNode): Assign | ExpressionStatement {
+    // Prevent assignment.
+    const n = node;
     REQ(n, SYM.ExprStmt);
-    if (NCH(n) === 1)
-        return new ExpressionStatement(astForTestlist(c, CHILD(n, 0)), n.begin.line, n.begin.column);
+    if (NCH(n) === 1) {
+        return new ExpressionStatement(astForTestlist(c, CHILD(n, 0)), n.range);
+    }
     else if (CHILD(n, 1).type === SYM.augassign) {
         let ch = CHILD(n, 0);
         const expr1 = astForTestlist(c, ch);
         switch (expr1.constructor) {
-            case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.begin, n.end);
-            case Yield: throw syntaxError("augmented assignment to yield expression not possible", n.begin, n.end);
+            case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.range);
+            case Yield: throw syntaxError("augmented assignment to yield expression not possible", n.range);
             case Name:
                 const varName = expr1.id;
-                forbiddenCheck(c, ch, varName, n.begin, n.end);
+                forbiddenCheck(c, ch, varName, n.range);
                 break;
             case Attribute:
             case Subscript:
                 break;
             default:
-                throw syntaxError("illegal expression for augmented assignment", n.begin, n.end);
+                throw syntaxError("illegal expression for augmented assignment", n.range);
         }
         setContext(c, expr1, Store, ch);
 
@@ -1454,26 +1458,28 @@ function astForExprStmt(c: Compiling, n: PyNode): ExpressionStatement {
         else
             expr2 = astForExpr(c, ch);
 
-        return new AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.begin.line, n.begin.column);
+        return new AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.range);
     }
     else {
         // normal assignment
-        REQ(CHILD(n, 1), TOK.T_EQUAL);
-        const targets = [];
-        for (let i = 0; i < NCH(n) - 2; i += 2) {
+        const eq = CHILD(n, 1);
+        REQ(eq, TOK.T_EQUAL);
+        const targets: Expression[] = [];
+        const N = NCH(n);
+        for (let i = 0; i < N - 2; i += 2) {
             const ch = CHILD(n, i);
-            if (ch.type === SYM.YieldExpr) throw syntaxError("assignment to yield expression not possible", n.begin, n.end);
+            if (ch.type === SYM.YieldExpr) throw syntaxError("assignment to yield expression not possible", n.range);
             const e = astForTestlist(c, ch);
             setContext(c, e, Store, CHILD(n, i));
             targets[i / 2] = e;
         }
-        const value = CHILD(n, NCH(n) - 1);
+        const value = CHILD(n, N - 1);
         let expression: Expression;
         if (value.type === SYM.testlist)
             expression = astForTestlist(c, value);
         else
             expression = astForExpr(c, value);
-        return new Assign(targets, expression, n.begin.line, n.begin.column);
+        return new Assign(targets, expression, n.range, eq.range);
     }
 }
 
@@ -1483,7 +1489,7 @@ function astForIfexpr(c: Compiling, n: PyNode): IfExp {
         astForExpr(c, CHILD(n, 2)),
         astForExpr(c, CHILD(n, 0)),
         astForExpr(c, CHILD(n, 4)),
-        n.begin.line, n.begin.column);
+        n.range);
 }
 
 // escape() was deprecated in JavaScript 1.5. Use encodeURI or encodeURIComponent instead.
@@ -1581,17 +1587,17 @@ function parsestrplus(c: Compiling, n: PyNode): string {
             ret = ret + parsestr(c, child.value);
         }
         catch (x) {
-            throw syntaxError("invalid string (possibly contains a unicode character)", child.begin, child.end);
+            throw syntaxError("invalid string (possibly contains a unicode character)", child.range);
         }
     }
     return ret;
 }
 
-function parsenumber(c: Compiling, s: string, begin: Position, endPos: Position): INumericLiteral {
+function parsenumber(c: Compiling, s: string, range: Range): INumericLiteral {
     const endChar = s.charAt(s.length - 1);
 
     if (endChar === 'j' || endChar === 'J') {
-        throw syntaxError("complex numbers are currently unsupported", begin, endPos);
+        throw syntaxError("complex numbers are currently unsupported", range);
     }
 
     if (s.indexOf('.') !== -1) {
@@ -1706,7 +1712,7 @@ function astForSlice(c: Compiling, n: PyNode): Ellipsis | Index | Name | Slice {
     if (ch.type === SYM.sliceop) {
         if (NCH(ch) === 1) {
             ch = CHILD(ch, 0);
-            step = new Name(strobj("None"), Load, ch.begin, ch.end);
+            step = new Name(strobj("None"), Load, ch.range);
         }
         else {
             ch = CHILD(ch, 1);
@@ -1722,16 +1728,17 @@ function astForAtomExpr(c: Compiling, n: PyNode): Name | Expression {
     switch (c0.type) {
         case TOK.T_NAME:
             // All names start in Load context, but may be changed later
-            return new Name(strobj(c0.value), Load, n.begin, n.end);
+            return new Name(strobj(c0.value), Load, n.range);
         case TOK.T_STRING: {
-            return new Str(parsestrplus(c, n), n.begin, n.end);
+            return new Str(parsestrplus(c, n), n.range);
         }
-        case TOK.T_NUMBER:
-            return new Num(parsenumber(c, c0.value, n.begin, n.end), n.begin, n.end);
+        case TOK.T_NUMBER: {
+            return new Num(parsenumber(c, c0.value, c0.range), n.range);
+        }
         case TOK.T_LPAR: { // various uses for parens
             const c1 = CHILD(n, 1);
             if (c1.type === TOK.T_RPAR) {
-                return new Tuple([], Load, n.begin.line, n.begin.column);
+                return new Tuple([], Load, n.range);
             }
             if (c1.type === SYM.YieldExpr) {
                 return astForExpr(c, c1) as Yield;
@@ -1744,10 +1751,10 @@ function astForAtomExpr(c: Compiling, n: PyNode): Name | Expression {
         case TOK.T_LSQB: { // list or listcomp
             const c1 = CHILD(n, 1);
             if (c1.type === TOK.T_RSQB)
-                return new List([], Load, n.begin.line, n.begin.column);
+                return new List([], Load, n.range);
             REQ(c1, SYM.listmaker);
             if (NCH(c1) === 1 || CHILD(c1, 1).type === TOK.T_COMMA)
-                return new List(seqForTestlist(c, c1), Load, n.begin.line, n.begin.column);
+                return new List(seqForTestlist(c, c1), Load, n.range);
             else
                 return astForListcomp(c, c1);
         }
@@ -1762,10 +1769,10 @@ function astForAtomExpr(c: Compiling, n: PyNode): Name | Expression {
                 keys[i / 4] = astForExpr(c, CHILD(c1, i));
                 values[i / 4] = astForExpr(c, CHILD(c1, i + 2));
             }
-            return new Dict(keys, values, n.begin.line, n.begin.column);
+            return new Dict(keys, values, n.range);
         }
         case TOK.T_BACKQUOTE: {
-            throw syntaxError("backquote not supported, use repr()", n.begin, n.end);
+            throw syntaxError("backquote not supported, use repr()", n.range);
         }
         default: {
             throw new Error(`unhandled atom '${grammarName(c0.type)}'`);
@@ -1795,7 +1802,7 @@ function astForPowerExpr(c: Compiling, n: PyNode): Name | Expression {
     }
     if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr) {
         const f = astForExpr(c, CHILD(n, NCH(n) - 1));
-        return new BinOp(e, Pow, f, n.begin, n.end);
+        return new BinOp(e, { op: Pow, range: null }, f, n.range);
     }
     else {
         return e;
@@ -1823,17 +1830,17 @@ function astForExpr(c: Compiling, n: PyNode): Expression {
                     seq[i / 2] = astForExpr(c, CHILD(n, i));
                 }
                 if (CHILD(n, 1).value === "and") {
-                    return new BoolOp(And, seq, n.begin.line, n.begin.column);
+                    return new BoolOp(And, seq, n.range);
                 }
                 assert(CHILD(n, 1).value === "or");
-                return new BoolOp(Or, seq, n.begin.line, n.begin.column);
+                return new BoolOp(Or, seq, n.range);
             case SYM.NotExpr:
                 if (NCH(n) === 1) {
                     n = CHILD(n, 0);
                     continue LOOP;
                 }
                 else {
-                    return new UnaryOp(Not, astForExpr(c, CHILD(n, 1)), n.begin.line, n.begin.column);
+                    return new UnaryOp(Not, astForExpr(c, CHILD(n, 1)), n.range);
                 }
             case SYM.ComparisonExpr:
                 if (NCH(n) === 1) {
@@ -1847,7 +1854,7 @@ function astForExpr(c: Compiling, n: PyNode): Expression {
                         ops[(i - 1) / 2] = astForCompOp(c, CHILD(n, i));
                         cmps[(i - 1) / 2] = astForExpr(c, CHILD(n, i + 1));
                     }
-                    return new Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.begin.line, n.begin.column);
+                    return new Compare(astForExpr(c, CHILD(n, 0)), ops, cmps, n.range);
                 }
             case SYM.ArithmeticExpr:
             case SYM.GeometricExpr:
@@ -1865,7 +1872,7 @@ function astForExpr(c: Compiling, n: PyNode): Expression {
                 if (NCH(n) === 2) {
                     exp = astForTestlist(c, CHILD(n, 1));
                 }
-                return new Yield(exp, n.begin.line, n.begin.column);
+                return new Yield(exp, n.range);
             case SYM.UnaryExpr:
                 if (NCH(n) === 1) {
                     n = CHILD(n, 0);
@@ -1894,7 +1901,7 @@ function astForPrintStmt(c: Compiling, n: PyNode): Print {
         seq[j] = astForExpr(c, CHILD(n, i));
     }
     const nl = (CHILD(n, NCH(n) - 1)).type === TOK.T_COMMA ? false : true;
-    return new Print(dest, seq, nl, n.begin.line, n.begin.column);
+    return new Print(dest, seq, nl, n.range);
 }
 
 function astForStmt(c: Compiling, n: PyNode): Statement {
@@ -1913,7 +1920,7 @@ function astForStmt(c: Compiling, n: PyNode): Statement {
             case SYM.ExprStmt: return astForExprStmt(c, n);
             case SYM.print_stmt: return astForPrintStmt(c, n);
             case SYM.del_stmt: return astForDelStmt(c, n);
-            case SYM.pass_stmt: return new Pass(n.begin.line, n.begin.column);
+            case SYM.pass_stmt: return new Pass(n.range);
             case SYM.flow_stmt: return astForFlowStmt(c, n);
             case SYM.import_stmt: return astForImportStmt(c, n);
             case SYM.GlobalStmt: return astForGlobalStmt(c, n);

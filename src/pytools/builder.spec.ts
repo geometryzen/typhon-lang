@@ -11,11 +11,12 @@ describe('AST', function () {
         const cst: boolean | PyNode = parse('123');
         if (typeof cst === 'object') {
             const ast: Module = new Module(astFromParse(cst));
+            // console.lg(JSON.stringify(ast, null, 2));
             const dump = astDump(ast);
             expect(dump).toBe('Module(body=[ExpressionStatement(value=Num(n=123))])');
             /* const st = */ semanticsOfModule(ast);
             // const dumpST = dumpSymbolTable(st);
-            // console.log(dumpST);
+            // console.lg(dumpST);
         }
     });
 
@@ -114,70 +115,70 @@ describe('AST', function () {
         const cst = parse('a + b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(left=Name(id=a,ctx=Load()),op=Add(),right=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Add(),rhs=Name(id=b,ctx=Load())))])');
     });
 
     it('a - b', function () {
         const cst = parse('a - b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(left=Name(id=a,ctx=Load()),op=Sub(),right=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Sub(),rhs=Name(id=b,ctx=Load())))])');
     });
 
     it('a * b', function () {
         const cst = parse('a * b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(left=Name(id=a,ctx=Load()),op=Mult(),right=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Mult(),rhs=Name(id=b,ctx=Load())))])');
     });
 
     it('a / b', function () {
         const cst = parse('a / b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(left=Name(id=a,ctx=Load()),op=Div(),right=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Div(),rhs=Name(id=b,ctx=Load())))])');
     });
 
     it('a % b', function () {
         const cst = parse('a % b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(left=Name(id=a,ctx=Load()),op=Mod(),right=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Mod(),rhs=Name(id=b,ctx=Load())))])');
     });
 
     it('a << b', function () {
         const cst = parse('a << b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(left=Name(id=a,ctx=Load()),op=LShift(),right=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=LShift(),rhs=Name(id=b,ctx=Load())))])');
     });
 
     it('a >> b', function () {
         const cst = parse('a >> b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(left=Name(id=a,ctx=Load()),op=RShift(),right=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=RShift(),rhs=Name(id=b,ctx=Load())))])');
     });
 
     it('a ^ b', function () {
         const cst = parse('a ^ b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(left=Name(id=a,ctx=Load()),op=BitXor(),right=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=BitXor(),rhs=Name(id=b,ctx=Load())))])');
     });
 
     it('a & b', function () {
         const cst = parse('a & b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(left=Name(id=a,ctx=Load()),op=BitAnd(),right=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=BitAnd(),rhs=Name(id=b,ctx=Load())))])');
     });
 
     it('a | b', function () {
         const cst = parse('a | b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(left=Name(id=a,ctx=Load()),op=BitOr(),right=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=BitOr(),rhs=Name(id=b,ctx=Load())))])');
     });
 
     it('a or b', function () {
@@ -198,14 +199,14 @@ describe('AST', function () {
         const cst = parse('a + b * c') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(left=Name(id=a,ctx=Load()),op=Add(),right=BinOp(left=Name(id=b,ctx=Load()),op=Mult(),right=Name(id=c,ctx=Load()))))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Add(),rhs=BinOp(lhs=Name(id=b,ctx=Load()),op=Mult(),rhs=Name(id=c,ctx=Load()))))])');
     });
 
     it('a + b ^ c', function () {
         const cst = parse('a + b ^ c') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(left=Name(id=a,ctx=Load()),op=Add(),right=BinOp(left=Name(id=b,ctx=Load()),op=BitXor(),right=Name(id=c,ctx=Load()))))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Add(),rhs=BinOp(lhs=Name(id=b,ctx=Load()),op=BitXor(),rhs=Name(id=c,ctx=Load()))))])');
     });
 
     it('not a', function () {
@@ -222,7 +223,7 @@ describe('AST', function () {
         expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
         /* const st = */ semanticsOfModule(ast);
         // const dumpST = dumpSymbolTable(st);
-        // console.log(dumpST);
+        // console.lg(dumpST);
     });
 
     it('def foo():\n return a', function () {
@@ -283,8 +284,8 @@ describe('AST', function () {
             const message = "Unexpected T_NAME at [1,8]";
             expect(e.message).toBe(message);
             const parseError: ParseError = e;
-            //      console.log("expect: " + JSON.stringify(message));
-            //      console.log("actual: " + JSON.stringify(e.message));
+            //      console.lg("expect: " + JSON.stringify(message));
+            //      console.lg("actual: " + JSON.stringify(e.message));
             expect(parseError.begin.row).toBe(0);
             expect(parseError.begin.column).toBe(7);
             expect(parseError.toString()).toBe(e.name + ": " + message);
@@ -302,8 +303,8 @@ describe('AST', function () {
             expect(e.name).toBe('IndentationError');
             const message = 'unindent does not match any outer indentation level';
             expect(e.message).toBe(message);
-            //      console.log("expect: " + JSON.stringify(message));
-            //      console.log("actual: " + JSON.stringify(e.message));
+            //      console.lg("expect: " + JSON.stringify(message));
+            //      console.lg("actual: " + JSON.stringify(e.message));
             expect(e.lineNumber).toBe(3);
             expect(e.columnNumber).toBe(0);
             expect(e.toString()).toBe(e.name + ": " + message);
@@ -321,8 +322,8 @@ describe('AST', function () {
             expect(e.name).toBe('SyntaxError');
             const message = "can't assign to ()";
             expect(e.message).toBe(message);
-            //      console.log("expect: " + JSON.stringify(message));
-            //      console.log("actual: " + JSON.stringify(e.message));
+            //      console.lg("expect: " + JSON.stringify(message));
+            //      console.lg("actual: " + JSON.stringify(e.message));
             expect(e.lineNumber).toBe(1);
             expect(e.columnNumber).toBe(undefined);
             expect(e.toString()).toBe(e.name + ": " + message);

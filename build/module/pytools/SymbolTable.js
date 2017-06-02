@@ -86,8 +86,8 @@ var SemanticVisitor = (function () {
         attribute.value.accept(this);
     };
     SemanticVisitor.prototype.binOp = function (be) {
-        be.left.accept(this);
-        be.right.accept(this);
+        be.lhs.accept(this);
+        be.rhs.accept(this);
     };
     SemanticVisitor.prototype.callExpression = function (ce) {
         ce.func.accept(this);
@@ -104,11 +104,11 @@ var SemanticVisitor = (function () {
         }
     };
     SemanticVisitor.prototype.classDef = function (cd) {
-        this.st.addDef(cd.name, DEF_LOCAL, cd.lineno);
+        this.st.addDef(cd.name, DEF_LOCAL, cd.range);
         this.st.SEQExpr(cd.bases);
         if (cd.decorator_list)
             this.st.SEQExpr(cd.decorator_list);
-        this.st.enterBlock(cd.name, ClassBlock, cd, cd.lineno);
+        this.st.enterBlock(cd.name, ClassBlock, cd, cd.range);
         var tmp = this.st.curClass;
         this.st.curClass = cd.name;
         this.st.SEQStmt(cd.body);
@@ -127,13 +127,13 @@ var SemanticVisitor = (function () {
         expressionStatement.accept(this);
     };
     SemanticVisitor.prototype.functionDef = function (fd) {
-        this.st.addDef(fd.name, DEF_LOCAL, fd.lineno);
+        this.st.addDef(fd.name, DEF_LOCAL, fd.range);
         if (fd.args.defaults)
             this.st.SEQExpr(fd.args.defaults);
         if (fd.decorator_list)
             this.st.SEQExpr(fd.decorator_list);
-        this.st.enterBlock(fd.name, FunctionBlock, fd, fd.lineno);
-        this.st.visitArguments(fd.args, fd.lineno);
+        this.st.enterBlock(fd.name, FunctionBlock, fd, fd.range);
+        this.st.visitArguments(fd.args, fd.range);
         this.st.SEQStmt(fd.body);
         this.st.exitBlock();
     };
@@ -146,7 +146,7 @@ var SemanticVisitor = (function () {
         throw new Error("SemanticVistor.IfStatement");
     };
     SemanticVisitor.prototype.importFrom = function (importFrom) {
-        this.st.visitAlias(importFrom.names, importFrom.lineno);
+        this.st.visitAlias(importFrom.names, importFrom.range);
     };
     SemanticVisitor.prototype.list = function (list) {
         this.st.SEQExpr(list.elts);
@@ -155,7 +155,7 @@ var SemanticVisitor = (function () {
         throw new Error("module");
     };
     SemanticVisitor.prototype.name = function (name) {
-        this.st.addDef(name.id, name.ctx === Load ? USE : DEF_LOCAL, name.lineno);
+        this.st.addDef(name.id, name.ctx === Load ? USE : DEF_LOCAL, name.range);
     };
     SemanticVisitor.prototype.num = function (num) {
         // Do nothing, unless we are doing type inference.
@@ -239,14 +239,14 @@ var SymbolTable = (function () {
      * @param astNode The AST node that is defining the block.
      * @param lineno
      */
-    SymbolTable.prototype.enterBlock = function (name, blockType, astNode, lineno) {
+    SymbolTable.prototype.enterBlock = function (name, blockType, astNode, range) {
         //  name = fixReservedNames(name);
         var prev = null;
         if (this.cur) {
             prev = this.cur;
             this.stack.push(this.cur);
         }
-        this.cur = new SymbolTableScope(this, name, blockType, astNode, lineno);
+        this.cur = new SymbolTableScope(this, name, blockType, astNode, range);
         if (name === 'top') {
             this.global = this.cur.symFlags;
         }
@@ -265,7 +265,7 @@ var SymbolTable = (function () {
             var arg = args[i];
             if (arg.constructor === Name) {
                 assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
-                this.addDef(arg.id, DEF_PARAM, arg.lineno);
+                this.addDef(arg.id, DEF_PARAM, arg.range);
             }
             else {
                 // Tuple isn't supported
@@ -273,24 +273,23 @@ var SymbolTable = (function () {
             }
         }
     };
-    SymbolTable.prototype.visitArguments = function (a, lineno) {
+    SymbolTable.prototype.visitArguments = function (a, range) {
         if (a.args)
             this.visitParams(a.args, true);
         if (a.vararg) {
-            this.addDef(a.vararg, DEF_PARAM, lineno);
+            this.addDef(a.vararg, DEF_PARAM, range);
             this.cur.varargs = true;
         }
         if (a.kwarg) {
-            this.addDef(a.kwarg, DEF_PARAM, lineno);
+            this.addDef(a.kwarg, DEF_PARAM, range);
             this.cur.varkeywords = true;
         }
     };
     /**
-     * @param {number} lineno
-     * @return {void}
+     *
      */
-    SymbolTable.prototype.newTmpname = function (lineno) {
-        this.addDef("_[" + (++this.tmpname) + "]", DEF_LOCAL, lineno);
+    SymbolTable.prototype.newTmpname = function (range) {
+        this.addDef("_[" + (++this.tmpname) + "]", DEF_LOCAL, range);
     };
     /**
      * 1. Modifies symbol flags for the current scope.
@@ -300,14 +299,14 @@ var SymbolTable = (function () {
      * @param flags
      * @param lineno
      */
-    SymbolTable.prototype.addDef = function (name, flags, lineno) {
+    SymbolTable.prototype.addDef = function (name, flags, range) {
         var mangled = mangleName(this.curClass, name);
         //  mangled = fixReservedNames(mangled);
         // Modify symbol flags for the current scope.
         var val = this.cur.symFlags[mangled];
         if (val !== undefined) {
             if ((flags & DEF_PARAM) && (val & DEF_PARAM)) {
-                throw syntaxError("duplicate argument '" + name + "' in function definition", lineno);
+                throw syntaxError("duplicate argument '" + name + "' in function definition", range);
             }
             val |= flags;
         }
@@ -353,22 +352,22 @@ var SymbolTable = (function () {
     SymbolTable.prototype.visitStmt = function (s) {
         assert(s !== undefined, "visitStmt called with undefined");
         if (s instanceof FunctionDef) {
-            this.addDef(s.name, DEF_LOCAL, s.lineno);
+            this.addDef(s.name, DEF_LOCAL, s.range);
             if (s.args.defaults)
                 this.SEQExpr(s.args.defaults);
             if (s.decorator_list)
                 this.SEQExpr(s.decorator_list);
-            this.enterBlock(s.name, FunctionBlock, s, s.lineno);
-            this.visitArguments(s.args, s.lineno);
+            this.enterBlock(s.name, FunctionBlock, s, s.range);
+            this.visitArguments(s.args, s.range);
             this.SEQStmt(s.body);
             this.exitBlock();
         }
         else if (s instanceof ClassDef) {
-            this.addDef(s.name, DEF_LOCAL, s.lineno);
+            this.addDef(s.name, DEF_LOCAL, s.range);
             this.SEQExpr(s.bases);
             if (s.decorator_list)
                 this.SEQExpr(s.decorator_list);
-            this.enterBlock(s.name, ClassBlock, s, s.lineno);
+            this.enterBlock(s.name, ClassBlock, s, s.range);
             var tmp = this.curClass;
             this.curClass = s.name;
             this.SEQStmt(s.body);
@@ -446,11 +445,11 @@ var SymbolTable = (function () {
         }
         else if (s instanceof ImportStatement) {
             var imps = s;
-            this.visitAlias(imps.names, imps.lineno);
+            this.visitAlias(imps.names, imps.range);
         }
         else if (s instanceof ImportFrom) {
             var impFrom = s;
-            this.visitAlias(impFrom.names, impFrom.lineno);
+            this.visitAlias(impFrom.names, impFrom.range);
         }
         else if (s instanceof Exec) {
             this.visitExpr(s.body);
@@ -468,13 +467,13 @@ var SymbolTable = (function () {
                 var cur = this.cur.symFlags[name_1];
                 if (cur & (DEF_LOCAL | USE)) {
                     if (cur & DEF_LOCAL) {
-                        throw syntaxError("name '" + name_1 + "' is assigned to before global declaration", s.lineno);
+                        throw syntaxError("name '" + name_1 + "' is assigned to before global declaration", s.range);
                     }
                     else {
-                        throw syntaxError("name '" + name_1 + "' is used prior to global declaration", s.lineno);
+                        throw syntaxError("name '" + name_1 + "' is used prior to global declaration", s.range);
                     }
                 }
-                this.addDef(name_1, DEF_GLOBAL, s.lineno);
+                this.addDef(name_1, DEF_GLOBAL, s.range);
             }
         }
         else if (s instanceof ExpressionStatement) {
@@ -485,10 +484,10 @@ var SymbolTable = (function () {
         }
         else if (s instanceof WithStatement) {
             var ws = s;
-            this.newTmpname(ws.lineno);
+            this.newTmpname(ws.range);
             this.visitExpr(ws.context_expr);
             if (ws.optional_vars) {
-                this.newTmpname(ws.lineno);
+                this.newTmpname(ws.range);
                 this.visitExpr(ws.optional_vars);
             }
             this.SEQStmt(ws.body);
@@ -503,18 +502,18 @@ var SymbolTable = (function () {
             this.SEQExpr(e.values);
         }
         else if (e instanceof BinOp) {
-            this.visitExpr(e.left);
-            this.visitExpr(e.right);
+            this.visitExpr(e.lhs);
+            this.visitExpr(e.rhs);
         }
         else if (e instanceof UnaryOp) {
             this.visitExpr(e.operand);
         }
         else if (e instanceof Lambda) {
-            this.addDef("lambda", DEF_LOCAL, e.lineno);
+            this.addDef("lambda", DEF_LOCAL, e.range);
             if (e.args.defaults)
                 this.SEQExpr(e.args.defaults);
-            this.enterBlock("lambda", FunctionBlock, e, e.lineno);
-            this.visitArguments(e.args, e.lineno);
+            this.enterBlock("lambda", FunctionBlock, e, e.range);
+            this.visitArguments(e.args, e.range);
             this.visitExpr(e.body);
             this.exitBlock();
         }
@@ -528,7 +527,7 @@ var SymbolTable = (function () {
             this.SEQExpr(e.values);
         }
         else if (e instanceof ListComp) {
-            this.newTmpname(e.lineno);
+            this.newTmpname(e.range);
             this.visitExpr(e.elt);
             this.visitComprehension(e.generators, 0);
         }
@@ -570,7 +569,7 @@ var SymbolTable = (function () {
             this.visitSlice(e.slice);
         }
         else if (e instanceof Name) {
-            this.addDef(e.id, e.ctx === Load ? USE : DEF_LOCAL, e.lineno);
+            this.addDef(e.id, e.ctx === Load ? USE : DEF_LOCAL, e.range);
         }
         else if (e instanceof List || e instanceof Tuple) {
             this.SEQExpr(e.elts);
@@ -590,24 +589,23 @@ var SymbolTable = (function () {
     };
     /**
      * This is probably not correct for names. What are they?
-     * @param {Array.<Object>} names
-     * @param {number} lineno
+     * @param names
+     * @param range
      */
-    SymbolTable.prototype.visitAlias = function (names, lineno) {
+    SymbolTable.prototype.visitAlias = function (names, range) {
         /* Compute store_name, the name actually bound by the import
             operation.  It is diferent than a->name when a->name is a
             dotted package name (e.g. spam.eggs)
         */
-        for (var i = 0; i < names.length; ++i) {
-            var a = names[i];
-            // DGH: The RHS used to be Python strings.
+        for (var _i = 0, names_1 = names; _i < names_1.length; _i++) {
+            var a = names_1[_i];
             var name_2 = a.asname === null ? a.name : a.asname;
             var storename = name_2;
             var dot = name_2.indexOf('.');
             if (dot !== -1)
                 storename = name_2.substr(0, dot);
             if (name_2 !== "*") {
-                this.addDef(storename, DEF_IMPORT, lineno);
+                this.addDef(storename, DEF_IMPORT, range);
             }
             else {
                 if (this.cur.blockType !== ModuleBlock) {
@@ -623,9 +621,9 @@ var SymbolTable = (function () {
         var outermost = e.generators[0];
         // outermost is evaled in current scope
         this.visitExpr(outermost.iter);
-        this.enterBlock("genexpr", FunctionBlock, e, e.lineno);
+        this.enterBlock("genexpr", FunctionBlock, e, e.range);
         this.cur.generator = true;
-        this.addDef(".0", DEF_PARAM, e.lineno);
+        this.addDef(".0", DEF_PARAM, e.range);
         this.visitExpr(outermost.target);
         this.SEQExpr(outermost.ifs);
         this.visitComprehension(e.generators, 1);
@@ -745,7 +743,7 @@ var SymbolTable = (function () {
     SymbolTable.prototype.analyzeName = function (ste, dict, name, flags, bound, local, free, global) {
         if (flags & DEF_GLOBAL) {
             if (flags & DEF_PARAM)
-                throw syntaxError("name '" + name + "' is local and global", ste.lineno);
+                throw syntaxError("name '" + name + "' is local and global", ste.range);
             dict[name] = GLOBAL_EXPLICIT;
             global[name] = null;
             if (bound && bound[name] !== undefined)

@@ -147,7 +147,6 @@ var Printer = (function () {
             var target = _a[_i];
             if (target instanceof Name) {
                 var flags = this.u.ste.symFlags[target.id];
-                // console.log(`${target.id} => ${flags.toString(2)}`);
                 if (flags && DEF_LOCAL) {
                     if (this.u.declared[target.id]) {
                         // The variable has already been declared.
@@ -155,86 +154,88 @@ var Printer = (function () {
                     else {
                         // We use let for now because we would need to look ahead for more assignments.
                         // The smenatic analysis could count the number of assignments in the current scope?
-                        this.writer.write("let ");
+                        this.writer.write("let ", null);
                         this.u.declared[target.id] = true;
                     }
                 }
             }
             target.accept(this);
         }
-        this.writer.write("=");
+        this.writer.assign("=", assign.eqRange);
         assign.value.accept(this);
         this.writer.endStatement();
     };
     Printer.prototype.attribute = function (attribute) {
         attribute.value.accept(this);
-        this.writer.write(".");
-        this.writer.write(attribute.attr);
+        this.writer.write(".", null);
+        this.writer.write(attribute.attr, null);
     };
     Printer.prototype.binOp = function (be) {
-        be.left.accept(this);
-        switch (be.op) {
+        be.lhs.accept(this);
+        var op = be.op;
+        var opRange = be.opRange;
+        switch (op) {
             case Add: {
-                this.writer.binOp("+");
+                this.writer.binOp("+", opRange);
                 break;
             }
             case Sub: {
-                this.writer.binOp("-");
+                this.writer.binOp("-", opRange);
                 break;
             }
             case Mult: {
-                this.writer.binOp("*");
+                this.writer.binOp("*", opRange);
                 break;
             }
             case Div: {
-                this.writer.binOp("/");
+                this.writer.binOp("/", opRange);
                 break;
             }
             case BitOr: {
-                this.writer.binOp("|");
+                this.writer.binOp("|", opRange);
                 break;
             }
             case BitXor: {
-                this.writer.binOp("^");
+                this.writer.binOp("^", opRange);
                 break;
             }
             case BitAnd: {
-                this.writer.binOp("&");
+                this.writer.binOp("&", opRange);
                 break;
             }
             case LShift: {
-                this.writer.binOp("<<");
+                this.writer.binOp("<<", opRange);
                 break;
             }
             case RShift: {
-                this.writer.binOp(">>");
+                this.writer.binOp(">>", opRange);
                 break;
             }
             case Mod: {
-                this.writer.binOp("%");
+                this.writer.binOp("%", opRange);
                 break;
             }
             case FloorDiv: {
                 // TODO: What is the best way to handle FloorDiv.
                 // This doesn't actually exist in TypeScript.
-                this.writer.binOp("//");
+                this.writer.binOp("//", opRange);
                 break;
             }
             default: {
-                throw new Error("Unexpected binary operator " + be.op + ": " + typeof be.op);
+                throw new Error("Unexpected binary operator " + op + ": " + typeof op);
             }
         }
-        be.right.accept(this);
+        be.rhs.accept(this);
     };
     Printer.prototype.callExpression = function (ce) {
         if (ce.func instanceof Name) {
             if (isClassNameByConvention(ce.func)) {
-                this.writer.write("new ");
+                this.writer.write("new ", null);
             }
         }
         else if (ce.func instanceof Attribute) {
             if (isClassNameByConvention(ce.func)) {
-                this.writer.write("new ");
+                this.writer.write("new ", null);
             }
         }
         else {
@@ -244,12 +245,15 @@ var Printer = (function () {
         this.writer.openParen();
         for (var i = 0; i < ce.args.length; i++) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             var arg = ce.args[i];
             arg.accept(this);
         }
         for (var i = 0; i < ce.keywords.length; ++i) {
+            if (i > 0) {
+                this.writer.comma(null, null);
+            }
             ce.keywords[i].value.accept(this);
         }
         if (ce.starargs) {
@@ -261,8 +265,8 @@ var Printer = (function () {
         this.writer.closeParen();
     };
     Printer.prototype.classDef = function (cd) {
-        this.writer.write("class ");
-        this.writer.write(cd.name);
+        this.writer.write("class ", null);
+        this.writer.write(cd.name, null);
         // this.writer.openParen();
         // this.writer.closeParen();
         this.writer.beginBlock();
@@ -285,43 +289,43 @@ var Printer = (function () {
             var op = _a[_i];
             switch (op) {
                 case Eq: {
-                    this.writer.write("===");
+                    this.writer.write("===", null);
                     break;
                 }
                 case NotEq: {
-                    this.writer.write("!==");
+                    this.writer.write("!==", null);
                     break;
                 }
                 case Lt: {
-                    this.writer.write("<");
+                    this.writer.write("<", null);
                     break;
                 }
                 case LtE: {
-                    this.writer.write("<=");
+                    this.writer.write("<=", null);
                     break;
                 }
                 case Gt: {
-                    this.writer.write(">");
+                    this.writer.write(">", null);
                     break;
                 }
                 case GtE: {
-                    this.writer.write(">=");
+                    this.writer.write(">=", null);
                     break;
                 }
                 case Is: {
-                    this.writer.write("===");
+                    this.writer.write("===", null);
                     break;
                 }
                 case IsNot: {
-                    this.writer.write("!==");
+                    this.writer.write("!==", null);
                     break;
                 }
                 case In: {
-                    this.writer.write(" in ");
+                    this.writer.write(" in ", null);
                     break;
                 }
                 case NotIn: {
-                    this.writer.write(" not in ");
+                    this.writer.write(" not in ", null);
                     break;
                 }
                 default: {
@@ -341,10 +345,10 @@ var Printer = (function () {
         this.writer.beginObject();
         for (var i = 0; i < N; i++) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             keys[i].accept(this);
-            this.writer.write(":");
+            this.writer.write(":", null);
             values[i].accept(this);
         }
         this.writer.endObject();
@@ -357,9 +361,9 @@ var Printer = (function () {
     Printer.prototype.functionDef = function (functionDef) {
         var isClassMethod = isMethod(functionDef);
         if (!isClassMethod) {
-            this.writer.write("function ");
+            this.writer.write("function ", null);
         }
-        this.writer.write(functionDef.name);
+        this.writer.write(functionDef.name, null);
         this.writer.openParen();
         for (var i = 0; i < functionDef.args.args.length; i++) {
             var arg = functionDef.args.args[i];
@@ -384,7 +388,7 @@ var Printer = (function () {
         this.writer.endBlock();
     };
     Printer.prototype.ifStatement = function (i) {
-        this.writer.write("if");
+        this.writer.write("if", null);
         this.writer.openParen();
         i.test.accept(this);
         this.writer.closeParen();
@@ -397,38 +401,38 @@ var Printer = (function () {
     };
     Printer.prototype.importFrom = function (importFrom) {
         this.writer.beginStatement();
-        this.writer.write("import ");
+        this.writer.write("import ", null);
         this.writer.beginBlock();
         for (var i = 0; i < importFrom.names.length; i++) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             var alias = importFrom.names[i];
-            this.writer.write(alias.name);
+            this.writer.write(alias.name, null);
             if (alias.asname) {
-                this.writer.write(" as ");
-                this.writer.write(alias.asname);
+                this.writer.write(" as ", null);
+                this.writer.write(alias.asname, null);
             }
         }
         this.writer.endBlock();
-        this.writer.write(" from ");
+        this.writer.write(" from ", null);
         this.writer.beginQuote();
         // TODO: Escaping?
-        this.writer.write(importFrom.module);
+        this.writer.write(importFrom.module, null);
         this.writer.endQuote();
         this.writer.endStatement();
     };
     Printer.prototype.list = function (list) {
         var elements = list.elts;
         var N = elements.length;
-        this.writer.write('[');
+        this.writer.write('[', null);
         for (var i = 0; i < N; i++) {
             if (i > 0) {
-                this.writer.comma();
+                this.writer.comma(null, null);
             }
             elements[i].accept(this);
         }
-        this.writer.write(']');
+        this.writer.write(']', null);
     };
     Printer.prototype.module = function (m) {
         for (var _i = 0, _a = m.body; _i < _a.length; _i++) {
@@ -442,24 +446,26 @@ var Printer = (function () {
         // this name as a boolean expression - avoiding this overhead.
         switch (name.id) {
             case 'True': {
-                this.writer.write('true');
+                this.writer.name('true', name.range);
                 break;
             }
             case 'False': {
-                this.writer.write('false');
+                this.writer.name('false', name.range);
                 break;
             }
             default: {
-                this.writer.write(name.id);
+                this.writer.name(name.id, name.range);
             }
         }
     };
     Printer.prototype.num = function (num) {
         var n = num.n;
-        this.writer.write(n.toString());
+        this.writer.num(n.toString(), num.range);
     };
     Printer.prototype.print = function (print) {
-        this.writer.write("console.log");
+        this.writer.name("console", null);
+        this.writer.write(".", null);
+        this.writer.name("log", null);
         this.writer.openParen();
         for (var _i = 0, _a = print.values; _i < _a.length; _i++) {
             var value = _a[_i];
@@ -469,14 +475,17 @@ var Printer = (function () {
     };
     Printer.prototype.returnStatement = function (rs) {
         this.writer.beginStatement();
-        this.writer.write("return ");
+        this.writer.write("return", null);
+        this.writer.write(" ", null);
         rs.value.accept(this);
         this.writer.endStatement();
     };
     Printer.prototype.str = function (str) {
         var s = str.s;
+        // const begin = str.begin;
+        // const end = str.end;
         // TODO: AST is not preserving the original quoting, or maybe a hint.
-        this.writer.write(toStringLiteralJS(s));
+        this.writer.write(toStringLiteralJS(s), null);
     };
     return Printer;
 }());
@@ -487,8 +496,10 @@ export function transpileModule(sourceText) {
         var mod = new Module(stmts);
         var symbolTable = semanticsOfModule(mod);
         var printer = new Printer(symbolTable, 0, sourceText);
-        var code = printer.transpileModule(mod);
-        return { code: code, cst: cst, mod: mod, symbolTable: symbolTable };
+        var textAndMappings = printer.transpileModule(mod);
+        var code = textAndMappings.text;
+        var sourceMap = textAndMappings.tree;
+        return { code: code, sourceMap: sourceMap, cst: cst, mod: mod, symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");

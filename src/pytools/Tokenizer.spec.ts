@@ -7,7 +7,7 @@ describe("Tokenizer", function () {
     let tokenCount = 0;
     const callback: TokenizerCallback = function (token: Tokens, text: string, start: number[], end: number[], line: string): boolean | undefined {
         // const name = tokenNames[token];
-        // console.log(`${name} ${text}`);
+        // console.lg(`${name} ${text}`);
         tokenCount++;
         return undefined;
     };
@@ -20,7 +20,7 @@ describe("Tokenizer", function () {
     it("performance should not degrade", function () {
         // There would be 258 tokens if newlines are added.
         expect(tokenCount).toBe(229);
-        // console.log(`Tokenizer performance generateTokens (${tokenCount} tokens)    took ${t1 - t0} ms`);
+        // console.lg(`Tokenizer performance generateTokens (${tokenCount} tokens)    took ${t1 - t0} ms`);
         // This has been benchmarked at around 4-6 ms.
         expect(t1 - t0 < 10).toBe(true);
     });

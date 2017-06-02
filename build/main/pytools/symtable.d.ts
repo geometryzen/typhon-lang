@@ -1,6 +1,7 @@
 import { SymbolTable } from './SymbolTable';
 import { Module } from './types';
 import { Statement } from './types';
+import { Range } from './Range';
 /**
  * Creates a SymbolTable for the specified Module.
  */
@@ -22,7 +23,7 @@ export interface SymbolInfo {
 export interface SymbolObj {
     get_type(): string;
     get_name(): string;
-    get_lineno(): number;
+    get_range(): Range;
     is_nested(): boolean;
     has_children(): boolean;
     get_methods(): string[];
