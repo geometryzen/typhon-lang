@@ -524,8 +524,8 @@ var ParseTables = {
         286: [[[[99, 1],
                     [100, 1],
                     [7, 2],
-                    [101, 1],
                     [99, 1],
+                    [101, 1],
                     [102, 1],
                     [103, 1],
                     [104, 3],
@@ -1107,8 +1107,8 @@ var ParseTables = {
         [[[99, 1],
                 [100, 1],
                 [7, 2],
-                [101, 1],
                 [99, 1],
+                [101, 1],
                 [102, 1],
                 [103, 1],
                 [104, 3],
@@ -1444,14 +1444,14 @@ var ParseTables = {
         [318, null],
         [327, null],
         [13, null],
-        [273, null],
+        [302, null],
         [267, null],
         [265, null],
         [321, null],
+        [273, null],
         [322, null],
         [292, null],
         [300, null],
-        [302, null],
         [282, null],
         [313, null],
         [326, null],
@@ -7733,12 +7733,68 @@ function transpileModule(sourceText, trace) {
     }
 }
 
+function mapToTarget(m, sourceLine, sourceColumn) {
+    if (contains$1(m.source, sourceLine, sourceColumn)) {
+        if (m.children) {
+            for (var _i = 0, _a = m.children; _i < _a.length; _i++) {
+                var child = _a[_i];
+                var pos = mapToTarget(child, sourceLine, sourceColumn);
+                if (pos) {
+                    return pos;
+                }
+            }
+            return null;
+        }
+        else {
+            var lineOffset = sourceLine - m.source.begin.line;
+            var columnOffset = sourceColumn - m.source.begin.column;
+            var targetLine = m.target.begin.line + lineOffset;
+            var targetColumn = m.target.begin.column + columnOffset;
+            return new MutablePosition(targetLine, targetColumn);
+        }
+    }
+    else {
+        return null;
+    }
+}
+function contains$1(range, line, column) {
+    var begin = range.begin;
+    var end = range.end;
+    if (line > begin.line) {
+        if (line < end.line) {
+            return true;
+        }
+        else if (line === end.line) {
+            return column < end.column;
+        }
+        else {
+            return false;
+        }
+    }
+    else if (line === begin.line) {
+        if (line < end.line) {
+            return column >= begin.column;
+        }
+        else if (line === end.line) {
+            return column >= begin.column && column < end.column;
+        }
+        else {
+            return false;
+        }
+    }
+    else {
+        return false;
+    }
+}
+
 exports.parse = parse;
 exports.cstDump = cstDump;
 exports.ParseError = ParseError;
 exports.astFromParse = astFromParse;
 exports.astDump = astDump;
 exports.transpileModule = transpileModule;
+exports.MappingTree = MappingTree;
+exports.mapToTarget = mapToTarget;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 

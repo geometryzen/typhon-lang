@@ -10,3 +10,7 @@ exports.astFromParse = builder_1.astFromParse;
 exports.astDump = builder_1.astDump;
 var transpiler_1 = require("./py-to-ts/transpiler");
 exports.transpileModule = transpiler_1.transpileModule;
+var MappingTree_1 = require("./py-to-ts/MappingTree");
+exports.MappingTree = MappingTree_1.MappingTree;
+var mapToTarget_1 = require("./py-to-ts/mapToTarget");
+exports.mapToTarget = mapToTarget_1.mapToTarget;
