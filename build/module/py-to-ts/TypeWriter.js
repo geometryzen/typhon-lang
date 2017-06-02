@@ -5,7 +5,6 @@ import { Range } from '../pytools/Range';
 import { MutablePosition } from '../pytools/MutableRange';
 import { MutableRange } from '../pytools/MutableRange';
 import { MappingTree } from './MappingTree';
-var BEGIN_LINE = 1;
 export var IndentStyle;
 (function (IndentStyle) {
     IndentStyle[IndentStyle["None"] = 0] = "None";
@@ -13,89 +12,108 @@ export var IndentStyle;
     IndentStyle[IndentStyle["Smart"] = 2] = "Smart";
 })(IndentStyle || (IndentStyle = {}));
 var StackElement = (function () {
-    function StackElement(begin, end) {
-        this.begin = begin;
-        this.end = end;
+    function StackElement(bMark, eMark, targetBeginLine, targetBeginColumn, trace) {
+        this.bMark = bMark;
+        this.eMark = eMark;
+        this.trace = trace;
         this.texts = [];
         this.trees = [];
-        // Do nothing yet.
+        this.cursor = new MutablePosition(targetBeginLine, targetBeginColumn);
     }
+    /**
+     *
+     */
     StackElement.prototype.write = function (text, tree) {
+        assert(typeof text === 'string', "text must be a string");
         this.texts.push(text);
         this.trees.push(tree);
+        var cursor = this.cursor;
+        var beginLine = cursor.line;
+        var beginColumn = cursor.column;
+        var endLine = cursor.line;
+        var endColumn = beginColumn + text.length;
+        if (tree) {
+            tree.target.begin.line = beginLine;
+            tree.target.begin.column = beginColumn;
+            tree.target.end.line = endLine;
+            tree.target.end.column = endColumn;
+        }
+        cursor.line = endLine;
+        cursor.column = endColumn;
     };
     StackElement.prototype.snapshot = function () {
         var texts = this.texts;
         var trees = this.trees;
         var N = texts.length;
         if (N === 0) {
-            return { text: '', tree: null };
-        }
-        else if (N === 1) {
-            var text = texts[0];
-            var tree = trees[0];
-            var line = BEGIN_LINE;
-            var beginColumn = 0;
-            var endColumn = beginColumn + text.length;
-            if (tree) {
-                tree.target = new MutableRange(new MutablePosition(line, beginColumn), new MutablePosition(line, endColumn));
-                return { text: text, tree: tree };
-            }
-            else {
-                return { text: text, tree: null };
-            }
+            return this.package('', null);
         }
         else {
-            var sourceBeginLine = Number.MAX_SAFE_INTEGER;
-            var sourceBeginColumn = Number.MAX_SAFE_INTEGER;
-            var sourceEndLine = Number.MIN_SAFE_INTEGER;
-            var sourceEndColumn = Number.MIN_SAFE_INTEGER;
-            var targetBeginLine = Number.MAX_SAFE_INTEGER;
+            var sBL = Number.MAX_SAFE_INTEGER;
+            var sBC = Number.MAX_SAFE_INTEGER;
+            var sEL = Number.MIN_SAFE_INTEGER;
+            var sEC = Number.MIN_SAFE_INTEGER;
+            var tBL = Number.MAX_SAFE_INTEGER;
+            var tBC = Number.MAX_SAFE_INTEGER;
+            var tEL = Number.MIN_SAFE_INTEGER;
+            var tEC = Number.MIN_SAFE_INTEGER;
             var children = [];
-            var line = BEGIN_LINE;
-            var beginColumn = 0;
             for (var i = 0; i < N; i++) {
-                var text_1 = texts[i];
                 var tree = trees[i];
-                var endColumn = beginColumn + text_1.length;
                 if (tree) {
-                    assert(tree, "mapping must be defined");
-                    if (tree.source.begin) {
-                        sourceBeginLine = Math.min(sourceBeginLine, tree.source.begin.line);
-                        sourceBeginColumn = Math.min(sourceBeginColumn, tree.source.begin.column);
+                    sBL = Math.min(sBL, tree.source.begin.line);
+                    sBC = Math.min(sBC, tree.source.begin.column);
+                    sEL = Math.max(sEL, tree.source.end.line);
+                    sEC = Math.max(sEC, tree.source.end.column);
+                    tBL = Math.min(tBL, tree.target.begin.line);
+                    tBC = Math.min(tBC, tree.target.begin.column);
+                    tEL = Math.max(tEL, tree.target.end.line);
+                    tEC = Math.max(tEC, tree.target.end.column);
+                    if (this.trace) {
+                        console.log("txt = " + texts[i]);
+                        console.log("tBL = " + tBL);
+                        console.log("tBC = " + tBC);
+                        console.log("tEL = " + tEL);
+                        console.log("tEC = " + tEC);
                     }
-                    if (tree.source.end) {
-                        sourceEndLine = Math.max(sourceEndLine, tree.source.end.line);
-                        sourceEndColumn = Math.max(sourceEndColumn, tree.source.end.column);
-                    }
-                    tree.target = new MutableRange(new MutablePosition(line, beginColumn), new MutablePosition(line, endColumn));
                     children.push(tree);
                 }
-                beginColumn = endColumn;
             }
             var text = texts.join("");
             if (children.length > 1) {
-                var source = new Range(new Position(sourceBeginLine, sourceBeginColumn), new Position(sourceEndLine, sourceEndColumn));
-                var target = new MutableRange(new MutablePosition(targetBeginLine, -10), new MutablePosition(-10, -10));
-                return { text: text, tree: new MappingTree(source, target, children) };
+                var source = new Range(new Position(sBL, sBC), new Position(sEL, sEC));
+                var target = new MutableRange(new MutablePosition(tBL, tBC), new MutablePosition(tEL, tEC));
+                return this.package(text, new MappingTree(source, target, children));
             }
             else if (children.length === 1) {
-                return { text: text, tree: children[0] };
+                return this.package(text, children[0]);
             }
             else {
-                return { text: text, tree: null };
+                return this.package(text, null);
             }
         }
+    };
+    StackElement.prototype.package = function (text, tree) {
+        return { text: text, tree: tree, targetEndLine: this.cursor.line, targetEndColumn: this.cursor.column };
+    };
+    StackElement.prototype.getLine = function () {
+        return this.cursor.line;
+    };
+    StackElement.prototype.getColumn = function () {
+        return this.cursor.column;
     };
     return StackElement;
 }());
 function IDXLAST(xs) {
     return xs.length - 1;
 }
+/**
+ *
+ */
 var Stack = (function () {
-    function Stack() {
+    function Stack(begin, end, targetLine, targetColumn, trace) {
         this.elements = [];
-        this.elements.push(new StackElement('', ''));
+        this.elements.push(new StackElement(begin, end, targetLine, targetColumn, trace));
     }
     Object.defineProperty(Stack.prototype, "length", {
         get: function () {
@@ -120,6 +138,12 @@ var Stack = (function () {
         assert(this.elements.length === 0, "stack length should be 0");
         return textAndMappings;
     };
+    Stack.prototype.getLine = function () {
+        return this.elements[IDXLAST(this.elements)].getLine();
+    };
+    Stack.prototype.getColumn = function () {
+        return this.elements[IDXLAST(this.elements)].getColumn();
+    };
     return Stack;
 }());
 /**
@@ -133,12 +157,12 @@ var TypeWriter = (function () {
     /**
      * Constructs a TypeWriter instance using the specified options.
      */
-    function TypeWriter(options) {
+    function TypeWriter(beginLine, beginColumn, options, trace) {
         if (options === void 0) { options = {}; }
+        if (trace === void 0) { trace = false; }
         this.options = options;
-        // private readonly buffer: string[] = [];
-        this.stack = new Stack();
-        // Do nothing.
+        this.trace = trace;
+        this.stack = new Stack('', '', beginLine, beginColumn, trace);
     }
     TypeWriter.prototype.assign = function (text, source) {
         var target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
@@ -152,14 +176,37 @@ var TypeWriter = (function () {
      * @param end The position of the end of the name in the original source.
      */
     TypeWriter.prototype.name = function (id, source) {
-        var target = new MutableRange(new MutablePosition(-2, -2), new MutablePosition(-2, -2));
-        var tree = new MappingTree(source, target, null);
-        this.stack.write(id, tree);
+        if (source) {
+            var target = new MutableRange(new MutablePosition(-2, -2), new MutablePosition(-2, -2));
+            var tree = new MappingTree(source, target, null);
+            this.stack.write(id, tree);
+        }
+        else {
+            this.stack.write(id, null);
+        }
     };
     TypeWriter.prototype.num = function (text, source) {
-        var target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
-        var tree = new MappingTree(source, target, null);
-        this.stack.write(text, tree);
+        if (source) {
+            var target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
+            var tree = new MappingTree(source, target, null);
+            this.stack.write(text, tree);
+        }
+        else {
+            this.stack.write(text, null);
+        }
+    };
+    /**
+     * Currently defined to be for string literals in unparsed form.
+     */
+    TypeWriter.prototype.str = function (text, source) {
+        if (source) {
+            var target = new MutableRange(new MutablePosition(-23, -23), new MutablePosition(-23, -23));
+            var tree = new MappingTree(source, target, null);
+            this.stack.write(text, tree);
+        }
+        else {
+            this.stack.write(text, null);
+        }
     };
     TypeWriter.prototype.write = function (text, tree) {
         this.stack.write(text, tree);
@@ -233,35 +280,48 @@ var TypeWriter = (function () {
     TypeWriter.prototype.endStatement = function () {
         this.epilog(false);
     };
-    TypeWriter.prototype.prolog = function (begin, end) {
-        this.stack.push(new StackElement(begin, end));
+    TypeWriter.prototype.prolog = function (bMark, eMark) {
+        var line = this.stack.getLine();
+        var column = this.stack.getColumn();
+        if (this.trace) {
+            console.log("prolog(bMark = '" + bMark + "', eMark = '" + eMark + "')");
+            console.log("line = " + line + ", column = " + column);
+        }
+        this.stack.push(new StackElement(bMark, eMark, line, column, this.trace));
     };
     TypeWriter.prototype.epilog = function (insertSpaceAfterOpeningAndBeforeClosingNonempty) {
         var popped = this.stack.pop();
         var textAndMappings = popped.snapshot();
         var text = textAndMappings.text;
         var tree = textAndMappings.tree;
+        // This is where we would be
+        var line = textAndMappings.targetEndLine;
+        var column = textAndMappings.targetEndColumn;
+        if (this.trace) {
+            console.log("epilog(text = '" + text + "', tree = '" + JSON.stringify(tree) + "')");
+            console.log("line = " + line + ", column = " + column);
+        }
         if (text.length > 0 && insertSpaceAfterOpeningAndBeforeClosingNonempty) {
-            this.write(popped.begin, null);
+            this.write(popped.bMark, null);
             this.space();
             var rows = 0;
-            var cols = popped.begin.length + 1;
+            var cols = popped.bMark.length + 1;
             if (tree) {
                 tree.offset(rows, cols);
             }
             this.write(text, tree);
             this.space();
-            this.write(popped.end, null);
+            this.write(popped.eMark, null);
         }
         else {
-            this.write(popped.begin, null);
+            this.write(popped.bMark, null);
             var rows = 0;
-            var cols = popped.begin.length;
+            var cols = popped.bMark.length;
             if (tree) {
                 tree.offset(rows, cols);
             }
             this.write(text, tree);
-            this.write(popped.end, null);
+            this.write(popped.eMark, null);
         }
     };
     return TypeWriter;

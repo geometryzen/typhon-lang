@@ -473,14 +473,17 @@ export function parse(sourceText: string, sourceKind: SourceKind = SourceKind.Fi
     return ret;
 }
 
-export function parseTreeDump(parseTree: PyNode): string {
-    function parseTreeDumpInternal(n: PyNode, indent: string): string {
+/**
+ * Concrete Syntax Tree
+ */
+export function cstDump(parseTree: PyNode): string {
+    function parseTreeDump(n: PyNode, indent: string): string {
         let ret = "";
         if (isNonTerminal(n.type)) {
             ret += indent + ParseTables.number2symbol[n.type] + "\n";
             if (n.children) {
                 for (let i = 0; i < n.children.length; ++i) {
-                    ret += parseTreeDumpInternal(n.children[i], "  " + indent);
+                    ret += parseTreeDump(n.children[i], "  " + indent);
                 }
             }
         }
@@ -489,7 +492,7 @@ export function parseTreeDump(parseTree: PyNode): string {
         }
         return ret;
     }
-    return parseTreeDumpInternal(parseTree, "");
+    return parseTreeDump(parseTree, "");
 }
 
 /**

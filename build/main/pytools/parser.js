@@ -381,14 +381,17 @@ function parse(sourceText, sourceKind) {
     return ret;
 }
 exports.parse = parse;
-function parseTreeDump(parseTree) {
-    function parseTreeDumpInternal(n, indent) {
+/**
+ * Concrete Syntax Tree
+ */
+function cstDump(parseTree) {
+    function parseTreeDump(n, indent) {
         var ret = "";
         if (isNonTerminal(n.type)) {
             ret += indent + tables_1.ParseTables.number2symbol[n.type] + "\n";
             if (n.children) {
                 for (var i = 0; i < n.children.length; ++i) {
-                    ret += parseTreeDumpInternal(n.children[i], "  " + indent);
+                    ret += parseTreeDump(n.children[i], "  " + indent);
                 }
             }
         }
@@ -397,9 +400,9 @@ function parseTreeDump(parseTree) {
         }
         return ret;
     }
-    return parseTreeDumpInternal(parseTree, "");
+    return parseTreeDump(parseTree, "");
 }
-exports.parseTreeDump = parseTreeDump;
+exports.cstDump = cstDump;
 /**
  * Terminal symbols hsould be less than T_NT_OFFSET.
  * NT_OFFSET means non-terminal offset.

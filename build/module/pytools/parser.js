@@ -378,14 +378,17 @@ export function parse(sourceText, sourceKind) {
     }
     return ret;
 }
-export function parseTreeDump(parseTree) {
-    function parseTreeDumpInternal(n, indent) {
+/**
+ * Concrete Syntax Tree
+ */
+export function cstDump(parseTree) {
+    function parseTreeDump(n, indent) {
         var ret = "";
         if (isNonTerminal(n.type)) {
             ret += indent + ParseTables.number2symbol[n.type] + "\n";
             if (n.children) {
                 for (var i = 0; i < n.children.length; ++i) {
-                    ret += parseTreeDumpInternal(n.children[i], "  " + indent);
+                    ret += parseTreeDump(n.children[i], "  " + indent);
                 }
             }
         }
@@ -394,7 +397,7 @@ export function parseTreeDump(parseTree) {
         }
         return ret;
     }
-    return parseTreeDumpInternal(parseTree, "");
+    return parseTreeDump(parseTree, "");
 }
 /**
  * Terminal symbols hsould be less than T_NT_OFFSET.

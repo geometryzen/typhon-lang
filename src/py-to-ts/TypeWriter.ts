@@ -6,8 +6,6 @@ import { MutablePosition } from '../pytools/MutableRange';
 import { MutableRange } from '../pytools/MutableRange';
 import { MappingTree } from './MappingTree';
 
-const BEGIN_LINE = 1;
-
 export enum IndentStyle {
     None = 0,
     Block = 1,
@@ -43,75 +41,97 @@ export interface FormatCodeOptions extends EditorOptions {
 class StackElement {
     private readonly texts: string[] = [];
     private readonly trees: MappingTree[] = [];
-    constructor(public readonly begin: string, public readonly end: string) {
-        // Do nothing yet.
+    // FIXME: A mutable position can be renamed to a Cursor.
+    private readonly cursor: MutablePosition;
+    constructor(public readonly bMark: string, public readonly eMark: string, targetBeginLine: number, targetBeginColumn: number, private trace: boolean) {
+        this.cursor = new MutablePosition(targetBeginLine, targetBeginColumn);
     }
+    /**
+     *
+     */
     write(text: string, tree: MappingTree): void {
+        assert(typeof text === 'string', "text must be a string");
         this.texts.push(text);
         this.trees.push(tree);
+
+        const cursor = this.cursor;
+        const beginLine = cursor.line;
+        const beginColumn = cursor.column;
+        const endLine = cursor.line;
+        const endColumn = beginColumn + text.length;
+        if (tree) {
+            tree.target.begin.line = beginLine;
+            tree.target.begin.column = beginColumn;
+            tree.target.end.line = endLine;
+            tree.target.end.column = endColumn;
+        }
+        cursor.line = endLine;
+        cursor.column = endColumn;
     }
-    snapshot(): { text: string; tree: MappingTree } {
+    snapshot(): { text: string; tree: MappingTree; targetEndLine: number; targetEndColumn: number } {
         const texts = this.texts;
         const trees = this.trees;
         const N = texts.length;
         if (N === 0) {
-            return { text: '', tree: null };
-        }
-        else if (N === 1) {
-            const text = texts[0];
-            const tree = trees[0];
-            let line = BEGIN_LINE;
-            let beginColumn = 0;
-            const endColumn = beginColumn + text.length;
-            if (tree) {
-                tree.target = new MutableRange(new MutablePosition(line, beginColumn), new MutablePosition(line, endColumn));
-                return { text, tree };
-            }
-            else {
-                return { text, tree: null };
-            }
+            return this.package('', null);
         }
         else {
-            let sourceBeginLine = Number.MAX_SAFE_INTEGER;
-            let sourceBeginColumn = Number.MAX_SAFE_INTEGER;
-            let sourceEndLine = Number.MIN_SAFE_INTEGER;
-            let sourceEndColumn = Number.MIN_SAFE_INTEGER;
-            let targetBeginLine = Number.MAX_SAFE_INTEGER;
+            let sBL = Number.MAX_SAFE_INTEGER;
+            let sBC = Number.MAX_SAFE_INTEGER;
+            let sEL = Number.MIN_SAFE_INTEGER;
+            let sEC = Number.MIN_SAFE_INTEGER;
+            let tBL = Number.MAX_SAFE_INTEGER;
+            let tBC = Number.MAX_SAFE_INTEGER;
+            let tEL = Number.MIN_SAFE_INTEGER;
+            let tEC = Number.MIN_SAFE_INTEGER;
             const children: MappingTree[] = [];
-            let line = BEGIN_LINE;
-            let beginColumn = 0;
             for (let i = 0; i < N; i++) {
-                const text = texts[i];
                 const tree = trees[i];
-                const endColumn = beginColumn + text.length;
                 if (tree) {
-                    assert(tree, "mapping must be defined");
-                    if (tree.source && tree.source.begin) {
-                        sourceBeginLine = Math.min(sourceBeginLine, tree.source.begin.line);
-                        sourceBeginColumn = Math.min(sourceBeginColumn, tree.source.begin.column);
+                    sBL = Math.min(sBL, tree.source.begin.line);
+                    sBC = Math.min(sBC, tree.source.begin.column);
+                    sEL = Math.max(sEL, tree.source.end.line);
+                    sEC = Math.max(sEC, tree.source.end.column);
+
+                    tBL = Math.min(tBL, tree.target.begin.line);
+                    tBC = Math.min(tBC, tree.target.begin.column);
+                    tEL = Math.max(tEL, tree.target.end.line);
+                    tEC = Math.max(tEC, tree.target.end.column);
+
+                    if (this.trace) {
+                        console.log(`txt = ${texts[i]}`);
+                        console.log(`tBL = ${tBL}`);
+                        console.log(`tBC = ${tBC}`);
+                        console.log(`tEL = ${tEL}`);
+                        console.log(`tEC = ${tEC}`);
                     }
-                    if (tree.source && tree.source.end) {
-                        sourceEndLine = Math.max(sourceEndLine, tree.source.end.line);
-                        sourceEndColumn = Math.max(sourceEndColumn, tree.source.end.column);
-                    }
-                    tree.target = new MutableRange(new MutablePosition(line, beginColumn), new MutablePosition(line, endColumn));
+
                     children.push(tree);
                 }
-                beginColumn = endColumn;
             }
             const text = texts.join("");
             if (children.length > 1) {
-                const source = new Range(new Position(sourceBeginLine, sourceBeginColumn), new Position(sourceEndLine, sourceEndColumn));
-                const target = new MutableRange(new MutablePosition(targetBeginLine, -10), new MutablePosition(-10, -10));
-                return { text, tree: new MappingTree(source, target, children) };
+                const source = new Range(new Position(sBL, sBC), new Position(sEL, sEC));
+                const target = new MutableRange(new MutablePosition(tBL, tBC), new MutablePosition(tEL, tEC));
+                return this.package(text, new MappingTree(source, target, children));
             }
             else if (children.length === 1) {
-                return { text, tree: children[0] };
+                return this.package(text, children[0]);
             }
             else {
-                return { text, tree: null };
+                return this.package(text, null);
             }
         }
+    }
+    private package(text: string, tree: MappingTree): { text: string; tree: MappingTree; targetEndLine: number; targetEndColumn: number } {
+        return { text, tree, targetEndLine: this.cursor.line, targetEndColumn: this.cursor.column };
+    }
+
+    public getLine(): number {
+        return this.cursor.line;
+    }
+    public getColumn(): number {
+        return this.cursor.column;
     }
 }
 
@@ -119,10 +139,13 @@ function IDXLAST<T>(xs: ArrayLike<T>): number {
     return xs.length - 1;
 }
 
+/**
+ *
+ */
 class Stack {
     private readonly elements: StackElement[] = [];
-    constructor() {
-        this.elements.push(new StackElement('', ''));
+    constructor(begin: string, end: string, targetLine: number, targetColumn: number, trace: boolean) {
+        this.elements.push(new StackElement(begin, end, targetLine, targetColumn, trace));
     }
     get length() {
         return this.elements.length;
@@ -143,6 +166,12 @@ class Stack {
         assert(this.elements.length === 0, "stack length should be 0");
         return textAndMappings;
     }
+    getLine(): number {
+        return this.elements[IDXLAST(this.elements)].getLine();
+    }
+    getColumn(): number {
+        return this.elements[IDXLAST(this.elements)].getColumn();
+    }
 }
 
 export interface TextAndMappings {
@@ -154,8 +183,7 @@ export interface TextAndMappings {
  * A smart buffer for writing TypeScript code.
  */
 export class TypeWriter {
-    // private readonly buffer: string[] = [];
-    private readonly stack: Stack = new Stack();
+    private readonly stack: Stack;
     /**
      * Determines the indentation.
      */
@@ -163,8 +191,8 @@ export class TypeWriter {
     /**
      * Constructs a TypeWriter instance using the specified options.
      */
-    constructor(private options: FormatCodeOptions = {}) {
-        // Do nothing.
+    constructor(beginLine: number, beginColumn: number, private options: FormatCodeOptions = {}, private trace = false) {
+        this.stack = new Stack('', '', beginLine, beginColumn, trace);
     }
     assign(text: '=', source: Range): void {
         const target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
@@ -190,6 +218,19 @@ export class TypeWriter {
     num(text: string, source: Range): void {
         if (source) {
             const target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
+            const tree = new MappingTree(source, target, null);
+            this.stack.write(text, tree);
+        }
+        else {
+            this.stack.write(text, null);
+        }
+    }
+    /**
+     * Currently defined to be for string literals in unparsed form.
+     */
+    str(text: string, source: Range): void {
+        if (source) {
+            const target = new MutableRange(new MutablePosition(-23, -23), new MutablePosition(-23, -23));
             const tree = new MappingTree(source, target, null);
             this.stack.write(text, tree);
         }
@@ -269,35 +310,48 @@ export class TypeWriter {
     endStatement(): void {
         this.epilog(false);
     }
-    private prolog(begin: string, end: string): void {
-        this.stack.push(new StackElement(begin, end));
+    private prolog(bMark: string, eMark: string): void {
+        const line = this.stack.getLine();
+        const column = this.stack.getColumn();
+        if (this.trace) {
+            console.log(`prolog(bMark = '${bMark}', eMark = '${eMark}')`);
+            console.log(`line = ${line}, column = ${column}`);
+        }
+        this.stack.push(new StackElement(bMark, eMark, line, column, this.trace));
     }
     private epilog(insertSpaceAfterOpeningAndBeforeClosingNonempty: boolean | undefined): void {
         const popped = this.stack.pop();
         const textAndMappings = popped.snapshot();
         const text = textAndMappings.text;
         const tree = textAndMappings.tree;
+        // This is where we would be
+        const line = textAndMappings.targetEndLine;
+        const column = textAndMappings.targetEndColumn;
+        if (this.trace) {
+            console.log(`epilog(text = '${text}', tree = '${JSON.stringify(tree)}')`);
+            console.log(`line = ${line}, column = ${column}`);
+        }
         if (text.length > 0 && insertSpaceAfterOpeningAndBeforeClosingNonempty) {
-            this.write(popped.begin, null);
+            this.write(popped.bMark, null);
             this.space();
             const rows = 0;
-            const cols = popped.begin.length + 1;
+            const cols = popped.bMark.length + 1;
             if (tree) {
                 tree.offset(rows, cols);
             }
             this.write(text, tree);
             this.space();
-            this.write(popped.end, null);
+            this.write(popped.eMark, null);
         }
         else {
-            this.write(popped.begin, null);
+            this.write(popped.bMark, null);
             const rows = 0;
-            const cols = popped.begin.length;
+            const cols = popped.bMark.length;
             if (tree) {
                 tree.offset(rows, cols);
             }
             this.write(text, tree);
-            this.write(popped.end, null);
+            this.write(popped.eMark, null);
         }
     }
 }

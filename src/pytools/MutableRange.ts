@@ -1,3 +1,4 @@
+import { assert } from '../pytools/asserts';
 
 
 export class MutablePosition {
@@ -15,6 +16,8 @@ export class MutableRange {
      *
      */
     constructor(public readonly begin: MutablePosition, public readonly end: MutablePosition) {
+        assert(begin, "begin must be defined");
+        assert(end, "end must be defined");
         this.begin = begin;
         this.end = end;
     }

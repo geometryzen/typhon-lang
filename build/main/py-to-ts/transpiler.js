@@ -32,7 +32,7 @@ var PrinterUnit = (function () {
         this.name = name;
         this.ste = ste;
         this.private_ = null;
-        this.firstlineno = 0;
+        this.beginLine = 0;
         this.lineno = 0;
         this.linenoSet = false;
         this.localnames = [];
@@ -66,7 +66,9 @@ var Printer = (function () {
      * @param flags Not being used yet. May become options.
      * @param sourceText The original source code, provided for annotating the generated code and source mapping.
      */
-    function Printer(st, flags, sourceText) {
+    function Printer(st, flags, sourceText, beginLine, beginColumn, trace) {
+        this.beginLine = beginLine;
+        this.beginColumn = beginColumn;
         /**
          * Used to provide a unique number for generated symbol names.
          */
@@ -82,15 +84,17 @@ var Printer = (function () {
         // this.gensymcount = 0;
         this.allUnits = [];
         this.source = sourceText ? sourceText.split("\n") : false;
-        this.writer = new TypeWriter_1.TypeWriter();
+        this.writer = new TypeWriter_1.TypeWriter(beginLine, beginColumn, {}, trace);
     }
     /**
      * This is the entry point for this visitor.
      */
     Printer.prototype.transpileModule = function (module) {
-        this.enterScope("<module>", module, 0);
+        // Traversing the AST sends commands to the writer.
+        this.enterScope("<module>", module, this.beginLine, this.beginColumn);
         this.module(module);
         this.exitScope();
+        // Now return the captured events as a transpiled module.
         return this.writer.snapshot();
     };
     /**
@@ -99,11 +103,11 @@ var Printer = (function () {
      * Returns a string identifying the scope.
      * @param name The name that will be assigned to the PrinterUnit.
      * @param key A scope object in the AST from sematic analysis. Provides the mapping to the SymbolTableScope.
-     * @param lineno Assigned to the first line numberof the PrinterUnit.
      */
-    Printer.prototype.enterScope = function (name, key, lineno) {
+    Printer.prototype.enterScope = function (name, key, beginLine, beginColumn) {
         var u = new PrinterUnit(name, this.st.getStsForAst(key));
-        u.firstlineno = lineno;
+        u.beginLine = beginLine;
+        u.beginColumn = beginColumn;
         if (this.u && this.u.private_) {
             u.private_ = this.u.private_;
         }
@@ -267,8 +271,9 @@ var Printer = (function () {
         this.writer.closeParen();
     };
     Printer.prototype.classDef = function (cd) {
-        this.writer.write("class ", null);
-        this.writer.write(cd.name, null);
+        this.writer.write("class", null);
+        this.writer.space();
+        this.writer.name(cd.name, cd.nameRange);
         // this.writer.openParen();
         // this.writer.closeParen();
         this.writer.beginBlock();
@@ -403,25 +408,27 @@ var Printer = (function () {
     };
     Printer.prototype.importFrom = function (importFrom) {
         this.writer.beginStatement();
-        this.writer.write("import ", null);
+        this.writer.write("import", null);
+        this.writer.space();
         this.writer.beginBlock();
         for (var i = 0; i < importFrom.names.length; i++) {
             if (i > 0) {
                 this.writer.comma(null, null);
             }
             var alias = importFrom.names[i];
-            this.writer.write(alias.name, null);
+            this.writer.name(alias.name, alias.nameRange);
             if (alias.asname) {
-                this.writer.write(" as ", null);
+                this.writer.space();
+                this.writer.write("as", null);
+                this.writer.space();
                 this.writer.write(alias.asname, null);
             }
         }
         this.writer.endBlock();
-        this.writer.write(" from ", null);
-        this.writer.beginQuote();
-        // TODO: Escaping?
-        this.writer.write(importFrom.module, null);
-        this.writer.endQuote();
+        this.writer.space();
+        this.writer.write("from", null);
+        this.writer.space();
+        this.writer.str(toStringLiteralJS_1.toStringLiteralJS(importFrom.module), importFrom.moduleRange);
         this.writer.endStatement();
     };
     Printer.prototype.list = function (list) {
@@ -487,17 +494,18 @@ var Printer = (function () {
         // const begin = str.begin;
         // const end = str.end;
         // TODO: AST is not preserving the original quoting, or maybe a hint.
-        this.writer.write(toStringLiteralJS_1.toStringLiteralJS(s), null);
+        this.writer.str(toStringLiteralJS_1.toStringLiteralJS(s), null);
     };
     return Printer;
 }());
-function transpileModule(sourceText) {
+function transpileModule(sourceText, trace) {
+    if (trace === void 0) { trace = false; }
     var cst = parser_1.parse(sourceText, parser_1.SourceKind.File);
     if (typeof cst === 'object') {
         var stmts = builder_1.astFromParse(cst);
         var mod = new types_4.Module(stmts);
         var symbolTable = symtable_1.semanticsOfModule(mod);
-        var printer = new Printer(symbolTable, 0, sourceText);
+        var printer = new Printer(symbolTable, 0, sourceText, 1, 0, trace);
         var textAndMappings = printer.transpileModule(mod);
         var code = textAndMappings.text;
         var sourceMap = textAndMappings.tree;

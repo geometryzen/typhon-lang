@@ -94,7 +94,7 @@ var base_1 = require("./base");
 var tables_1 = require("./tables");
 var Tokens_1 = require("./Tokens");
 var numericLiteral_1 = require("./numericLiteral");
-// import { parseTreeDump } from './parser';
+// import { cstDump } from './parser';
 var grammarName_1 = require("./grammarName");
 //
 // This is pretty much a straight port of ast.c from CPython 2.6.5.
@@ -620,11 +620,13 @@ function aliasForImportName(c, n) {
         switch (n.type) {
             case SYM.ImportSpecifier: {
                 var str = null;
-                var name_1 = strobj(tree_1.CHILD(n, 0).value);
+                var nameNode = tree_1.CHILD(n, 0);
+                var name_1 = strobj(nameNode.value);
+                var nameRange = nameNode.range;
                 if (tree_1.NCH(n) === 3) {
                     str = tree_1.CHILD(n, 2).value;
                 }
-                return new types_2.Alias(name_1, str == null ? null : strobj(str));
+                return new types_2.Alias(name_1, nameRange, str == null ? null : strobj(str));
             }
             case SYM.dotted_as_name:
                 if (tree_1.NCH(n) === 1) {
@@ -638,21 +640,26 @@ function aliasForImportName(c, n) {
                     return a;
                 }
             case SYM.dotted_name:
-                if (tree_1.NCH(n) === 1)
-                    return new types_2.Alias(strobj(tree_1.CHILD(n, 0).value), null);
+                if (tree_1.NCH(n) === 1) {
+                    var nameNode = tree_1.CHILD(n, 0);
+                    var name_2 = strobj(nameNode.value);
+                    var nameRange = nameNode.range;
+                    return new types_2.Alias(name_2, nameRange, null);
+                }
                 else {
                     // create a string of the form a.b.c
                     var str = '';
-                    for (var i = 0; i < tree_1.NCH(n); i += 2)
+                    for (var i = 0; i < tree_1.NCH(n); i += 2) {
                         str += tree_1.CHILD(n, i).value + ".";
-                    return new types_2.Alias(strobj(str.substr(0, str.length - 1)), null);
+                    }
+                    return new types_2.Alias(strobj(str.substr(0, str.length - 1)), null, null);
                 }
             case Tokens_1.Tokens.T_STAR: {
-                return new types_2.Alias(strobj("*"), null);
+                return new types_2.Alias(strobj("*"), n.range, null);
             }
             case Tokens_1.Tokens.T_NAME: {
                 // Temporary.
-                return new types_2.Alias(strobj(n.value), null);
+                return new types_2.Alias(strobj(n.value), n.range, null);
             }
             default: {
                 throw syntaxError("unexpected import name " + grammarName_1.grammarName(n.type), n.range);
@@ -664,11 +671,13 @@ function parseModuleSpecifier(c, moduleSpecifierNode) {
     REQ(moduleSpecifierNode, SYM.ModuleSpecifier);
     var N = tree_1.NCH(moduleSpecifierNode);
     var ret = "";
+    var range;
     for (var i = 0; i < N; ++i) {
         var child = tree_1.CHILD(moduleSpecifierNode, i);
         ret = ret + parsestr(c, child.value);
+        range = child.range;
     }
-    return ret;
+    return { value: ret, range: range };
 }
 function astForImportStmt(c, importStatementNode) {
     REQ(importStatementNode, SYM.import_stmt);
@@ -683,8 +692,8 @@ function astForImportStmt(c, importStatementNode) {
         return new types_42.ImportStatement(aliases, importStatementNode.range);
     }
     else if (nameOrFrom.type === SYM.import_from) {
-        var mod = null;
-        var moduleName = "";
+        // let mod: Alias = null;
+        var moduleSpec = void 0;
         var ndots = 0;
         var nchildren = void 0;
         var idx = void 0;
@@ -699,7 +708,7 @@ function astForImportStmt(c, importStatementNode) {
                 // break;
             }
             else if (childType === SYM.ModuleSpecifier) {
-                moduleName = parseModuleSpecifier(c, child);
+                moduleSpec = parseModuleSpecifier(c, child);
                 break;
             }
             else if (childType !== Tokens_1.Tokens.T_DOT) {
@@ -741,8 +750,8 @@ function astForImportStmt(c, importStatementNode) {
             var importListNode = tree_1.CHILD(n, tree_1.FIND(n, SYM.ImportList));
             astForImportList(c, importListNode, aliases);
         }
-        moduleName = mod ? mod.name : moduleName;
-        return new types_43.ImportFrom(strobj(moduleName), aliases, ndots, importStatementNode.range);
+        // moduleName = mod ? mod.name : moduleName;
+        return new types_43.ImportFrom(strobj(moduleSpec.value), moduleSpec.range, aliases, ndots, importStatementNode.range);
     }
     else {
         throw syntaxError("unknown import statement " + grammarName_1.grammarName(nameOrFrom.type) + ".", nameOrFrom.range);
@@ -1138,19 +1147,23 @@ function astForClassBases(c, n) {
     }
     return seqForTestlist(c, n);
 }
-function astForClassdef(c, n, decoratorSeq) {
+function astForClassdef(c, node, decoratorSeq) {
+    var n = node;
     REQ(n, SYM.classdef);
-    forbiddenCheck(c, n, tree_1.CHILD(n, 1).value, n.range);
-    var classname = strobj(tree_1.CHILD(n, 1).value);
+    var c1 = tree_1.CHILD(n, 1);
+    forbiddenCheck(c, n, c1.value, n.range);
+    var className = strobj(c1.value);
+    var nameRange = c1.range;
     if (tree_1.NCH(n) === 4) {
-        return new types_18.ClassDef(classname, [], astForSuite(c, tree_1.CHILD(n, 3)), decoratorSeq, n.range);
+        return new types_18.ClassDef(className, nameRange, [], astForSuite(c, tree_1.CHILD(n, 3)), decoratorSeq, n.range);
     }
-    if (tree_1.CHILD(n, 3).type === Tokens_1.Tokens.T_RPAR) {
-        return new types_18.ClassDef(classname, [], astForSuite(c, tree_1.CHILD(n, 5)), decoratorSeq, n.range);
+    var c3 = tree_1.CHILD(n, 3);
+    if (c3.type === Tokens_1.Tokens.T_RPAR) {
+        return new types_18.ClassDef(className, nameRange, [], astForSuite(c, tree_1.CHILD(n, 5)), decoratorSeq, n.range);
     }
-    var bases = astForClassBases(c, tree_1.CHILD(n, 3));
+    var bases = astForClassBases(c, c3);
     var s = astForSuite(c, tree_1.CHILD(n, 6));
-    return new types_18.ClassDef(classname, bases, s, decoratorSeq, n.range);
+    return new types_18.ClassDef(className, nameRange, bases, s, decoratorSeq, n.range);
 }
 function astForLambdef(c, n) {
     var args;

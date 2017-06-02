@@ -5,7 +5,7 @@ import { Range } from '../pytools/Range';
 describe("TypeWriter", function () {
     describe("comma", function () {
         it("should only write the comma if there is no...", function () {
-            const tw = new TypeWriter();
+            const tw = new TypeWriter(1, 0);
             tw.comma(null, null);
             const result = tw.snapshot();
             const text = result.text;
@@ -14,7 +14,7 @@ describe("TypeWriter", function () {
             expect(tree).toBeNull();
         });
         it("should map the source range to the target range", function () {
-            const tw = new TypeWriter();
+            const tw = new TypeWriter(1, 0);
             const sourceBegin = new Position(2, 3);
             const sourceEnd = new Position(5, 7);
             tw.comma(sourceBegin, sourceEnd);
@@ -36,12 +36,12 @@ describe("TypeWriter", function () {
         });
         describe("insertSpaceAfterCommaDelimiter", function () {
             it("true", function () {
-                const tw = new TypeWriter({ insertSpaceAfterCommaDelimiter: true });
+                const tw = new TypeWriter(1, 0, { insertSpaceAfterCommaDelimiter: true });
                 tw.comma(null, null);
                 expect(tw.snapshot().text).toBe(", ");
             });
             it("false", function () {
-                const tw = new TypeWriter({ insertSpaceAfterCommaDelimiter: false });
+                const tw = new TypeWriter(1, 0, { insertSpaceAfterCommaDelimiter: false });
                 tw.comma(null, null);
                 expect(tw.snapshot().text).toBe(",");
             });
@@ -49,7 +49,7 @@ describe("TypeWriter", function () {
     });
     describe("Braces", function () {
         it("{}", function () {
-            const tw = new TypeWriter();
+            const tw = new TypeWriter(1, 0);
             tw.beginObject();
             tw.endObject();
             const result = tw.snapshot();
@@ -59,7 +59,7 @@ describe("TypeWriter", function () {
             expect(tree).toBeNull();
         });
         it("{a}", function () {
-            const tw = new TypeWriter();
+            const tw = new TypeWriter(1, 0);
             tw.beginObject();
             const sourceBegin = new Position(2, 3);
             const sourceEnd = new Position(5, 7);
@@ -82,7 +82,7 @@ describe("TypeWriter", function () {
             expect(tree.target.end.column).toBe(2);
         });
         it("[a,b]", function () {
-            const tw = new TypeWriter();
+            const tw = new TypeWriter(1, 0);
             tw.beginBracket();
             const aBegin = new Position(1, 1);
             const aEnd = new Position(1, 2);
@@ -94,13 +94,13 @@ describe("TypeWriter", function () {
             tw.endBracket();
             const result = tw.snapshot();
             const text = result.text;
-            const tree = result.tree;
-            console.log(JSON.stringify(tree, null, 2));
+            // const tree = result.tree;
+            // console.lg(JSON.stringify(tree, null, 2));
             expect(text).toBe("[a,b]");
         });
         describe("insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets", function () {
             it("true", function () {
-                const tw = new TypeWriter({ insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: true });
+                const tw = new TypeWriter(1, 0, { insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: true });
                 tw.beginBracket();
                 const sourceBegin = new Position(2, 3);
                 const sourceEnd = new Position(5, 7);
@@ -114,7 +114,7 @@ describe("TypeWriter", function () {
                 // expect(tree.length).toBe(1);
             });
             it("false", function () {
-                const tw = new TypeWriter({ insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: false });
+                const tw = new TypeWriter(1, 0, { insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: false });
                 tw.beginBracket();
                 tw.name("a", null);
                 tw.endBracket();
@@ -122,7 +122,7 @@ describe("TypeWriter", function () {
             });
         });
         it("[a,b]", function () {
-            const tw = new TypeWriter({
+            const tw = new TypeWriter(1, 0, {
                 insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: false,
                 insertSpaceAfterCommaDelimiter: true
             });
@@ -144,13 +144,13 @@ describe("TypeWriter", function () {
     });
     describe("Brackets", function () {
         it("[]", function () {
-            const tw = new TypeWriter();
+            const tw = new TypeWriter(1, 0);
             tw.beginBracket();
             tw.endBracket();
             expect(tw.snapshot().text).toBe("[]");
         });
         it("[a]", function () {
-            const tw = new TypeWriter();
+            const tw = new TypeWriter(1, 0);
             tw.beginBracket();
             const sourceBegin = new Position(2, 3);
             const sourceEnd = new Position(5, 7);
@@ -164,7 +164,7 @@ describe("TypeWriter", function () {
             // console.lg(JSON.stringify(mappings));
         });
         it("[a,b]", function () {
-            const tw = new TypeWriter();
+            const tw = new TypeWriter(1, 0);
             tw.beginBracket();
             tw.name("a", null);
             tw.comma(null, null);
@@ -174,7 +174,7 @@ describe("TypeWriter", function () {
         });
         describe("insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets", function () {
             it("true", function () {
-                const tw = new TypeWriter({ insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: true });
+                const tw = new TypeWriter(1, 0, { insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: true });
                 tw.beginBracket();
                 const sourceBegin = new Position(2, 3);
                 const sourceEnd = new Position(5, 7);
@@ -198,7 +198,7 @@ describe("TypeWriter", function () {
                 expect(tree.target.end.column).toBe(3);
             });
             it("false", function () {
-                const tw = new TypeWriter({ insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: false });
+                const tw = new TypeWriter(1, 0, { insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: false });
                 tw.beginBracket();
                 const sourceBegin = new Position(2, 3);
                 const sourceEnd = new Position(5, 7);

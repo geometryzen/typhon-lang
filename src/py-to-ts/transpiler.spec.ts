@@ -1,5 +1,6 @@
 import { transpileModule as compile } from './transpiler';
 import { sourceLines } from '../data/eight';
+import { mapToTarget } from './mapToTarget';
 // import { parseTreeDump } from '../pytools/parser';
 // import { dumpSymbolTable } from '../pytools/symtable';
 // import { astDump } from '../pytools/builder';
@@ -338,7 +339,87 @@ describe('transpiler', function () {
                 ""
             ].join("\n");
             const result = compile(sourceText);
-            expect(result.code).toBe("import {Engine} from '@eight';");
+            const targetText = result.code;
+            const sourceMap = result.sourceMap;
+            expect(targetText).toBe("import {Engine} from '@eight';");
+            // console.lg(JSON.stringify(sourceMap, null, 2));
+            expect(sourceMap.children.length).toBe(2);
+        });
+        it('should compute the sourceMap', function () {
+            const sourceText = [
+                "from 'foo' import bar",
+                ""
+            ].join("\n");
+            const result = compile(sourceText, false);
+            const targetText = result.code;
+            const sourceMap = result.sourceMap;
+            expect(targetText).toBe("import {bar} from 'foo';");
+            // console.lg(JSON.stringify(sourceMap, null, 2));
+            expect(sourceMap.children.length).toBe(2);
+
+            const bar = sourceMap.children[0];
+
+            expect(bar.source.begin.line).toBe(1);
+            expect(bar.source.begin.column).toBe(18);
+            expect(bar.source.end.line).toBe(1);
+            expect(bar.source.end.column).toBe(21);
+
+            expect(bar.target.begin.line).toBe(1);
+            expect(bar.target.begin.column).toBe(8);
+            expect(bar.target.end.line).toBe(1);
+            expect(bar.target.end.column).toBe(11);
+
+            const foo = sourceMap.children[1];
+            // console.lg(JSON.stringify(foo));
+
+            // Source range for string literals currently includes the quotation marks.
+            expect(foo.source.begin.line).toBe(1);
+            expect(foo.source.begin.column).toBe(5);
+            expect(foo.source.end.line).toBe(1);
+            expect(foo.source.end.column).toBe(10);
+
+            // Target range for string literals should also include quotation marks.
+            expect(foo.target.begin.line).toBe(1);
+            expect(foo.target.begin.column).toBe(18);
+            expect(foo.target.end.line).toBe(1);
+            expect(foo.target.end.column).toBe(23);
+
+            // Source summary range.
+            expect(sourceMap.source.begin.line).toBe(1);
+            expect(sourceMap.source.begin.column).toBe(5);
+            expect(sourceMap.source.end.line).toBe(1);
+            expect(sourceMap.source.end.column).toBe(21);
+
+            // Target summary range is the full string.
+            expect(sourceMap.target.begin.line).toBe(1);
+            expect(sourceMap.target.begin.column).toBe(0);
+            expect(sourceMap.target.end.line).toBe(1);
+            expect(sourceMap.target.end.column).toBe(23);
+
+            expect(mapToTarget(sourceMap, 1, 6).line).toBe(1);
+
+            expect(mapToTarget(sourceMap, 1, 0)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 1)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 2)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 3)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 4)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 5).column).toBe(18);   // quote
+            expect(mapToTarget(sourceMap, 1, 6).column).toBe(19);   // f
+            expect(mapToTarget(sourceMap, 1, 7).column).toBe(20);   // o
+            expect(mapToTarget(sourceMap, 1, 8).column).toBe(21);   // o
+            expect(mapToTarget(sourceMap, 1, 9).column).toBe(22);   // quote
+            expect(mapToTarget(sourceMap, 1, 10)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 11)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 12)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 13)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 14)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 15)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 16)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 17)).toBeNull();
+            expect(mapToTarget(sourceMap, 1, 18).column).toBe(8);   // b
+            expect(mapToTarget(sourceMap, 1, 19).column).toBe(9);   // a
+            expect(mapToTarget(sourceMap, 1, 20).column).toBe(10);  // r
+            expect(mapToTarget(sourceMap, 1, 21)).toBeNull();
         });
     });
 

@@ -95,4 +95,7 @@ export declare enum SourceKind {
     Single = 2,
 }
 export declare function parse(sourceText: string, sourceKind?: SourceKind): boolean | PyNode;
-export declare function parseTreeDump(parseTree: PyNode): string;
+/**
+ * Concrete Syntax Tree
+ */
+export declare function cstDump(parseTree: PyNode): string;

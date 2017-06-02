@@ -40,7 +40,8 @@ class PrinterUnit {
      * Some sort of private name?
      */
     private_: string;
-    firstlineno: number;
+    beginLine: number;
+    beginColumn: number;
     lineno: number;
     /**
      * Has the line number been set?
@@ -80,7 +81,7 @@ class PrinterUnit {
         this.ste = ste;
 
         this.private_ = null;
-        this.firstlineno = 0;
+        this.beginLine = 0;
         this.lineno = 0;
         this.linenoSet = false;
         this.localnames = [];
@@ -175,7 +176,7 @@ class Printer implements Visitor {
      * @param flags Not being used yet. May become options.
      * @param sourceText The original source code, provided for annotating the generated code and source mapping.
      */
-    constructor(st: SymbolTable, flags: number, sourceText: string) {
+    constructor(st: SymbolTable, flags: number, sourceText: string, private beginLine: number, private beginColumn: number, trace: boolean) {
         // this.fileName = fileName;
         this.st = st;
         this.flags = flags;
@@ -187,7 +188,7 @@ class Printer implements Visitor {
         // this.gensymcount = 0;
         this.allUnits = [];
         this.source = sourceText ? sourceText.split("\n") : false;
-        this.writer = new TypeWriter();
+        this.writer = new TypeWriter(beginLine, beginColumn, {}, trace);
     }
 
     /**
@@ -195,10 +196,12 @@ class Printer implements Visitor {
      */
     transpileModule(module: Module): TextAndMappings {
 
-        this.enterScope("<module>", module, 0);
+        // Traversing the AST sends commands to the writer.
+        this.enterScope("<module>", module, this.beginLine, this.beginColumn);
         this.module(module);
         this.exitScope();
 
+        // Now return the captured events as a transpiled module.
         return this.writer.snapshot();
     }
 
@@ -208,11 +211,11 @@ class Printer implements Visitor {
      * Returns a string identifying the scope.
      * @param name The name that will be assigned to the PrinterUnit.
      * @param key A scope object in the AST from sematic analysis. Provides the mapping to the SymbolTableScope.
-     * @param lineno Assigned to the first line numberof the PrinterUnit.
      */
-    enterScope(name: string, key: { scopeId: number }, lineno: number): string {
+    enterScope(name: string, key: { scopeId: number }, beginLine: number, beginColumn: number): string {
         const u = new PrinterUnit(name, this.st.getStsForAst(key));
-        u.firstlineno = lineno;
+        u.beginLine = beginLine;
+        u.beginColumn = beginColumn;
 
         if (this.u && this.u.private_) {
             u.private_ = this.u.private_;
@@ -515,25 +518,27 @@ class Printer implements Visitor {
     }
     importFrom(importFrom: ImportFrom): void {
         this.writer.beginStatement();
-        this.writer.write("import ", null);
+        this.writer.write("import", null);
+        this.writer.space();
         this.writer.beginBlock();
         for (let i = 0; i < importFrom.names.length; i++) {
             if (i > 0) {
                 this.writer.comma(null, null);
             }
             const alias = importFrom.names[i];
-            this.writer.write(alias.name, null);
+            this.writer.name(alias.name, alias.nameRange);
             if (alias.asname) {
-                this.writer.write(" as ", null);
+                this.writer.space();
+                this.writer.write("as", null);
+                this.writer.space();
                 this.writer.write(alias.asname, null);
             }
         }
         this.writer.endBlock();
-        this.writer.write(" from ", null);
-        this.writer.beginQuote();
-        // TODO: Escaping?
-        this.writer.write(importFrom.module, null);
-        this.writer.endQuote();
+        this.writer.space();
+        this.writer.write("from", null);
+        this.writer.space();
+        this.writer.str(toStringLiteralJS(importFrom.module), importFrom.moduleRange);
         this.writer.endStatement();
     }
     list(list: List): void {
@@ -597,17 +602,17 @@ class Printer implements Visitor {
         // const begin = str.begin;
         // const end = str.end;
         // TODO: AST is not preserving the original quoting, or maybe a hint.
-        this.writer.write(toStringLiteralJS(s), null);
+        this.writer.str(toStringLiteralJS(s), null);
     }
 }
 
-export function transpileModule(sourceText: string): { code: string; sourceMap: MappingTree; cst: PyNode; mod: Module; symbolTable: SymbolTable; } {
+export function transpileModule(sourceText: string, trace = false): { code: string; sourceMap: MappingTree; cst: PyNode; mod: Module; symbolTable: SymbolTable; } {
     const cst = parse(sourceText, SourceKind.File);
     if (typeof cst === 'object') {
         const stmts = astFromParse(cst);
         const mod = new Module(stmts);
         const symbolTable = semanticsOfModule(mod);
-        const printer = new Printer(symbolTable, 0, sourceText);
+        const printer = new Printer(symbolTable, 0, sourceText, 1, 0, trace);
         const textAndMappings = printer.transpileModule(mod);
         const code = textAndMappings.text;
         const sourceMap = textAndMappings.tree;

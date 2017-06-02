@@ -402,7 +402,7 @@ export class ImportFrom extends Statement {
     module: string;
     names: Alias[];
     level: number;
-    constructor(module: string, names: Alias[], level: number, public readonly range?: Range) {
+    constructor(module: string, public readonly moduleRange: Range, names: Alias[], level: number, public readonly range?: Range) {
         super();
         assert(typeof module === 'string', "module must be a string.");
         assert(Array.isArray(names), "names must be an Array.");
@@ -818,7 +818,7 @@ export class Keyword {
 export class Alias {
     name: string;
     asname: string | null;
-    constructor(name: string, asname: string) {
+    constructor(name: string, public readonly nameRange: Range, asname: string) {
         assert(typeof name === 'string');
         assert(typeof asname === 'string' || asname === null);
         this.name = name;

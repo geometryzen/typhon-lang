@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var parser_1 = require("./pytools/parser");
 exports.parse = parser_1.parse;
-exports.parseTreeDump = parser_1.parseTreeDump;
+exports.cstDump = parser_1.cstDump;
 var syntaxError_1 = require("./pytools/syntaxError");
 exports.ParseError = syntaxError_1.ParseError;
 var builder_1 = require("./pytools/builder");

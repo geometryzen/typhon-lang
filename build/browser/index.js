@@ -351,17 +351,17 @@ var ParseTables = {
                 37: 1 }],
         258: [[[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
-        259: [[[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
-                [[0, 1]],
-                [[41, 7], [42, 1]],
-                [[43, 1], [44, 8], [45, 8]],
-                [[46, 9], [47, 1]],
+        259: [[[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
+                [[18, 1], [0, 1]],
+                [[0, 2]],
+                [[41, 7], [42, 2]],
+                [[43, 2], [44, 8], [45, 8]],
+                [[46, 9], [47, 2]],
                 [[48, 10]],
-                [[18, 6], [0, 6]],
-                [[42, 1]],
-                [[43, 1]],
-                [[47, 1]],
-                [[14, 1]]],
+                [[42, 2]],
+                [[43, 2]],
+                [[47, 2]],
+                [[14, 2]]],
             { 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 29: 1, 32: 1 }],
         260: [[[[49, 1]], [[50, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
@@ -1031,17 +1031,17 @@ var ParseTables = {
     states: [[[[1, 1], [2, 1], [3, 2]], [[0, 1]], [[2, 1]]],
         [[[38, 1]], [[39, 0], [0, 1]]],
         [[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
-        [[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
-            [[0, 1]],
-            [[41, 7], [42, 1]],
-            [[43, 1], [44, 8], [45, 8]],
-            [[46, 9], [47, 1]],
+        [[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
+            [[18, 1], [0, 1]],
+            [[0, 2]],
+            [[41, 7], [42, 2]],
+            [[43, 2], [44, 8], [45, 8]],
+            [[46, 9], [47, 2]],
             [[48, 10]],
-            [[18, 6], [0, 6]],
-            [[42, 1]],
-            [[43, 1]],
-            [[47, 1]],
-            [[14, 1]]],
+            [[42, 2]],
+            [[43, 2]],
+            [[47, 2]],
+            [[14, 2]]],
         [[[49, 1]], [[50, 0], [0, 1]]],
         [[[51, 1]], [[52, 0], [0, 1]]],
         [[[53, 1]], [[54, 0], [0, 1]]],
@@ -1451,9 +1451,9 @@ var ParseTables = {
         [322, null],
         [292, null],
         [300, null],
-        [313, null],
-        [282, null],
         [302, null],
+        [282, null],
+        [313, null],
         [326, null],
         [329, null],
         [5, null],
@@ -2343,6 +2343,8 @@ var Range = (function () {
      *
      */
     function Range(begin, end) {
+        assert(begin, "begin must be defined");
+        assert(end, "end must be defined");
         this.begin = begin;
         this.end = end;
     }
@@ -2720,14 +2722,17 @@ function parse(sourceText, sourceKind) {
     }
     return ret;
 }
-function parseTreeDump(parseTree) {
-    function parseTreeDumpInternal(n, indent) {
+/**
+ * Concrete Syntax Tree
+ */
+function cstDump(parseTree) {
+    function parseTreeDump(n, indent) {
         var ret = "";
         if (isNonTerminal(n.type)) {
             ret += indent + ParseTables.number2symbol[n.type] + "\n";
             if (n.children) {
                 for (var i = 0; i < n.children.length; ++i) {
-                    ret += parseTreeDumpInternal(n.children[i], "  " + indent);
+                    ret += parseTreeDump(n.children[i], "  " + indent);
                 }
             }
         }
@@ -2736,7 +2741,7 @@ function parseTreeDump(parseTree) {
         }
         return ret;
     }
-    return parseTreeDumpInternal(parseTree, "");
+    return parseTreeDump(parseTree, "");
 }
 /**
  * Terminal symbols hsould be less than T_NT_OFFSET.
@@ -3026,10 +3031,11 @@ var FunctionDef = (function (_super) {
 }(Statement));
 var ClassDef = (function (_super) {
     __extends(ClassDef, _super);
-    function ClassDef(name, bases, body, decorator_list, range) {
+    function ClassDef(name, nameRange, bases, body, decorator_list, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
         _this.name = name;
+        _this.nameRange = nameRange;
         _this.bases = bases;
         _this.body = body;
         _this.decorator_list = decorator_list;
@@ -3215,8 +3221,9 @@ var ImportStatement = (function (_super) {
 }(Statement));
 var ImportFrom = (function (_super) {
     __extends(ImportFrom, _super);
-    function ImportFrom(module, names, level, range) {
+    function ImportFrom(module, moduleRange, names, level, range) {
         var _this = _super.call(this) || this;
+        _this.moduleRange = moduleRange;
         _this.range = range;
         assert(typeof module === 'string', "module must be a string.");
         assert(Array.isArray(names), "names must be an Array.");
@@ -3632,7 +3639,8 @@ var Keyword = (function () {
     return Keyword;
 }());
 var Alias = (function () {
-    function Alias(name, asname) {
+    function Alias(name, nameRange, asname) {
+        this.nameRange = nameRange;
         assert(typeof name === 'string');
         assert(typeof asname === 'string' || asname === null);
         this.name = name;
@@ -4036,7 +4044,7 @@ function longAST(s, radix) {
 // TODO: Conventions
 // FIXME: Convention
 // import { Module } from './types';
-// import { parseTreeDump } from './parser';
+// import { cstDump } from './parser';
 //
 // This is pretty much a straight port of ast.c from CPython 2.6.5.
 //
@@ -4561,11 +4569,13 @@ function aliasForImportName(c, n) {
         switch (n.type) {
             case SYM.ImportSpecifier: {
                 var str = null;
-                var name_1 = strobj(CHILD(n, 0).value);
+                var nameNode = CHILD(n, 0);
+                var name_1 = strobj(nameNode.value);
+                var nameRange = nameNode.range;
                 if (NCH(n) === 3) {
                     str = CHILD(n, 2).value;
                 }
-                return new Alias(name_1, str == null ? null : strobj(str));
+                return new Alias(name_1, nameRange, str == null ? null : strobj(str));
             }
             case SYM.dotted_as_name:
                 if (NCH(n) === 1) {
@@ -4579,21 +4589,26 @@ function aliasForImportName(c, n) {
                     return a;
                 }
             case SYM.dotted_name:
-                if (NCH(n) === 1)
-                    return new Alias(strobj(CHILD(n, 0).value), null);
+                if (NCH(n) === 1) {
+                    var nameNode = CHILD(n, 0);
+                    var name_2 = strobj(nameNode.value);
+                    var nameRange = nameNode.range;
+                    return new Alias(name_2, nameRange, null);
+                }
                 else {
                     // create a string of the form a.b.c
                     var str = '';
-                    for (var i = 0; i < NCH(n); i += 2)
+                    for (var i = 0; i < NCH(n); i += 2) {
                         str += CHILD(n, i).value + ".";
-                    return new Alias(strobj(str.substr(0, str.length - 1)), null);
+                    }
+                    return new Alias(strobj(str.substr(0, str.length - 1)), null, null);
                 }
             case Tokens.T_STAR: {
-                return new Alias(strobj("*"), null);
+                return new Alias(strobj("*"), n.range, null);
             }
             case Tokens.T_NAME: {
                 // Temporary.
-                return new Alias(strobj(n.value), null);
+                return new Alias(strobj(n.value), n.range, null);
             }
             default: {
                 throw syntaxError$1("unexpected import name " + grammarName(n.type), n.range);
@@ -4605,11 +4620,13 @@ function parseModuleSpecifier(c, moduleSpecifierNode) {
     REQ(moduleSpecifierNode, SYM.ModuleSpecifier);
     var N = NCH(moduleSpecifierNode);
     var ret = "";
+    var range;
     for (var i = 0; i < N; ++i) {
         var child = CHILD(moduleSpecifierNode, i);
         ret = ret + parsestr(c, child.value);
+        range = child.range;
     }
-    return ret;
+    return { value: ret, range: range };
 }
 function astForImportStmt(c, importStatementNode) {
     REQ(importStatementNode, SYM.import_stmt);
@@ -4624,8 +4641,8 @@ function astForImportStmt(c, importStatementNode) {
         return new ImportStatement(aliases, importStatementNode.range);
     }
     else if (nameOrFrom.type === SYM.import_from) {
-        var mod = null;
-        var moduleName = "";
+        // let mod: Alias = null;
+        var moduleSpec = void 0;
         var ndots = 0;
         var nchildren = void 0;
         var idx = void 0;
@@ -4640,7 +4657,7 @@ function astForImportStmt(c, importStatementNode) {
                 // break;
             }
             else if (childType === SYM.ModuleSpecifier) {
-                moduleName = parseModuleSpecifier(c, child);
+                moduleSpec = parseModuleSpecifier(c, child);
                 break;
             }
             else if (childType !== Tokens.T_DOT) {
@@ -4682,8 +4699,8 @@ function astForImportStmt(c, importStatementNode) {
             var importListNode = CHILD(n, FIND(n, SYM.ImportList));
             astForImportList(c, importListNode, aliases);
         }
-        moduleName = mod ? mod.name : moduleName;
-        return new ImportFrom(strobj(moduleName), aliases, ndots, importStatementNode.range);
+        // moduleName = mod ? mod.name : moduleName;
+        return new ImportFrom(strobj(moduleSpec.value), moduleSpec.range, aliases, ndots, importStatementNode.range);
     }
     else {
         throw syntaxError$1("unknown import statement " + grammarName(nameOrFrom.type) + ".", nameOrFrom.range);
@@ -5079,19 +5096,23 @@ function astForClassBases(c, n) {
     }
     return seqForTestlist(c, n);
 }
-function astForClassdef(c, n, decoratorSeq) {
+function astForClassdef(c, node, decoratorSeq) {
+    var n = node;
     REQ(n, SYM.classdef);
-    forbiddenCheck(c, n, CHILD(n, 1).value, n.range);
-    var classname = strobj(CHILD(n, 1).value);
+    var c1 = CHILD(n, 1);
+    forbiddenCheck(c, n, c1.value, n.range);
+    var className = strobj(c1.value);
+    var nameRange = c1.range;
     if (NCH(n) === 4) {
-        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
+        return new ClassDef(className, nameRange, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
     }
-    if (CHILD(n, 3).type === Tokens.T_RPAR) {
-        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
+    var c3 = CHILD(n, 3);
+    if (c3.type === Tokens.T_RPAR) {
+        return new ClassDef(className, nameRange, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
     }
-    var bases = astForClassBases(c, CHILD(n, 3));
+    var bases = astForClassBases(c, c3);
     var s = astForSuite(c, CHILD(n, 6));
-    return new ClassDef(classname, bases, s, decoratorSeq, n.range);
+    return new ClassDef(className, nameRange, bases, s, decoratorSeq, n.range);
 }
 function astForLambdef(c, n) {
     var args;
@@ -6840,6 +6861,8 @@ var MutableRange = (function () {
     function MutableRange(begin, end) {
         this.begin = begin;
         this.end = end;
+        assert(begin, "begin must be defined");
+        assert(end, "end must be defined");
         this.begin = begin;
         this.end = end;
     }
@@ -6850,13 +6873,25 @@ var MutableRange = (function () {
     return MutableRange;
 }());
 
+/**
+ * A tree that enables ranges in the source document to be mapped to ranges in the target document.
+ * The ordering of child nodes is not defined.
+ * In many cases the children will be in target order owing to the writing process.
+ * TODO: For more efficient searching, children should be sorted in source order.
+ */
 var MappingTree = (function () {
+    /**
+     *
+     * @param source
+     * @param target
+     * @param children
+     */
     function MappingTree(source, target, children) {
-        this.source = source;
-        this.target = target;
         this.children = children;
         assert(source, "source must be defined");
         assert(target, "target must be defined");
+        this.source = source;
+        this.target = target;
     }
     MappingTree.prototype.offset = function (rows, cols) {
         if (this.target) {
@@ -6873,7 +6908,6 @@ var MappingTree = (function () {
 }());
 
 // import { RangeMapping } from '../pytools/RangeMapping';
-var BEGIN_LINE = 1;
 var IndentStyle;
 (function (IndentStyle) {
     IndentStyle[IndentStyle["None"] = 0] = "None";
@@ -6881,89 +6915,108 @@ var IndentStyle;
     IndentStyle[IndentStyle["Smart"] = 2] = "Smart";
 })(IndentStyle || (IndentStyle = {}));
 var StackElement = (function () {
-    function StackElement(begin, end) {
-        this.begin = begin;
-        this.end = end;
+    function StackElement(bMark, eMark, targetBeginLine, targetBeginColumn, trace) {
+        this.bMark = bMark;
+        this.eMark = eMark;
+        this.trace = trace;
         this.texts = [];
         this.trees = [];
-        // Do nothing yet.
+        this.cursor = new MutablePosition(targetBeginLine, targetBeginColumn);
     }
+    /**
+     *
+     */
     StackElement.prototype.write = function (text, tree) {
+        assert(typeof text === 'string', "text must be a string");
         this.texts.push(text);
         this.trees.push(tree);
+        var cursor = this.cursor;
+        var beginLine = cursor.line;
+        var beginColumn = cursor.column;
+        var endLine = cursor.line;
+        var endColumn = beginColumn + text.length;
+        if (tree) {
+            tree.target.begin.line = beginLine;
+            tree.target.begin.column = beginColumn;
+            tree.target.end.line = endLine;
+            tree.target.end.column = endColumn;
+        }
+        cursor.line = endLine;
+        cursor.column = endColumn;
     };
     StackElement.prototype.snapshot = function () {
         var texts = this.texts;
         var trees = this.trees;
         var N = texts.length;
         if (N === 0) {
-            return { text: '', tree: null };
-        }
-        else if (N === 1) {
-            var text = texts[0];
-            var tree = trees[0];
-            var line = BEGIN_LINE;
-            var beginColumn = 0;
-            var endColumn = beginColumn + text.length;
-            if (tree) {
-                tree.target = new MutableRange(new MutablePosition(line, beginColumn), new MutablePosition(line, endColumn));
-                return { text: text, tree: tree };
-            }
-            else {
-                return { text: text, tree: null };
-            }
+            return this.package('', null);
         }
         else {
-            var sourceBeginLine = Number.MAX_SAFE_INTEGER;
-            var sourceBeginColumn = Number.MAX_SAFE_INTEGER;
-            var sourceEndLine = Number.MIN_SAFE_INTEGER;
-            var sourceEndColumn = Number.MIN_SAFE_INTEGER;
-            var targetBeginLine = Number.MAX_SAFE_INTEGER;
+            var sBL = Number.MAX_SAFE_INTEGER;
+            var sBC = Number.MAX_SAFE_INTEGER;
+            var sEL = Number.MIN_SAFE_INTEGER;
+            var sEC = Number.MIN_SAFE_INTEGER;
+            var tBL = Number.MAX_SAFE_INTEGER;
+            var tBC = Number.MAX_SAFE_INTEGER;
+            var tEL = Number.MIN_SAFE_INTEGER;
+            var tEC = Number.MIN_SAFE_INTEGER;
             var children = [];
-            var line = BEGIN_LINE;
-            var beginColumn = 0;
             for (var i = 0; i < N; i++) {
-                var text_1 = texts[i];
                 var tree = trees[i];
-                var endColumn = beginColumn + text_1.length;
                 if (tree) {
-                    assert(tree, "mapping must be defined");
-                    if (tree.source.begin) {
-                        sourceBeginLine = Math.min(sourceBeginLine, tree.source.begin.line);
-                        sourceBeginColumn = Math.min(sourceBeginColumn, tree.source.begin.column);
+                    sBL = Math.min(sBL, tree.source.begin.line);
+                    sBC = Math.min(sBC, tree.source.begin.column);
+                    sEL = Math.max(sEL, tree.source.end.line);
+                    sEC = Math.max(sEC, tree.source.end.column);
+                    tBL = Math.min(tBL, tree.target.begin.line);
+                    tBC = Math.min(tBC, tree.target.begin.column);
+                    tEL = Math.max(tEL, tree.target.end.line);
+                    tEC = Math.max(tEC, tree.target.end.column);
+                    if (this.trace) {
+                        console.log("txt = " + texts[i]);
+                        console.log("tBL = " + tBL);
+                        console.log("tBC = " + tBC);
+                        console.log("tEL = " + tEL);
+                        console.log("tEC = " + tEC);
                     }
-                    if (tree.source.end) {
-                        sourceEndLine = Math.max(sourceEndLine, tree.source.end.line);
-                        sourceEndColumn = Math.max(sourceEndColumn, tree.source.end.column);
-                    }
-                    tree.target = new MutableRange(new MutablePosition(line, beginColumn), new MutablePosition(line, endColumn));
                     children.push(tree);
                 }
-                beginColumn = endColumn;
             }
             var text = texts.join("");
             if (children.length > 1) {
-                var source = new Range(new Position(sourceBeginLine, sourceBeginColumn), new Position(sourceEndLine, sourceEndColumn));
-                var target = new MutableRange(new MutablePosition(targetBeginLine, -10), new MutablePosition(-10, -10));
-                return { text: text, tree: new MappingTree(source, target, children) };
+                var source = new Range(new Position(sBL, sBC), new Position(sEL, sEC));
+                var target = new MutableRange(new MutablePosition(tBL, tBC), new MutablePosition(tEL, tEC));
+                return this.package(text, new MappingTree(source, target, children));
             }
             else if (children.length === 1) {
-                return { text: text, tree: children[0] };
+                return this.package(text, children[0]);
             }
             else {
-                return { text: text, tree: null };
+                return this.package(text, null);
             }
         }
+    };
+    StackElement.prototype.package = function (text, tree) {
+        return { text: text, tree: tree, targetEndLine: this.cursor.line, targetEndColumn: this.cursor.column };
+    };
+    StackElement.prototype.getLine = function () {
+        return this.cursor.line;
+    };
+    StackElement.prototype.getColumn = function () {
+        return this.cursor.column;
     };
     return StackElement;
 }());
 function IDXLAST$1(xs) {
     return xs.length - 1;
 }
+/**
+ *
+ */
 var Stack = (function () {
-    function Stack() {
+    function Stack(begin, end, targetLine, targetColumn, trace) {
         this.elements = [];
-        this.elements.push(new StackElement('', ''));
+        this.elements.push(new StackElement(begin, end, targetLine, targetColumn, trace));
     }
     Object.defineProperty(Stack.prototype, "length", {
         get: function () {
@@ -6988,6 +7041,12 @@ var Stack = (function () {
         assert(this.elements.length === 0, "stack length should be 0");
         return textAndMappings;
     };
+    Stack.prototype.getLine = function () {
+        return this.elements[IDXLAST$1(this.elements)].getLine();
+    };
+    Stack.prototype.getColumn = function () {
+        return this.elements[IDXLAST$1(this.elements)].getColumn();
+    };
     return Stack;
 }());
 /**
@@ -7001,12 +7060,12 @@ var TypeWriter = (function () {
     /**
      * Constructs a TypeWriter instance using the specified options.
      */
-    function TypeWriter(options) {
+    function TypeWriter(beginLine, beginColumn, options, trace) {
         if (options === void 0) { options = {}; }
+        if (trace === void 0) { trace = false; }
         this.options = options;
-        // private readonly buffer: string[] = [];
-        this.stack = new Stack();
-        // Do nothing.
+        this.trace = trace;
+        this.stack = new Stack('', '', beginLine, beginColumn, trace);
     }
     TypeWriter.prototype.assign = function (text, source) {
         var target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
@@ -7020,14 +7079,37 @@ var TypeWriter = (function () {
      * @param end The position of the end of the name in the original source.
      */
     TypeWriter.prototype.name = function (id, source) {
-        var target = new MutableRange(new MutablePosition(-2, -2), new MutablePosition(-2, -2));
-        var tree = new MappingTree(source, target, null);
-        this.stack.write(id, tree);
+        if (source) {
+            var target = new MutableRange(new MutablePosition(-2, -2), new MutablePosition(-2, -2));
+            var tree = new MappingTree(source, target, null);
+            this.stack.write(id, tree);
+        }
+        else {
+            this.stack.write(id, null);
+        }
     };
     TypeWriter.prototype.num = function (text, source) {
-        var target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
-        var tree = new MappingTree(source, target, null);
-        this.stack.write(text, tree);
+        if (source) {
+            var target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
+            var tree = new MappingTree(source, target, null);
+            this.stack.write(text, tree);
+        }
+        else {
+            this.stack.write(text, null);
+        }
+    };
+    /**
+     * Currently defined to be for string literals in unparsed form.
+     */
+    TypeWriter.prototype.str = function (text, source) {
+        if (source) {
+            var target = new MutableRange(new MutablePosition(-23, -23), new MutablePosition(-23, -23));
+            var tree = new MappingTree(source, target, null);
+            this.stack.write(text, tree);
+        }
+        else {
+            this.stack.write(text, null);
+        }
     };
     TypeWriter.prototype.write = function (text, tree) {
         this.stack.write(text, tree);
@@ -7101,35 +7183,48 @@ var TypeWriter = (function () {
     TypeWriter.prototype.endStatement = function () {
         this.epilog(false);
     };
-    TypeWriter.prototype.prolog = function (begin, end) {
-        this.stack.push(new StackElement(begin, end));
+    TypeWriter.prototype.prolog = function (bMark, eMark) {
+        var line = this.stack.getLine();
+        var column = this.stack.getColumn();
+        if (this.trace) {
+            console.log("prolog(bMark = '" + bMark + "', eMark = '" + eMark + "')");
+            console.log("line = " + line + ", column = " + column);
+        }
+        this.stack.push(new StackElement(bMark, eMark, line, column, this.trace));
     };
     TypeWriter.prototype.epilog = function (insertSpaceAfterOpeningAndBeforeClosingNonempty) {
         var popped = this.stack.pop();
         var textAndMappings = popped.snapshot();
         var text = textAndMappings.text;
         var tree = textAndMappings.tree;
+        // This is where we would be
+        var line = textAndMappings.targetEndLine;
+        var column = textAndMappings.targetEndColumn;
+        if (this.trace) {
+            console.log("epilog(text = '" + text + "', tree = '" + JSON.stringify(tree) + "')");
+            console.log("line = " + line + ", column = " + column);
+        }
         if (text.length > 0 && insertSpaceAfterOpeningAndBeforeClosingNonempty) {
-            this.write(popped.begin, null);
+            this.write(popped.bMark, null);
             this.space();
             var rows = 0;
-            var cols = popped.begin.length + 1;
+            var cols = popped.bMark.length + 1;
             if (tree) {
                 tree.offset(rows, cols);
             }
             this.write(text, tree);
             this.space();
-            this.write(popped.end, null);
+            this.write(popped.eMark, null);
         }
         else {
-            this.write(popped.begin, null);
+            this.write(popped.bMark, null);
             var rows = 0;
-            var cols = popped.begin.length;
+            var cols = popped.bMark.length;
             if (tree) {
                 tree.offset(rows, cols);
             }
             this.write(text, tree);
-            this.write(popped.end, null);
+            this.write(popped.eMark, null);
         }
     };
     return TypeWriter;
@@ -7154,7 +7249,7 @@ var PrinterUnit = (function () {
         this.name = name;
         this.ste = ste;
         this.private_ = null;
-        this.firstlineno = 0;
+        this.beginLine = 0;
         this.lineno = 0;
         this.linenoSet = false;
         this.localnames = [];
@@ -7188,7 +7283,9 @@ var Printer = (function () {
      * @param flags Not being used yet. May become options.
      * @param sourceText The original source code, provided for annotating the generated code and source mapping.
      */
-    function Printer(st, flags, sourceText) {
+    function Printer(st, flags, sourceText, beginLine, beginColumn, trace) {
+        this.beginLine = beginLine;
+        this.beginColumn = beginColumn;
         /**
          * Used to provide a unique number for generated symbol names.
          */
@@ -7204,15 +7301,17 @@ var Printer = (function () {
         // this.gensymcount = 0;
         this.allUnits = [];
         this.source = sourceText ? sourceText.split("\n") : false;
-        this.writer = new TypeWriter();
+        this.writer = new TypeWriter(beginLine, beginColumn, {}, trace);
     }
     /**
      * This is the entry point for this visitor.
      */
     Printer.prototype.transpileModule = function (module) {
-        this.enterScope("<module>", module, 0);
+        // Traversing the AST sends commands to the writer.
+        this.enterScope("<module>", module, this.beginLine, this.beginColumn);
         this.module(module);
         this.exitScope();
+        // Now return the captured events as a transpiled module.
         return this.writer.snapshot();
     };
     /**
@@ -7221,11 +7320,11 @@ var Printer = (function () {
      * Returns a string identifying the scope.
      * @param name The name that will be assigned to the PrinterUnit.
      * @param key A scope object in the AST from sematic analysis. Provides the mapping to the SymbolTableScope.
-     * @param lineno Assigned to the first line numberof the PrinterUnit.
      */
-    Printer.prototype.enterScope = function (name, key, lineno) {
+    Printer.prototype.enterScope = function (name, key, beginLine, beginColumn) {
         var u = new PrinterUnit(name, this.st.getStsForAst(key));
-        u.firstlineno = lineno;
+        u.beginLine = beginLine;
+        u.beginColumn = beginColumn;
         if (this.u && this.u.private_) {
             u.private_ = this.u.private_;
         }
@@ -7389,8 +7488,9 @@ var Printer = (function () {
         this.writer.closeParen();
     };
     Printer.prototype.classDef = function (cd) {
-        this.writer.write("class ", null);
-        this.writer.write(cd.name, null);
+        this.writer.write("class", null);
+        this.writer.space();
+        this.writer.name(cd.name, cd.nameRange);
         // this.writer.openParen();
         // this.writer.closeParen();
         this.writer.beginBlock();
@@ -7525,25 +7625,27 @@ var Printer = (function () {
     };
     Printer.prototype.importFrom = function (importFrom) {
         this.writer.beginStatement();
-        this.writer.write("import ", null);
+        this.writer.write("import", null);
+        this.writer.space();
         this.writer.beginBlock();
         for (var i = 0; i < importFrom.names.length; i++) {
             if (i > 0) {
                 this.writer.comma(null, null);
             }
             var alias = importFrom.names[i];
-            this.writer.write(alias.name, null);
+            this.writer.name(alias.name, alias.nameRange);
             if (alias.asname) {
-                this.writer.write(" as ", null);
+                this.writer.space();
+                this.writer.write("as", null);
+                this.writer.space();
                 this.writer.write(alias.asname, null);
             }
         }
         this.writer.endBlock();
-        this.writer.write(" from ", null);
-        this.writer.beginQuote();
-        // TODO: Escaping?
-        this.writer.write(importFrom.module, null);
-        this.writer.endQuote();
+        this.writer.space();
+        this.writer.write("from", null);
+        this.writer.space();
+        this.writer.str(toStringLiteralJS(importFrom.module), importFrom.moduleRange);
         this.writer.endStatement();
     };
     Printer.prototype.list = function (list) {
@@ -7609,17 +7711,18 @@ var Printer = (function () {
         // const begin = str.begin;
         // const end = str.end;
         // TODO: AST is not preserving the original quoting, or maybe a hint.
-        this.writer.write(toStringLiteralJS(s), null);
+        this.writer.str(toStringLiteralJS(s), null);
     };
     return Printer;
 }());
-function transpileModule(sourceText) {
+function transpileModule(sourceText, trace) {
+    if (trace === void 0) { trace = false; }
     var cst = parse(sourceText, SourceKind.File);
     if (typeof cst === 'object') {
         var stmts = astFromParse(cst);
         var mod = new Module(stmts);
         var symbolTable = semanticsOfModule(mod);
-        var printer = new Printer(symbolTable, 0, sourceText);
+        var printer = new Printer(symbolTable, 0, sourceText, 1, 0, trace);
         var textAndMappings = printer.transpileModule(mod);
         var code = textAndMappings.text;
         var sourceMap = textAndMappings.tree;
@@ -7631,7 +7734,7 @@ function transpileModule(sourceText) {
 }
 
 exports.parse = parse;
-exports.parseTreeDump = parseTreeDump;
+exports.cstDump = cstDump;
 exports.ParseError = ParseError;
 exports.astFromParse = astFromParse;
 exports.astDump = astDump;

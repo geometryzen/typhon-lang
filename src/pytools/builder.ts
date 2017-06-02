@@ -100,7 +100,7 @@ import { floatAST, intAST, longAST } from './numericLiteral';
 import { INumericLiteral } from './types';
 import { PyNode } from './parser';
 import { Range } from './Range';
-// import { parseTreeDump } from './parser';
+// import { cstDump } from './parser';
 import { grammarName } from './grammarName';
 
 //
@@ -678,11 +678,13 @@ function aliasForImportName(c: Compiling, n: PyNode): Alias {
         switch (n.type) {
             case SYM.ImportSpecifier: {
                 let str: string = null;
-                const name = strobj(CHILD(n, 0).value);
+                const nameNode = CHILD(n, 0);
+                const name = strobj(nameNode.value);
+                const nameRange = nameNode.range;
                 if (NCH(n) === 3) {
                     str = CHILD(n, 2).value;
                 }
-                return new Alias(name, str == null ? null : strobj(str));
+                return new Alias(name, nameRange, str == null ? null : strobj(str));
             }
             case SYM.dotted_as_name:
                 if (NCH(n) === 1) {
@@ -696,21 +698,26 @@ function aliasForImportName(c: Compiling, n: PyNode): Alias {
                     return a;
                 }
             case SYM.dotted_name:
-                if (NCH(n) === 1)
-                    return new Alias(strobj(CHILD(n, 0).value), null);
+                if (NCH(n) === 1) {
+                    const nameNode = CHILD(n, 0);
+                    const name = strobj(nameNode.value);
+                    const nameRange = nameNode.range;
+                    return new Alias(name, nameRange, null);
+                }
                 else {
                     // create a string of the form a.b.c
                     let str = '';
-                    for (let i = 0; i < NCH(n); i += 2)
+                    for (let i = 0; i < NCH(n); i += 2) {
                         str += CHILD(n, i).value + ".";
-                    return new Alias(strobj(str.substr(0, str.length - 1)), null);
+                    }
+                    return new Alias(strobj(str.substr(0, str.length - 1)), null, null);
                 }
             case TOK.T_STAR: {
-                return new Alias(strobj("*"), null);
+                return new Alias(strobj("*"), n.range, null);
             }
             case TOK.T_NAME: {
                 // Temporary.
-                return new Alias(strobj(n.value), null);
+                return new Alias(strobj(n.value), n.range, null);
             }
             default: {
                 throw syntaxError(`unexpected import name ${grammarName(n.type)}`, n.range);
@@ -719,15 +726,17 @@ function aliasForImportName(c: Compiling, n: PyNode): Alias {
     }
 }
 
-function parseModuleSpecifier(c: Compiling, moduleSpecifierNode: PyNode): string {
+function parseModuleSpecifier(c: Compiling, moduleSpecifierNode: PyNode): { value: string; range: Range } {
     REQ(moduleSpecifierNode, SYM.ModuleSpecifier);
     const N = NCH(moduleSpecifierNode);
     let ret = "";
+    let range: Range;
     for (let i = 0; i < N; ++i) {
         const child = CHILD(moduleSpecifierNode, i);
         ret = ret + parsestr(c, child.value);
+        range = child.range;
     }
-    return ret;
+    return { value: ret, range };
 
 }
 
@@ -744,8 +753,8 @@ function astForImportStmt(c: Compiling, importStatementNode: PyNode): ImportStat
         return new ImportStatement(aliases, importStatementNode.range);
     }
     else if (nameOrFrom.type === SYM.import_from) {
-        let mod: Alias = null;
-        let moduleName = "";
+        // let mod: Alias = null;
+        let moduleSpec: { value: string; range: Range };
         let ndots = 0;
         let nchildren: number;
         let idx: number;
@@ -760,7 +769,7 @@ function astForImportStmt(c: Compiling, importStatementNode: PyNode): ImportStat
                 // break;
             }
             else if (childType === SYM.ModuleSpecifier) {
-                moduleName = parseModuleSpecifier(c, child);
+                moduleSpec = parseModuleSpecifier(c, child);
                 break;
             }
             else if (childType !== TOK.T_DOT) {
@@ -802,8 +811,8 @@ function astForImportStmt(c: Compiling, importStatementNode: PyNode): ImportStat
             const importListNode = CHILD(n, FIND(n, SYM.ImportList));
             astForImportList(c, importListNode, aliases);
         }
-        moduleName = mod ? mod.name : moduleName;
-        return new ImportFrom(strobj(moduleName), aliases, ndots, importStatementNode.range);
+        // moduleName = mod ? mod.name : moduleName;
+        return new ImportFrom(strobj(moduleSpec.value), moduleSpec.range, aliases, ndots, importStatementNode.range);
     }
     else {
         throw syntaxError(`unknown import statement ${grammarName(nameOrFrom.type)}.`, nameOrFrom.range);

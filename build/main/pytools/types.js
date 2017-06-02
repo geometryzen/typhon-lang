@@ -317,10 +317,11 @@ var FunctionDef = (function (_super) {
 exports.FunctionDef = FunctionDef;
 var ClassDef = (function (_super) {
     tslib_1.__extends(ClassDef, _super);
-    function ClassDef(name, bases, body, decorator_list, range) {
+    function ClassDef(name, nameRange, bases, body, decorator_list, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
         _this.name = name;
+        _this.nameRange = nameRange;
         _this.bases = bases;
         _this.body = body;
         _this.decorator_list = decorator_list;
@@ -521,8 +522,9 @@ var ImportStatement = (function (_super) {
 exports.ImportStatement = ImportStatement;
 var ImportFrom = (function (_super) {
     tslib_1.__extends(ImportFrom, _super);
-    function ImportFrom(module, names, level, range) {
+    function ImportFrom(module, moduleRange, names, level, range) {
         var _this = _super.call(this) || this;
+        _this.moduleRange = moduleRange;
         _this.range = range;
         asserts_1.assert(typeof module === 'string', "module must be a string.");
         asserts_1.assert(Array.isArray(names), "names must be an Array.");
@@ -972,7 +974,8 @@ var Keyword = (function () {
 }());
 exports.Keyword = Keyword;
 var Alias = (function () {
-    function Alias(name, asname) {
+    function Alias(name, nameRange, asname) {
+        this.nameRange = nameRange;
         asserts_1.assert(typeof name === 'string');
         asserts_1.assert(typeof asname === 'string' || asname === null);
         this.name = name;

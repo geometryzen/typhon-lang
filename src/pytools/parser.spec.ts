@@ -1,4 +1,4 @@
-import { parse, PyNode, parseTreeDump, SourceKind } from './parser';
+import { parse, PyNode, cstDump, SourceKind } from './parser';
 import { IDXLAST, TERMS } from './tree';
 import { sourceLines } from '../data/eight';
 import { Tokens } from './Tokens';
@@ -612,7 +612,7 @@ describe('parse', function () {
 
     it("ImportFrom", function () {
         const cst = parse("from 'x' import a, b") as PyNode;
-        const dump = parseTreeDump(cst);
+        const dump = cstDump(cst);
         expect(typeof dump).toBe('string');
         // expect(dump).toBe('');
     });

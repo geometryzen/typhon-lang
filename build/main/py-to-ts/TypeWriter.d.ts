@@ -40,6 +40,7 @@ export interface TextAndMappings {
  */
 export declare class TypeWriter {
     private options;
+    private trace;
     private readonly stack;
     /**
      * Determines the indentation.
@@ -47,7 +48,7 @@ export declare class TypeWriter {
     /**
      * Constructs a TypeWriter instance using the specified options.
      */
-    constructor(options?: FormatCodeOptions);
+    constructor(beginLine: number, beginColumn: number, options?: FormatCodeOptions, trace?: boolean);
     assign(text: '=', source: Range): void;
     /**
      * Writes a name (identifier).
@@ -57,6 +58,10 @@ export declare class TypeWriter {
      */
     name(id: string, source: Range): void;
     num(text: string, source: Range): void;
+    /**
+     * Currently defined to be for string literals in unparsed form.
+     */
+    str(text: string, source: Range): void;
     write(text: string, tree: MappingTree): void;
     snapshot(): TextAndMappings;
     binOp(binOp: '+' | '-' | '*' | '/' | '|' | '^' | '&' | '<<' | '>>' | '%' | '//', source: Range): void;
@@ -74,6 +79,6 @@ export declare class TypeWriter {
     endQuote(): void;
     beginStatement(): void;
     endStatement(): void;
-    private prolog(begin, end);
+    private prolog(bMark, eMark);
     private epilog(insertSpaceAfterOpeningAndBeforeClosingNonempty);
 }

@@ -165,11 +165,12 @@ export declare class FunctionDef extends Statement {
 export declare class ClassDef extends Statement {
     readonly range: Range;
     name: string;
+    nameRange: Range;
     bases: Expression[];
     body: Statement[];
     decorator_list: Decorator[];
     scopeId: number;
-    constructor(name: string, bases: Expression[], body: Statement[], decorator_list: Decorator[], range?: Range);
+    constructor(name: string, nameRange: Range, bases: Expression[], body: Statement[], decorator_list: Decorator[], range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class ReturnStatement extends Statement {
@@ -273,11 +274,12 @@ export declare class ImportStatement extends Statement {
     constructor(names: Alias[], range?: Range);
 }
 export declare class ImportFrom extends Statement {
+    readonly moduleRange: Range;
     readonly range: Range;
     module: string;
     names: Alias[];
     level: number;
-    constructor(module: string, names: Alias[], level: number, range?: Range);
+    constructor(module: string, moduleRange: Range, names: Alias[], level: number, range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class Exec extends Statement {
@@ -494,8 +496,9 @@ export declare class Keyword {
     constructor(arg: string, value: Expression);
 }
 export declare class Alias {
+    readonly nameRange: Range;
     name: string;
     asname: string | null;
-    constructor(name: string, asname: string);
+    constructor(name: string, nameRange: Range, asname: string);
     toString(): string;
 }

@@ -92,7 +92,7 @@ import { isNumber, isString } from './base';
 import { ParseTables } from './tables';
 import { Tokens as TOK } from './Tokens';
 import { floatAST, intAST, longAST } from './numericLiteral';
-// import { parseTreeDump } from './parser';
+// import { cstDump } from './parser';
 import { grammarName } from './grammarName';
 //
 // This is pretty much a straight port of ast.c from CPython 2.6.5.
@@ -618,11 +618,13 @@ function aliasForImportName(c, n) {
         switch (n.type) {
             case SYM.ImportSpecifier: {
                 var str = null;
-                var name_1 = strobj(CHILD(n, 0).value);
+                var nameNode = CHILD(n, 0);
+                var name_1 = strobj(nameNode.value);
+                var nameRange = nameNode.range;
                 if (NCH(n) === 3) {
                     str = CHILD(n, 2).value;
                 }
-                return new Alias(name_1, str == null ? null : strobj(str));
+                return new Alias(name_1, nameRange, str == null ? null : strobj(str));
             }
             case SYM.dotted_as_name:
                 if (NCH(n) === 1) {
@@ -636,21 +638,26 @@ function aliasForImportName(c, n) {
                     return a;
                 }
             case SYM.dotted_name:
-                if (NCH(n) === 1)
-                    return new Alias(strobj(CHILD(n, 0).value), null);
+                if (NCH(n) === 1) {
+                    var nameNode = CHILD(n, 0);
+                    var name_2 = strobj(nameNode.value);
+                    var nameRange = nameNode.range;
+                    return new Alias(name_2, nameRange, null);
+                }
                 else {
                     // create a string of the form a.b.c
                     var str = '';
-                    for (var i = 0; i < NCH(n); i += 2)
+                    for (var i = 0; i < NCH(n); i += 2) {
                         str += CHILD(n, i).value + ".";
-                    return new Alias(strobj(str.substr(0, str.length - 1)), null);
+                    }
+                    return new Alias(strobj(str.substr(0, str.length - 1)), null, null);
                 }
             case TOK.T_STAR: {
-                return new Alias(strobj("*"), null);
+                return new Alias(strobj("*"), n.range, null);
             }
             case TOK.T_NAME: {
                 // Temporary.
-                return new Alias(strobj(n.value), null);
+                return new Alias(strobj(n.value), n.range, null);
             }
             default: {
                 throw syntaxError("unexpected import name " + grammarName(n.type), n.range);
@@ -662,11 +669,13 @@ function parseModuleSpecifier(c, moduleSpecifierNode) {
     REQ(moduleSpecifierNode, SYM.ModuleSpecifier);
     var N = NCH(moduleSpecifierNode);
     var ret = "";
+    var range;
     for (var i = 0; i < N; ++i) {
         var child = CHILD(moduleSpecifierNode, i);
         ret = ret + parsestr(c, child.value);
+        range = child.range;
     }
-    return ret;
+    return { value: ret, range: range };
 }
 function astForImportStmt(c, importStatementNode) {
     REQ(importStatementNode, SYM.import_stmt);
@@ -681,8 +690,8 @@ function astForImportStmt(c, importStatementNode) {
         return new ImportStatement(aliases, importStatementNode.range);
     }
     else if (nameOrFrom.type === SYM.import_from) {
-        var mod = null;
-        var moduleName = "";
+        // let mod: Alias = null;
+        var moduleSpec = void 0;
         var ndots = 0;
         var nchildren = void 0;
         var idx = void 0;
@@ -697,7 +706,7 @@ function astForImportStmt(c, importStatementNode) {
                 // break;
             }
             else if (childType === SYM.ModuleSpecifier) {
-                moduleName = parseModuleSpecifier(c, child);
+                moduleSpec = parseModuleSpecifier(c, child);
                 break;
             }
             else if (childType !== TOK.T_DOT) {
@@ -739,8 +748,8 @@ function astForImportStmt(c, importStatementNode) {
             var importListNode = CHILD(n, FIND(n, SYM.ImportList));
             astForImportList(c, importListNode, aliases);
         }
-        moduleName = mod ? mod.name : moduleName;
-        return new ImportFrom(strobj(moduleName), aliases, ndots, importStatementNode.range);
+        // moduleName = mod ? mod.name : moduleName;
+        return new ImportFrom(strobj(moduleSpec.value), moduleSpec.range, aliases, ndots, importStatementNode.range);
     }
     else {
         throw syntaxError("unknown import statement " + grammarName(nameOrFrom.type) + ".", nameOrFrom.range);
@@ -1136,19 +1145,23 @@ function astForClassBases(c, n) {
     }
     return seqForTestlist(c, n);
 }
-function astForClassdef(c, n, decoratorSeq) {
+function astForClassdef(c, node, decoratorSeq) {
+    var n = node;
     REQ(n, SYM.classdef);
-    forbiddenCheck(c, n, CHILD(n, 1).value, n.range);
-    var classname = strobj(CHILD(n, 1).value);
+    var c1 = CHILD(n, 1);
+    forbiddenCheck(c, n, c1.value, n.range);
+    var className = strobj(c1.value);
+    var nameRange = c1.range;
     if (NCH(n) === 4) {
-        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
+        return new ClassDef(className, nameRange, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
     }
-    if (CHILD(n, 3).type === TOK.T_RPAR) {
-        return new ClassDef(classname, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
+    var c3 = CHILD(n, 3);
+    if (c3.type === TOK.T_RPAR) {
+        return new ClassDef(className, nameRange, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
     }
-    var bases = astForClassBases(c, CHILD(n, 3));
+    var bases = astForClassBases(c, c3);
     var s = astForSuite(c, CHILD(n, 6));
-    return new ClassDef(classname, bases, s, decoratorSeq, n.range);
+    return new ClassDef(className, nameRange, bases, s, decoratorSeq, n.range);
 }
 function astForLambdef(c, n) {
     var args;
