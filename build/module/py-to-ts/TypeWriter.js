@@ -15,7 +15,6 @@ var StackElement = (function () {
     function StackElement(bMark, eMark, targetBeginLine, targetBeginColumn, trace) {
         this.bMark = bMark;
         this.eMark = eMark;
-        this.trace = trace;
         this.texts = [];
         this.trees = [];
         this.cursor = new MutablePosition(targetBeginLine, targetBeginColumn);
@@ -69,13 +68,6 @@ var StackElement = (function () {
                     tBC = Math.min(tBC, tree.target.begin.column);
                     tEL = Math.max(tEL, tree.target.end.line);
                     tEC = Math.max(tEC, tree.target.end.column);
-                    if (this.trace) {
-                        console.log("txt = " + texts[i]);
-                        console.log("tBL = " + tBL);
-                        console.log("tBC = " + tBC);
-                        console.log("tEL = " + tEL);
-                        console.log("tEC = " + tEC);
-                    }
                     children.push(tree);
                 }
             }
@@ -283,10 +275,6 @@ var TypeWriter = (function () {
     TypeWriter.prototype.prolog = function (bMark, eMark) {
         var line = this.stack.getLine();
         var column = this.stack.getColumn();
-        if (this.trace) {
-            console.log("prolog(bMark = '" + bMark + "', eMark = '" + eMark + "')");
-            console.log("line = " + line + ", column = " + column);
-        }
         this.stack.push(new StackElement(bMark, eMark, line, column, this.trace));
     };
     TypeWriter.prototype.epilog = function (insertSpaceAfterOpeningAndBeforeClosingNonempty) {
@@ -295,12 +283,8 @@ var TypeWriter = (function () {
         var text = textAndMappings.text;
         var tree = textAndMappings.tree;
         // This is where we would be
-        var line = textAndMappings.targetEndLine;
-        var column = textAndMappings.targetEndColumn;
-        if (this.trace) {
-            console.log("epilog(text = '" + text + "', tree = '" + JSON.stringify(tree) + "')");
-            console.log("line = " + line + ", column = " + column);
-        }
+        // const line = textAndMappings.targetEndLine;
+        // const column = textAndMappings.targetEndColumn;
         if (text.length > 0 && insertSpaceAfterOpeningAndBeforeClosingNonempty) {
             this.write(popped.bMark, null);
             this.space();

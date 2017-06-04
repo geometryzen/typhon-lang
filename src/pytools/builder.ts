@@ -75,6 +75,7 @@ import { Pass } from './types';
 import { Pow } from './types';
 import { Print } from './types';
 import { Raise } from './types';
+import { RangeAnnotated } from './types';
 import { ReturnStatement } from './types';
 import { RShift } from './types';
 import { Slice } from './types';
@@ -215,7 +216,7 @@ function setContext(c: Compiling, e: Expression, ctx: Store, n: PyNode): void {
     let exprName: string = null;
 
     if (e instanceof Attribute) {
-        if (ctx === Store) forbiddenCheck(c, n, e.attr, n.range);
+        if (ctx === Store) forbiddenCheck(c, n, e.attr.value, n.range);
         e.ctx = ctx;
     }
     else if (e instanceof Name) {
@@ -471,10 +472,12 @@ function astForTryStmt(c: Compiling, n: PyNode): TryExcept | TryFinally {
 
 function astForDottedName(c: Compiling, n: PyNode): Attribute | Name {
     REQ(n, SYM.dotted_name);
-    let id = strobj(CHILD(n, 0).value as string);
+    const child = CHILD(n, 0);
+    let id = new RangeAnnotated(child.value, child.range);
     let e: Attribute | Name = new Name(id, Load, n.range);
     for (let i = 2; i < NCH(n); i += 2) {
-        id = strobj(CHILD(n, i).value as string);
+        const child = CHILD(n, i);
+        id = new RangeAnnotated(child.value, child.range);
         e = new Attribute(e, id, Load, n.range);
     }
     return e;
@@ -489,7 +492,7 @@ function astForDecorator(c: Compiling, n: PyNode): Attribute | Call | Name {
     if (NCH(n) === 3) // no args
         return nameExpr;
     else if (NCH(n) === 5) // call with no args
-        return new Call(nameExpr, [], [], null, null, n.range);
+        return new Call(nameExpr, [], [], null, null);
     else
         return astForCall(c, CHILD(n, 3), nameExpr);
 }
@@ -684,7 +687,7 @@ function aliasForImportName(c: Compiling, n: PyNode): Alias {
                 if (NCH(n) === 3) {
                     str = CHILD(n, 2).value;
                 }
-                return new Alias(name, nameRange, str == null ? null : strobj(str));
+                return new Alias(new RangeAnnotated(name, nameRange), str == null ? null : strobj(str));
             }
             case SYM.dotted_as_name:
                 if (NCH(n) === 1) {
@@ -702,7 +705,7 @@ function aliasForImportName(c: Compiling, n: PyNode): Alias {
                     const nameNode = CHILD(n, 0);
                     const name = strobj(nameNode.value);
                     const nameRange = nameNode.range;
-                    return new Alias(name, nameRange, null);
+                    return new Alias(new RangeAnnotated(name, nameRange), null);
                 }
                 else {
                     // create a string of the form a.b.c
@@ -710,14 +713,14 @@ function aliasForImportName(c: Compiling, n: PyNode): Alias {
                     for (let i = 0; i < NCH(n); i += 2) {
                         str += CHILD(n, i).value + ".";
                     }
-                    return new Alias(strobj(str.substr(0, str.length - 1)), null, null);
+                    return new Alias(new RangeAnnotated(str.substr(0, str.length - 1), null), null);
                 }
             case TOK.T_STAR: {
-                return new Alias(strobj("*"), n.range, null);
+                return new Alias(new RangeAnnotated("*", n.range), null);
             }
             case TOK.T_NAME: {
                 // Temporary.
-                return new Alias(strobj(n.value), n.range, null);
+                return new Alias(new RangeAnnotated(n.value, n.range), null);
             }
             default: {
                 throw syntaxError(`unexpected import name ${grammarName(n.type)}`, n.range);
@@ -798,8 +801,9 @@ function astForImportStmt(c: Compiling, importStatementNode: PyNode): ImportStat
                 // from ... import x, y, z
                 n = CHILD(n, idx);
                 nchildren = NCH(n);
-                if (nchildren % 2 === 0)
+                if (nchildren % 2 === 0) {
                     throw syntaxError("trailing comma not allowed without surrounding parentheses", n.range);
+                }
             }
         }
         const aliases: Alias[] = [];
@@ -812,7 +816,8 @@ function astForImportStmt(c: Compiling, importStatementNode: PyNode): ImportStat
             astForImportList(c, importListNode, aliases);
         }
         // moduleName = mod ? mod.name : moduleName;
-        return new ImportFrom(strobj(moduleSpec.value), moduleSpec.range, aliases, ndots, importStatementNode.range);
+        assert(typeof moduleSpec.value === 'string');
+        return new ImportFrom(new RangeAnnotated(moduleSpec.value, moduleSpec.range), aliases, ndots, importStatementNode.range);
     }
     else {
         throw syntaxError(`unknown import statement ${grammarName(nameOrFrom.type)}.`, nameOrFrom.range);
@@ -970,7 +975,7 @@ function astForForStmt(c: Compiling, n: PyNode): ForStatement {
         seq, n.range);
 }
 
-function astForCall(c: Compiling, n: PyNode, func: Attribute | Name): Call {
+function astForCall(c: Compiling, n: PyNode, func: Expression): Call {
     /*
         arglist: (argument ',')* (argument [',']| '*' test [',' '**' test]
                 | '**' test)
@@ -1013,12 +1018,12 @@ function astForCall(c: Compiling, n: PyNode, func: Attribute | Name): Call {
                 if (e.constructor === Lambda) throw syntaxError("lambda cannot contain assignment", n.range);
                 else if (e.constructor !== Name) throw syntaxError("keyword can't be an expression", n.range);
                 const key = e.id;
-                forbiddenCheck(c, CHILD(ch, 0), key, n.range);
+                forbiddenCheck(c, CHILD(ch, 0), key.value, n.range);
                 for (let k = 0; k < nkeywords; ++k) {
                     const tmp = keywords[k].arg;
-                    if (tmp === key) throw syntaxError("keyword argument repeated", n.range);
+                    if (tmp === key.value) throw syntaxError("keyword argument repeated", n.range);
                 }
-                keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
+                keywords[nkeywords++] = new Keyword(key.value, astForExpr(c, CHILD(ch, 2)));
             }
         }
         else if (ch.type === TOK.T_STAR)
@@ -1026,27 +1031,34 @@ function astForCall(c: Compiling, n: PyNode, func: Attribute | Name): Call {
         else if (ch.type === TOK.T_DOUBLESTAR)
             kwarg = astForExpr(c, CHILD(n, ++i));
     }
-    return new Call(func, args, keywords, vararg, kwarg, func.range);
+    return new Call(func, args, keywords, vararg, kwarg);
 }
 
-function astForTrailer(c: Compiling, n: PyNode, leftExpr: Attribute | Name): Attribute | Call | Subscript {
+function astForTrailer(c: Compiling, node: PyNode, leftExpr: Expression): Attribute | Call | Subscript {
     /* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
         subscriptlist: subscript (',' subscript)* [',']
         subscript: '.' '.' '.' | test | [test] ':' [test] [sliceop]
         */
+    const n = node;
+    const childZero = CHILD(n, 0);
+    const childOne = CHILD(n, 1);
+    const childTwo = CHILD(n, 2);
     REQ(n, SYM.trailer);
-    if (CHILD(n, 0).type === TOK.T_LPAR) {
-        if (NCH(n) === 2)
-            return new Call(leftExpr, [], [], null, null, n.range);
-        else
-            return astForCall(c, CHILD(n, 1), leftExpr);
+    if (childZero.type === TOK.T_LPAR) {
+        if (NCH(n) === 2) {
+            return new Call(leftExpr, [], [], null, null);
+        }
+        else {
+            return astForCall(c, childOne, leftExpr);
+        }
     }
-    else if (CHILD(n, 0).type === TOK.T_DOT)
-        return new Attribute(leftExpr, strobj(CHILD(n, 1).value), Load, n.range);
+    else if (childZero.type === TOK.T_DOT) {
+        return new Attribute(leftExpr, new RangeAnnotated(childOne.value, childOne.range), Load, n.range);
+    }
     else {
-        REQ(CHILD(n, 0), TOK.T_LSQB);
-        REQ(CHILD(n, 2), TOK.T_RSQB);
-        n = CHILD(n, 1);
+        REQ(childZero, TOK.T_LSQB);
+        REQ(childTwo, TOK.T_RSQB);
+        const n = childOne;
         if (NCH(n) === 1)
             return new Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), Load, n.range);
         else {
@@ -1183,9 +1195,10 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
                             continue handle_fpdef;
                         }
                     }
-                    if (CHILD(ch, 0).type === TOK.T_NAME) {
-                        forbiddenCheck(c, n, CHILD(ch, 0).value, n.range);
-                        const id = strobj(CHILD(ch, 0).value);
+                    const childZero = CHILD(ch, 0);
+                    if (childZero.type === TOK.T_NAME) {
+                        forbiddenCheck(c, n, childZero.value, n.range);
+                        const id = new RangeAnnotated(childZero.value, childZero.range);
                         args[k++] = new Name(id, Param, ch.range);
                     }
                     i += 2;
@@ -1215,11 +1228,12 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
 function astForFuncdef(c: Compiling, n: PyNode, decoratorSeq: (Attribute | Call | Name)[]): FunctionDef {
     /* funcdef: 'def' NAME parameters ':' suite */
     REQ(n, SYM.funcdef);
-    const name = strobj(CHILD(n, 1).value);
-    forbiddenCheck(c, CHILD(n, 1), CHILD(n, 1).value, n.range);
+    const ch1 = CHILD(n, 1);
+    const name = strobj(ch1.value);
+    forbiddenCheck(c, ch1, name, n.range);
     const args = astForArguments(c, CHILD(n, 2));
     const body = astForSuite(c, CHILD(n, 4));
-    return new FunctionDef(name, args, body, decoratorSeq, n.range);
+    return new FunctionDef(new RangeAnnotated(name, ch1.range), args, body, decoratorSeq, n.range);
 }
 
 function astForClassBases(c: Compiling, n: PyNode): Expression[] {
@@ -1239,16 +1253,16 @@ function astForClassdef(c: Compiling, node: PyNode, decoratorSeq: (Attribute | C
     const className = strobj(c1.value);
     const nameRange = c1.range;
     if (NCH(n) === 4) {
-        return new ClassDef(className, nameRange, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
+        return new ClassDef(new RangeAnnotated(className, nameRange), [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
     }
     const c3 = CHILD(n, 3);
     if (c3.type === TOK.T_RPAR) {
-        return new ClassDef(className, nameRange, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
+        return new ClassDef(new RangeAnnotated(className, nameRange), [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
     }
 
     const bases = astForClassBases(c, c3);
     const s = astForSuite(c, CHILD(n, 6));
-    return new ClassDef(className, nameRange, bases, s, decoratorSeq, n.range);
+    return new ClassDef(new RangeAnnotated(className, nameRange), bases, s, decoratorSeq, n.range);
 }
 
 function astForLambdef(c: Compiling, n: PyNode): Lambda {
@@ -1448,10 +1462,12 @@ function astForExprStmt(c: Compiling, node: PyNode): Assign | ExpressionStatemen
         switch (expr1.constructor) {
             case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.range);
             case Yield: throw syntaxError("augmented assignment to yield expression not possible", n.range);
-            case Name:
+            case Name: {
                 const varName = expr1.id;
-                forbiddenCheck(c, ch, varName, n.range);
+                forbiddenCheck(c, ch, varName.value, n.range);
+
                 break;
+            }
             case Attribute:
             case Subscript:
                 break;
@@ -1688,9 +1704,9 @@ function parsenumber(c: Compiling, s: string, range: Range): INumericLiteral {
     }
 }
 
-function astForSlice(c: Compiling, n: PyNode): Ellipsis | Index | Name | Slice {
+function astForSlice(c: Compiling, node: PyNode): Ellipsis | Index | Name | Slice {
+    const n = node;
     REQ(n, SYM.subscript);
-
     let ch = CHILD(n, 0);
     let lower: Expression = null;
     let upper: Expression = null;
@@ -1701,8 +1717,9 @@ function astForSlice(c: Compiling, n: PyNode): Ellipsis | Index | Name | Slice {
     if (NCH(n) === 1 && ch.type === SYM.IfExpr) {
         return new Index(astForExpr(c, ch) as Tuple);
     }
-    if (ch.type === SYM.IfExpr)
+    if (ch.type === SYM.IfExpr) {
         lower = astForExpr(c, ch);
+    }
     if (ch.type === TOK.T_COLON) {
         if (NCH(n) > 1) {
             const n2 = CHILD(n, 1);
@@ -1721,7 +1738,7 @@ function astForSlice(c: Compiling, n: PyNode): Ellipsis | Index | Name | Slice {
     if (ch.type === SYM.sliceop) {
         if (NCH(ch) === 1) {
             ch = CHILD(ch, 0);
-            step = new Name(strobj("None"), Load, ch.range);
+            step = new Name(new RangeAnnotated("None", null), Load, ch.range);
         }
         else {
             ch = CHILD(ch, 1);
@@ -1737,12 +1754,13 @@ function astForAtomExpr(c: Compiling, n: PyNode): Name | Expression {
     switch (c0.type) {
         case TOK.T_NAME:
             // All names start in Load context, but may be changed later
-            return new Name(strobj(c0.value), Load, n.range);
+            return new Name(new RangeAnnotated(c0.value, c0.range), Load, n.range);
         case TOK.T_STRING: {
-            return new Str(parsestrplus(c, n), n.range);
+            // FIXME: Owing to the way that Python allows string concatenation, this is imprecise.
+            return new Str(new RangeAnnotated(parsestrplus(c, n), n.range));
         }
         case TOK.T_NUMBER: {
-            return new Num(parsenumber(c, c0.value, c0.range), n.range);
+            return new Num(new RangeAnnotated(parsenumber(c, c0.value, c0.range), n.range));
         }
         case TOK.T_LPAR: { // various uses for parens
             const c1 = CHILD(n, 1);
@@ -1789,29 +1807,22 @@ function astForAtomExpr(c: Compiling, n: PyNode): Name | Expression {
     }
 }
 
-function astForPowerExpr(c: Compiling, n: PyNode): Name | Expression {
+function astForPowerExpr(c: Compiling, node: PyNode): Expression {
+    const n = node;
     REQ(n, SYM.PowerExpr);
-    let e: Name | Expression = astForAtomExpr(c, CHILD(n, 0));
-    if (NCH(n) === 1) return e;
-    for (let i = 1; i < NCH(n); ++i) {
+    const N = NCH(n);
+    const NminusOne = N - 1;
+    let e: Expression = astForAtomExpr(c, CHILD(n, 0));
+    if (N === 1) return e;
+    for (let i = 1; i < N; ++i) {
         const ch = CHILD(n, i);
         if (ch.type !== SYM.trailer) {
             break;
         }
-        if (e instanceof Name || e instanceof Attribute) {
-            const tmp = astForTrailer(c, ch, e);
-            // FIXME
-            // tmp.lineno = e.begin;
-            // tmp.col_offset = e.end;
-            e = tmp;
-        }
-        else {
-            // TODO: I'm not sure waht this is but don't assert!!!
-            // assert(false, `${JSON.stringify(e)}`);
-        }
+        e = astForTrailer(c, ch, e);
     }
-    if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr) {
-        const f = astForExpr(c, CHILD(n, NCH(n) - 1));
+    if (CHILD(n, NminusOne).type === SYM.UnaryExpr) {
+        const f = astForExpr(c, CHILD(n, NminusOne));
         return new BinOp(e, { op: Pow, range: null }, f, n.range);
     }
     else {

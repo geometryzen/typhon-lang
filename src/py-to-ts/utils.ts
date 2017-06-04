@@ -1,6 +1,7 @@
 import { Attribute } from '../pytools/types';
 import { FunctionDef } from '../pytools/types';
 import { Name } from '../pytools/types';
+import { RangeAnnotated } from '../pytools/types';
 
 /**
  * Determines whether the name or attribute should be considered to be a class.
@@ -9,11 +10,11 @@ import { Name } from '../pytools/types';
  */
 export function isClassNameByConvention(name: Attribute | Name): boolean {
     const id = name.id;
-    if (typeof id === 'string') {
+    if (id instanceof RangeAnnotated && typeof id.value === 'string') {
         // console.lg(`name => ${JSON.stringify(name, null, 2)}`);
-        const N = id.length;
+        const N = id.value.length;
         if (N > 0) {
-            const firstChar = id[0];
+            const firstChar = id.value[0];
             return firstChar.toUpperCase() === firstChar;
         }
         else {
@@ -29,7 +30,7 @@ export function isMethod(functionDef: FunctionDef): boolean {
     for (let i = 0; i < functionDef.args.args.length; i++) {
         if (i === 0) {
             const arg = functionDef.args.args[i];
-            if (arg.id === 'self') {
+            if (arg.id.value === 'self') {
                 return true;
             }
         }

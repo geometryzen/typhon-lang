@@ -112,31 +112,14 @@ export class IsNot { }
 export class In { }
 export class NotIn { }
 
-// FIXME: Two competing approaches here: ASTSpan and TextRange.
-
-export class ASTSpan {
-    public minChar?: number = -1;  // -1 = "undefined" or "compiler generated"
-    public limChar?: number = -1;  // -1 = "undefined" or "compiler generated"
+export class RangeAnnotated<T> {
+    constructor(public readonly value: T, public readonly range: Range) {
+        assert(typeof value !== 'undefined', "value must be defined.");
+    }
 }
 
-export class AST extends ASTSpan {
-
-}
-
-export class ModuleElement extends AST {
-
-}
-
-export interface TextRange {
-    // pos: number;
-    // end: number;
-}
-
-export interface Node extends TextRange {
-}
-
-export abstract class Expression implements Node, Visitable {
-    id?: string;
+export abstract class Expression implements Visitable {
+    id?: RangeAnnotated<string>;
     constructor() {
         // Do noting yet.
     }
@@ -146,7 +129,7 @@ export abstract class Expression implements Node, Visitable {
     }
 }
 
-export abstract class Statement extends ModuleElement implements Visitable {
+export abstract class Statement implements Visitable {
     lineno?: number;
     accept(visitor: Visitor): void {
         // accept must be implemented by derived classes.
@@ -190,12 +173,12 @@ export class Suite {
 export type Decorator = Attribute | Call | Name;
 
 export class FunctionDef extends Statement {
-    name: string;
+    name: RangeAnnotated<string>;
     args: Arguments;
     body: Statement[];
     decorator_list: Decorator[];
     scopeId: number;
-    constructor(name: string, args: Arguments, body: Statement[], decorator_list: Decorator[], public readonly range?: Range) {
+    constructor(name: RangeAnnotated<string>, args: Arguments, body: Statement[], decorator_list: Decorator[], public readonly range?: Range) {
         super();
         this.name = name;
         this.args = args;
@@ -208,16 +191,14 @@ export class FunctionDef extends Statement {
 }
 
 export class ClassDef extends Statement {
-    name: string;
-    nameRange: Range;
+    name: RangeAnnotated<string>;
     bases: Expression[];
     body: Statement[];
     decorator_list: Decorator[];
     scopeId: number;
-    constructor(name: string, nameRange: Range, bases: Expression[], body: Statement[], decorator_list: Decorator[], public readonly range?: Range) {
+    constructor(name: RangeAnnotated<string>, bases: Expression[], body: Statement[], decorator_list: Decorator[], public readonly range?: Range) {
         super();
         this.name = name;
-        this.nameRange = nameRange;
         this.bases = bases;
         this.body = body;
         this.decorator_list = decorator_list;
@@ -399,12 +380,12 @@ export class ImportStatement extends Statement {
 }
 
 export class ImportFrom extends Statement {
-    module: string;
+    module: RangeAnnotated<string>;
     names: Alias[];
     level: number;
-    constructor(module: string, public readonly moduleRange: Range, names: Alias[], level: number, public readonly range?: Range) {
+    constructor(module: RangeAnnotated<string>, names: Alias[], level: number, public readonly range?: Range) {
         super();
-        assert(typeof module === 'string', "module must be a string.");
+        assert(typeof module.value === 'string', "module must be a string.");
         assert(Array.isArray(names), "names must be an Array.");
         this.module = module;
         this.names = names;
@@ -428,6 +409,7 @@ export class Exec extends Statement {
 }
 
 export class Global extends Statement {
+    // TODO: RangeAnnotated...
     names: string[];
     constructor(names: string[], public readonly range?: Range) {
         super();
@@ -436,6 +418,7 @@ export class Global extends Statement {
 }
 
 export class NonLocal extends Statement {
+    // TODO: RangeAnnotated...
     names: string[];
     constructor(names: string[], public readonly range?: Range) {
         super();
@@ -634,12 +617,12 @@ export class Compare extends Expression {
 }
 
 export class Call extends Expression {
-    func: Attribute | Name;
+    func: Expression;
     args: (Expression | GeneratorExp)[];
     keywords: Keyword[];
     starargs: Expression | null;
     kwargs: Expression | null;
-    constructor(func: Attribute | Name, args: (Expression | GeneratorExp)[], keywords: Keyword[], starargs: Expression | null, kwargs: Expression | null, public readonly range: Range) {
+    constructor(func: Expression, args: (Expression | GeneratorExp)[], keywords: Keyword[], starargs: Expression | null, kwargs: Expression | null) {
         super();
         this.func = func;
         this.args = args;
@@ -653,8 +636,8 @@ export class Call extends Expression {
 }
 
 export class Num extends Expression {
-    n: INumericLiteral;
-    constructor(n: INumericLiteral, public readonly range: Range) {
+    n: RangeAnnotated<INumericLiteral>;
+    constructor(n: RangeAnnotated<INumericLiteral>) {
         super();
         this.n = n;
     }
@@ -664,8 +647,8 @@ export class Num extends Expression {
 }
 
 export class Str extends Expression {
-    s: string;
-    constructor(s: string, public readonly range: Range) {
+    s: RangeAnnotated<string>;
+    constructor(s: RangeAnnotated<string>) {
         super();
         this.s = s;
     }
@@ -675,10 +658,10 @@ export class Str extends Expression {
 }
 
 export class Attribute extends Expression {
-    value: Attribute | Name;
-    attr: string;
+    value: Expression;
+    attr: RangeAnnotated<string>;
     ctx: Load;
-    constructor(value: Attribute | Name, attr: string, ctx: Load, public readonly range: Range) {
+    constructor(value: Expression, attr: RangeAnnotated<string>, ctx: Load, public readonly range: Range) {
         super();
         this.value = value;
         this.attr = attr;
@@ -692,10 +675,10 @@ export class Attribute extends Expression {
 export type SubscriptContext = AugLoad | AugStore | Load | Store | Del | Param;
 
 export class Subscript extends Expression {
-    value: Attribute | Name;
+    value: Expression;
     slice: Ellipsis | Index | Name | Slice;
     ctx: SubscriptContext;
-    constructor(value: Attribute | Name, slice: Ellipsis | Index | Name | Slice, ctx: SubscriptContext, public readonly range?: Range) {
+    constructor(value: Expression, slice: Ellipsis | Index | Name | Slice, ctx: SubscriptContext, public readonly range?: Range) {
         super();
         this.value = value;
         this.slice = slice;
@@ -704,9 +687,9 @@ export class Subscript extends Expression {
 }
 
 export class Name extends Expression {
-    id: string;
+    id: RangeAnnotated<string>;
     ctx: Param;
-    constructor(id: string, ctx: Param, public readonly range: Range) {
+    constructor(id: RangeAnnotated<string>, ctx: Param, public readonly range: Range) {
         super();
         this.id = id;
         this.ctx = ctx;
@@ -732,7 +715,7 @@ export class List extends Expression {
 export class Tuple extends Expression {
     elts: Expression[];
     ctx: Load;
-    id?: string;
+    id?: RangeAnnotated<string>;
     constructor(elts: Expression[], ctx: Load, public readonly range?: Range) {
         super();
         this.elts = elts;
@@ -795,7 +778,9 @@ export class ExceptHandler {
 
 export class Arguments {
     args: Name[];
+    // TODO: RangeAnnotated...
     vararg: string;
+    // TODO: RangeAnnotated...
     kwarg: string;
     defaults: Expression[];
     constructor(args: Name[], vararg: string, kwarg: string, defaults: Expression[]) {
@@ -807,6 +792,7 @@ export class Arguments {
 }
 
 export class Keyword {
+    // TODO: RangeAnnotated...
     arg: string;
     value: Expression;
     constructor(arg: string, value: Expression) {
@@ -816,16 +802,17 @@ export class Keyword {
 }
 
 export class Alias {
-    name: string;
+    // TODO: RangeAnnotated...
+    name: RangeAnnotated<string>;
     asname: string | null;
-    constructor(name: string, public readonly nameRange: Range, asname: string) {
-        assert(typeof name === 'string');
+    constructor(name: RangeAnnotated<string>, asname: string) {
+        assert(typeof name.value === 'string');
         assert(typeof asname === 'string' || asname === null);
         this.name = name;
         this.asname = asname;
     }
     toString(): string {
-        return `${this.name} as ${this.asname}`;
+        return `${this.name.value} as ${this.asname}`;
     }
 }
 
@@ -850,14 +837,14 @@ Suite.prototype['_fields'] = [
 ];
 FunctionDef.prototype['_astname'] = 'FunctionDef';
 FunctionDef.prototype['_fields'] = [
-    'name', function (n: FunctionDef) { return n.name; },
+    'name', function (n: FunctionDef) { return n.name.value; },
     'args', function (n: FunctionDef) { return n.args; },
     'body', function (n: FunctionDef) { return n.body; },
     'decorator_list', function (n: FunctionDef) { return n.decorator_list; }
 ];
 ClassDef.prototype['_astname'] = 'ClassDef';
 ClassDef.prototype['_fields'] = [
-    'name', function (n: ClassDef) { return n.name; },
+    'name', function (n: ClassDef) { return n.name.value; },
     'bases', function (n: ClassDef) { return n.bases; },
     'body', function (n: ClassDef) { return n.body; },
     'decorator_list', function (n: ClassDef) { return n.decorator_list; }
@@ -940,7 +927,7 @@ ImportStatement.prototype['_fields'] = [
 ];
 ImportFrom.prototype['_astname'] = 'ImportFrom';
 ImportFrom.prototype['_fields'] = [
-    'module', function (n: ImportFrom) { return n.module; },
+    'module', function (n: ImportFrom) { return n.module.value; },
     'names', function (n: ImportFrom) { return n.names; },
     'level', function (n: ImportFrom) { return n.level; }
 ];
@@ -1033,16 +1020,16 @@ Call.prototype['_fields'] = [
 ];
 Num.prototype['_astname'] = 'Num';
 Num.prototype['_fields'] = [
-    'n', function (n: Num) { return n.n; }
+    'n', function (n: Num) { return n.n.value; }
 ];
 Str.prototype['_astname'] = 'Str';
 Str.prototype['_fields'] = [
-    's', function (n: Str) { return n.s; }
+    's', function (n: Str) { return n.s.value; }
 ];
 Attribute.prototype['_astname'] = 'Attribute';
 Attribute.prototype['_fields'] = [
     'value', function (n: Attribute) { return n.value; },
-    'attr', function (n: Attribute) { return n.attr; },
+    'attr', function (n: Attribute) { return n.attr.value; },
     'ctx', function (n: Attribute) { return n.ctx; }
 ];
 Subscript.prototype['_astname'] = 'Subscript';
@@ -1053,7 +1040,7 @@ Subscript.prototype['_fields'] = [
 ];
 Name.prototype['_astname'] = 'Name';
 Name.prototype['_fields'] = [
-    'id', function (n: Name) { return n.id; },
+    'id', function (n: Name) { return n.id.value; },
     'ctx', function (n: Name) { return n.ctx; }
 ];
 List.prototype['_astname'] = 'List';
@@ -1177,6 +1164,6 @@ Keyword.prototype['_fields'] = [
 ];
 Alias.prototype['_astname'] = 'Alias';
 Alias.prototype['_fields'] = [
-    'name', function (n: Alias) { return n.name; },
+    'name', function (n: Alias) { return n.name.value; },
     'asname', function (n: Alias) { return n.asname; }
 ];

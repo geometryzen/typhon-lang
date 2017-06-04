@@ -43,7 +43,7 @@ class StackElement {
     private readonly trees: MappingTree[] = [];
     // FIXME: A mutable position can be renamed to a Cursor.
     private readonly cursor: MutablePosition;
-    constructor(public readonly bMark: string, public readonly eMark: string, targetBeginLine: number, targetBeginColumn: number, private trace: boolean) {
+    constructor(public readonly bMark: string, public readonly eMark: string, targetBeginLine: number, targetBeginColumn: number, trace: boolean) {
         this.cursor = new MutablePosition(targetBeginLine, targetBeginColumn);
     }
     /**
@@ -97,14 +97,6 @@ class StackElement {
                     tBC = Math.min(tBC, tree.target.begin.column);
                     tEL = Math.max(tEL, tree.target.end.line);
                     tEC = Math.max(tEC, tree.target.end.column);
-
-                    if (this.trace) {
-                        console.log(`txt = ${texts[i]}`);
-                        console.log(`tBL = ${tBL}`);
-                        console.log(`tBC = ${tBC}`);
-                        console.log(`tEL = ${tEL}`);
-                        console.log(`tEC = ${tEC}`);
-                    }
 
                     children.push(tree);
                 }
@@ -313,10 +305,6 @@ export class TypeWriter {
     private prolog(bMark: string, eMark: string): void {
         const line = this.stack.getLine();
         const column = this.stack.getColumn();
-        if (this.trace) {
-            console.log(`prolog(bMark = '${bMark}', eMark = '${eMark}')`);
-            console.log(`line = ${line}, column = ${column}`);
-        }
         this.stack.push(new StackElement(bMark, eMark, line, column, this.trace));
     }
     private epilog(insertSpaceAfterOpeningAndBeforeClosingNonempty: boolean | undefined): void {
@@ -325,12 +313,8 @@ export class TypeWriter {
         const text = textAndMappings.text;
         const tree = textAndMappings.tree;
         // This is where we would be
-        const line = textAndMappings.targetEndLine;
-        const column = textAndMappings.targetEndColumn;
-        if (this.trace) {
-            console.log(`epilog(text = '${text}', tree = '${JSON.stringify(tree)}')`);
-            console.log(`line = ${line}, column = ${column}`);
-        }
+        // const line = textAndMappings.targetEndLine;
+        // const column = textAndMappings.targetEndColumn;
         if (text.length > 0 && insertSpaceAfterOpeningAndBeforeClosingNonempty) {
             this.write(popped.bMark, null);
             this.space();

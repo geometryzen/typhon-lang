@@ -112,24 +112,17 @@ export declare class In {
 }
 export declare class NotIn {
 }
-export declare class ASTSpan {
-    minChar?: number;
-    limChar?: number;
+export declare class RangeAnnotated<T> {
+    readonly value: T;
+    readonly range: Range;
+    constructor(value: T, range: Range);
 }
-export declare class AST extends ASTSpan {
-}
-export declare class ModuleElement extends AST {
-}
-export interface TextRange {
-}
-export interface Node extends TextRange {
-}
-export declare abstract class Expression implements Node, Visitable {
-    id?: string;
+export declare abstract class Expression implements Visitable {
+    id?: RangeAnnotated<string>;
     constructor();
     accept(visitor: Visitor): void;
 }
-export declare abstract class Statement extends ModuleElement implements Visitable {
+export declare abstract class Statement implements Visitable {
     lineno?: number;
     accept(visitor: Visitor): void;
 }
@@ -154,23 +147,22 @@ export declare class Suite {
 export declare type Decorator = Attribute | Call | Name;
 export declare class FunctionDef extends Statement {
     readonly range: Range;
-    name: string;
+    name: RangeAnnotated<string>;
     args: Arguments;
     body: Statement[];
     decorator_list: Decorator[];
     scopeId: number;
-    constructor(name: string, args: Arguments, body: Statement[], decorator_list: Decorator[], range?: Range);
+    constructor(name: RangeAnnotated<string>, args: Arguments, body: Statement[], decorator_list: Decorator[], range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class ClassDef extends Statement {
     readonly range: Range;
-    name: string;
-    nameRange: Range;
+    name: RangeAnnotated<string>;
     bases: Expression[];
     body: Statement[];
     decorator_list: Decorator[];
     scopeId: number;
-    constructor(name: string, nameRange: Range, bases: Expression[], body: Statement[], decorator_list: Decorator[], range?: Range);
+    constructor(name: RangeAnnotated<string>, bases: Expression[], body: Statement[], decorator_list: Decorator[], range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class ReturnStatement extends Statement {
@@ -274,12 +266,11 @@ export declare class ImportStatement extends Statement {
     constructor(names: Alias[], range?: Range);
 }
 export declare class ImportFrom extends Statement {
-    readonly moduleRange: Range;
     readonly range: Range;
-    module: string;
+    module: RangeAnnotated<string>;
     names: Alias[];
     level: number;
-    constructor(module: string, moduleRange: Range, names: Alias[], level: number, range?: Range);
+    constructor(module: RangeAnnotated<string>, names: Alias[], level: number, range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class Exec extends Statement {
@@ -394,48 +385,45 @@ export declare class Compare extends Expression {
     accept(visitor: Visitor): void;
 }
 export declare class Call extends Expression {
-    readonly range: Range;
-    func: Attribute | Name;
+    func: Expression;
     args: (Expression | GeneratorExp)[];
     keywords: Keyword[];
     starargs: Expression | null;
     kwargs: Expression | null;
-    constructor(func: Attribute | Name, args: (Expression | GeneratorExp)[], keywords: Keyword[], starargs: Expression | null, kwargs: Expression | null, range: Range);
+    constructor(func: Expression, args: (Expression | GeneratorExp)[], keywords: Keyword[], starargs: Expression | null, kwargs: Expression | null);
     accept(visitor: Visitor): void;
 }
 export declare class Num extends Expression {
-    readonly range: Range;
-    n: INumericLiteral;
-    constructor(n: INumericLiteral, range: Range);
+    n: RangeAnnotated<INumericLiteral>;
+    constructor(n: RangeAnnotated<INumericLiteral>);
     accept(visitor: Visitor): void;
 }
 export declare class Str extends Expression {
-    readonly range: Range;
-    s: string;
-    constructor(s: string, range: Range);
+    s: RangeAnnotated<string>;
+    constructor(s: RangeAnnotated<string>);
     accept(visitor: Visitor): void;
 }
 export declare class Attribute extends Expression {
     readonly range: Range;
-    value: Attribute | Name;
-    attr: string;
+    value: Expression;
+    attr: RangeAnnotated<string>;
     ctx: Load;
-    constructor(value: Attribute | Name, attr: string, ctx: Load, range: Range);
+    constructor(value: Expression, attr: RangeAnnotated<string>, ctx: Load, range: Range);
     accept(visitor: Visitor): void;
 }
 export declare type SubscriptContext = AugLoad | AugStore | Load | Store | Del | Param;
 export declare class Subscript extends Expression {
     readonly range: Range;
-    value: Attribute | Name;
+    value: Expression;
     slice: Ellipsis | Index | Name | Slice;
     ctx: SubscriptContext;
-    constructor(value: Attribute | Name, slice: Ellipsis | Index | Name | Slice, ctx: SubscriptContext, range?: Range);
+    constructor(value: Expression, slice: Ellipsis | Index | Name | Slice, ctx: SubscriptContext, range?: Range);
 }
 export declare class Name extends Expression {
     readonly range: Range;
-    id: string;
+    id: RangeAnnotated<string>;
     ctx: Param;
-    constructor(id: string, ctx: Param, range: Range);
+    constructor(id: RangeAnnotated<string>, ctx: Param, range: Range);
     accept(visitor: Visitor): void;
 }
 export declare class List extends Expression {
@@ -449,7 +437,7 @@ export declare class Tuple extends Expression {
     readonly range: Range;
     elts: Expression[];
     ctx: Load;
-    id?: string;
+    id?: RangeAnnotated<string>;
     constructor(elts: Expression[], ctx: Load, range?: Range);
 }
 export declare class Ellipsis {
@@ -496,9 +484,8 @@ export declare class Keyword {
     constructor(arg: string, value: Expression);
 }
 export declare class Alias {
-    readonly nameRange: Range;
-    name: string;
+    name: RangeAnnotated<string>;
     asname: string | null;
-    constructor(name: string, nameRange: Range, asname: string);
+    constructor(name: RangeAnnotated<string>, asname: string);
     toString(): string;
 }

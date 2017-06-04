@@ -466,17 +466,53 @@ describe('transpiler', function () {
         });
     });
 
-    describe('Performance', function () {
+    describe('Performance and Burn Test', function () {
         it('should be sub-second for standard graphics example', function () {
             const sourceText = sourceLines.join('\n');
             const result = compile(sourceText);
-            /*
-            const resultText = [
-            ].join("\n");
-            */
-            expect(true).toBeTruthy();
             expect(typeof result.code).toBe('string');
-            console.log(result.code);
+            const targetText = [
+                "import {Geometric3,Color} from 'davinci-eight';",
+                "import {Engine,Capability,Scene} from 'davinci-eight';",
+                "import {Facet,PerspectiveCamera,DirectionalLight} from 'davinci-eight';",
+                "import {TrackballControls} from 'davinci-eight';",
+                "import {Box} from 'davinci-eight';",
+                "let e2=Geometric3.e2(true);",
+                "let e3=Geometric3.e3(true);",
+                "let engine=new Engine('canvas3D');",
+                "engine.size(500,500);",
+                "engine.clearColor(0.1,0.1,0.1,1.0);",
+                "engine.enable(Capability.DEPTH_TEST);",
+                "let scene=new Scene(engine);",
+                "let ambients=[];",
+                "let camera=new PerspectiveCamera();",
+                "camera.eye=e2+3*e3;",
+                "ambients.push(camera);",
+                "let dirLight=new DirectionalLight();",
+                "ambients.push(dirLight);",
+                "let trackball=new TrackballControls(camera);",
+                "trackball.subscribe(engine.canvas);",
+                "let box=new Box(engine,{color:Color.red});",
+                "scene.add(box);",
+                "function animate(timestamp){",
+                "engine.clear();",
+                "trackball.update();",
+                "dirLight.direction.copyVector(camera.look).subVector(camera.eye);",
+                "box.attitude.rotorFromAxisAngle(e2,timestamp*0.001);",
+                "scene.render(ambients);",
+                "requestAnimationFrame(animate);",
+                "}",
+                "requestAnimationFrame(animate);"
+            ].join("");
+            expect(result.code).toBe(targetText);
+        });
+    });
+
+    describe('Debug', function () {
+        it('should be sub-second for standard graphics example', function () {
+            const result = compile("a().b()");
+            expect(typeof result.code).toBe('string');
+            expect(result.code).toBe('a().b();');
         });
     });
 

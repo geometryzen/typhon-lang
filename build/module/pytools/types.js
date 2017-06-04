@@ -208,31 +208,15 @@ var NotIn = (function () {
     return NotIn;
 }());
 export { NotIn };
-// FIXME: Two competing approaches here: ASTSpan and TextRange.
-var ASTSpan = (function () {
-    function ASTSpan() {
-        this.minChar = -1; // -1 = "undefined" or "compiler generated"
-        this.limChar = -1; // -1 = "undefined" or "compiler generated"
+var RangeAnnotated = (function () {
+    function RangeAnnotated(value, range) {
+        this.value = value;
+        this.range = range;
+        assert(typeof value !== 'undefined', "value must be defined.");
     }
-    return ASTSpan;
+    return RangeAnnotated;
 }());
-export { ASTSpan };
-var AST = (function (_super) {
-    tslib_1.__extends(AST, _super);
-    function AST() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return AST;
-}(ASTSpan));
-export { AST };
-var ModuleElement = (function (_super) {
-    tslib_1.__extends(ModuleElement, _super);
-    function ModuleElement() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return ModuleElement;
-}(AST));
-export { ModuleElement };
+export { RangeAnnotated };
 var Expression = (function () {
     function Expression() {
         // Do noting yet.
@@ -244,17 +228,15 @@ var Expression = (function () {
     return Expression;
 }());
 export { Expression };
-var Statement = (function (_super) {
-    tslib_1.__extends(Statement, _super);
+var Statement = (function () {
     function Statement() {
-        return _super !== null && _super.apply(this, arguments) || this;
     }
     Statement.prototype.accept = function (visitor) {
         // accept must be implemented by derived classes.
         throw new Error("\"Statement.accept\" is not implemented.");
     };
     return Statement;
-}(ModuleElement));
+}());
 export { Statement };
 var IterationStatement = (function (_super) {
     tslib_1.__extends(IterationStatement, _super);
@@ -315,11 +297,10 @@ var FunctionDef = (function (_super) {
 export { FunctionDef };
 var ClassDef = (function (_super) {
     tslib_1.__extends(ClassDef, _super);
-    function ClassDef(name, nameRange, bases, body, decorator_list, range) {
+    function ClassDef(name, bases, body, decorator_list, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
         _this.name = name;
-        _this.nameRange = nameRange;
         _this.bases = bases;
         _this.body = body;
         _this.decorator_list = decorator_list;
@@ -520,11 +501,10 @@ var ImportStatement = (function (_super) {
 export { ImportStatement };
 var ImportFrom = (function (_super) {
     tslib_1.__extends(ImportFrom, _super);
-    function ImportFrom(module, moduleRange, names, level, range) {
+    function ImportFrom(module, names, level, range) {
         var _this = _super.call(this) || this;
-        _this.moduleRange = moduleRange;
         _this.range = range;
-        assert(typeof module === 'string', "module must be a string.");
+        assert(typeof module.value === 'string', "module must be a string.");
         assert(Array.isArray(names), "names must be an Array.");
         _this.module = module;
         _this.names = names;
@@ -788,9 +768,8 @@ var Compare = (function (_super) {
 export { Compare };
 var Call = (function (_super) {
     tslib_1.__extends(Call, _super);
-    function Call(func, args, keywords, starargs, kwargs, range) {
+    function Call(func, args, keywords, starargs, kwargs) {
         var _this = _super.call(this) || this;
-        _this.range = range;
         _this.func = func;
         _this.args = args;
         _this.keywords = keywords;
@@ -806,9 +785,8 @@ var Call = (function (_super) {
 export { Call };
 var Num = (function (_super) {
     tslib_1.__extends(Num, _super);
-    function Num(n, range) {
+    function Num(n) {
         var _this = _super.call(this) || this;
-        _this.range = range;
         _this.n = n;
         return _this;
     }
@@ -820,9 +798,8 @@ var Num = (function (_super) {
 export { Num };
 var Str = (function (_super) {
     tslib_1.__extends(Str, _super);
-    function Str(s, range) {
+    function Str(s) {
         var _this = _super.call(this) || this;
-        _this.range = range;
         _this.s = s;
         return _this;
     }
@@ -972,15 +949,14 @@ var Keyword = (function () {
 }());
 export { Keyword };
 var Alias = (function () {
-    function Alias(name, nameRange, asname) {
-        this.nameRange = nameRange;
-        assert(typeof name === 'string');
+    function Alias(name, asname) {
+        assert(typeof name.value === 'string');
         assert(typeof asname === 'string' || asname === null);
         this.name = name;
         this.asname = asname;
     }
     Alias.prototype.toString = function () {
-        return this.name + " as " + this.asname;
+        return this.name.value + " as " + this.asname;
     };
     return Alias;
 }());
@@ -1006,14 +982,14 @@ Suite.prototype['_fields'] = [
 ];
 FunctionDef.prototype['_astname'] = 'FunctionDef';
 FunctionDef.prototype['_fields'] = [
-    'name', function (n) { return n.name; },
+    'name', function (n) { return n.name.value; },
     'args', function (n) { return n.args; },
     'body', function (n) { return n.body; },
     'decorator_list', function (n) { return n.decorator_list; }
 ];
 ClassDef.prototype['_astname'] = 'ClassDef';
 ClassDef.prototype['_fields'] = [
-    'name', function (n) { return n.name; },
+    'name', function (n) { return n.name.value; },
     'bases', function (n) { return n.bases; },
     'body', function (n) { return n.body; },
     'decorator_list', function (n) { return n.decorator_list; }
@@ -1096,7 +1072,7 @@ ImportStatement.prototype['_fields'] = [
 ];
 ImportFrom.prototype['_astname'] = 'ImportFrom';
 ImportFrom.prototype['_fields'] = [
-    'module', function (n) { return n.module; },
+    'module', function (n) { return n.module.value; },
     'names', function (n) { return n.names; },
     'level', function (n) { return n.level; }
 ];
@@ -1186,16 +1162,16 @@ Call.prototype['_fields'] = [
 ];
 Num.prototype['_astname'] = 'Num';
 Num.prototype['_fields'] = [
-    'n', function (n) { return n.n; }
+    'n', function (n) { return n.n.value; }
 ];
 Str.prototype['_astname'] = 'Str';
 Str.prototype['_fields'] = [
-    's', function (n) { return n.s; }
+    's', function (n) { return n.s.value; }
 ];
 Attribute.prototype['_astname'] = 'Attribute';
 Attribute.prototype['_fields'] = [
     'value', function (n) { return n.value; },
-    'attr', function (n) { return n.attr; },
+    'attr', function (n) { return n.attr.value; },
     'ctx', function (n) { return n.ctx; }
 ];
 Subscript.prototype['_astname'] = 'Subscript';
@@ -1206,7 +1182,7 @@ Subscript.prototype['_fields'] = [
 ];
 Name.prototype['_astname'] = 'Name';
 Name.prototype['_fields'] = [
-    'id', function (n) { return n.id; },
+    'id', function (n) { return n.id.value; },
     'ctx', function (n) { return n.ctx; }
 ];
 List.prototype['_astname'] = 'List';
@@ -1329,6 +1305,6 @@ Keyword.prototype['_fields'] = [
 ];
 Alias.prototype['_astname'] = 'Alias';
 Alias.prototype['_fields'] = [
-    'name', function (n) { return n.name; },
+    'name', function (n) { return n.name.value; },
     'asname', function (n) { return n.asname; }
 ];

@@ -351,17 +351,17 @@ var ParseTables = {
                 37: 1 }],
         258: [[[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
-        259: [[[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
-                [[0, 1]],
-                [[41, 7], [42, 1]],
-                [[43, 1], [44, 8], [45, 8]],
-                [[46, 9], [47, 1]],
+        259: [[[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
+                [[18, 1], [0, 1]],
+                [[0, 2]],
+                [[41, 7], [42, 2]],
+                [[43, 2], [44, 8], [45, 8]],
+                [[46, 9], [47, 2]],
                 [[48, 10]],
-                [[18, 6], [0, 6]],
-                [[42, 1]],
-                [[43, 1]],
-                [[47, 1]],
-                [[14, 1]]],
+                [[42, 2]],
+                [[43, 2]],
+                [[47, 2]],
+                [[14, 2]]],
             { 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 29: 1, 32: 1 }],
         260: [[[[49, 1]], [[50, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
@@ -1031,17 +1031,17 @@ var ParseTables = {
     states: [[[[1, 1], [2, 1], [3, 2]], [[0, 1]], [[2, 1]]],
         [[[38, 1]], [[39, 0], [0, 1]]],
         [[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
-        [[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
-            [[0, 1]],
-            [[41, 7], [42, 1]],
-            [[43, 1], [44, 8], [45, 8]],
-            [[46, 9], [47, 1]],
+        [[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
+            [[18, 1], [0, 1]],
+            [[0, 2]],
+            [[41, 7], [42, 2]],
+            [[43, 2], [44, 8], [45, 8]],
+            [[46, 9], [47, 2]],
             [[48, 10]],
-            [[18, 6], [0, 6]],
-            [[42, 1]],
-            [[43, 1]],
-            [[47, 1]],
-            [[14, 1]]],
+            [[42, 2]],
+            [[43, 2]],
+            [[47, 2]],
+            [[14, 2]]],
         [[[49, 1]], [[50, 0], [0, 1]]],
         [[[51, 1]], [[52, 0], [0, 1]]],
         [[[53, 1]], [[54, 0], [0, 1]]],
@@ -2935,28 +2935,14 @@ var NotIn = (function () {
     }
     return NotIn;
 }());
-// FIXME: Two competing approaches here: ASTSpan and TextRange.
-var ASTSpan = (function () {
-    function ASTSpan() {
-        this.minChar = -1; // -1 = "undefined" or "compiler generated"
-        this.limChar = -1; // -1 = "undefined" or "compiler generated"
+var RangeAnnotated = (function () {
+    function RangeAnnotated(value, range) {
+        this.value = value;
+        this.range = range;
+        assert(typeof value !== 'undefined', "value must be defined.");
     }
-    return ASTSpan;
+    return RangeAnnotated;
 }());
-var AST = (function (_super) {
-    __extends(AST, _super);
-    function AST() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return AST;
-}(ASTSpan));
-var ModuleElement = (function (_super) {
-    __extends(ModuleElement, _super);
-    function ModuleElement() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return ModuleElement;
-}(AST));
 var Expression = (function () {
     function Expression() {
         // Do noting yet.
@@ -2967,17 +2953,15 @@ var Expression = (function () {
     };
     return Expression;
 }());
-var Statement = (function (_super) {
-    __extends(Statement, _super);
+var Statement = (function () {
     function Statement() {
-        return _super !== null && _super.apply(this, arguments) || this;
     }
     Statement.prototype.accept = function (visitor) {
         // accept must be implemented by derived classes.
         throw new Error("\"Statement.accept\" is not implemented.");
     };
     return Statement;
-}(ModuleElement));
+}());
 var IterationStatement = (function (_super) {
     __extends(IterationStatement, _super);
     function IterationStatement() {
@@ -3031,11 +3015,10 @@ var FunctionDef = (function (_super) {
 }(Statement));
 var ClassDef = (function (_super) {
     __extends(ClassDef, _super);
-    function ClassDef(name, nameRange, bases, body, decorator_list, range) {
+    function ClassDef(name, bases, body, decorator_list, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
         _this.name = name;
-        _this.nameRange = nameRange;
         _this.bases = bases;
         _this.body = body;
         _this.decorator_list = decorator_list;
@@ -3221,11 +3204,10 @@ var ImportStatement = (function (_super) {
 }(Statement));
 var ImportFrom = (function (_super) {
     __extends(ImportFrom, _super);
-    function ImportFrom(module, moduleRange, names, level, range) {
+    function ImportFrom(module, names, level, range) {
         var _this = _super.call(this) || this;
-        _this.moduleRange = moduleRange;
         _this.range = range;
-        assert(typeof module === 'string', "module must be a string.");
+        assert(typeof module.value === 'string', "module must be a string.");
         assert(Array.isArray(names), "names must be an Array.");
         _this.module = module;
         _this.names = names;
@@ -3471,9 +3453,8 @@ var Compare = (function (_super) {
 }(Expression));
 var Call = (function (_super) {
     __extends(Call, _super);
-    function Call(func, args, keywords, starargs, kwargs, range) {
+    function Call(func, args, keywords, starargs, kwargs) {
         var _this = _super.call(this) || this;
-        _this.range = range;
         _this.func = func;
         _this.args = args;
         _this.keywords = keywords;
@@ -3488,9 +3469,8 @@ var Call = (function (_super) {
 }(Expression));
 var Num = (function (_super) {
     __extends(Num, _super);
-    function Num(n, range) {
+    function Num(n) {
         var _this = _super.call(this) || this;
-        _this.range = range;
         _this.n = n;
         return _this;
     }
@@ -3501,9 +3481,8 @@ var Num = (function (_super) {
 }(Expression));
 var Str = (function (_super) {
     __extends(Str, _super);
-    function Str(s, range) {
+    function Str(s) {
         var _this = _super.call(this) || this;
-        _this.range = range;
         _this.s = s;
         return _this;
     }
@@ -3639,15 +3618,14 @@ var Keyword = (function () {
     return Keyword;
 }());
 var Alias = (function () {
-    function Alias(name, nameRange, asname) {
-        this.nameRange = nameRange;
-        assert(typeof name === 'string');
+    function Alias(name, asname) {
+        assert(typeof name.value === 'string');
         assert(typeof asname === 'string' || asname === null);
         this.name = name;
         this.asname = asname;
     }
     Alias.prototype.toString = function () {
-        return this.name + " as " + this.asname;
+        return this.name.value + " as " + this.asname;
     };
     return Alias;
 }());
@@ -3672,14 +3650,14 @@ Suite.prototype['_fields'] = [
 ];
 FunctionDef.prototype['_astname'] = 'FunctionDef';
 FunctionDef.prototype['_fields'] = [
-    'name', function (n) { return n.name; },
+    'name', function (n) { return n.name.value; },
     'args', function (n) { return n.args; },
     'body', function (n) { return n.body; },
     'decorator_list', function (n) { return n.decorator_list; }
 ];
 ClassDef.prototype['_astname'] = 'ClassDef';
 ClassDef.prototype['_fields'] = [
-    'name', function (n) { return n.name; },
+    'name', function (n) { return n.name.value; },
     'bases', function (n) { return n.bases; },
     'body', function (n) { return n.body; },
     'decorator_list', function (n) { return n.decorator_list; }
@@ -3762,7 +3740,7 @@ ImportStatement.prototype['_fields'] = [
 ];
 ImportFrom.prototype['_astname'] = 'ImportFrom';
 ImportFrom.prototype['_fields'] = [
-    'module', function (n) { return n.module; },
+    'module', function (n) { return n.module.value; },
     'names', function (n) { return n.names; },
     'level', function (n) { return n.level; }
 ];
@@ -3852,16 +3830,16 @@ Call.prototype['_fields'] = [
 ];
 Num.prototype['_astname'] = 'Num';
 Num.prototype['_fields'] = [
-    'n', function (n) { return n.n; }
+    'n', function (n) { return n.n.value; }
 ];
 Str.prototype['_astname'] = 'Str';
 Str.prototype['_fields'] = [
-    's', function (n) { return n.s; }
+    's', function (n) { return n.s.value; }
 ];
 Attribute.prototype['_astname'] = 'Attribute';
 Attribute.prototype['_fields'] = [
     'value', function (n) { return n.value; },
-    'attr', function (n) { return n.attr; },
+    'attr', function (n) { return n.attr.value; },
     'ctx', function (n) { return n.ctx; }
 ];
 Subscript.prototype['_astname'] = 'Subscript';
@@ -3872,7 +3850,7 @@ Subscript.prototype['_fields'] = [
 ];
 Name.prototype['_astname'] = 'Name';
 Name.prototype['_fields'] = [
-    'id', function (n) { return n.id; },
+    'id', function (n) { return n.id.value; },
     'ctx', function (n) { return n.ctx; }
 ];
 List.prototype['_astname'] = 'List';
@@ -3995,7 +3973,7 @@ Keyword.prototype['_fields'] = [
 ];
 Alias.prototype['_astname'] = 'Alias';
 Alias.prototype['_fields'] = [
-    'name', function (n) { return n.name; },
+    'name', function (n) { return n.name.value; },
     'asname', function (n) { return n.asname; }
 ];
 
@@ -4151,7 +4129,7 @@ function setContext(c, e, ctx, n) {
     var exprName = null;
     if (e instanceof Attribute) {
         if (ctx === Store)
-            forbiddenCheck(c, n, e.attr, n.range);
+            forbiddenCheck(c, n, e.attr.value, n.range);
         e.ctx = ctx;
     }
     else if (e instanceof Name) {
@@ -4396,10 +4374,12 @@ function astForTryStmt(c, n) {
 }
 function astForDottedName(c, n) {
     REQ(n, SYM.dotted_name);
-    var id = strobj(CHILD(n, 0).value);
+    var child = CHILD(n, 0);
+    var id = new RangeAnnotated(child.value, child.range);
     var e = new Name(id, Load, n.range);
     for (var i = 2; i < NCH(n); i += 2) {
-        id = strobj(CHILD(n, i).value);
+        var child_1 = CHILD(n, i);
+        id = new RangeAnnotated(child_1.value, child_1.range);
         e = new Attribute(e, id, Load, n.range);
     }
     return e;
@@ -4413,7 +4393,7 @@ function astForDecorator(c, n) {
     if (NCH(n) === 3)
         return nameExpr;
     else if (NCH(n) === 5)
-        return new Call(nameExpr, [], [], null, null, n.range);
+        return new Call(nameExpr, [], [], null, null);
     else
         return astForCall(c, CHILD(n, 3), nameExpr);
 }
@@ -4575,7 +4555,7 @@ function aliasForImportName(c, n) {
                 if (NCH(n) === 3) {
                     str = CHILD(n, 2).value;
                 }
-                return new Alias(name_1, nameRange, str == null ? null : strobj(str));
+                return new Alias(new RangeAnnotated(name_1, nameRange), str == null ? null : strobj(str));
             }
             case SYM.dotted_as_name:
                 if (NCH(n) === 1) {
@@ -4593,7 +4573,7 @@ function aliasForImportName(c, n) {
                     var nameNode = CHILD(n, 0);
                     var name_2 = strobj(nameNode.value);
                     var nameRange = nameNode.range;
-                    return new Alias(name_2, nameRange, null);
+                    return new Alias(new RangeAnnotated(name_2, nameRange), null);
                 }
                 else {
                     // create a string of the form a.b.c
@@ -4601,14 +4581,14 @@ function aliasForImportName(c, n) {
                     for (var i = 0; i < NCH(n); i += 2) {
                         str += CHILD(n, i).value + ".";
                     }
-                    return new Alias(strobj(str.substr(0, str.length - 1)), null, null);
+                    return new Alias(new RangeAnnotated(str.substr(0, str.length - 1), null), null);
                 }
             case Tokens.T_STAR: {
-                return new Alias(strobj("*"), n.range, null);
+                return new Alias(new RangeAnnotated("*", n.range), null);
             }
             case Tokens.T_NAME: {
                 // Temporary.
-                return new Alias(strobj(n.value), n.range, null);
+                return new Alias(new RangeAnnotated(n.value, n.range), null);
             }
             default: {
                 throw syntaxError$1("unexpected import name " + grammarName(n.type), n.range);
@@ -4686,8 +4666,9 @@ function astForImportStmt(c, importStatementNode) {
                 // from ... import x, y, z
                 n = CHILD(n, idx);
                 nchildren = NCH(n);
-                if (nchildren % 2 === 0)
+                if (nchildren % 2 === 0) {
                     throw syntaxError$1("trailing comma not allowed without surrounding parentheses", n.range);
+                }
             }
         }
         var aliases = [];
@@ -4700,7 +4681,8 @@ function astForImportStmt(c, importStatementNode) {
             astForImportList(c, importListNode, aliases);
         }
         // moduleName = mod ? mod.name : moduleName;
-        return new ImportFrom(strobj(moduleSpec.value), moduleSpec.range, aliases, ndots, importStatementNode.range);
+        assert(typeof moduleSpec.value === 'string');
+        return new ImportFrom(new RangeAnnotated(moduleSpec.value, moduleSpec.range), aliases, ndots, importStatementNode.range);
     }
     else {
         throw syntaxError$1("unknown import statement " + grammarName(nameOrFrom.type) + ".", nameOrFrom.range);
@@ -4893,13 +4875,13 @@ function astForCall(c, n, func) {
                 else if (e.constructor !== Name)
                     throw syntaxError$1("keyword can't be an expression", n.range);
                 var key = e.id;
-                forbiddenCheck(c, CHILD(ch, 0), key, n.range);
+                forbiddenCheck(c, CHILD(ch, 0), key.value, n.range);
                 for (var k = 0; k < nkeywords; ++k) {
                     var tmp = keywords[k].arg;
-                    if (tmp === key)
+                    if (tmp === key.value)
                         throw syntaxError$1("keyword argument repeated", n.range);
                 }
-                keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
+                keywords[nkeywords++] = new Keyword(key.value, astForExpr(c, CHILD(ch, 2)));
             }
         }
         else if (ch.type === Tokens.T_STAR)
@@ -4907,28 +4889,35 @@ function astForCall(c, n, func) {
         else if (ch.type === Tokens.T_DOUBLESTAR)
             kwarg = astForExpr(c, CHILD(n, ++i));
     }
-    return new Call(func, args, keywords, vararg, kwarg, func.range);
+    return new Call(func, args, keywords, vararg, kwarg);
 }
-function astForTrailer(c, n, leftExpr) {
+function astForTrailer(c, node, leftExpr) {
     /* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
         subscriptlist: subscript (',' subscript)* [',']
         subscript: '.' '.' '.' | test | [test] ':' [test] [sliceop]
         */
+    var n = node;
+    var childZero = CHILD(n, 0);
+    var childOne = CHILD(n, 1);
+    var childTwo = CHILD(n, 2);
     REQ(n, SYM.trailer);
-    if (CHILD(n, 0).type === Tokens.T_LPAR) {
-        if (NCH(n) === 2)
-            return new Call(leftExpr, [], [], null, null, n.range);
-        else
-            return astForCall(c, CHILD(n, 1), leftExpr);
+    if (childZero.type === Tokens.T_LPAR) {
+        if (NCH(n) === 2) {
+            return new Call(leftExpr, [], [], null, null);
+        }
+        else {
+            return astForCall(c, childOne, leftExpr);
+        }
     }
-    else if (CHILD(n, 0).type === Tokens.T_DOT)
-        return new Attribute(leftExpr, strobj(CHILD(n, 1).value), Load, n.range);
+    else if (childZero.type === Tokens.T_DOT) {
+        return new Attribute(leftExpr, new RangeAnnotated(childOne.value, childOne.range), Load, n.range);
+    }
     else {
-        REQ(CHILD(n, 0), Tokens.T_LSQB);
-        REQ(CHILD(n, 2), Tokens.T_RSQB);
-        n = CHILD(n, 1);
-        if (NCH(n) === 1)
-            return new Subscript(leftExpr, astForSlice(c, CHILD(n, 0)), Load, n.range);
+        REQ(childZero, Tokens.T_LSQB);
+        REQ(childTwo, Tokens.T_RSQB);
+        var n_1 = childOne;
+        if (NCH(n_1) === 1)
+            return new Subscript(leftExpr, astForSlice(c, CHILD(n_1, 0)), Load, n_1.range);
         else {
             /* The grammar is ambiguous here. The ambiguity is resolved
                 by treating the sequence as a tuple literal if there are
@@ -4936,15 +4925,15 @@ function astForTrailer(c, n, leftExpr) {
             */
             var simple = true;
             var slices = [];
-            for (var j = 0; j < NCH(n); j += 2) {
-                var slc = astForSlice(c, CHILD(n, j));
+            for (var j = 0; j < NCH(n_1); j += 2) {
+                var slc = astForSlice(c, CHILD(n_1, j));
                 if (slc.constructor !== Index) {
                     simple = false;
                 }
                 slices[j / 2] = slc;
             }
             if (!simple) {
-                return new Subscript(leftExpr, new ExtSlice(slices), Load, n.range);
+                return new Subscript(leftExpr, new ExtSlice(slices), Load, n_1.range);
             }
             var elts = [];
             for (var j = 0; j < slices.length; ++j) {
@@ -4957,8 +4946,8 @@ function astForTrailer(c, n, leftExpr) {
                     assert(slc instanceof Index);
                 }
             }
-            var e = new Tuple(elts, Load, n.range);
-            return new Subscript(leftExpr, new Index(e), Load, n.range);
+            var e = new Tuple(elts, Load, n_1.range);
+            return new Subscript(leftExpr, new Index(e), Load, n_1.range);
         }
     }
 }
@@ -5051,9 +5040,10 @@ function astForArguments(c, n) {
                             continue handle_fpdef;
                         }
                     }
-                    if (CHILD(ch, 0).type === Tokens.T_NAME) {
-                        forbiddenCheck(c, n, CHILD(ch, 0).value, n.range);
-                        var id = strobj(CHILD(ch, 0).value);
+                    var childZero = CHILD(ch, 0);
+                    if (childZero.type === Tokens.T_NAME) {
+                        forbiddenCheck(c, n, childZero.value, n.range);
+                        var id = new RangeAnnotated(childZero.value, childZero.range);
                         args[k++] = new Name(id, Param, ch.range);
                     }
                     i += 2;
@@ -5082,11 +5072,12 @@ function astForArguments(c, n) {
 function astForFuncdef(c, n, decoratorSeq) {
     /* funcdef: 'def' NAME parameters ':' suite */
     REQ(n, SYM.funcdef);
-    var name = strobj(CHILD(n, 1).value);
-    forbiddenCheck(c, CHILD(n, 1), CHILD(n, 1).value, n.range);
+    var ch1 = CHILD(n, 1);
+    var name = strobj(ch1.value);
+    forbiddenCheck(c, ch1, name, n.range);
     var args = astForArguments(c, CHILD(n, 2));
     var body = astForSuite(c, CHILD(n, 4));
-    return new FunctionDef(name, args, body, decoratorSeq, n.range);
+    return new FunctionDef(new RangeAnnotated(name, ch1.range), args, body, decoratorSeq, n.range);
 }
 function astForClassBases(c, n) {
     assert(NCH(n) > 0);
@@ -5104,15 +5095,15 @@ function astForClassdef(c, node, decoratorSeq) {
     var className = strobj(c1.value);
     var nameRange = c1.range;
     if (NCH(n) === 4) {
-        return new ClassDef(className, nameRange, [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
+        return new ClassDef(new RangeAnnotated(className, nameRange), [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
     }
     var c3 = CHILD(n, 3);
     if (c3.type === Tokens.T_RPAR) {
-        return new ClassDef(className, nameRange, [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
+        return new ClassDef(new RangeAnnotated(className, nameRange), [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
     }
     var bases = astForClassBases(c, c3);
     var s = astForSuite(c, CHILD(n, 6));
-    return new ClassDef(className, nameRange, bases, s, decoratorSeq, n.range);
+    return new ClassDef(new RangeAnnotated(className, nameRange), bases, s, decoratorSeq, n.range);
 }
 function astForLambdef(c, n) {
     var args;
@@ -5300,10 +5291,11 @@ function astForExprStmt(c, node) {
         switch (expr1.constructor) {
             case GeneratorExp: throw syntaxError$1("augmented assignment to generator expression not possible", n.range);
             case Yield: throw syntaxError$1("augmented assignment to yield expression not possible", n.range);
-            case Name:
+            case Name: {
                 var varName = expr1.id;
-                forbiddenCheck(c, ch, varName, n.range);
+                forbiddenCheck(c, ch, varName.value, n.range);
                 break;
+            }
             case Attribute:
             case Subscript:
                 break;
@@ -5528,7 +5520,8 @@ function parsenumber(c, s, range) {
         }
     }
 }
-function astForSlice(c, n) {
+function astForSlice(c, node) {
+    var n = node;
     REQ(n, SYM.subscript);
     var ch = CHILD(n, 0);
     var lower = null;
@@ -5540,8 +5533,9 @@ function astForSlice(c, n) {
     if (NCH(n) === 1 && ch.type === SYM.IfExpr) {
         return new Index(astForExpr(c, ch));
     }
-    if (ch.type === SYM.IfExpr)
+    if (ch.type === SYM.IfExpr) {
         lower = astForExpr(c, ch);
+    }
     if (ch.type === Tokens.T_COLON) {
         if (NCH(n) > 1) {
             var n2 = CHILD(n, 1);
@@ -5559,7 +5553,7 @@ function astForSlice(c, n) {
     if (ch.type === SYM.sliceop) {
         if (NCH(ch) === 1) {
             ch = CHILD(ch, 0);
-            step = new Name(strobj("None"), Load, ch.range);
+            step = new Name(new RangeAnnotated("None", null), Load, ch.range);
         }
         else {
             ch = CHILD(ch, 1);
@@ -5574,12 +5568,13 @@ function astForAtomExpr(c, n) {
     switch (c0.type) {
         case Tokens.T_NAME:
             // All names start in Load context, but may be changed later
-            return new Name(strobj(c0.value), Load, n.range);
+            return new Name(new RangeAnnotated(c0.value, c0.range), Load, n.range);
         case Tokens.T_STRING: {
-            return new Str(parsestrplus(c, n), n.range);
+            // FIXME: Owing to the way that Python allows string concatenation, this is imprecise.
+            return new Str(new RangeAnnotated(parsestrplus(c, n), n.range));
         }
         case Tokens.T_NUMBER: {
-            return new Num(parsenumber(c, c0.value, c0.range), n.range);
+            return new Num(new RangeAnnotated(parsenumber(c, c0.value, c0.range), n.range));
         }
         case Tokens.T_LPAR: {
             var c1 = CHILD(n, 1);
@@ -5625,30 +5620,23 @@ function astForAtomExpr(c, n) {
         }
     }
 }
-function astForPowerExpr(c, n) {
+function astForPowerExpr(c, node) {
+    var n = node;
     REQ(n, SYM.PowerExpr);
+    var N = NCH(n);
+    var NminusOne = N - 1;
     var e = astForAtomExpr(c, CHILD(n, 0));
-    if (NCH(n) === 1)
+    if (N === 1)
         return e;
-    for (var i = 1; i < NCH(n); ++i) {
+    for (var i = 1; i < N; ++i) {
         var ch = CHILD(n, i);
         if (ch.type !== SYM.trailer) {
             break;
         }
-        if (e instanceof Name || e instanceof Attribute) {
-            var tmp = astForTrailer(c, ch, e);
-            // FIXME
-            // tmp.lineno = e.begin;
-            // tmp.col_offset = e.end;
-            e = tmp;
-        }
-        else {
-            // TODO: I'm not sure waht this is but don't assert!!!
-            // assert(false, `${JSON.stringify(e)}`);
-        }
+        e = astForTrailer(c, ch, e);
     }
-    if (CHILD(n, NCH(n) - 1).type === SYM.UnaryExpr) {
-        var f = astForExpr(c, CHILD(n, NCH(n) - 1));
+    if (CHILD(n, NminusOne).type === SYM.UnaryExpr) {
+        var f = astForExpr(c, CHILD(n, NminusOne));
         return new BinOp(e, { op: Pow, range: null }, f, n.range);
     }
     else {
@@ -6233,7 +6221,7 @@ var SymbolTable = (function () {
             var arg = args[i];
             if (arg.constructor === Name) {
                 assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
-                this.addDef(arg.id, DEF_PARAM, arg.range);
+                this.addDef(arg.id.value, DEF_PARAM, arg.range);
             }
             else {
                 // Tuple isn't supported
@@ -6320,24 +6308,24 @@ var SymbolTable = (function () {
     SymbolTable.prototype.visitStmt = function (s) {
         assert(s !== undefined, "visitStmt called with undefined");
         if (s instanceof FunctionDef) {
-            this.addDef(s.name, DEF_LOCAL, s.range);
+            this.addDef(s.name.value, DEF_LOCAL, s.range);
             if (s.args.defaults)
                 this.SEQExpr(s.args.defaults);
             if (s.decorator_list)
                 this.SEQExpr(s.decorator_list);
-            this.enterBlock(s.name, FunctionBlock, s, s.range);
+            this.enterBlock(s.name.value, FunctionBlock, s, s.range);
             this.visitArguments(s.args, s.range);
             this.SEQStmt(s.body);
             this.exitBlock();
         }
         else if (s instanceof ClassDef) {
-            this.addDef(s.name, DEF_LOCAL, s.range);
+            this.addDef(s.name.value, DEF_LOCAL, s.range);
             this.SEQExpr(s.bases);
             if (s.decorator_list)
                 this.SEQExpr(s.decorator_list);
-            this.enterBlock(s.name, ClassBlock, s, s.range);
+            this.enterBlock(s.name.value, ClassBlock, s, s.range);
             var tmp = this.curClass;
-            this.curClass = s.name;
+            this.curClass = s.name.value;
             this.SEQStmt(s.body);
             this.curClass = tmp;
             this.exitBlock();
@@ -6537,7 +6525,7 @@ var SymbolTable = (function () {
             this.visitSlice(e.slice);
         }
         else if (e instanceof Name) {
-            this.addDef(e.id, e.ctx === Load ? USE : DEF_LOCAL, e.range);
+            this.addDef(e.id.value, e.ctx === Load ? USE : DEF_LOCAL, e.range);
         }
         else if (e instanceof List || e instanceof Tuple) {
             this.SEQExpr(e.elts);
@@ -6567,7 +6555,7 @@ var SymbolTable = (function () {
         */
         for (var _i = 0, names_1 = names; _i < names_1.length; _i++) {
             var a = names_1[_i];
-            var name_2 = a.asname === null ? a.name : a.asname;
+            var name_2 = a.asname === null ? a.name.value : a.asname;
             var storename = name_2;
             var dot = name_2.indexOf('.');
             if (dot !== -1)
@@ -6813,11 +6801,11 @@ function semanticsOfModule(mod) {
  */
 function isClassNameByConvention(name) {
     var id = name.id;
-    if (typeof id === 'string') {
+    if (id instanceof RangeAnnotated && typeof id.value === 'string') {
         // console.lg(`name => ${JSON.stringify(name, null, 2)}`);
-        var N = id.length;
+        var N = id.value.length;
         if (N > 0) {
-            var firstChar = id[0];
+            var firstChar = id.value[0];
             return firstChar.toUpperCase() === firstChar;
         }
         else {
@@ -6832,7 +6820,7 @@ function isMethod(functionDef) {
     for (var i = 0; i < functionDef.args.args.length; i++) {
         if (i === 0) {
             var arg = functionDef.args.args[i];
-            if (arg.id === 'self') {
+            if (arg.id.value === 'self') {
                 return true;
             }
         }
@@ -6919,7 +6907,6 @@ var StackElement = (function () {
     function StackElement(bMark, eMark, targetBeginLine, targetBeginColumn, trace) {
         this.bMark = bMark;
         this.eMark = eMark;
-        this.trace = trace;
         this.texts = [];
         this.trees = [];
         this.cursor = new MutablePosition(targetBeginLine, targetBeginColumn);
@@ -6973,13 +6960,6 @@ var StackElement = (function () {
                     tBC = Math.min(tBC, tree.target.begin.column);
                     tEL = Math.max(tEL, tree.target.end.line);
                     tEC = Math.max(tEC, tree.target.end.column);
-                    if (this.trace) {
-                        console.log("txt = " + texts[i]);
-                        console.log("tBL = " + tBL);
-                        console.log("tBC = " + tBC);
-                        console.log("tEL = " + tEL);
-                        console.log("tEC = " + tEC);
-                    }
                     children.push(tree);
                 }
             }
@@ -7187,10 +7167,6 @@ var TypeWriter = (function () {
     TypeWriter.prototype.prolog = function (bMark, eMark) {
         var line = this.stack.getLine();
         var column = this.stack.getColumn();
-        if (this.trace) {
-            console.log("prolog(bMark = '" + bMark + "', eMark = '" + eMark + "')");
-            console.log("line = " + line + ", column = " + column);
-        }
         this.stack.push(new StackElement(bMark, eMark, line, column, this.trace));
     };
     TypeWriter.prototype.epilog = function (insertSpaceAfterOpeningAndBeforeClosingNonempty) {
@@ -7199,12 +7175,8 @@ var TypeWriter = (function () {
         var text = textAndMappings.text;
         var tree = textAndMappings.tree;
         // This is where we would be
-        var line = textAndMappings.targetEndLine;
-        var column = textAndMappings.targetEndColumn;
-        if (this.trace) {
-            console.log("epilog(text = '" + text + "', tree = '" + JSON.stringify(tree) + "')");
-            console.log("line = " + line + ", column = " + column);
-        }
+        // const line = textAndMappings.targetEndLine;
+        // const column = textAndMappings.targetEndColumn;
         if (text.length > 0 && insertSpaceAfterOpeningAndBeforeClosingNonempty) {
             this.write(popped.bMark, null);
             this.space();
@@ -7370,16 +7342,16 @@ var Printer = (function () {
         for (var _i = 0, _a = assign.targets; _i < _a.length; _i++) {
             var target = _a[_i];
             if (target instanceof Name) {
-                var flags = this.u.ste.symFlags[target.id];
+                var flags = this.u.ste.symFlags[target.id.value];
                 if (flags && DEF_LOCAL) {
-                    if (this.u.declared[target.id]) {
+                    if (this.u.declared[target.id.value]) {
                         // The variable has already been declared.
                     }
                     else {
                         // We use let for now because we would need to look ahead for more assignments.
                         // The smenatic analysis could count the number of assignments in the current scope?
                         this.writer.write("let ", null);
-                        this.u.declared[target.id] = true;
+                        this.u.declared[target.id.value] = true;
                     }
                 }
             }
@@ -7392,7 +7364,7 @@ var Printer = (function () {
     Printer.prototype.attribute = function (attribute) {
         attribute.value.accept(this);
         this.writer.write(".", null);
-        this.writer.write(attribute.attr, null);
+        this.writer.str(attribute.attr.value, attribute.attr.range);
     };
     Printer.prototype.binOp = function (be) {
         be.lhs.accept(this);
@@ -7491,7 +7463,7 @@ var Printer = (function () {
     Printer.prototype.classDef = function (cd) {
         this.writer.write("class", null);
         this.writer.space();
-        this.writer.name(cd.name, cd.nameRange);
+        this.writer.name(cd.name.value, cd.name.range);
         // this.writer.openParen();
         // this.writer.closeParen();
         this.writer.beginBlock();
@@ -7588,12 +7560,12 @@ var Printer = (function () {
         if (!isClassMethod) {
             this.writer.write("function ", null);
         }
-        this.writer.write(functionDef.name, null);
+        this.writer.name(functionDef.name.value, functionDef.name.range);
         this.writer.openParen();
         for (var i = 0; i < functionDef.args.args.length; i++) {
             var arg = functionDef.args.args[i];
             if (i === 0) {
-                if (arg.id === 'self') {
+                if (arg.id.value === 'self') {
                     // Ignore.
                 }
                 else {
@@ -7634,7 +7606,7 @@ var Printer = (function () {
                 this.writer.comma(null, null);
             }
             var alias = importFrom.names[i];
-            this.writer.name(alias.name, alias.nameRange);
+            this.writer.name(alias.name.value, alias.name.range);
             if (alias.asname) {
                 this.writer.space();
                 this.writer.write("as", null);
@@ -7646,7 +7618,7 @@ var Printer = (function () {
         this.writer.space();
         this.writer.write("from", null);
         this.writer.space();
-        this.writer.str(toStringLiteralJS(importFrom.module), importFrom.moduleRange);
+        this.writer.str(toStringLiteralJS(importFrom.module.value), importFrom.module.range);
         this.writer.endStatement();
     };
     Printer.prototype.list = function (list) {
@@ -7671,23 +7643,26 @@ var Printer = (function () {
         // TODO: Since 'True' and 'False' are reserved words in Python,
         // syntactic analysis (parsing) should be sufficient to identify
         // this name as a boolean expression - avoiding this overhead.
-        switch (name.id) {
+        var value = name.id.value;
+        var range = name.id.range;
+        switch (value) {
             case 'True': {
-                this.writer.name('true', name.range);
+                this.writer.name('true', range);
                 break;
             }
             case 'False': {
-                this.writer.name('false', name.range);
+                this.writer.name('false', range);
                 break;
             }
             default: {
-                this.writer.name(name.id, name.range);
+                this.writer.name(value, range);
             }
         }
     };
     Printer.prototype.num = function (num) {
-        var n = num.n;
-        this.writer.num(n.toString(), num.range);
+        var value = num.n.value;
+        var range = num.n.range;
+        this.writer.num(value.toString(), range);
     };
     Printer.prototype.print = function (print) {
         this.writer.name("console", null);
@@ -7711,8 +7686,7 @@ var Printer = (function () {
         var s = str.s;
         // const begin = str.begin;
         // const end = str.end;
-        // TODO: AST is not preserving the original quoting, or maybe a hint.
-        this.writer.str(toStringLiteralJS(s), null);
+        this.writer.str(toStringLiteralJS(s.value), s.range);
     };
     return Printer;
 }());

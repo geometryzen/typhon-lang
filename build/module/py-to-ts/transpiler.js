@@ -150,16 +150,16 @@ var Printer = (function () {
         for (var _i = 0, _a = assign.targets; _i < _a.length; _i++) {
             var target = _a[_i];
             if (target instanceof Name) {
-                var flags = this.u.ste.symFlags[target.id];
+                var flags = this.u.ste.symFlags[target.id.value];
                 if (flags && DEF_LOCAL) {
-                    if (this.u.declared[target.id]) {
+                    if (this.u.declared[target.id.value]) {
                         // The variable has already been declared.
                     }
                     else {
                         // We use let for now because we would need to look ahead for more assignments.
                         // The smenatic analysis could count the number of assignments in the current scope?
                         this.writer.write("let ", null);
-                        this.u.declared[target.id] = true;
+                        this.u.declared[target.id.value] = true;
                     }
                 }
             }
@@ -172,7 +172,7 @@ var Printer = (function () {
     Printer.prototype.attribute = function (attribute) {
         attribute.value.accept(this);
         this.writer.write(".", null);
-        this.writer.write(attribute.attr, null);
+        this.writer.str(attribute.attr.value, attribute.attr.range);
     };
     Printer.prototype.binOp = function (be) {
         be.lhs.accept(this);
@@ -271,7 +271,7 @@ var Printer = (function () {
     Printer.prototype.classDef = function (cd) {
         this.writer.write("class", null);
         this.writer.space();
-        this.writer.name(cd.name, cd.nameRange);
+        this.writer.name(cd.name.value, cd.name.range);
         // this.writer.openParen();
         // this.writer.closeParen();
         this.writer.beginBlock();
@@ -368,12 +368,12 @@ var Printer = (function () {
         if (!isClassMethod) {
             this.writer.write("function ", null);
         }
-        this.writer.write(functionDef.name, null);
+        this.writer.name(functionDef.name.value, functionDef.name.range);
         this.writer.openParen();
         for (var i = 0; i < functionDef.args.args.length; i++) {
             var arg = functionDef.args.args[i];
             if (i === 0) {
-                if (arg.id === 'self') {
+                if (arg.id.value === 'self') {
                     // Ignore.
                 }
                 else {
@@ -414,7 +414,7 @@ var Printer = (function () {
                 this.writer.comma(null, null);
             }
             var alias = importFrom.names[i];
-            this.writer.name(alias.name, alias.nameRange);
+            this.writer.name(alias.name.value, alias.name.range);
             if (alias.asname) {
                 this.writer.space();
                 this.writer.write("as", null);
@@ -426,7 +426,7 @@ var Printer = (function () {
         this.writer.space();
         this.writer.write("from", null);
         this.writer.space();
-        this.writer.str(toStringLiteralJS(importFrom.module), importFrom.moduleRange);
+        this.writer.str(toStringLiteralJS(importFrom.module.value), importFrom.module.range);
         this.writer.endStatement();
     };
     Printer.prototype.list = function (list) {
@@ -451,23 +451,26 @@ var Printer = (function () {
         // TODO: Since 'True' and 'False' are reserved words in Python,
         // syntactic analysis (parsing) should be sufficient to identify
         // this name as a boolean expression - avoiding this overhead.
-        switch (name.id) {
+        var value = name.id.value;
+        var range = name.id.range;
+        switch (value) {
             case 'True': {
-                this.writer.name('true', name.range);
+                this.writer.name('true', range);
                 break;
             }
             case 'False': {
-                this.writer.name('false', name.range);
+                this.writer.name('false', range);
                 break;
             }
             default: {
-                this.writer.name(name.id, name.range);
+                this.writer.name(value, range);
             }
         }
     };
     Printer.prototype.num = function (num) {
-        var n = num.n;
-        this.writer.num(n.toString(), num.range);
+        var value = num.n.value;
+        var range = num.n.range;
+        this.writer.num(value.toString(), range);
     };
     Printer.prototype.print = function (print) {
         this.writer.name("console", null);
@@ -491,8 +494,7 @@ var Printer = (function () {
         var s = str.s;
         // const begin = str.begin;
         // const end = str.end;
-        // TODO: AST is not preserving the original quoting, or maybe a hint.
-        this.writer.str(toStringLiteralJS(s), null);
+        this.writer.str(toStringLiteralJS(s.value), s.range);
     };
     return Printer;
 }());

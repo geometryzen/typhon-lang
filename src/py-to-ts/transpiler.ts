@@ -267,16 +267,16 @@ class Printer implements Visitor {
         // TODO: How to deal with multiple target?
         for (const target of assign.targets) {
             if (target instanceof Name) {
-                const flags: SymbolFlags = this.u.ste.symFlags[target.id];
+                const flags: SymbolFlags = this.u.ste.symFlags[target.id.value];
                 if (flags && DEF_LOCAL) {
-                    if (this.u.declared[target.id]) {
+                    if (this.u.declared[target.id.value]) {
                         // The variable has already been declared.
                     }
                     else {
                         // We use let for now because we would need to look ahead for more assignments.
                         // The smenatic analysis could count the number of assignments in the current scope?
                         this.writer.write("let ", null);
-                        this.u.declared[target.id] = true;
+                        this.u.declared[target.id.value] = true;
                     }
                 }
             }
@@ -289,7 +289,7 @@ class Printer implements Visitor {
     attribute(attribute: Attribute): void {
         attribute.value.accept(this);
         this.writer.write(".", null);
-        this.writer.write(attribute.attr, null);
+        this.writer.str(attribute.attr.value, attribute.attr.range);
     }
     binOp(be: BinOp): void {
         be.lhs.accept(this);
@@ -388,7 +388,7 @@ class Printer implements Visitor {
     classDef(cd: ClassDef): void {
         this.writer.write("class", null);
         this.writer.space();
-        this.writer.name(cd.name, cd.nameRange);
+        this.writer.name(cd.name.value, cd.name.range);
         // this.writer.openParen();
         // this.writer.closeParen();
         this.writer.beginBlock();
@@ -482,12 +482,12 @@ class Printer implements Visitor {
         if (!isClassMethod) {
             this.writer.write("function ", null);
         }
-        this.writer.write(functionDef.name, null);
+        this.writer.name(functionDef.name.value, functionDef.name.range);
         this.writer.openParen();
         for (let i = 0; i < functionDef.args.args.length; i++) {
             const arg = functionDef.args.args[i];
             if (i === 0) {
-                if (arg.id === 'self') {
+                if (arg.id.value === 'self') {
                     // Ignore.
                 }
                 else {
@@ -526,7 +526,7 @@ class Printer implements Visitor {
                 this.writer.comma(null, null);
             }
             const alias = importFrom.names[i];
-            this.writer.name(alias.name, alias.nameRange);
+            this.writer.name(alias.name.value, alias.name.range);
             if (alias.asname) {
                 this.writer.space();
                 this.writer.write("as", null);
@@ -538,7 +538,7 @@ class Printer implements Visitor {
         this.writer.space();
         this.writer.write("from", null);
         this.writer.space();
-        this.writer.str(toStringLiteralJS(importFrom.module), importFrom.moduleRange);
+        this.writer.str(toStringLiteralJS(importFrom.module.value), importFrom.module.range);
         this.writer.endStatement();
     }
     list(list: List): void {
@@ -562,23 +562,26 @@ class Printer implements Visitor {
         // TODO: Since 'True' and 'False' are reserved words in Python,
         // syntactic analysis (parsing) should be sufficient to identify
         // this name as a boolean expression - avoiding this overhead.
-        switch (name.id) {
+        const value = name.id.value;
+        const range = name.id.range;
+        switch (value) {
             case 'True': {
-                this.writer.name('true', name.range);
+                this.writer.name('true', range);
                 break;
             }
             case 'False': {
-                this.writer.name('false', name.range);
+                this.writer.name('false', range);
                 break;
             }
             default: {
-                this.writer.name(name.id, name.range);
+                this.writer.name(value, range);
             }
         }
     }
     num(num: Num): void {
-        const n = num.n;
-        this.writer.num(n.toString(), num.range);
+        const value = num.n.value;
+        const range = num.n.range;
+        this.writer.num(value.toString(), range);
     }
     print(print: Print): void {
         this.writer.name("console", null);
@@ -601,8 +604,7 @@ class Printer implements Visitor {
         const s = str.s;
         // const begin = str.begin;
         // const end = str.end;
-        // TODO: AST is not preserving the original quoting, or maybe a hint.
-        this.writer.str(toStringLiteralJS(s), null);
+        this.writer.str(toStringLiteralJS(s.value), s.range);
     }
 }
 

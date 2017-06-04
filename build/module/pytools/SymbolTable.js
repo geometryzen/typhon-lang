@@ -104,13 +104,13 @@ var SemanticVisitor = (function () {
         }
     };
     SemanticVisitor.prototype.classDef = function (cd) {
-        this.st.addDef(cd.name, DEF_LOCAL, cd.range);
+        this.st.addDef(cd.name.value, DEF_LOCAL, cd.range);
         this.st.SEQExpr(cd.bases);
         if (cd.decorator_list)
             this.st.SEQExpr(cd.decorator_list);
-        this.st.enterBlock(cd.name, ClassBlock, cd, cd.range);
+        this.st.enterBlock(cd.name.value, ClassBlock, cd, cd.range);
         var tmp = this.st.curClass;
-        this.st.curClass = cd.name;
+        this.st.curClass = cd.name.value;
         this.st.SEQStmt(cd.body);
         this.st.curClass = tmp;
         this.st.exitBlock();
@@ -127,12 +127,12 @@ var SemanticVisitor = (function () {
         expressionStatement.accept(this);
     };
     SemanticVisitor.prototype.functionDef = function (fd) {
-        this.st.addDef(fd.name, DEF_LOCAL, fd.range);
+        this.st.addDef(fd.name.value, DEF_LOCAL, fd.range);
         if (fd.args.defaults)
             this.st.SEQExpr(fd.args.defaults);
         if (fd.decorator_list)
             this.st.SEQExpr(fd.decorator_list);
-        this.st.enterBlock(fd.name, FunctionBlock, fd, fd.range);
+        this.st.enterBlock(fd.name.value, FunctionBlock, fd, fd.range);
         this.st.visitArguments(fd.args, fd.range);
         this.st.SEQStmt(fd.body);
         this.st.exitBlock();
@@ -155,7 +155,7 @@ var SemanticVisitor = (function () {
         throw new Error("module");
     };
     SemanticVisitor.prototype.name = function (name) {
-        this.st.addDef(name.id, name.ctx === Load ? USE : DEF_LOCAL, name.range);
+        this.st.addDef(name.id.value, name.ctx === Load ? USE : DEF_LOCAL, name.range);
     };
     SemanticVisitor.prototype.num = function (num) {
         // Do nothing, unless we are doing type inference.
@@ -265,7 +265,7 @@ var SymbolTable = (function () {
             var arg = args[i];
             if (arg.constructor === Name) {
                 assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
-                this.addDef(arg.id, DEF_PARAM, arg.range);
+                this.addDef(arg.id.value, DEF_PARAM, arg.range);
             }
             else {
                 // Tuple isn't supported
@@ -352,24 +352,24 @@ var SymbolTable = (function () {
     SymbolTable.prototype.visitStmt = function (s) {
         assert(s !== undefined, "visitStmt called with undefined");
         if (s instanceof FunctionDef) {
-            this.addDef(s.name, DEF_LOCAL, s.range);
+            this.addDef(s.name.value, DEF_LOCAL, s.range);
             if (s.args.defaults)
                 this.SEQExpr(s.args.defaults);
             if (s.decorator_list)
                 this.SEQExpr(s.decorator_list);
-            this.enterBlock(s.name, FunctionBlock, s, s.range);
+            this.enterBlock(s.name.value, FunctionBlock, s, s.range);
             this.visitArguments(s.args, s.range);
             this.SEQStmt(s.body);
             this.exitBlock();
         }
         else if (s instanceof ClassDef) {
-            this.addDef(s.name, DEF_LOCAL, s.range);
+            this.addDef(s.name.value, DEF_LOCAL, s.range);
             this.SEQExpr(s.bases);
             if (s.decorator_list)
                 this.SEQExpr(s.decorator_list);
-            this.enterBlock(s.name, ClassBlock, s, s.range);
+            this.enterBlock(s.name.value, ClassBlock, s, s.range);
             var tmp = this.curClass;
-            this.curClass = s.name;
+            this.curClass = s.name.value;
             this.SEQStmt(s.body);
             this.curClass = tmp;
             this.exitBlock();
@@ -569,7 +569,7 @@ var SymbolTable = (function () {
             this.visitSlice(e.slice);
         }
         else if (e instanceof Name) {
-            this.addDef(e.id, e.ctx === Load ? USE : DEF_LOCAL, e.range);
+            this.addDef(e.id.value, e.ctx === Load ? USE : DEF_LOCAL, e.range);
         }
         else if (e instanceof List || e instanceof Tuple) {
             this.SEQExpr(e.elts);
@@ -599,7 +599,7 @@ var SymbolTable = (function () {
         */
         for (var _i = 0, names_1 = names; _i < names_1.length; _i++) {
             var a = names_1[_i];
-            var name_2 = a.asname === null ? a.name : a.asname;
+            var name_2 = a.asname === null ? a.name.value : a.asname;
             var storename = name_2;
             var dot = name_2.indexOf('.');
             if (dot !== -1)

@@ -754,6 +754,234 @@ describe('parse', function () {
         });
     });
 
+    describe('a().b()', function () {
+        const cst = parse('a().b()') as PyNode;
+        // console.lg(JSON.stringify(DECODE(cst), null, 2));
+        const ns = TERMS(cst);
+
+        it("should have correct number of terminals", function () {
+            expect(Array.isArray(ns)).toBeTruthy();
+            expect(ns.length).toBe(9);
+        });
+
+        const a = ns[0];
+        const lPar1 = ns[1];
+        const rPar1 = ns[2];
+        const dot = ns[3];
+        const b = ns[4];
+        const lPar2 = ns[5];
+        const rPar2 = ns[6];
+
+        const nl = ns[IDXLAST(ns) - 1];
+        const em = ns[IDXLAST(ns)];
+
+        it("should have the correct terminals", function () {
+            expect(tokenNames[a.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(a.value).toBe('a');
+            expect(a.range.begin.line).toBe(1);
+            expect(a.range.begin.column).toBe(0);
+            expect(a.children).toBeNull();
+
+            expect(tokenNames[lPar1.type]).toBe(tokenNames[Tokens.T_LPAR]);
+            expect(lPar1.value).toBe('(');
+            expect(lPar1.range.begin.line).toBe(1);
+            expect(lPar1.range.begin.column).toBe(1);
+            expect(lPar1.children).toBeNull();
+
+            expect(tokenNames[rPar1.type]).toBe(tokenNames[Tokens.T_RPAR]);
+            expect(rPar1.value).toBe(')');
+            expect(rPar1.range.begin.line).toBe(1);
+            expect(rPar1.range.begin.column).toBe(2);
+            expect(rPar1.children).toBeNull();
+
+            expect(tokenNames[dot.type]).toBe(tokenNames[Tokens.T_DOT]);
+            expect(dot.value).toBe('.');
+            expect(dot.range.begin.line).toBe(1);
+            expect(dot.range.begin.column).toBe(3);
+            expect(dot.children).toBeNull();
+
+            expect(tokenNames[b.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(b.value).toBe('b');
+            expect(b.range.begin.line).toBe(1);
+            expect(b.range.begin.column).toBe(4);
+            expect(b.children).toBeNull();
+
+            expect(tokenNames[lPar2.type]).toBe(tokenNames[Tokens.T_LPAR]);
+            expect(lPar2.value).toBe('(');
+            expect(lPar2.range.begin.line).toBe(1);
+            expect(lPar2.range.begin.column).toBe(5);
+            expect(lPar2.children).toBeNull();
+
+            expect(tokenNames[rPar2.type]).toBe(tokenNames[Tokens.T_RPAR]);
+            expect(rPar2.value).toBe(')');
+            expect(rPar2.range.begin.line).toBe(1);
+            expect(rPar2.range.begin.column).toBe(6);
+            expect(rPar2.children).toBeNull();
+
+            // Newline
+            expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
+            expect(nl.value).toBe("\n");
+            expect(nl.range.begin.line).toBe(1);
+            expect(nl.range.begin.column).toBe(7);
+            expect(nl.children).toBeNull();
+
+            // End Marker
+            expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
+            expect(em.value).toBe("");
+            expect(em.range.begin.line).toBe(2);
+            expect(em.range.begin.column).toBe(0);
+            expect(em.children).toBeNull();
+        });
+    });
+
+    describe('a.b.c(d.e).f(g.h)', function () {
+        const cst = parse('a.b.c(d.e).f(g.h)') as PyNode;
+        const ns = TERMS(cst);
+
+        it("should have correct number of terminals", function () {
+            expect(Array.isArray(ns)).toBeTruthy();
+            expect(ns.length).toBe(19);
+        });
+
+        const a = ns[0];
+        const dot1 = ns[1];
+        const b = ns[2];
+        const dot2 = ns[3];
+        const c = ns[4];
+        const lPar1 = ns[5];
+        const d = ns[6];
+        const dot3 = ns[7];
+        const e = ns[8];
+        const rPar1 = ns[9];
+        const dot4 = ns[10];
+        const f = ns[11];
+        const lPar2 = ns[12];
+        const g = ns[13];
+        const dot5 = ns[14];
+        const h = ns[15];
+        const rPar2 = ns[16];
+
+        const nl = ns[IDXLAST(ns) - 1];
+        const em = ns[IDXLAST(ns)];
+
+        it("should have the correct terminals", function () {
+            expect(tokenNames[a.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(a.value).toBe('a');
+            expect(a.range.begin.line).toBe(1);
+            expect(a.range.begin.column).toBe(0);
+            expect(a.children).toBeNull();
+
+            expect(tokenNames[dot1.type]).toBe(tokenNames[Tokens.T_DOT]);
+            expect(dot1.value).toBe('.');
+            expect(dot1.range.begin.line).toBe(1);
+            expect(dot1.range.begin.column).toBe(1);
+            expect(dot1.children).toBeNull();
+
+            expect(tokenNames[b.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(b.value).toBe('b');
+            expect(b.range.begin.line).toBe(1);
+            expect(b.range.begin.column).toBe(2);
+            expect(b.children).toBeNull();
+
+            expect(tokenNames[dot2.type]).toBe(tokenNames[Tokens.T_DOT]);
+            expect(dot2.value).toBe('.');
+            expect(dot2.range.begin.line).toBe(1);
+            expect(dot2.range.begin.column).toBe(3);
+            expect(dot2.children).toBeNull();
+
+            expect(tokenNames[c.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(c.value).toBe('c');
+            expect(c.range.begin.line).toBe(1);
+            expect(c.range.begin.column).toBe(4);
+            expect(c.children).toBeNull();
+
+            expect(tokenNames[lPar1.type]).toBe(tokenNames[Tokens.T_LPAR]);
+            expect(lPar1.value).toBe('(');
+            expect(lPar1.range.begin.line).toBe(1);
+            expect(lPar1.range.begin.column).toBe(5);
+            expect(lPar1.children).toBeNull();
+
+            expect(tokenNames[d.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(d.value).toBe('d');
+            expect(d.range.begin.line).toBe(1);
+            expect(d.range.begin.column).toBe(6);
+            expect(d.children).toBeNull();
+
+            expect(tokenNames[dot3.type]).toBe(tokenNames[Tokens.T_DOT]);
+            expect(dot3.value).toBe('.');
+            expect(dot3.range.begin.line).toBe(1);
+            expect(dot3.range.begin.column).toBe(7);
+            expect(dot3.children).toBeNull();
+
+            expect(tokenNames[e.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(e.value).toBe('e');
+            expect(e.range.begin.line).toBe(1);
+            expect(e.range.begin.column).toBe(8);
+            expect(e.children).toBeNull();
+
+            expect(tokenNames[rPar1.type]).toBe(tokenNames[Tokens.T_RPAR]);
+            expect(rPar1.value).toBe(')');
+            expect(rPar1.range.begin.line).toBe(1);
+            expect(rPar1.range.begin.column).toBe(9);
+            expect(rPar1.children).toBeNull();
+
+            expect(tokenNames[dot4.type]).toBe(tokenNames[Tokens.T_DOT]);
+            expect(dot4.value).toBe('.');
+            expect(dot4.range.begin.line).toBe(1);
+            expect(dot4.range.begin.column).toBe(10);
+            expect(dot4.children).toBeNull();
+
+            expect(tokenNames[f.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(f.value).toBe('f');
+            expect(f.range.begin.line).toBe(1);
+            expect(f.range.begin.column).toBe(11);
+            expect(f.children).toBeNull();
+
+            expect(tokenNames[lPar2.type]).toBe(tokenNames[Tokens.T_LPAR]);
+            expect(lPar2.value).toBe('(');
+            expect(lPar2.range.begin.line).toBe(1);
+            expect(lPar2.range.begin.column).toBe(12);
+            expect(lPar2.children).toBeNull();
+
+            expect(tokenNames[g.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(g.value).toBe('g');
+            expect(g.range.begin.line).toBe(1);
+            expect(g.range.begin.column).toBe(13);
+            expect(g.children).toBeNull();
+
+            expect(tokenNames[dot5.type]).toBe(tokenNames[Tokens.T_DOT]);
+            expect(dot5.value).toBe('.');
+            expect(dot5.range.begin.line).toBe(1);
+            expect(dot5.range.begin.column).toBe(14);
+            expect(dot5.children).toBeNull();
+
+            expect(tokenNames[h.type]).toBe(tokenNames[Tokens.T_NAME]);
+            expect(h.value).toBe('h');
+            expect(h.range.begin.line).toBe(1);
+            expect(h.range.begin.column).toBe(15);
+            expect(h.children).toBeNull();
+
+            expect(tokenNames[rPar2.type]).toBe(tokenNames[Tokens.T_RPAR]);
+            expect(rPar2.value).toBe(')');
+            expect(rPar2.range.begin.line).toBe(1);
+            expect(rPar2.range.begin.column).toBe(16);
+            expect(rPar2.children).toBeNull();
+
+            // Newline
+            expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
+            expect(nl.value).toBe("\n");
+            expect(nl.range.begin.line).toBe(1);
+            expect(nl.range.begin.column).toBe(17);
+            expect(nl.children).toBeNull();
+
+            // End Marker
+            expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
+            expect(em.value).toBe("");
+            expect(em.range.begin.line).toBe(2);
+            expect(em.range.begin.column).toBe(0);
+            expect(em.children).toBeNull();
+        });
+    });
 
     describe('Parser', function () {
         const t0 = Date.now();

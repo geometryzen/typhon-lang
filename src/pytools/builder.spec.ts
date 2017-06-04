@@ -268,12 +268,16 @@ describe('AST', function () {
         expect(dump).toBe('Module(body=[WhileStatement(test=Name(id=a,ctx=Load()),body=[Pass()],orelse=[])])');
     });
 
+    it('a().b()', function () {
+        const cst = parse('a().b()') as PyNode;
+        const ast = new Module(astFromParse(cst));
+        const dump = astDump(ast);
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=Call(func=Attribute(value=Call(func=Name(id=a,ctx=Load()),args=[],keywords=[],starargs=None,kwargs=None),attr=b,ctx=Load()),args=[],keywords=[],starargs=None,kwargs=None))])');
+    });
+
     it('ParseError', function () {
         try {
-            const cst = parse('print 1s') as PyNode;
-            const ast = new Module(astFromParse(cst));
-            const dump = astDump(ast);
-            console.log(`ParseError??? ${dump}`);
+            parse('print 1s');
         }
         catch (e) {
             expect(e instanceof SyntaxError).toBe(true);
@@ -294,10 +298,7 @@ describe('AST', function () {
 
     it('IndentationError', function () {
         try {
-            const cst = parse('def f():\n    pass\n print') as PyNode;
-            const ast = new Module(astFromParse(cst));
-            const dump = astDump(ast);
-            console.log(`IndentationError??? ${dump}`);
+            parse('def f():\n    pass\n print');
         }
         catch (e) {
             expect(e.name).toBe('IndentationError');
@@ -313,10 +314,7 @@ describe('AST', function () {
 
     it('SyntaxError from builder', function () {
         try {
-            const cst = parse('()=1') as PyNode;
-            const ast = new Module(astFromParse(cst));
-            const dump = astDump(ast);
-            console.log(`SyntaxError from builder??? ${dump}`);
+            parse('()=1');
         }
         catch (e) {
             expect(e.name).toBe('SyntaxError');
