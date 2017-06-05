@@ -29,6 +29,8 @@ import { DEF_LOCAL } from '../pytools/SymbolConstants';
 import { isClassNameByConvention, isMethod } from './utils';
 import { TypeWriter, TextAndMappings } from './TypeWriter';
 import { MappingTree } from './MappingTree';
+import { MutableRange } from '../pytools/MutableRange';
+import { Tree } from '../btree/btree';
 
 /**
  * Provides enhanced scope information beyond the SymbolTableScope.
@@ -608,7 +610,11 @@ class Printer implements Visitor {
     }
 }
 
-export function transpileModule(sourceText: string, trace = false): { code: string; sourceMap: MappingTree; cst: PyNode; mod: Module; symbolTable: SymbolTable; } {
+function rangeComparator(a: Range, b: Range): -1 | 1 | 0 {
+    return 0;
+}
+
+export function transpileModule(sourceText: string, trace = false): { code: string; sourceMap: MappingTree; sourceTree: Tree<Range, MutableRange>; cst: PyNode; mod: Module; symbolTable: SymbolTable; } {
     const cst = parse(sourceText, SourceKind.File);
     if (typeof cst === 'object') {
         const stmts = astFromParse(cst);
@@ -618,7 +624,8 @@ export function transpileModule(sourceText: string, trace = false): { code: stri
         const textAndMappings = printer.transpileModule(mod);
         const code = textAndMappings.text;
         const sourceMap = textAndMappings.tree;
-        return { code, sourceMap, cst, mod, symbolTable };
+        const sourceTree = new Tree<Range, MutableRange>(rangeComparator);
+        return { code, sourceMap, sourceTree, cst, mod, symbolTable };
     }
     else {
         throw new Error(`Error parsing source for file.`);
