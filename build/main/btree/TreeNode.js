@@ -2,27 +2,37 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var Leaf_1 = require("./Leaf");
 var btree_1 = require("./btree");
-function concat(as, bs) {
-    var cs = [];
+function concat2(as, bs) {
+    var ts = [];
     for (var _i = 0, as_1 = as; _i < as_1.length; _i++) {
         var a = as_1[_i];
-        cs.push(a);
+        ts.push(a);
     }
     for (var _a = 0, bs_1 = bs; _a < bs_1.length; _a++) {
         var b = bs_1[_a];
-        cs.push(b);
+        ts.push(b);
     }
-    return cs;
+    return ts;
 }
 function concat3(as, bs, cs) {
-    return concat(concat(as, bs), cs);
+    var ts = [];
+    for (var _i = 0, as_2 = as; _i < as_2.length; _i++) {
+        var a = as_2[_i];
+        ts.push(a);
+    }
+    for (var _a = 0, bs_2 = bs; _a < bs_2.length; _a++) {
+        var b = bs_2[_a];
+        ts.push(b);
+    }
+    for (var _b = 0, cs_1 = cs; _b < cs_1.length; _b++) {
+        var c = cs_1[_b];
+        ts.push(c);
+    }
+    return ts;
 }
 /**
  * Searches an array for the specified value.
- * @param {Array} a
- * @param {*} v
- * @returns {number} Index or -1 if not found
- * @private
+ * Index or -1 if not found.
  */
 function asearch(a, v) {
     // This is faster than Array#indexOf because it's raw. However, we
@@ -38,11 +48,9 @@ exports.asearch = asearch;
 var TreeNode = (function () {
     /**
      * Constructs a new TreeNode.
-     * @class A TreeNode.
-     * @param {!(TreeNode|Tree)} parent Parent node
-     * @param {Array.<!Leaf>=} leaves Leaf nodes
-     * @param {Array.<TreeNode>=} nodes Child nodes
-     * @constructor
+     * @param parent Parent node
+     * @param leaves Leaf nodes
+     * @param nodes Child nodes
      */
     function TreeNode(parent, leaves, nodes) {
         if (leaves === void 0) { leaves = []; }
@@ -73,8 +81,7 @@ var TreeNode = (function () {
     }
     /**
      * Searches for the node that would contain the specified key.
-     * @param {!*} key
-     * @returns {{leaf: !Leaf, index: number}|{node: !TreeNode, index: number}} Leaf if the key exists, else the insertion node
+     * Leaf if the key exists, else the insertion node
      */
     TreeNode.prototype.search = function (key, compare) {
         if (this.leaves.length > 0) {
@@ -112,8 +119,7 @@ var TreeNode = (function () {
     };
     /**
      * Gets the value for the given key.
-     * @param {!*} key
-     * @returns {*|undefined} If there is no such key, undefined is returned
+     * If there is no such key, undefined is returned
      */
     TreeNode.prototype.get = function (key, compare) {
         var result = this.search(key, compare);
@@ -124,10 +130,10 @@ var TreeNode = (function () {
     };
     /**
      * Inserts a key/value pair into this node.
-     * @param {!*} key
-     * @param {*} value
-     * @param {boolean=} overwrite Whether to overwrite existing values, defaults to `true`
-     * @returns {boolean} true if successfully set, false if already present and overwrite is `false`
+     * @param key
+     * @param value
+     * @param overwrite Whether to overwrite existing values, defaults to `true`
+     * @returns true if successfully set, false if already present and overwrite is `false`
      */
     TreeNode.prototype.put = function (key, value, order, compare, overwrite) {
         var result = this.search(key, compare);
@@ -238,7 +244,7 @@ var TreeNode = (function () {
             if (right !== null) {
                 // Combine this + seperator from the parent + right
                 sep = this.parent.leaves[index];
-                subst = new TreeNode(this.parent, concat3(this.leaves, [sep], right.leaves), concat(this.nodes, right.nodes));
+                subst = new TreeNode(this.parent, concat3(this.leaves, [sep], right.leaves), concat2(this.nodes, right.nodes));
                 // Remove the seperator from the parent
                 this.parent.leaves.splice(index, 1);
                 // And replace the nodes it seperated with subst
@@ -247,7 +253,7 @@ var TreeNode = (function () {
             else if (left !== null) {
                 // Combine left + seperator from parent + this
                 sep = this.parent.leaves[index - 1];
-                subst = new TreeNode(this.parent, concat3(left.leaves, [sep], this.leaves), concat(left.nodes, this.nodes));
+                subst = new TreeNode(this.parent, concat3(left.leaves, [sep], this.leaves), concat2(left.nodes, this.nodes));
                 // Remove the seperator from the parent
                 this.parent.leaves.splice(index - 1, 1);
                 // And replace the nodes it seperated with subst
@@ -264,8 +270,8 @@ var TreeNode = (function () {
     };
     /**
      * Unsplits a child.
-     * @param {!Leaf} leaf
-     * @param {!TreeNode} rest
+     * @param leaf
+     * @param rest
      */
     TreeNode.prototype.unsplit = function (leaf, rest, order, compare) {
         leaf.parent = this;
@@ -316,8 +322,7 @@ var TreeNode = (function () {
     };
     /**
      * Returns a string representation of this node.
-     * @param {boolean=} includeNodes Whether to include sub-nodes or not
-     * @returns {string}
+     * @param includeNodes Whether to include sub-nodes or not
      */
     TreeNode.prototype.toString = function (includeNodes) {
         var val = [];
@@ -336,19 +341,22 @@ var TreeNode = (function () {
     };
     /**
      * Prints out the nodes leaves and nodes.
-     * @param {number} indent
+     * @param indent
      */
     TreeNode.prototype.print = function (indent) {
         var space = "";
-        for (var i = 0; i < indent; i++)
+        for (var i = 0; i < indent; i++) {
             space += " ";
+        }
         for (var i = this.leaves.length - 1; i >= 0; i--) {
-            if (this.nodes[i + 1] !== null)
+            if (this.nodes[i + 1]) {
                 this.nodes[i + 1].print(indent + 2);
+            }
             console.log(space + this.leaves[i].key + (this.parent instanceof btree_1.Tree ? "*" : ""));
         }
-        if (this.nodes[0] !== null)
+        if (this.nodes[0]) {
             this.nodes[0].print(indent + 2);
+        }
     };
     return TreeNode;
 }());

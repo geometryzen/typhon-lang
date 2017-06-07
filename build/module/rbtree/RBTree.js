@@ -1,20 +1,5 @@
 import { RBNode } from './RBNode';
-
-export class RBTree {
-    /**
-     * The "head" node is provided to make insertion easier.
-     * It is not the root.
-     * It is not actually part of the tree.
-     * The right link of head points to the actual root node of the tree.
-     * The left link of the `head` is not used, so we store the tail node, z in it.
-     * The key for head is smaller than all other keys, consistent with the use of the right link.
-     */
-    public readonly head: RBNode;
-    /**
-     * The number of keys inserted.
-     */
-    public N = 0;
-
+var RBTree = (function () {
     /**
      * Initializes an RBTree.
      * It is important to define a key that is smaller than all expected keys
@@ -22,11 +7,14 @@ export class RBTree {
      * @param headKey A key that is smaller than all expected keys.
      * @param zValue The value to return when a search is not successful.
      */
-    constructor(headKey: number, zValue: number) {
+    function RBTree(headKey, zValue) {
+        /**
+         * The number of keys inserted.
+         */
+        this.N = 0;
         // The key we use for z does not matter so we borrow the head key.
         // We will change the z.key later when doing searches.
-        const z = new RBNode(99999, zValue);
-
+        var z = new RBNode(99999, zValue);
         // The value we use for head does not matter because it won't be part of a search.
         this.head = new RBNode(headKey, 11111);
         // Head left is never used or changed so we'll store the tail node there.
@@ -35,98 +23,86 @@ export class RBTree {
         this.head.r = z;
         this.head.p = this.head;
     }
-
-    get root(): RBNode {
-        return this.head.r;
-    }
-
-    set root(root: RBNode) {
-        this.head.r = root;
-    }
-
-    /**
-     * The "tail" node.
-     * This allows our subtrees never to be undefined or null.
-     * All searches will result in a node, but misses will return the tail node.
-     */
-    get z(): RBNode {
-        return this.head.l;
-    }
-
-    private assertLegalKey(key: number): void {
-        const head = this.head;
-
+    Object.defineProperty(RBTree.prototype, "root", {
+        get: function () {
+            return this.head.r;
+        },
+        set: function (root) {
+            this.head.r = root;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(RBTree.prototype, "z", {
+        /**
+         * The "tail" node.
+         * This allows our subtrees never to be undefined or null.
+         * All searches will result in a node, but misses will return the tail node.
+         */
+        get: function () {
+            return this.head.l;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    RBTree.prototype.assertLegalKey = function (key) {
+        var head = this.head;
         if (key <= head.key) {
             throw new Error("key must be greater than the head key.");
         }
-    }
-
+    };
     /**
      *
      */
-    insert(key: number, value: number): RBNode {
+    RBTree.prototype.insert = function (key, value) {
         this.assertLegalKey(key);
-
-        const n = new RBNode(key, value);
-
+        var n = new RBNode(key, value);
         rbInsert(this, n);
-
         this.root.red = false;
         // Update the count of nodes inserted.
         this.N += 1;
         return n;
-    }
-
+    };
     /**
      *
      */
-    search(key: number): number {
+    RBTree.prototype.search = function (key) {
         /**
          * The current node for the search.
          */
-        let x = this.root;
-
+        var x = this.root;
         // The search will always be "successful" but may end with z.
         this.z.key = key;
-
         while (key !== x.key) {
             x = key < x.key ? x.l : x.r;
         }
-
         return x.value;
-    }
-
-    remove(key: number): void {
-        const head = this.head;
-        const z = this.z;
+    };
+    RBTree.prototype.remove = function (key) {
+        var head = this.head;
+        var z = this.z;
         /**
          * The current node for the search, we begin at the root.
          */
-        let x = this.root;
-
+        var x = this.root;
         /**
          * The parent of the current node.
          */
-        let p = head;
-
+        var p = head;
         // The search will always be "successful" but may end with z.
         z.key = key;
-
         // Search in the normal way to get p and x.
         while (key !== x.key) {
             p = x;
             x = key < x.key ? x.l : x.r;
         }
-
         // Our search has terminated and x is either the node to be removed or z.
         /**
          * A reference to the node that we will be removing.
          * This may point to z, but the following code also works in that case.
          */
-        const t = x;
-
+        var t = x;
         // From now on we will be making x reference the node that replaces t.
-
         if (t.r === z) {
             // The node t has no right child.
             // The node that replaces t will be the left child of t.
@@ -144,14 +120,13 @@ export class RBTree {
             // Note also that the previous tests have eliminated the case where
             // there is no highets key. This node with the next highest key must have
             // the property that it has an empty left child.
-            let c = t.r;
+            var c = t.r;
             while (c.l.l !== z) {
                 c = c.l;
             }
             // We exit from the loop when c.l.l equals z, which means that c.l is the node that
             // we want to use to replace t.
             x = c.l;
-
             c.l = x.r;
             x.l = t.l;
             x.r = t.r;
@@ -164,26 +139,34 @@ export class RBTree {
         else {
             p.r = x;
         }
-    }
-
-    /**
-     * Determines whether this tree satisfies the height invariant.
-     * The height invariant is that the number of blue nodes in every path to leaf nodes should be the same.
-     * This property is for testing only; it traverses the tree and so affects performance.
-     */
-    get hInv(): boolean {
-        return hInv(this.root, this.z);
-    }
-    /**
-     * Determines whether this tree satisfies the color invarant.
-     * The color invariant is that no two adjacent nodes should be colored red.
-     * This property is for testing only; it traverses the treeand so affects performance.
-     */
-    get cInv(): boolean {
-        return cInv(this.root, this.head.red, this.z);
-    }
-}
-
+    };
+    Object.defineProperty(RBTree.prototype, "hInv", {
+        /**
+         * Determines whether this tree satisfies the height invariant.
+         * The height invariant is that the number of blue nodes in every path to leaf nodes should be the same.
+         * This property is for testing only; it traverses the tree and so affects performance.
+         */
+        get: function () {
+            return hInv(this.root, this.z);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(RBTree.prototype, "cInv", {
+        /**
+         * Determines whether this tree satisfies the color invarant.
+         * The color invariant is that no two adjacent nodes should be colored red.
+         * This property is for testing only; it traverses the treeand so affects performance.
+         */
+        get: function () {
+            return cInv(this.root, this.head.red, this.z);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return RBTree;
+}());
+export { RBTree };
 /**
  * z, x, y are in diamond-left formation.
  * z is the initial leader and is blue.
@@ -199,22 +182,31 @@ export class RBTree {
  *    y        a   b
  *  a   b
  */
-function diamondLToVic(tree: RBTree, lead: RBNode): RBNode {
-    const m = lead.p;
-    const z = lead;
-    const x = z.l;
-    const y = x.r;
-    const a = y.l;
-    const b = y.r;
+function diamondLToVic(tree, lead) {
+    var m = lead.p;
+    var z = lead;
+    var x = z.l;
+    var y = x.r;
+    var a = y.l;
+    var b = y.r;
     x.red = false;
-    y.l = x; x.p = y;
-    y.r = z; z.p = y;
-    x.r = a; a.p = x;
-    z.l = b; b.p = z;
-    if (m.r === lead) { m.r = y; } else { m.l = y; } y.p = m;
+    y.l = x;
+    x.p = y;
+    y.r = z;
+    z.p = y;
+    x.r = a;
+    a.p = x;
+    z.l = b;
+    b.p = z;
+    if (m.r === lead) {
+        m.r = y;
+    }
+    else {
+        m.l = y;
+    }
+    y.p = m;
     return y;
 }
-
 /**
  * x, z, y are in diamond-right formation.
  * x is the initial leader and is blue.
@@ -229,47 +221,70 @@ function diamondLToVic(tree: RBTree, lead: RBNode): RBNode {
  *    y        a   b
  *  a   b
  */
-function diamondRToVic(tree: RBTree, lead: RBNode): RBNode {
-    const m = lead.p;
-    const x = lead;
-    const z = x.r;
-    const y = z.l;
-    const a = y.l;
-    const b = y.r;
+function diamondRToVic(tree, lead) {
+    var m = lead.p;
+    var x = lead;
+    var z = x.r;
+    var y = z.l;
+    var a = y.l;
+    var b = y.r;
     z.red = false;
-    y.l = x; x.p = y;
-    y.r = z; z.p = y;
-    x.r = a; a.p = x;
-    z.l = b; b.p = z;
-    if (m.r === lead) { m.r = y; } else { m.l = y; } y.p = m;
+    y.l = x;
+    x.p = y;
+    y.r = z;
+    z.p = y;
+    x.r = a;
+    a.p = x;
+    z.l = b;
+    b.p = z;
+    if (m.r === lead) {
+        m.r = y;
+    }
+    else {
+        m.l = y;
+    }
+    y.p = m;
     return y;
 }
-
-function echelonLToVic(tree: RBTree, lead: RBNode): RBNode {
-    const m = lead.p;
-    const z = lead;
-    const y = z.l;
-    const q = y.r;
+function echelonLToVic(tree, lead) {
+    var m = lead.p;
+    var z = lead;
+    var y = z.l;
+    var q = y.r;
     y.l.red = false;
-    y.r = z; z.p = y;
-    z.l = q; q.p = z;
-    if (m.r === lead) { m.r = y; } else { m.l = y; } y.p = m;
+    y.r = z;
+    z.p = y;
+    z.l = q;
+    q.p = z;
+    if (m.r === lead) {
+        m.r = y;
+    }
+    else {
+        m.l = y;
+    }
+    y.p = m;
     return y;
 }
-
-function echelonRToVic(tree: RBTree, lead: RBNode): RBNode {
-    const m = lead.p;
-    const x = lead;
-    const y = x.r;
-    const a = y.l;
+function echelonRToVic(tree, lead) {
+    var m = lead.p;
+    var x = lead;
+    var y = x.r;
+    var a = y.l;
     y.r.red = false;
-    y.l = x; x.p = y;
-    x.r = a; a.p = x;
-    if (m.r === lead) { m.r = y; } else { m.l = y; } y.p = m;
+    y.l = x;
+    x.p = y;
+    x.r = a;
+    a.p = x;
+    if (m.r === lead) {
+        m.r = y;
+    }
+    else {
+        m.l = y;
+    }
+    y.p = m;
     return y;
 }
-
-function cInv(node: RBNode, redParent: boolean, z: RBNode): boolean {
+function cInv(node, redParent, z) {
     if (node === z) {
         return true;
     }
@@ -280,24 +295,22 @@ function cInv(node: RBNode, redParent: boolean, z: RBNode): boolean {
         return cInv(node.l, node.red, z) && cInv(node.r, node.red, z);
     }
 }
-
-function hInv(node: RBNode, z: RBNode): boolean {
+function hInv(node, z) {
     return blueHeight(node, z) >= 0;
 }
-
 /**
  * Computes the number of blue nodes (including z) on the path from x to leaf, not counting x.
  * The height does not include itself.
  * z nodes are blue.
  */
-function blueHeight(x: RBNode, z: RBNode): number {
+function blueHeight(x, z) {
     if (x === z) {
         return 0;
     }
     else {
-        const hL = blueHeight(x.l, z);
+        var hL = blueHeight(x.l, z);
         if (hL >= 0) {
-            const hR = blueHeight(x.r, z);
+            var hR = blueHeight(x.r, z);
             if (hR >= 0) {
                 if (hR === hR) {
                     return x.red ? hL : hL + 1;
@@ -307,21 +320,17 @@ function blueHeight(x: RBNode, z: RBNode): number {
         return -1;
     }
 }
-
-function rbInsert(tree: RBTree, n: RBNode): void {
-    const key = n.key;
-    const z = tree.z;
-    let x = tree.root;
+function rbInsert(tree, n) {
+    var key = n.key;
+    var z = tree.z;
+    var x = tree.root;
     x.p = tree.head;
-
     while (x !== z) {
         x.l.p = x;
         x.r.p = x;
         x = (key < x.key) ? x.l : x.r;
     }
-
     n.p = x.p;
-
     if (x.p === tree.head) {
         tree.root = n;
     }
@@ -341,7 +350,6 @@ function rbInsert(tree: RBTree, n: RBNode): void {
     n.red = true;
     rbInsertFixup(tree, n);
 }
-
 /**
  * In this algorithm we start with the node that has been inserted and make our way up the tree.
  * This requires carefully maintaining parent pointers.
@@ -349,13 +357,12 @@ function rbInsert(tree: RBTree, n: RBNode): void {
  * This function fixes up the path from a leaf by using only rotations.
  * I suspect an implementation based upon snakes, ecehelons and vics would be easier to follow?
  */
-function rbInsertFixup(tree: RBTree, n: RBNode) {
-
+function rbInsertFixup(tree, n) {
     while (n.red) {
         /**
          * The parent of n.
          */
-        const p = n.p;
+        var p = n.p;
         if (n === tree.root) {
             tree.root.red = false;
             return;
@@ -371,13 +378,15 @@ function rbInsertFixup(tree: RBTree, n: RBNode) {
         /**
          * The grandparent of n is the parent of the parent.
          */
-        const g = p.p;
+        var g = p.p;
         // Establish the n = red, p = red, g = blue condition for a transformation.
         if (p.red && !g.red) {
             if (p === g.l) {
-                const gg = g.r;
+                var gg = g.r;
                 if (gg.red) {
-                    p.red = false; gg.red = false; g.red = true;
+                    p.red = false;
+                    gg.red = false;
+                    g.red = true;
                     n = g;
                 }
                 else if (n === p.r) {
@@ -388,9 +397,11 @@ function rbInsertFixup(tree: RBTree, n: RBNode) {
                 }
             }
             else if (p === g.r) {
-                const gg = g.l;
+                var gg = g.l;
                 if (gg.red) {
-                    p.red = false; gg.red = false; g.red = true;
+                    p.red = false;
+                    gg.red = false;
+                    g.red = true;
                     n = g;
                 }
                 else if (n === n.p.l) {

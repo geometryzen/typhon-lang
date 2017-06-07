@@ -13,6 +13,7 @@ var toStringLiteralJS_1 = require("../pytools/toStringLiteralJS");
 var SymbolConstants_1 = require("../pytools/SymbolConstants");
 var utils_1 = require("./utils");
 var TypeWriter_1 = require("./TypeWriter");
+var btree_1 = require("../btree/btree");
 /**
  * Provides enhanced scope information beyond the SymbolTableScope.
  */
@@ -500,6 +501,9 @@ var Printer = (function () {
     };
     return Printer;
 }());
+function rangeComparator(a, b) {
+    return 0;
+}
 function transpileModule(sourceText, trace) {
     if (trace === void 0) { trace = false; }
     var cst = parser_1.parse(sourceText, parser_1.SourceKind.File);
@@ -511,7 +515,8 @@ function transpileModule(sourceText, trace) {
         var textAndMappings = printer.transpileModule(mod);
         var code = textAndMappings.text;
         var sourceMap = textAndMappings.tree;
-        return { code: code, sourceMap: sourceMap, cst: cst, mod: mod, symbolTable: symbolTable };
+        var sourceTree = new btree_1.Tree(rangeComparator);
+        return { code: code, sourceMap: sourceMap, sourceTree: sourceTree, cst: cst, mod: mod, symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");

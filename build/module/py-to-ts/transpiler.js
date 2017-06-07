@@ -11,6 +11,7 @@ import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 import { DEF_LOCAL } from '../pytools/SymbolConstants';
 import { isClassNameByConvention, isMethod } from './utils';
 import { TypeWriter } from './TypeWriter';
+import { Tree } from '../btree/btree';
 /**
  * Provides enhanced scope information beyond the SymbolTableScope.
  */
@@ -498,6 +499,9 @@ var Printer = (function () {
     };
     return Printer;
 }());
+function rangeComparator(a, b) {
+    return 0;
+}
 export function transpileModule(sourceText, trace) {
     if (trace === void 0) { trace = false; }
     var cst = parse(sourceText, SourceKind.File);
@@ -509,7 +513,8 @@ export function transpileModule(sourceText, trace) {
         var textAndMappings = printer.transpileModule(mod);
         var code = textAndMappings.text;
         var sourceMap = textAndMappings.tree;
-        return { code: code, sourceMap: sourceMap, cst: cst, mod: mod, symbolTable: symbolTable };
+        var sourceTree = new Tree(rangeComparator);
+        return { code: code, sourceMap: sourceMap, sourceTree: sourceTree, cst: cst, mod: mod, symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");

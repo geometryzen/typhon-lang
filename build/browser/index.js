@@ -1451,9 +1451,9 @@ var ParseTables = {
         [322, null],
         [292, null],
         [300, null],
-        [313, null],
-        [282, null],
         [302, null],
+        [282, null],
+        [313, null],
         [326, null],
         [329, null],
         [5, null],
@@ -7203,6 +7203,623 @@ var TypeWriter = (function () {
     return TypeWriter;
 }());
 
+var Leaf = (function () {
+    /**
+     * Constructs a new Leaf containing a value.
+     * @param parent
+     * @param key
+     * @param value
+     */
+    function Leaf(parent, key, value) {
+        this.parent = parent;
+        this.key = key;
+        this.value = value;
+    }
+    /**
+     * Returns a string representation of this instance.
+     */
+    Leaf.prototype.toString = function () {
+        return "" + this.key;
+    };
+    return Leaf;
+}());
+
+function concat2(as, bs) {
+    var ts = [];
+    for (var _i = 0, as_1 = as; _i < as_1.length; _i++) {
+        var a = as_1[_i];
+        ts.push(a);
+    }
+    for (var _a = 0, bs_1 = bs; _a < bs_1.length; _a++) {
+        var b = bs_1[_a];
+        ts.push(b);
+    }
+    return ts;
+}
+function concat3(as, bs, cs) {
+    var ts = [];
+    for (var _i = 0, as_2 = as; _i < as_2.length; _i++) {
+        var a = as_2[_i];
+        ts.push(a);
+    }
+    for (var _a = 0, bs_2 = bs; _a < bs_2.length; _a++) {
+        var b = bs_2[_a];
+        ts.push(b);
+    }
+    for (var _b = 0, cs_1 = cs; _b < cs_1.length; _b++) {
+        var c = cs_1[_b];
+        ts.push(c);
+    }
+    return ts;
+}
+/**
+ * Searches an array for the specified value.
+ * Index or -1 if not found.
+ */
+function asearch(a, v) {
+    // This is faster than Array#indexOf because it's raw. However, we
+    // cannot use binary search because nodes do not have a comparable
+    // key. If the compiler is smart, it will inline this.
+    for (var i = 0; i < a.length; i++) {
+        if (a[i] === v)
+            return i;
+    }
+    return -1;
+}
+var TreeNode = (function () {
+    /**
+     * Constructs a new TreeNode.
+     * @param parent Parent node
+     * @param leaves Leaf nodes
+     * @param nodes Child nodes
+     */
+    function TreeNode(parent, leaves, nodes) {
+        if (leaves === void 0) { leaves = []; }
+        if (nodes === void 0) { nodes = [null]; }
+        var _this = this;
+        /**
+         * Parent node.
+         * @type {!TreeNode|!Tree}
+         */
+        this.parent = parent;
+        /**
+         * Leaf nodes (max. order).
+         * @type {!Array.<!Leaf>}
+         */
+        this.leaves = leaves || [];
+        this.leaves.forEach(function (leaf) {
+            leaf.parent = _this;
+        });
+        /**
+         * Child nodes (max. order+1).
+         * @type {!Array.<TreeNode>}
+         */
+        this.nodes = nodes || [null];
+        this.nodes.forEach(function (node) {
+            if (node !== null)
+                node.parent = this;
+        }, this);
+    }
+    /**
+     * Searches for the node that would contain the specified key.
+     * Leaf if the key exists, else the insertion node
+     */
+    TreeNode.prototype.search = function (key, compare) {
+        if (this.leaves.length > 0) {
+            var a = this.leaves[0];
+            if (compare(a.key, key) === 0)
+                return { leaf: a, index: 0 };
+            if (compare(key, a.key) < 0) {
+                var node_1 = this.nodes[0];
+                if (node_1) {
+                    return node_1.search(key, compare); // Left
+                }
+                return { node: this, index: 0 };
+            }
+            var i = void 0;
+            for (i = 1; i < this.leaves.length; i++) {
+                var b = this.leaves[i];
+                if (compare(b.key, key) === 0)
+                    return { leaf: b, index: i };
+                if (compare(key, b.key) < 0) {
+                    var node_2 = this.nodes[i];
+                    if (node_2) {
+                        return node_2.search(key, compare); // Inner
+                    }
+                    return { node: this, index: i };
+                }
+                a = b;
+            }
+            var node = this.nodes[i];
+            if (node) {
+                return node.search(key, compare); // Right
+            }
+            return { node: this, index: i };
+        }
+        return { node: this, index: 0 };
+    };
+    /**
+     * Gets the value for the given key.
+     * If there is no such key, undefined is returned
+     */
+    TreeNode.prototype.get = function (key, compare) {
+        var result = this.search(key, compare);
+        if (result.leaf) {
+            return result.leaf.value;
+        }
+        return undefined;
+    };
+    /**
+     * Inserts a key/value pair into this node.
+     * @param key
+     * @param value
+     * @param overwrite Whether to overwrite existing values, defaults to `true`
+     * @returns true if successfully set, false if already present and overwrite is `false`
+     */
+    TreeNode.prototype.put = function (key, value, order, compare, overwrite) {
+        var result = this.search(key, compare);
+        if (result.leaf) {
+            if (typeof overwrite !== 'undefined' && !overwrite) {
+                return false;
+            }
+            result.leaf.value = value;
+            return true;
+        } // Key already exists
+        var node = result.node;
+        var index = result.index;
+        node.leaves.splice(index, 0, new Leaf(node, key, value));
+        node.nodes.splice(index + 1, 0, null);
+        if (node.leaves.length > order) {
+            node.split(order, compare);
+        }
+        return true;
+    };
+    /**
+     * Deletes a key from this node.
+     * @param {!*} key
+     * @returns {boolean} true if the key has been deleted, false if the key does not exist
+     */
+    TreeNode.prototype.del = function (key, minOrder, compare) {
+        var result = this.search(key, compare);
+        if (!result.leaf) {
+            return false;
+        }
+        var leaf = result.leaf;
+        var node = leaf.parent;
+        var index = result.index;
+        var left = node.nodes[index];
+        if (left) {
+            // This does not look right. Why don't we have a recursive call?
+            var max = left.leaves[left.leaves.length - 1];
+            if (max) {
+                left.del(max.key, minOrder, compare);
+                max.parent = node;
+                node.leaves.splice(index, 1, max);
+            }
+            else {
+                // FIXME
+                // throw new Error("max not found")
+            }
+        }
+        else {
+            node.leaves.splice(index, 1);
+            node.nodes.splice(index, 1);
+            node.balance(minOrder);
+        }
+        return true;
+    };
+    /**
+     * Balances this node to fulfill all conditions.
+     */
+    TreeNode.prototype.balance = function (minOrder) {
+        if (this.parent instanceof Tree) {
+            // Special case: Root has just a single child and no leaves
+            if (this.leaves.length === 0 && this.nodes[0] !== null) {
+                this.parent.root = this.nodes[0];
+                this.parent.root.parent = this.parent;
+            }
+            return;
+        }
+        if (this.leaves.length >= minOrder) {
+            return;
+        }
+        var index = asearch(this.parent.nodes, this);
+        var left = index > 0 ? this.parent.nodes[index - 1] : null;
+        var right = this.parent.nodes.length > index + 1 ? this.parent.nodes[index + 1] : null;
+        var sep;
+        var leaf;
+        var rest;
+        if (right !== null && right.leaves.length > minOrder) {
+            // Append the seperator from parent to this
+            sep = this.parent.leaves[index];
+            sep.parent = this;
+            this.leaves.push(sep);
+            // Replace the blank with the first right leaf
+            leaf = right.leaves.shift();
+            leaf.parent = this.parent;
+            this.parent.leaves[index] = leaf;
+            // Append the right rest to this
+            rest = right.nodes.shift();
+            if (rest) {
+                rest.parent = this;
+            }
+            this.nodes.push(rest);
+        }
+        else if (left !== null && left.leaves.length > minOrder) {
+            // Prepend the seperator from parent to this
+            sep = this.parent.leaves[index - 1];
+            sep.parent = this;
+            this.leaves.unshift(sep);
+            // Replace the blank with the last left leaf
+            leaf = left.leaves.pop();
+            leaf.parent = this.parent;
+            this.parent.leaves[index - 1] = leaf;
+            // Prepend the left rest to this
+            rest = left.nodes.pop();
+            if (rest !== null)
+                rest.parent = this;
+            this.nodes.unshift(rest);
+        }
+        else {
+            var subst = void 0;
+            if (right !== null) {
+                // Combine this + seperator from the parent + right
+                sep = this.parent.leaves[index];
+                subst = new TreeNode(this.parent, concat3(this.leaves, [sep], right.leaves), concat2(this.nodes, right.nodes));
+                // Remove the seperator from the parent
+                this.parent.leaves.splice(index, 1);
+                // And replace the nodes it seperated with subst
+                this.parent.nodes.splice(index, 2, subst);
+            }
+            else if (left !== null) {
+                // Combine left + seperator from parent + this
+                sep = this.parent.leaves[index - 1];
+                subst = new TreeNode(this.parent, concat3(left.leaves, [sep], this.leaves), concat2(left.nodes, this.nodes));
+                // Remove the seperator from the parent
+                this.parent.leaves.splice(index - 1, 1);
+                // And replace the nodes it seperated with subst
+                this.parent.nodes.splice(index - 1, 2, subst);
+            }
+            else {
+                // We should never end here
+                throw (new Error("Internal error: " + this.toString(true) + " has neither a left nor a right sibling"));
+            }
+            this.parent.balance(minOrder);
+        }
+        // validate(this);
+        // validate(this.parent);
+    };
+    /**
+     * Unsplits a child.
+     * @param leaf
+     * @param rest
+     */
+    TreeNode.prototype.unsplit = function (leaf, rest, order, compare) {
+        leaf.parent = this;
+        rest.parent = this;
+        var a = this.leaves[0];
+        if (compare(leaf.key, a.key) < 0) {
+            this.leaves.unshift(leaf);
+            this.nodes.splice(1, 0, rest);
+        }
+        else {
+            var i = void 0;
+            for (i = 1; i < this.leaves.length; i++) {
+                var b = this.leaves[i];
+                if (compare(leaf.key, b.key) < 0) {
+                    this.leaves.splice(i, 0, leaf);
+                    this.nodes.splice(i + 1, 0, rest);
+                    break;
+                }
+            }
+            if (i === this.leaves.length) {
+                this.leaves.push(leaf);
+                this.nodes.push(rest);
+            }
+        }
+        if (this.leaves.length > order) {
+            this.split(order, compare);
+        }
+    };
+    /**
+     * Splits this node.
+     */
+    TreeNode.prototype.split = function (order, compare) {
+        var index = Math.floor(this.leaves.length / 2);
+        if (this.parent instanceof Tree) {
+            this.nodes = [
+                new TreeNode(this, this.leaves.slice(0, index), this.nodes.slice(0, index + 1)),
+                new TreeNode(this, this.leaves.slice(index + 1), this.nodes.slice(index + 1))
+            ];
+            this.leaves = [this.leaves[index]];
+        }
+        else {
+            var leaf = this.leaves[index];
+            var rest = new TreeNode(this.parent, this.leaves.slice(index + 1), this.nodes.slice(index + 1));
+            this.leaves = this.leaves.slice(0, index);
+            this.nodes = this.nodes.slice(0, index + 1);
+            this.parent.unsplit(leaf, rest, order, compare);
+        }
+    };
+    /**
+     * Returns a string representation of this node.
+     * @param includeNodes Whether to include sub-nodes or not
+     */
+    TreeNode.prototype.toString = function (includeNodes) {
+        var val = [];
+        for (var _i = 0, _a = this.leaves; _i < _a.length; _i++) {
+            var leaf = _a[_i];
+            val.push(leaf.key);
+        }
+        var s = "[" + val.toString() + "]" + (this.parent instanceof Tree ? ":*" : ":" + this.parent);
+        if (includeNodes) {
+            for (var _b = 0, _c = this.nodes; _b < _c.length; _b++) {
+                var node = _c[_b];
+                s += " -> " + node;
+            }
+        }
+        return s;
+    };
+    /**
+     * Prints out the nodes leaves and nodes.
+     * @param indent
+     */
+    TreeNode.prototype.print = function (indent) {
+        var space = "";
+        for (var i = 0; i < indent; i++) {
+            space += " ";
+        }
+        for (var i = this.leaves.length - 1; i >= 0; i--) {
+            if (this.nodes[i + 1]) {
+                this.nodes[i + 1].print(indent + 2);
+            }
+            console.log(space + this.leaves[i].key + (this.parent instanceof Tree ? "*" : ""));
+        }
+        if (this.nodes[0]) {
+            this.nodes[0].print(indent + 2);
+        }
+    };
+    return TreeNode;
+}());
+
+/**
+ * Strictly compares two strings, character by character. No locales, no number extension.
+ * @param a
+ * @param b
+ * @returns -1 if a < b, 1 if a > b, 0 otherwise
+ */
+
+/**
+ * Compares two numbers.
+ * @param a
+ * @param b
+ * @returns -1 if a < b, 1 if a > b, 0 otherwise
+ */
+
+function computeOrder(order) {
+    // Validate order
+    if (typeof order === 'undefined') {
+        order = 52; // Benchmarks proofed that this is close to the optimum
+    }
+    else if (typeof order === 'number') {
+        order = Math.floor(order);
+    }
+    else {
+        order = parseInt(order, 10);
+    }
+    if (order < 1) {
+        order = 1;
+    }
+    return order;
+}
+var Tree = (function () {
+    /**
+     * Constructs a new Tree.
+     */
+    function Tree(compare, order) {
+        this.compare = compare;
+        this.root = new TreeNode(this);
+        this.order = computeOrder(order);
+        this.minOrder = this.order > 1 ? Math.floor(this.order / 2) : 1;
+    }
+    /**
+     * Inserts a key/value pair into the tree.
+     * @param key
+     * @param value
+     * @param overwrite Whether to overwrite existing values, defaults to `true`
+     * @returns true if set, false if already present and overwrite is `false`
+     * @throws If the key is undefined or null or the value is undefined
+     */
+    Tree.prototype.put = function (key, value, overwrite) {
+        if (typeof key === 'undefined' || key === null)
+            throw (new Error("Illegal key: " + key));
+        if (typeof value === 'undefined')
+            throw (new Error("Illegal value: " + value));
+        return this.root.put(key, value, this.order, this.compare, overwrite);
+    };
+    /**
+     * Gets the value of the specified key.
+     * @param key
+     * @returns If there is no such key, undefined is returned
+     * @throws If the key is undefined or null
+     */
+    Tree.prototype.get = function (key) {
+        if (typeof key === 'undefined' || key === null)
+            throw (new Error("Illegal key: " + key));
+        return this.root.get(key, this.compare);
+    };
+    /**
+     * Deletes a key from the tree.
+     * @param key
+     * @returns true if the key has been deleted, false if the key does not exist
+     */
+    Tree.prototype.del = function (key) {
+        if (typeof key === 'undefined' || key === null)
+            throw (new Error("Illegal key: " + key));
+        return this.root.del(key, this.minOrder, this.compare);
+    };
+    /**
+     * Walks through all keys [minKey, ..., maxKey] in ascending order.
+     * @param minKey If omitted or NULL, starts at the beginning
+     * @param maxKey If omitted or NULL, walks till the end
+     * @param callback Callback receiving the key and the corresponding value as its
+     *  parameters. May explicitly return true to stop the loop.
+     */
+    Tree.prototype.walkAsc = function (minKey, maxKey, callback) {
+        if (this.root.leaves.length === 0) {
+            return;
+        }
+        var ptr;
+        var index;
+        if (minKey === null) {
+            ptr = this.root; // set ptr to the outer left node
+            while (ptr.nodes[0] !== null) {
+                ptr = ptr.nodes[0];
+            }
+            index = 0; // and start at its first leaf
+        }
+        else {
+            var result = this.root.search(minKey, this.compare);
+            if (result.leaf) {
+                ptr = result.leaf.parent; // set ptr to the containing node
+                index = asearch(ptr.leaves, result.leaf); // and start at its index
+            }
+            else {
+                ptr = result.node; // set ptr to the insertion node
+                index = result.index; // and start at the insertion index (key > minKey)
+                if (index >= ptr.leaves.length) {
+                    if (ptr.parent instanceof Tree) {
+                        return; // empty range
+                    }
+                    index = asearch(ptr.parent.nodes, ptr);
+                    if (index >= ptr.parent.leaves.length) {
+                        return; // empty range
+                    }
+                    ptr = ptr.parent;
+                }
+            }
+        }
+        // ptr/index now points at our first result
+        while (true) {
+            if (maxKey !== null && this.compare(ptr.leaves[index].key, maxKey) > 0) {
+                break; // if there are no more keys less than maxKey
+            }
+            if (callback(ptr.leaves[index].key, ptr.leaves[index].value)) {
+                break; // if the user explicitly breaks the loop by returning true
+            }
+            if (ptr.nodes[index + 1] !== null) {
+                ptr = ptr.nodes[index + 1];
+                index = 0;
+                while (ptr.nodes[0] !== null) {
+                    ptr = ptr.nodes[0];
+                }
+            }
+            else if (ptr.leaves.length > index + 1) {
+                index++;
+            }
+            else {
+                do {
+                    if ((ptr.parent instanceof Tree)) {
+                        return;
+                    }
+                    index = asearch(ptr.parent.nodes, ptr);
+                    ptr = ptr.parent;
+                } while (index >= ptr.leaves.length);
+            }
+        }
+    };
+    /**
+     * Walks through all keys [minKey, ..., maxKey] in descending order.
+     * @param minKey If omitted or null, walks till the beginning
+     * @param maxKey If omitted or null, starts at the end
+     * @param callback Callback receiving the key and the corresponding value as its
+     *  parameters. May explicitly return true to stop the loop.
+     */
+    Tree.prototype.walkDesc = function (minKey, maxKey, callback) {
+        var ptr;
+        var index;
+        if (maxKey === null) {
+            ptr = this.root; // set ptr to the outer right node
+            while (ptr.nodes[ptr.nodes.length - 1] !== null) {
+                ptr = ptr.nodes[ptr.nodes.length - 1];
+            }
+            index = ptr.leaves.length - 1; // and start at its last leaf
+        }
+        else {
+            var result = this.root.search(maxKey, this.compare);
+            if (result.leaf) {
+                ptr = result.leaf.parent; // set ptr to the containing node
+                index = asearch(ptr.leaves, result.leaf); // and start at its index
+            }
+            else {
+                ptr = result.node; // set ptr to the insertion node
+                index = result.index - 1; // and start at the insertion index-1 (key < maxKey)
+                while (index < 0) {
+                    if (ptr.parent instanceof Tree) {
+                        return; // empty range
+                    }
+                    index = asearch(ptr.parent.nodes, ptr) - 1;
+                    if (index < 0) {
+                        return; // empty range
+                    }
+                    ptr = ptr.parent;
+                }
+            }
+        }
+        // ptr/index now points at our first result
+        while (true) {
+            if (minKey !== null && this.compare(ptr.leaves[index].key, minKey) < 0) {
+                break; // if there are no more keys bigger than minKey
+            }
+            if (callback(ptr.leaves[index].key, ptr.leaves[index].value)) {
+                break; // if the user explicitly breaks the loop by returning true
+            }
+            if (ptr.nodes[index] !== null) {
+                ptr = ptr.nodes[index];
+                while (ptr.nodes[ptr.nodes.length - 1] !== null) {
+                    ptr = ptr.nodes[ptr.nodes.length - 1];
+                }
+                index = ptr.leaves.length - 1;
+            }
+            else if (index > 0) {
+                index--;
+            }
+            else {
+                do {
+                    if ((ptr.parent instanceof Tree)) {
+                        return;
+                    }
+                    index = asearch(ptr.parent.nodes, ptr) - 1;
+                    ptr = ptr.parent;
+                } while (index < 0);
+            }
+        }
+    };
+    /**
+     * Counts the number of keys between minKey and maxKey (both inclusive).
+     * @param minKey If omitted, counts from the start
+     * @param maxKey If omitted, counts till the end
+     */
+    Tree.prototype.count = function (minKey, maxKey) {
+        var n = 0;
+        this.walkAsc(typeof minKey !== 'undefined' ? minKey : null, typeof maxKey !== 'undefined' ? maxKey : null, function () { n++; });
+        return n;
+    };
+    /**
+     * Prints out all nodes in the tree.
+     */
+    Tree.prototype.print = function () {
+        this.root.print(0);
+    };
+    /**
+     * Returns a string representation of this instance.
+     */
+    Tree.prototype.toString = function () {
+        return "Tree(" + this.order + ") " + this.root.toString();
+    };
+    return Tree;
+}());
+
 /**
  * Provides enhanced scope information beyond the SymbolTableScope.
  */
@@ -7690,6 +8307,9 @@ var Printer = (function () {
     };
     return Printer;
 }());
+function rangeComparator(a, b) {
+    return 0;
+}
 function transpileModule(sourceText, trace) {
     if (trace === void 0) { trace = false; }
     var cst = parse(sourceText, SourceKind.File);
@@ -7701,7 +8321,8 @@ function transpileModule(sourceText, trace) {
         var textAndMappings = printer.transpileModule(mod);
         var code = textAndMappings.text;
         var sourceMap = textAndMappings.tree;
-        return { code: code, sourceMap: sourceMap, cst: cst, mod: mod, symbolTable: symbolTable };
+        var sourceTree = new Tree(rangeComparator);
+        return { code: code, sourceMap: sourceMap, sourceTree: sourceTree, cst: cst, mod: mod, symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");
