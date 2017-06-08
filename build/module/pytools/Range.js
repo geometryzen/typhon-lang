@@ -9,6 +9,9 @@ var Range = (function () {
         this.begin = begin;
         this.end = end;
     }
+    Range.prototype.toString = function () {
+        return this.begin + " to " + this.end;
+    };
     return Range;
 }());
 export { Range };

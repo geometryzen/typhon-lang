@@ -9,6 +9,9 @@ var MutablePosition = (function () {
         this.line += rows;
         this.column += cols;
     };
+    MutablePosition.prototype.toString = function () {
+        return "[" + this.line + ", " + this.column + "]";
+    };
     return MutablePosition;
 }());
 export { MutablePosition };
@@ -27,6 +30,9 @@ var MutableRange = (function () {
     MutableRange.prototype.offset = function (rows, cols) {
         this.begin.offset(rows, cols);
         this.end.offset(rows, cols);
+    };
+    MutableRange.prototype.toString = function () {
+        return this.begin + " to " + this.end;
     };
     return MutableRange;
 }());

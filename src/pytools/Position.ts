@@ -14,4 +14,27 @@ export class Position {
         this.line = line;
         this.column = column;
     }
+    toString(): string {
+        return `[${this.line}, ${this.column}]`;
+    }
+}
+
+export function positionComparator(a: Position, b: Position): -1 | 1 | 0 {
+    if (a.line < b.line) {
+        return -1;
+    }
+    else if (a.line > b.line) {
+        return 1;
+    }
+    else {
+        if (a.column < b.column) {
+            return -1;
+        }
+        else if (a.column > b.column) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
 }

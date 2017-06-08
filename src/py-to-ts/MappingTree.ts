@@ -39,4 +39,18 @@ export class MappingTree {
             }
         }
     }
+    mappings(): { source: Range, target: MutableRange }[] {
+        if (this.children) {
+            const maps: { source: Range, target: MutableRange }[] = [];
+            for (const child of this.children) {
+                for (const map of child.mappings()) {
+                    maps.push(map);
+                }
+            }
+            return maps;
+        }
+        else {
+            return [{ source: this.source, target: this.target }];
+        }
+    }
 }

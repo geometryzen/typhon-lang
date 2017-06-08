@@ -1,9 +1,27 @@
 import { transpileModule as compile } from './transpiler';
 import { sourceLines } from '../data/eight';
-import { mapToTarget } from './mapToTarget';
+import { SourceMap } from './SourceMap';
+import { Position } from '../pytools/Position';
 // import { parseTreeDump } from '../pytools/parser';
 // import { dumpSymbolTable } from '../pytools/symtable';
 // import { astDump } from '../pytools/builder';
+
+function mapToTarget(sourceMap: SourceMap, sourceLine: number, sourceColumn: number): { line: number; column: number } | null {
+    return sourceMap.getTargetPosition(new Position(sourceLine, sourceColumn));
+}
+
+function mapToSource(sourceMap: SourceMap, targetLine: number, targetColumn: number): { line: number; column: number } | null {
+    return sourceMap.getSourcePosition(new Position(targetLine, targetColumn));
+}
+
+function column(position: { line: number, column: number }): number {
+    if (position) {
+        return position.column;
+    }
+    else {
+        return null;
+    }
+}
 
 describe('transpiler', function () {
 
@@ -17,6 +35,19 @@ describe('transpiler', function () {
             // console.lg(JSON.stringify(result.sourceMap, null, 2));
             // console.lg(JSON.stringify(result.mod, null, 2));
             expect(result.code).toBe("0.01;");
+
+            const sourceMap = result.sourceMap;
+            expect(sourceMap).toBeDefined();
+
+            expect(column(mapToTarget(sourceMap, 1, 0))).toBe(0);
+            expect(column(mapToTarget(sourceMap, 1, 1))).toBe(1);
+            expect(column(mapToTarget(sourceMap, 1, 2))).toBe(2);
+            expect(column(mapToTarget(sourceMap, 1, 3))).toBe(3);
+            expect(column(mapToTarget(sourceMap, 1, 4))).toBe(4);
+            expect(column(mapToTarget(sourceMap, 1, 5))).toBeNull();
+            expect(column(mapToTarget(sourceMap, 1, 6))).toBeNull();
+
+            expect(column(mapToSource(sourceMap, 1, 0))).toBe(0);
         });
     });
 
@@ -42,31 +73,11 @@ describe('transpiler', function () {
         it('should provide a declaration', function () {
             const result = compile('x = 0.01');
             expect(result.code).toBe("let x=0.01;");
-            // console.lg(JSON.stringify(result.sourceMap, null, 2));
-            const source = result.sourceMap.source;
-            expect(source.begin.line).toBe(1);
-            expect(source.begin.column).toBe(0);
-            expect(source.end.line).toBe(1);
-            expect(source.end.column).toBe(8);
-            const target = result.sourceMap.target;
-            expect(target.begin.line).toBe(1);
-            expect(target.begin.column).toBe(0);
-            expect(target.end.line).toBe(1);
-            expect(target.end.column).toBe(10);
         });
         it('should provide a declaration', function () {
             const sourceText = "the_world_is_flat = True";
             const result = compile(sourceText);
             expect(result.code).toBe("let the_world_is_flat=true;");
-        });
-    });
-
-    xdescribe('ImportFrom', function () {
-        it('everything from a module', function () {
-            const result = compile('from visual import *');
-            expect(typeof result).toBe('object');
-            expect(typeof result.code).toBe('string');
-            expect(result.code).toBe("import * from 'visual';");
         });
     });
 
@@ -76,9 +87,6 @@ describe('transpiler', function () {
             expect(typeof result).toBe('object');
             expect(typeof result.code).toBe('string');
             expect(result.code).toBe("let x=1;");
-            const sourceMap = result.sourceMap;
-            // console.lg(JSON.stringify(result.sourceMap, null, 2));
-            expect(sourceMap.children.length).toBe(3);
         });
     });
 
@@ -340,86 +348,50 @@ describe('transpiler', function () {
             ].join("\n");
             const result = compile(sourceText);
             const targetText = result.code;
-            const sourceMap = result.sourceMap;
             expect(targetText).toBe("import {Engine} from '@eight';");
-            // console.lg(JSON.stringify(sourceMap, null, 2));
-            expect(sourceMap.children.length).toBe(2);
         });
+        //
+        // Source Mapping
+        //
         it('should compute the sourceMap', function () {
             const sourceText = [
                 "from 'foo' import bar",
                 ""
             ].join("\n");
-            const result = compile(sourceText, false);
+            const result = compile(sourceText);
             const targetText = result.code;
             const sourceMap = result.sourceMap;
             expect(targetText).toBe("import {bar} from 'foo';");
-            // console.lg(JSON.stringify(sourceMap, null, 2));
-            expect(sourceMap.children.length).toBe(2);
+            expect(sourceMap).toBeDefined();
 
-            const bar = sourceMap.children[0];
-
-            expect(bar.source.begin.line).toBe(1);
-            expect(bar.source.begin.column).toBe(18);
-            expect(bar.source.end.line).toBe(1);
-            expect(bar.source.end.column).toBe(21);
-
-            expect(bar.target.begin.line).toBe(1);
-            expect(bar.target.begin.column).toBe(8);
-            expect(bar.target.end.line).toBe(1);
-            expect(bar.target.end.column).toBe(11);
-
-            const foo = sourceMap.children[1];
-            // console.lg(JSON.stringify(foo));
-
-            // Source range for string literals currently includes the quotation marks.
-            expect(foo.source.begin.line).toBe(1);
-            expect(foo.source.begin.column).toBe(5);
-            expect(foo.source.end.line).toBe(1);
-            expect(foo.source.end.column).toBe(10);
-
-            // Target range for string literals should also include quotation marks.
-            expect(foo.target.begin.line).toBe(1);
-            expect(foo.target.begin.column).toBe(18);
-            expect(foo.target.end.line).toBe(1);
-            expect(foo.target.end.column).toBe(23);
-
-            // Source summary range.
-            expect(sourceMap.source.begin.line).toBe(1);
-            expect(sourceMap.source.begin.column).toBe(5);
-            expect(sourceMap.source.end.line).toBe(1);
-            expect(sourceMap.source.end.column).toBe(21);
-
-            // Target summary range is the full string.
-            expect(sourceMap.target.begin.line).toBe(1);
-            expect(sourceMap.target.begin.column).toBe(0);
-            expect(sourceMap.target.end.line).toBe(1);
-            expect(sourceMap.target.end.column).toBe(23);
-
-            expect(mapToTarget(sourceMap, 1, 6).line).toBe(1);
+            // The endpoints of the token ranges will map exactly.
+            expect(column(mapToTarget(sourceMap, 1, 18))).toBe(8);
+            expect(column(mapToTarget(sourceMap, 1, 21))).toBe(11);
+            expect(column(mapToTarget(sourceMap, 1, 5))).toBe(18);
+            expect(column(mapToTarget(sourceMap, 1, 10))).toBe(23);
 
             expect(mapToTarget(sourceMap, 1, 0)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 1)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 2)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 3)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 4)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 5).column).toBe(18);   // quote
-            expect(mapToTarget(sourceMap, 1, 6).column).toBe(19);   // f
-            expect(mapToTarget(sourceMap, 1, 7).column).toBe(20);   // o
-            expect(mapToTarget(sourceMap, 1, 8).column).toBe(21);   // o
-            expect(mapToTarget(sourceMap, 1, 9).column).toBe(22);   // quote
-            expect(mapToTarget(sourceMap, 1, 10)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 11)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 12)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 13)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 14)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 15)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 16)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 17)).toBeNull();
-            expect(mapToTarget(sourceMap, 1, 18).column).toBe(8);   // b
-            expect(mapToTarget(sourceMap, 1, 19).column).toBe(9);   // a
-            expect(mapToTarget(sourceMap, 1, 20).column).toBe(10);  // r
-            expect(mapToTarget(sourceMap, 1, 21)).toBeNull();
+            // expect(mapToTarget(sourceMap, 1, 1)).toBeNull();
+            // expect(mapToTarget(sourceMap, 1, 2)).toBeNull();
+            // expect(mapToTarget(sourceMap, 1, 3)).toBeNull();
+            // expect(mapToTarget(sourceMap, 1, 4)).toBeNull();
+            expect(column(mapToTarget(sourceMap, 1, 5))).toBe(18);   // quote
+            expect(column(mapToTarget(sourceMap, 1, 6))).toBe(19);   // f
+            expect(column(mapToTarget(sourceMap, 1, 7))).toBe(20);   // o
+            expect(column(mapToTarget(sourceMap, 1, 8))).toBe(21);   // o
+            expect(column(mapToTarget(sourceMap, 1, 9))).toBe(22);   // quote
+            // expect(mapToTarget(sourceMap, 1, 10)).toBeNull();
+            // expect(mapToTarget(sourceMap, 1, 11)).toBeNull();
+            // expect(mapToTarget(sourceMap, 1, 12)).toBeNull();
+            // expect(mapToTarget(sourceMap, 1, 13)).toBeNull();
+            // expect(mapToTarget(sourceMap, 1, 14)).toBeNull();
+            // expect(mapToTarget(sourceMap, 1, 15)).toBeNull();
+            // expect(mapToTarget(sourceMap, 1, 16)).toBeNull();
+            // expect(mapToTarget(sourceMap, 1, 17)).toBeNull();
+            expect(column(mapToTarget(sourceMap, 1, 18))).toBe(8);   // b
+            expect(column(mapToTarget(sourceMap, 1, 19))).toBe(9);   // a
+            expect(column(mapToTarget(sourceMap, 1, 20))).toBe(10);  // r
+            // expect(mapToTarget(sourceMap, 1, 21)).toBeNull();
         });
     });
 
@@ -449,20 +421,6 @@ describe('transpiler', function () {
         it('should allow single line comments', function () {
             const result = compile('# This is a single-line comment.');
             expect(result.code).toBe("");
-        });
-        xit('should allow multi-line comments', function () {
-            const sourceText = [
-                "'''",
-                " This is a multi-line comment.",
-                "'''"
-            ].join("\n");
-            const result = compile(sourceText);
-            const resultText = [
-                "/**",
-                " * This is a multi-line comment.",
-                " *\/"
-            ].join("\n");
-            expect(result.code).toBe(resultText);
         });
     });
 

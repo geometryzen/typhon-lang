@@ -12,4 +12,5 @@ export declare class Range {
      *
      */
     constructor(begin: Position, end: Position);
+    toString(): string;
 }

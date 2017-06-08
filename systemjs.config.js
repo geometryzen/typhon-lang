@@ -4,14 +4,18 @@
             'npm:': 'node_modules/'
         },
         map: {
+            'generic-rbtree': 'npm:generic-rbtree/build/browser/index.js',
             'test': 'test',
             'tslib': 'npm:tslib/tslib.js'
         },
         packages: {
-            test: {
+            'generic-rbtree': {
                 defaultExtension: 'js'
             },
-            tslib: {
+            'test': {
+                defaultExtension: 'js'
+            },
+            'tslib': {
                 defaultExtension: 'js'
             }
         }

@@ -19,4 +19,7 @@ export class Range {
         this.begin = begin;
         this.end = end;
     }
+    toString(): string {
+        return `${this.begin} to ${this.end}`;
+    }
 }

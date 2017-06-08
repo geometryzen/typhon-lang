@@ -11,7 +11,9 @@ import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 import { DEF_LOCAL } from '../pytools/SymbolConstants';
 import { isClassNameByConvention, isMethod } from './utils';
 import { TypeWriter } from './TypeWriter';
-import { Tree } from '../btree/btree';
+import { Position, positionComparator } from '../pytools/Position';
+import { RBTree } from 'generic-rbtree';
+import { SourceMap } from './SourceMap';
 /**
  * Provides enhanced scope information beyond the SymbolTableScope.
  */
@@ -499,9 +501,6 @@ var Printer = (function () {
     };
     return Printer;
 }());
-function rangeComparator(a, b) {
-    return 0;
-}
 export function transpileModule(sourceText, trace) {
     if (trace === void 0) { trace = false; }
     var cst = parse(sourceText, SourceKind.File);
@@ -512,11 +511,36 @@ export function transpileModule(sourceText, trace) {
         var printer = new Printer(symbolTable, 0, sourceText, 1, 0, trace);
         var textAndMappings = printer.transpileModule(mod);
         var code = textAndMappings.text;
-        var sourceMap = textAndMappings.tree;
-        var sourceTree = new Tree(rangeComparator);
-        return { code: code, sourceMap: sourceMap, sourceTree: sourceTree, cst: cst, mod: mod, symbolTable: symbolTable };
+        var sourceMap = mappingTreeToSourceMap(textAndMappings.tree, trace);
+        return { code: code, sourceMap: sourceMap, cst: cst, mod: mod, symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");
     }
+}
+var NIL_VALUE = new Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+var HI_KEY = new Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+var LO_KEY = new Position(Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
+function mappingTreeToSourceMap(mappingTree, trace) {
+    var sourceToTarget = new RBTree(LO_KEY, HI_KEY, NIL_VALUE, positionComparator);
+    var targetToSource = new RBTree(LO_KEY, HI_KEY, NIL_VALUE, positionComparator);
+    if (mappingTree) {
+        for (var _i = 0, _a = mappingTree.mappings(); _i < _a.length; _i++) {
+            var mapping = _a[_i];
+            var source = mapping.source;
+            var target = mapping.target;
+            // Convert to immutable values for targets.
+            var tBegin = new Position(target.begin.line, target.begin.column);
+            var tEnd = new Position(target.end.line, target.end.column);
+            if (trace) {
+                console.log(source.begin + " => " + tBegin);
+                console.log(source.end + " => " + tEnd);
+            }
+            sourceToTarget.insert(source.begin, tBegin);
+            sourceToTarget.insert(source.end, tEnd);
+            targetToSource.insert(tBegin, source.begin);
+            targetToSource.insert(tEnd, source.end);
+        }
+    }
+    return new SourceMap(sourceToTarget, targetToSource);
 }

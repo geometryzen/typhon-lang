@@ -9,6 +9,9 @@ export class MutablePosition {
         this.line += rows;
         this.column += cols;
     }
+    toString(): string {
+        return `[${this.line}, ${this.column}]`;
+    }
 }
 
 export class MutableRange {
@@ -24,5 +27,8 @@ export class MutableRange {
     offset(rows: number, cols: number): void {
         this.begin.offset(rows, cols);
         this.end.offset(rows, cols);
+    }
+    toString(): string {
+        return `${this.begin} to ${this.end}`;
     }
 }

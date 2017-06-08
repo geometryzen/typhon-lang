@@ -3,6 +3,7 @@ export declare class MutablePosition {
     column: number;
     constructor(line: number, column: number);
     offset(rows: number, cols: number): void;
+    toString(): string;
 }
 export declare class MutableRange {
     readonly begin: MutablePosition;
@@ -12,4 +13,5 @@ export declare class MutableRange {
      */
     constructor(begin: MutablePosition, end: MutablePosition);
     offset(rows: number, cols: number): void;
+    toString(): string;
 }

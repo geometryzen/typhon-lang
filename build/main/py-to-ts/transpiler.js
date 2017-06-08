@@ -13,7 +13,9 @@ var toStringLiteralJS_1 = require("../pytools/toStringLiteralJS");
 var SymbolConstants_1 = require("../pytools/SymbolConstants");
 var utils_1 = require("./utils");
 var TypeWriter_1 = require("./TypeWriter");
-var btree_1 = require("../btree/btree");
+var Position_1 = require("../pytools/Position");
+var generic_rbtree_1 = require("generic-rbtree");
+var SourceMap_1 = require("./SourceMap");
 /**
  * Provides enhanced scope information beyond the SymbolTableScope.
  */
@@ -501,9 +503,6 @@ var Printer = (function () {
     };
     return Printer;
 }());
-function rangeComparator(a, b) {
-    return 0;
-}
 function transpileModule(sourceText, trace) {
     if (trace === void 0) { trace = false; }
     var cst = parser_1.parse(sourceText, parser_1.SourceKind.File);
@@ -514,12 +513,37 @@ function transpileModule(sourceText, trace) {
         var printer = new Printer(symbolTable, 0, sourceText, 1, 0, trace);
         var textAndMappings = printer.transpileModule(mod);
         var code = textAndMappings.text;
-        var sourceMap = textAndMappings.tree;
-        var sourceTree = new btree_1.Tree(rangeComparator);
-        return { code: code, sourceMap: sourceMap, sourceTree: sourceTree, cst: cst, mod: mod, symbolTable: symbolTable };
+        var sourceMap = mappingTreeToSourceMap(textAndMappings.tree, trace);
+        return { code: code, sourceMap: sourceMap, cst: cst, mod: mod, symbolTable: symbolTable };
     }
     else {
         throw new Error("Error parsing source for file.");
     }
 }
 exports.transpileModule = transpileModule;
+var NIL_VALUE = new Position_1.Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+var HI_KEY = new Position_1.Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+var LO_KEY = new Position_1.Position(Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
+function mappingTreeToSourceMap(mappingTree, trace) {
+    var sourceToTarget = new generic_rbtree_1.RBTree(LO_KEY, HI_KEY, NIL_VALUE, Position_1.positionComparator);
+    var targetToSource = new generic_rbtree_1.RBTree(LO_KEY, HI_KEY, NIL_VALUE, Position_1.positionComparator);
+    if (mappingTree) {
+        for (var _i = 0, _a = mappingTree.mappings(); _i < _a.length; _i++) {
+            var mapping = _a[_i];
+            var source = mapping.source;
+            var target = mapping.target;
+            // Convert to immutable values for targets.
+            var tBegin = new Position_1.Position(target.begin.line, target.begin.column);
+            var tEnd = new Position_1.Position(target.end.line, target.end.column);
+            if (trace) {
+                console.log(source.begin + " => " + tBegin);
+                console.log(source.end + " => " + tEnd);
+            }
+            sourceToTarget.insert(source.begin, tBegin);
+            sourceToTarget.insert(source.end, tEnd);
+            targetToSource.insert(tBegin, source.begin);
+            targetToSource.insert(tEnd, source.end);
+        }
+    }
+    return new SourceMap_1.SourceMap(sourceToTarget, targetToSource);
+}

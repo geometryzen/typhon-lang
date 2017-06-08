@@ -1000,45 +1000,6 @@ describe('parse', function () {
             // This has been benchmarked at around 20-40 ms.
             expect(t1 - t0 < 60).toBe(true);
         });
-
-        const n0 = ns[0];
-        const n1 = ns[1];
-        const n2 = ns[2];
-
-        const nl = ns[IDXLAST(ns) - 1];
-        const em = ns[IDXLAST(ns)];
-
-        xit("should have the correct terminals", function () {
-            expect(tokenNames[n0.type]).toBe(tokenNames[Tokens.T_NAME]);
-            expect(n0.value).toBe('a');
-            expect(n0.range.begin.line).toBe(1);
-            expect(n0.range.begin.column).toBe(0);
-            expect(n0.children).toBeNull();
-
-            expect(tokenNames[n1.type]).toBe(tokenNames[Tokens.T_MINUS]);
-            expect(n1.value).toBe('-');
-            expect(n1.range.begin.line).toBe(1);
-            expect(n1.range.begin.column).toBe(2);
-            expect(n1.children).toBeNull();
-
-            expect(tokenNames[n2.type]).toBe(tokenNames[Tokens.T_NAME]);
-            expect(n2.value).toBe('b');
-            expect(n2.range.begin.line).toBe(1);
-            expect(n2.range.begin.column).toBe(4);
-            expect(n2.children).toBeNull();
-
-            expect(tokenNames[nl.type]).toBe(tokenNames[Tokens.T_NEWLINE]);
-            expect(nl.value).toBe("\n");
-            expect(nl.range.begin.line).toBe(1);
-            expect(nl.range.begin.column).toBe(5);
-            expect(nl.children).toBeNull();
-
-            expect(tokenNames[em.type]).toBe(tokenNames[Tokens.T_ENDMARKER]);
-            expect(em.value).toBe("");
-            expect(em.range.begin.line).toBe(2);
-            expect(em.range.begin.column).toBe(0);
-            expect(em.children).toBeNull();
-        });
     });
 
 });

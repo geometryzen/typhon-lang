@@ -30,6 +30,22 @@ var MappingTree = (function () {
             }
         }
     };
+    MappingTree.prototype.mappings = function () {
+        if (this.children) {
+            var maps = [];
+            for (var _i = 0, _a = this.children; _i < _a.length; _i++) {
+                var child = _a[_i];
+                for (var _b = 0, _c = child.mappings(); _b < _c.length; _b++) {
+                    var map = _c[_b];
+                    maps.push(map);
+                }
+            }
+            return maps;
+        }
+        else {
+            return [{ source: this.source, target: this.target }];
+        }
+    };
     return MappingTree;
 }());
 export { MappingTree };

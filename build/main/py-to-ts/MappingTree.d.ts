@@ -24,4 +24,8 @@ export declare class MappingTree {
      */
     constructor(source: Range, target: MutableRange, children: MappingTree[]);
     offset(rows: number, cols: number): void;
+    mappings(): {
+        source: Range;
+        target: MutableRange;
+    }[];
 }

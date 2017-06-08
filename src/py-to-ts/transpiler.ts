@@ -29,8 +29,9 @@ import { DEF_LOCAL } from '../pytools/SymbolConstants';
 import { isClassNameByConvention, isMethod } from './utils';
 import { TypeWriter, TextAndMappings } from './TypeWriter';
 import { MappingTree } from './MappingTree';
-import { MutableRange } from '../pytools/MutableRange';
-import { Tree } from '../btree/btree';
+import { Position, positionComparator } from '../pytools/Position';
+import { RBTree } from 'generic-rbtree';
+import { SourceMap } from './SourceMap';
 
 /**
  * Provides enhanced scope information beyond the SymbolTableScope.
@@ -610,11 +611,7 @@ class Printer implements Visitor {
     }
 }
 
-function rangeComparator(a: Range, b: Range): -1 | 1 | 0 {
-    return 0;
-}
-
-export function transpileModule(sourceText: string, trace = false): { code: string; sourceMap: MappingTree; sourceTree: Tree<Range, MutableRange>; cst: PyNode; mod: Module; symbolTable: SymbolTable; } {
+export function transpileModule(sourceText: string, trace = false): { code: string; sourceMap: SourceMap; cst: PyNode; mod: Module; symbolTable: SymbolTable; } {
     const cst = parse(sourceText, SourceKind.File);
     if (typeof cst === 'object') {
         const stmts = astFromParse(cst);
@@ -623,11 +620,37 @@ export function transpileModule(sourceText: string, trace = false): { code: stri
         const printer = new Printer(symbolTable, 0, sourceText, 1, 0, trace);
         const textAndMappings = printer.transpileModule(mod);
         const code = textAndMappings.text;
-        const sourceMap = textAndMappings.tree;
-        const sourceTree = new Tree<Range, MutableRange>(rangeComparator);
-        return { code, sourceMap, sourceTree, cst, mod, symbolTable };
+        const sourceMap = mappingTreeToSourceMap(textAndMappings.tree, trace);
+        return { code, sourceMap, cst, mod, symbolTable };
     }
     else {
         throw new Error(`Error parsing source for file.`);
     }
+}
+
+const NIL_VALUE = new Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+const HI_KEY = new Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+const LO_KEY = new Position(Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
+
+function mappingTreeToSourceMap(mappingTree: MappingTree, trace: boolean): SourceMap {
+    const sourceToTarget = new RBTree<Position, Position>(LO_KEY, HI_KEY, NIL_VALUE, positionComparator);
+    const targetToSource = new RBTree<Position, Position>(LO_KEY, HI_KEY, NIL_VALUE, positionComparator);
+    if (mappingTree) {
+        for (const mapping of mappingTree.mappings()) {
+            const source = mapping.source;
+            const target = mapping.target;
+            // Convert to immutable values for targets.
+            const tBegin = new Position(target.begin.line, target.begin.column);
+            const tEnd = new Position(target.end.line, target.end.column);
+            if (trace) {
+                console.log(`${source.begin} => ${tBegin}`);
+                console.log(`${source.end} => ${tEnd}`);
+            }
+            sourceToTarget.insert(source.begin, tBegin);
+            sourceToTarget.insert(source.end, tEnd);
+            targetToSource.insert(tBegin, source.begin);
+            targetToSource.insert(tEnd, source.end);
+        }
+    }
+    return new SourceMap(sourceToTarget, targetToSource);
 }

@@ -11,4 +11,6 @@ export declare class Position {
      *
      */
     constructor(line: number, column: number);
+    toString(): string;
 }
+export declare function positionComparator(a: Position, b: Position): -1 | 1 | 0;

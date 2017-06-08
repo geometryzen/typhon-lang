@@ -1,6 +1,6 @@
 {
     "name": "typhon-lang",
-    "version": "0.9.11",
+    "version": "0.10.0",
     "description": "Typhon = Python + Types + ECMAScript 2015 modules",
     "author": {
         "name": "David Geo Holmes",
@@ -26,6 +26,7 @@
         "node": "0.12.0"
     },
     "dependencies": {
+        "generic-rbtree": "^1.1.1",
         "tslib": "^1.7.1",
         "typescript": "^2.3.3"
     },
