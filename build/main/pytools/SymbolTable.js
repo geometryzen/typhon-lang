@@ -157,7 +157,7 @@ var SemanticVisitor = (function () {
         throw new Error("module");
     };
     SemanticVisitor.prototype.name = function (name) {
-        this.st.addDef(name.id.value, name.ctx === types_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, name.range);
+        this.st.addDef(name.id.value, name.ctx === types_29.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, name.range);
     };
     SemanticVisitor.prototype.num = function (num) {
         // Do nothing, unless we are doing type inference.
@@ -265,7 +265,7 @@ var SymbolTable = (function () {
     SymbolTable.prototype.visitParams = function (args, toplevel) {
         for (var i = 0; i < args.length; ++i) {
             var arg = args[i];
-            if (arg.constructor === types_31.Name) {
+            if (arg.constructor === types_22.Identifier) {
                 asserts_1.assert(arg.ctx === types_33.Param || (arg.ctx === types_39.Store && !toplevel));
                 this.addDef(arg.id.value, SymbolConstants_8.DEF_PARAM, arg.range);
             }
@@ -341,7 +341,7 @@ var SymbolTable = (function () {
                 this.visitSlice(s.dims[i]);
             }
         }
-        else if (s instanceof types_26.Index) {
+        else if (s instanceof types_27.Index) {
             this.visitExpr(s.value);
         }
         else if (s instanceof types_14.Ellipsis) {
@@ -414,7 +414,7 @@ var SymbolTable = (function () {
             if (s.orelse)
                 this.SEQStmt(s.orelse);
         }
-        else if (s instanceof types_22.IfStatement) {
+        else if (s instanceof types_23.IfStatement) {
             this.visitExpr(s.test);
             this.SEQStmt(s.consequent);
             if (s.alternate) {
@@ -445,11 +445,11 @@ var SymbolTable = (function () {
             if (s.msg)
                 this.visitExpr(s.msg);
         }
-        else if (s instanceof types_24.ImportStatement) {
+        else if (s instanceof types_25.ImportStatement) {
             var imps = s;
             this.visitAlias(imps.names, imps.range);
         }
-        else if (s instanceof types_25.ImportFrom) {
+        else if (s instanceof types_26.ImportFrom) {
             var impFrom = s;
             this.visitAlias(impFrom.names, impFrom.range);
         }
@@ -510,7 +510,7 @@ var SymbolTable = (function () {
         else if (e instanceof types_45.UnaryOp) {
             this.visitExpr(e.operand);
         }
-        else if (e instanceof types_27.Lambda) {
+        else if (e instanceof types_28.Lambda) {
             this.addDef("lambda", SymbolConstants_7.DEF_LOCAL, e.range);
             if (e.args.defaults)
                 this.SEQExpr(e.args.defaults);
@@ -519,7 +519,7 @@ var SymbolTable = (function () {
             this.visitExpr(e.body);
             this.exitBlock();
         }
-        else if (e instanceof types_23.IfExp) {
+        else if (e instanceof types_24.IfExp) {
             this.visitExpr(e.test);
             this.visitExpr(e.body);
             this.visitExpr(e.orelse);
@@ -528,7 +528,7 @@ var SymbolTable = (function () {
             this.SEQExpr(e.keys);
             this.SEQExpr(e.values);
         }
-        else if (e instanceof types_30.ListComp) {
+        else if (e instanceof types_31.ListComp) {
             this.newTmpname(e.range);
             this.visitExpr(e.elt);
             this.visitComprehension(e.generators, 0);
@@ -570,10 +570,10 @@ var SymbolTable = (function () {
             this.visitExpr(e.value);
             this.visitSlice(e.slice);
         }
-        else if (e instanceof types_31.Name) {
-            this.addDef(e.id.value, e.ctx === types_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.range);
+        else if (e instanceof types_22.Identifier) {
+            this.addDef(e.id.value, e.ctx === types_29.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.range);
         }
-        else if (e instanceof types_29.List || e instanceof types_44.Tuple) {
+        else if (e instanceof types_30.List || e instanceof types_44.Tuple) {
             this.SEQExpr(e.elts);
         }
         else {

@@ -41,6 +41,7 @@ import { Gt } from './types';
 import { GtE } from './types';
 // FIXME: Convention
 import { Keyword } from './types';
+import { Identifier } from './types';
 import { IfStatement } from './types';
 import { IfExp } from './types';
 import { ImportStatement } from './types';
@@ -60,7 +61,6 @@ import { LtE } from './types';
 import { Mod } from './types';
 // import { Module } from './types';
 import { Mult } from './types';
-import { Name } from './types';
 import { NonLocal } from './types';
 import { Not } from './types';
 import { NotEq } from './types';
@@ -204,7 +204,7 @@ function setContext(c, e, ctx, n) {
             forbiddenCheck(c, n, e.attr.value, n.range);
         e.ctx = ctx;
     }
-    else if (e instanceof Name) {
+    else if (e instanceof Identifier) {
         if (ctx === Store)
             forbiddenCheck(c, n, /*e.attr*/ void 0, n.range);
         e.ctx = ctx;
@@ -448,7 +448,7 @@ function astForDottedName(c, n) {
     REQ(n, SYM.dotted_name);
     var child = CHILD(n, 0);
     var id = new RangeAnnotated(child.value, child.range);
-    var e = new Name(id, Load, n.range);
+    var e = new Identifier(id, Load, n.range);
     for (var i = 2; i < NCH(n); i += 2) {
         var child_1 = CHILD(n, i);
         id = new RangeAnnotated(child_1.value, child_1.range);
@@ -944,7 +944,7 @@ function astForCall(c, n, func) {
                 var e = astForExpr(c, CHILD(ch, 0));
                 if (e.constructor === Lambda)
                     throw syntaxError("lambda cannot contain assignment", n.range);
-                else if (e.constructor !== Name)
+                else if (e.constructor !== Identifier)
                     throw syntaxError("keyword can't be an expression", n.range);
                 var key = e.id;
                 forbiddenCheck(c, CHILD(ch, 0), key.value, n.range);
@@ -1116,7 +1116,7 @@ function astForArguments(c, n) {
                     if (childZero.type === TOK.T_NAME) {
                         forbiddenCheck(c, n, childZero.value, n.range);
                         var id = new RangeAnnotated(childZero.value, childZero.range);
-                        args[k++] = new Name(id, Param, ch.range);
+                        args[k++] = new Identifier(id, Param, ch.range);
                     }
                     i += 2;
                     if (parenthesized)
@@ -1363,7 +1363,7 @@ function astForExprStmt(c, node) {
         switch (expr1.constructor) {
             case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.range);
             case Yield: throw syntaxError("augmented assignment to yield expression not possible", n.range);
-            case Name: {
+            case Identifier: {
                 var varName = expr1.id;
                 forbiddenCheck(c, ch, varName.value, n.range);
                 break;
@@ -1625,7 +1625,7 @@ function astForSlice(c, node) {
     if (ch.type === SYM.sliceop) {
         if (NCH(ch) === 1) {
             ch = CHILD(ch, 0);
-            step = new Name(new RangeAnnotated("None", null), Load, ch.range);
+            step = new Identifier(new RangeAnnotated("None", null), Load, ch.range);
         }
         else {
             ch = CHILD(ch, 1);
@@ -1640,7 +1640,7 @@ function astForAtomExpr(c, n) {
     switch (c0.type) {
         case TOK.T_NAME:
             // All names start in Load context, but may be changed later
-            return new Name(new RangeAnnotated(c0.value, c0.range), Load, n.range);
+            return new Identifier(new RangeAnnotated(c0.value, c0.range), Load, n.range);
         case TOK.T_STRING: {
             // FIXME: Owing to the way that Python allows string concatenation, this is imprecise.
             return new Str(new RangeAnnotated(parsestrplus(c, n), n.range));

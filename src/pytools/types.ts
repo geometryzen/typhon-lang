@@ -32,7 +32,7 @@ export interface Visitor {
     importFrom(importFrom: ImportFrom): void;
     list(list: List): void;
     module(module: Module): void;
-    name(name: Name): void;
+    name(name: Identifier): void;
     num(num: Num): void;
     print(print: Print): void;
     returnStatement(rs: ReturnStatement): void;
@@ -170,7 +170,7 @@ export class Suite {
     }
 }
 
-export type Decorator = Attribute | Call | Name;
+export type Decorator = Attribute | Call | Identifier;
 
 export class FunctionDef extends Statement {
     name: RangeAnnotated<string>;
@@ -676,9 +676,9 @@ export type SubscriptContext = AugLoad | AugStore | Load | Store | Del | Param;
 
 export class Subscript extends Expression {
     value: Expression;
-    slice: Ellipsis | Index | Name | Slice;
+    slice: Ellipsis | Index | Identifier | Slice;
     ctx: SubscriptContext;
-    constructor(value: Expression, slice: Ellipsis | Index | Name | Slice, ctx: SubscriptContext, public readonly range?: Range) {
+    constructor(value: Expression, slice: Ellipsis | Index | Identifier | Slice, ctx: SubscriptContext, public readonly range?: Range) {
         super();
         this.value = value;
         this.slice = slice;
@@ -686,7 +686,7 @@ export class Subscript extends Expression {
     }
 }
 
-export class Name extends Expression {
+export class Identifier extends Expression {
     id: RangeAnnotated<string>;
     ctx: Param;
     constructor(id: RangeAnnotated<string>, ctx: Param, public readonly range: Range) {
@@ -741,8 +741,8 @@ export class Slice {
 }
 
 export class ExtSlice {
-    dims: (Name | Ellipsis | Index | Slice)[];
-    constructor(dims: (Name | Ellipsis | Index | Slice)[]) {
+    dims: (Identifier | Ellipsis | Index | Slice)[];
+    constructor(dims: (Identifier | Ellipsis | Index | Slice)[]) {
         this.dims = dims;
     }
 }
@@ -777,13 +777,13 @@ export class ExceptHandler {
 }
 
 export class Arguments {
-    args: Name[];
+    args: Identifier[];
     // TODO: RangeAnnotated...
     vararg: string;
     // TODO: RangeAnnotated...
     kwarg: string;
     defaults: Expression[];
-    constructor(args: Name[], vararg: string, kwarg: string, defaults: Expression[]) {
+    constructor(args: Identifier[], vararg: string, kwarg: string, defaults: Expression[]) {
         this.args = args;
         this.vararg = vararg;
         this.kwarg = kwarg;
@@ -1038,10 +1038,10 @@ Subscript.prototype['_fields'] = [
     'slice', function (n: Subscript) { return n.slice; },
     'ctx', function (n: Subscript) { return n.ctx; }
 ];
-Name.prototype['_astname'] = 'Name';
-Name.prototype['_fields'] = [
-    'id', function (n: Name) { return n.id.value; },
-    'ctx', function (n: Name) { return n.ctx; }
+Identifier.prototype['_astname'] = 'Identifier';
+Identifier.prototype['_fields'] = [
+    'id', function (n: Identifier) { return n.id.value; },
+    'ctx', function (n: Identifier) { return n.ctx; }
 ];
 List.prototype['_astname'] = 'List';
 List.prototype['_fields'] = [

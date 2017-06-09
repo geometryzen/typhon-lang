@@ -25,7 +25,7 @@ export interface Visitor {
     importFrom(importFrom: ImportFrom): void;
     list(list: List): void;
     module(module: Module): void;
-    name(name: Name): void;
+    name(name: Identifier): void;
     num(num: Num): void;
     print(print: Print): void;
     returnStatement(rs: ReturnStatement): void;
@@ -144,7 +144,7 @@ export declare class Suite {
     body: any;
     constructor(body: any);
 }
-export declare type Decorator = Attribute | Call | Name;
+export declare type Decorator = Attribute | Call | Identifier;
 export declare class FunctionDef extends Statement {
     readonly range: Range;
     name: RangeAnnotated<string>;
@@ -415,11 +415,11 @@ export declare type SubscriptContext = AugLoad | AugStore | Load | Store | Del |
 export declare class Subscript extends Expression {
     readonly range: Range;
     value: Expression;
-    slice: Ellipsis | Index | Name | Slice;
+    slice: Ellipsis | Index | Identifier | Slice;
     ctx: SubscriptContext;
-    constructor(value: Expression, slice: Ellipsis | Index | Name | Slice, ctx: SubscriptContext, range?: Range);
+    constructor(value: Expression, slice: Ellipsis | Index | Identifier | Slice, ctx: SubscriptContext, range?: Range);
 }
-export declare class Name extends Expression {
+export declare class Identifier extends Expression {
     readonly range: Range;
     id: RangeAnnotated<string>;
     ctx: Param;
@@ -450,8 +450,8 @@ export declare class Slice {
     constructor(lower: Expression, upper: Expression, step: Expression);
 }
 export declare class ExtSlice {
-    dims: (Name | Ellipsis | Index | Slice)[];
-    constructor(dims: (Name | Ellipsis | Index | Slice)[]);
+    dims: (Identifier | Ellipsis | Index | Slice)[];
+    constructor(dims: (Identifier | Ellipsis | Index | Slice)[]);
 }
 export declare class Index {
     value: Tuple;
@@ -472,11 +472,11 @@ export declare class ExceptHandler {
     constructor(type: Expression | null, name: Expression | null, body: Statement[], range?: Range);
 }
 export declare class Arguments {
-    args: Name[];
+    args: Identifier[];
     vararg: string;
     kwarg: string;
     defaults: Expression[];
-    constructor(args: Name[], vararg: string, kwarg: string, defaults: Expression[]);
+    constructor(args: Identifier[], vararg: string, kwarg: string, defaults: Expression[]);
 }
 export declare class Keyword {
     arg: string;

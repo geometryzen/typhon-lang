@@ -30,6 +30,7 @@ import { ForStatement } from './types';
 import { FunctionDef } from './types';
 import { GeneratorExp } from './types';
 import { Global } from './types';
+import { Identifier } from './types';
 import { IfStatement } from './types';
 import { IfExp } from './types';
 import { ImportStatement } from './types';
@@ -40,7 +41,6 @@ import { Load } from './types';
 import { List } from './types';
 import { ListComp } from './types';
 import { Module } from './types';
-import { Name } from './types';
 import { Num } from './types';
 import { Param } from './types';
 import { Pass } from './types';
@@ -165,7 +165,7 @@ export class SemanticVisitor implements Visitor {
     module(module: Module): void {
         throw new Error("module");
     }
-    name(name: Name): void {
+    name(name: Identifier): void {
         this.st.addDef(name.id.value, name.ctx === Load ? USE : DEF_LOCAL, name.range);
     }
     num(num: Num): void {
@@ -283,10 +283,10 @@ export class SymbolTable {
             this.cur = this.stack.pop();
     }
 
-    visitParams(args: Name[], toplevel: boolean) {
+    visitParams(args: Identifier[], toplevel: boolean) {
         for (let i = 0; i < args.length; ++i) {
             const arg = args[i];
-            if (arg.constructor === Name) {
+            if (arg.constructor === Identifier) {
                 assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
                 this.addDef(arg.id.value, DEF_PARAM, arg.range);
             }
@@ -585,7 +585,7 @@ export class SymbolTable {
             this.visitExpr(e.value);
             this.visitSlice(e.slice);
         }
-        else if (e instanceof Name) {
+        else if (e instanceof Identifier) {
             this.addDef(e.id.value, e.ctx === Load ? USE : DEF_LOCAL, e.range);
         }
         else if (e instanceof List || e instanceof Tuple) {

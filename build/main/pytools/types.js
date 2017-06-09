@@ -840,21 +840,21 @@ var Subscript = (function (_super) {
     return Subscript;
 }(Expression));
 exports.Subscript = Subscript;
-var Name = (function (_super) {
-    tslib_1.__extends(Name, _super);
-    function Name(id, ctx, range) {
+var Identifier = (function (_super) {
+    tslib_1.__extends(Identifier, _super);
+    function Identifier(id, ctx, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
         _this.id = id;
         _this.ctx = ctx;
         return _this;
     }
-    Name.prototype.accept = function (visitor) {
+    Identifier.prototype.accept = function (visitor) {
         visitor.name(this);
     };
-    return Name;
+    return Identifier;
 }(Expression));
-exports.Name = Name;
+exports.Identifier = Identifier;
 var List = (function (_super) {
     tslib_1.__extends(List, _super);
     function List(elts, ctx, range) {
@@ -1182,8 +1182,8 @@ Subscript.prototype['_fields'] = [
     'slice', function (n) { return n.slice; },
     'ctx', function (n) { return n.ctx; }
 ];
-Name.prototype['_astname'] = 'Name';
-Name.prototype['_fields'] = [
+Identifier.prototype['_astname'] = 'Identifier';
+Identifier.prototype['_fields'] = [
     'id', function (n) { return n.id.value; },
     'ctx', function (n) { return n.ctx; }
 ];

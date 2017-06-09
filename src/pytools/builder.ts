@@ -43,6 +43,7 @@ import { Gt } from './types';
 import { GtE } from './types';
 // FIXME: Convention
 import { Keyword } from './types';
+import { Identifier } from './types';
 import { IfStatement } from './types';
 import { IfExp } from './types';
 import { ImportStatement } from './types';
@@ -62,7 +63,6 @@ import { LtE } from './types';
 import { Mod } from './types';
 // import { Module } from './types';
 import { Mult } from './types';
-import { Name } from './types';
 import { NonLocal } from './types';
 import { Not } from './types';
 import { NotEq } from './types';
@@ -219,7 +219,7 @@ function setContext(c: Compiling, e: Expression, ctx: Store, n: PyNode): void {
         if (ctx === Store) forbiddenCheck(c, n, e.attr.value, n.range);
         e.ctx = ctx;
     }
-    else if (e instanceof Name) {
+    else if (e instanceof Identifier) {
         if (ctx === Store) forbiddenCheck(c, n, /*e.attr*/void 0, n.range);
         e.ctx = ctx;
     }
@@ -470,11 +470,11 @@ function astForTryStmt(c: Compiling, n: PyNode): TryExcept | TryFinally {
 }
 
 
-function astForDottedName(c: Compiling, n: PyNode): Attribute | Name {
+function astForDottedName(c: Compiling, n: PyNode): Attribute | Identifier {
     REQ(n, SYM.dotted_name);
     const child = CHILD(n, 0);
     let id = new RangeAnnotated(child.value, child.range);
-    let e: Attribute | Name = new Name(id, Load, n.range);
+    let e: Attribute | Identifier = new Identifier(id, Load, n.range);
     for (let i = 2; i < NCH(n); i += 2) {
         const child = CHILD(n, i);
         id = new RangeAnnotated(child.value, child.range);
@@ -483,7 +483,7 @@ function astForDottedName(c: Compiling, n: PyNode): Attribute | Name {
     return e;
 }
 
-function astForDecorator(c: Compiling, n: PyNode): Attribute | Call | Name {
+function astForDecorator(c: Compiling, n: PyNode): Attribute | Call | Identifier {
     /* decorator: '@' dotted_name [ '(' [arglist] ')' ] NEWLINE */
     REQ(n, SYM.decorator);
     REQ(CHILD(n, 0), TOK.T_AT);
@@ -497,9 +497,9 @@ function astForDecorator(c: Compiling, n: PyNode): Attribute | Call | Name {
         return astForCall(c, CHILD(n, 3), nameExpr);
 }
 
-function astForDecorators(c: Compiling, n: PyNode): (Attribute | Call | Name)[] {
+function astForDecorators(c: Compiling, n: PyNode): (Attribute | Call | Identifier)[] {
     REQ(n, SYM.decorators);
-    const decoratorSeq: (Attribute | Call | Name)[] = [];
+    const decoratorSeq: (Attribute | Call | Identifier)[] = [];
     for (let i = 0; i < NCH(n); ++i) {
         decoratorSeq[i] = astForDecorator(c, CHILD(n, i));
     }
@@ -1016,7 +1016,7 @@ function astForCall(c: Compiling, n: PyNode, func: Expression): Call {
             else {
                 const e = astForExpr(c, CHILD(ch, 0));
                 if (e.constructor === Lambda) throw syntaxError("lambda cannot contain assignment", n.range);
-                else if (e.constructor !== Name) throw syntaxError("keyword can't be an expression", n.range);
+                else if (e.constructor !== Identifier) throw syntaxError("keyword can't be an expression", n.range);
                 const key = e.id;
                 forbiddenCheck(c, CHILD(ch, 0), key.value, n.range);
                 for (let k = 0; k < nkeywords; ++k) {
@@ -1067,7 +1067,7 @@ function astForTrailer(c: Compiling, node: PyNode, leftExpr: Expression): Attrib
                 no slice features.
             */
             let simple = true;
-            const slices: (Ellipsis | Index | Name | Slice)[] = [];
+            const slices: (Ellipsis | Index | Identifier | Slice)[] = [];
             for (let j = 0; j < NCH(n); j += 2) {
                 const slc = astForSlice(c, CHILD(n, j));
                 if (slc.constructor !== Index) {
@@ -1149,7 +1149,7 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
     }
     REQ(n, SYM.varargslist);
 
-    const args: Name[] = [];
+    const args: Identifier[] = [];
     const defaults: Expression[] = [];
 
     /* fpdef: NAME | '(' fplist ')'
@@ -1199,7 +1199,7 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
                     if (childZero.type === TOK.T_NAME) {
                         forbiddenCheck(c, n, childZero.value, n.range);
                         const id = new RangeAnnotated(childZero.value, childZero.range);
-                        args[k++] = new Name(id, Param, ch.range);
+                        args[k++] = new Identifier(id, Param, ch.range);
                     }
                     i += 2;
                     if (parenthesized)
@@ -1225,7 +1225,7 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
     return new Arguments(args, vararg, kwarg, defaults);
 }
 
-function astForFuncdef(c: Compiling, n: PyNode, decoratorSeq: (Attribute | Call | Name)[]): FunctionDef {
+function astForFuncdef(c: Compiling, n: PyNode, decoratorSeq: (Attribute | Call | Identifier)[]): FunctionDef {
     /* funcdef: 'def' NAME parameters ':' suite */
     REQ(n, SYM.funcdef);
     const ch1 = CHILD(n, 1);
@@ -1245,7 +1245,7 @@ function astForClassBases(c: Compiling, n: PyNode): Expression[] {
     return seqForTestlist(c, n);
 }
 
-function astForClassdef(c: Compiling, node: PyNode, decoratorSeq: (Attribute | Call | Name)[]) {
+function astForClassdef(c: Compiling, node: PyNode, decoratorSeq: (Attribute | Call | Identifier)[]) {
     const n = node;
     REQ(n, SYM.classdef);
     const c1 = CHILD(n, 1);
@@ -1462,7 +1462,7 @@ function astForExprStmt(c: Compiling, node: PyNode): Assign | ExpressionStatemen
         switch (expr1.constructor) {
             case GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.range);
             case Yield: throw syntaxError("augmented assignment to yield expression not possible", n.range);
-            case Name: {
+            case Identifier: {
                 const varName = expr1.id;
                 forbiddenCheck(c, ch, varName.value, n.range);
 
@@ -1704,7 +1704,7 @@ function parsenumber(c: Compiling, s: string, range: Range): INumericLiteral {
     }
 }
 
-function astForSlice(c: Compiling, node: PyNode): Ellipsis | Index | Name | Slice {
+function astForSlice(c: Compiling, node: PyNode): Ellipsis | Index | Identifier | Slice {
     const n = node;
     REQ(n, SYM.subscript);
     let ch = CHILD(n, 0);
@@ -1738,7 +1738,7 @@ function astForSlice(c: Compiling, node: PyNode): Ellipsis | Index | Name | Slic
     if (ch.type === SYM.sliceop) {
         if (NCH(ch) === 1) {
             ch = CHILD(ch, 0);
-            step = new Name(new RangeAnnotated("None", null), Load, ch.range);
+            step = new Identifier(new RangeAnnotated("None", null), Load, ch.range);
         }
         else {
             ch = CHILD(ch, 1);
@@ -1749,12 +1749,12 @@ function astForSlice(c: Compiling, node: PyNode): Ellipsis | Index | Name | Slic
     return new Slice(lower, upper, step);
 }
 
-function astForAtomExpr(c: Compiling, n: PyNode): Name | Expression {
+function astForAtomExpr(c: Compiling, n: PyNode): Identifier | Expression {
     const c0 = CHILD(n, 0);
     switch (c0.type) {
         case TOK.T_NAME:
             // All names start in Load context, but may be changed later
-            return new Name(new RangeAnnotated(c0.value, c0.range), Load, n.range);
+            return new Identifier(new RangeAnnotated(c0.value, c0.range), Load, n.range);
         case TOK.T_STRING: {
             // FIXME: Owing to the way that Python allows string concatenation, this is imprecise.
             return new Str(new RangeAnnotated(parsestrplus(c, n), n.range));

@@ -24,6 +24,7 @@ import { ForStatement } from './types';
 import { FunctionDef } from './types';
 import { GeneratorExp } from './types';
 import { Global } from './types';
+import { Identifier } from './types';
 import { IfStatement } from './types';
 import { IfExp } from './types';
 import { ImportStatement } from './types';
@@ -33,7 +34,6 @@ import { Lambda } from './types';
 import { Load } from './types';
 import { List } from './types';
 import { ListComp } from './types';
-import { Name } from './types';
 import { Num } from './types';
 import { Param } from './types';
 import { Pass } from './types';
@@ -263,7 +263,7 @@ var SymbolTable = (function () {
     SymbolTable.prototype.visitParams = function (args, toplevel) {
         for (var i = 0; i < args.length; ++i) {
             var arg = args[i];
-            if (arg.constructor === Name) {
+            if (arg.constructor === Identifier) {
                 assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
                 this.addDef(arg.id.value, DEF_PARAM, arg.range);
             }
@@ -568,7 +568,7 @@ var SymbolTable = (function () {
             this.visitExpr(e.value);
             this.visitSlice(e.slice);
         }
-        else if (e instanceof Name) {
+        else if (e instanceof Identifier) {
             this.addDef(e.id.value, e.ctx === Load ? USE : DEF_LOCAL, e.range);
         }
         else if (e instanceof List || e instanceof Tuple) {
