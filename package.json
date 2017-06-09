@@ -1,6 +1,6 @@
 {
     "name": "typhon-lang",
-    "version": "0.10.0",
+    "version": "0.10.1",
     "description": "Typhon = Python + Types + ECMAScript 2015 modules",
     "author": {
         "name": "David Geo Holmes",
@@ -14,25 +14,21 @@
     "licenses": [
         {
             "type": "MIT",
-            "url": "http://github.com/geometryzen/typhon/blob/master/LICENSE"
+            "url": "http://github.com/geometryzen/typhon-lang/blob/master/LICENSE"
         }
     ],
     "keywords": [],
     "repository": {
         "type": "git",
-        "url": "git://github.com/geometryzen/typhon.git"
-    },
-    "engines": {
-        "node": "0.12.0"
+        "url": "git://github.com/geometryzen/typhon-lang.git"
     },
     "dependencies": {
-        "generic-rbtree": "^1.1.1",
-        "tslib": "^1.7.1",
-        "typescript": "^2.3.3"
+        "code-writer": "^0.1.1",
+        "generic-rbtree": "^1.1.1"
     },
     "scripts": {
         "build": "trash build && ./build.py gen && tsc -p tsconfig.main.json && tsc -p tsconfig.module.json && yarn build:browser",
-        "build:browser": "rollup --config rollup.config.js --format umd --name 'PYTOOLS' --output build/browser/index.js && sorcery -i build/browser/index.js && cp src/index.d.ts build/browser",
+        "build:browser": "rollup --config rollup.config.js --format umd --name 'typhon' --output build/browser/index.js && sorcery -i build/browser/index.js && cp src/index.d.ts build/browser",
         "lint": "tslint src/**/*.ts",
         "test": "yarn lint && yarn unit && nyc check-coverage --lines 40 --functions 30 --branches 20",
         "unit": "trash test && tsc -p tsconfig.json && karma start",
@@ -57,7 +53,9 @@
         "sorcery": "^0.10.0",
         "systemjs": "^0.19.41",
         "trash-cli": "^1.4.0",
+        "tslib": "^1.7.1",
         "tslint": "^5.4.3",
-        "tslint-config-standard": "^5.0.2"
+        "tslint-config-standard": "^5.0.2",
+        "typescript": "^2.3.3"
     }
 }

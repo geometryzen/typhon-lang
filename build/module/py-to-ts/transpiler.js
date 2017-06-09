@@ -10,7 +10,7 @@ import { semanticsOfModule } from '../pytools/symtable';
 import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 import { DEF_LOCAL } from '../pytools/SymbolConstants';
 import { isClassNameByConvention, isMethod } from './utils';
-import { TypeWriter } from './TypeWriter';
+import { CodeWriter } from 'code-writer';
 import { Position, positionComparator } from '../pytools/Position';
 import { RBTree } from 'generic-rbtree';
 import { SourceMap } from './SourceMap';
@@ -85,7 +85,7 @@ var Printer = (function () {
         // this.gensymcount = 0;
         this.allUnits = [];
         this.source = sourceText ? sourceText.split("\n") : false;
-        this.writer = new TypeWriter(beginLine, beginColumn, {}, trace);
+        this.writer = new CodeWriter(beginLine, beginColumn, {}, trace);
     }
     /**
      * This is the entry point for this visitor.

@@ -994,11 +994,12 @@ describe('parse', function () {
         const ns = TERMS(cst);
 
         it("performance should not degrade", function () {
-            expect(Array.isArray(ns)).toBeTruthy();
-            expect(ns.length).toBe(247);
+            expect(Array.isArray(ns)).toBeTruthy("ns should be an array.");
+            expect(ns.length).toBe(247, "number of terms changed");
             // console.lg(`Parser    performance parse          (${ns.length} terminals) took ${t1 - t0} ms`);
             // This has been benchmarked at around 20-40 ms.
-            expect(t1 - t0 < 60).toBe(true);
+            const benchmark = 42;
+            expect(t1 - t0 < 2 * benchmark).toBe(true, `Took ${t1 - t0} ms, Expecting ${benchmark}`);
         });
     });
 

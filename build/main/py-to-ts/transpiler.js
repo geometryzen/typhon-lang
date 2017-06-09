@@ -12,7 +12,7 @@ var symtable_1 = require("../pytools/symtable");
 var toStringLiteralJS_1 = require("../pytools/toStringLiteralJS");
 var SymbolConstants_1 = require("../pytools/SymbolConstants");
 var utils_1 = require("./utils");
-var TypeWriter_1 = require("./TypeWriter");
+var code_writer_1 = require("code-writer");
 var Position_1 = require("../pytools/Position");
 var generic_rbtree_1 = require("generic-rbtree");
 var SourceMap_1 = require("./SourceMap");
@@ -87,7 +87,7 @@ var Printer = (function () {
         // this.gensymcount = 0;
         this.allUnits = [];
         this.source = sourceText ? sourceText.split("\n") : false;
-        this.writer = new TypeWriter_1.TypeWriter(beginLine, beginColumn, {}, trace);
+        this.writer = new code_writer_1.CodeWriter(beginLine, beginColumn, {}, trace);
     }
     /**
      * This is the entry point for this visitor.

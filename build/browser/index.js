@@ -1,8 +1,8 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('generic-rbtree')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'generic-rbtree'], factory) :
-	(factory((global.PYTOOLS = global.PYTOOLS || {}),global.genericRbtree));
-}(this, (function (exports,genericRbtree) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('code-writer'), require('generic-rbtree')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'code-writer', 'generic-rbtree'], factory) :
+	(factory((global.typhon = global.typhon || {}),global.codeWriter,global.genericRbtree));
+}(this, (function (exports,codeWriter,genericRbtree) { 'use strict';
 
 /**
  * Symbolic constants for various Python Language tokens.
@@ -351,17 +351,17 @@ var ParseTables = {
                 37: 1 }],
         258: [[[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
-        259: [[[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
-                [[0, 1]],
-                [[41, 7], [42, 1]],
-                [[43, 1], [44, 8], [45, 8]],
-                [[46, 9], [47, 1]],
+        259: [[[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
+                [[18, 1], [0, 1]],
+                [[0, 2]],
+                [[41, 7], [42, 2]],
+                [[43, 2], [44, 8], [45, 8]],
+                [[46, 9], [47, 2]],
                 [[48, 10]],
-                [[18, 6], [0, 6]],
-                [[42, 1]],
-                [[43, 1]],
-                [[47, 1]],
-                [[14, 1]]],
+                [[42, 2]],
+                [[43, 2]],
+                [[47, 2]],
+                [[14, 2]]],
             { 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 29: 1, 32: 1 }],
         260: [[[[49, 1]], [[50, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
@@ -549,10 +549,10 @@ var ParseTables = {
         289: [[[[115, 1]], [[113, 2], [110, 2]], [[0, 2]]], { 35: 1 }],
         290: [[[[35, 1]],
                 [[116, 2]],
-                [[2, 4], [29, 3]],
+                [[29, 4], [2, 3]],
+                [[0, 3]],
                 [[43, 5], [117, 6]],
-                [[0, 4]],
-                [[2, 4]],
+                [[2, 3]],
                 [[43, 5]]],
             { 35: 1 }],
         291: [[[[118, 1]], [[118, 1], [0, 1]]], { 35: 1 }],
@@ -1031,17 +1031,17 @@ var ParseTables = {
     states: [[[[1, 1], [2, 1], [3, 2]], [[0, 1]], [[2, 1]]],
         [[[38, 1]], [[39, 0], [0, 1]]],
         [[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
-        [[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
-            [[0, 1]],
-            [[41, 7], [42, 1]],
-            [[43, 1], [44, 8], [45, 8]],
-            [[46, 9], [47, 1]],
+        [[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
+            [[18, 1], [0, 1]],
+            [[0, 2]],
+            [[41, 7], [42, 2]],
+            [[43, 2], [44, 8], [45, 8]],
+            [[46, 9], [47, 2]],
             [[48, 10]],
-            [[18, 6], [0, 6]],
-            [[42, 1]],
-            [[43, 1]],
-            [[47, 1]],
-            [[14, 1]]],
+            [[42, 2]],
+            [[43, 2]],
+            [[47, 2]],
+            [[14, 2]]],
         [[[49, 1]], [[50, 0], [0, 1]]],
         [[[51, 1]], [[52, 0], [0, 1]]],
         [[[53, 1]], [[54, 0], [0, 1]]],
@@ -1130,10 +1130,10 @@ var ParseTables = {
         [[[115, 1]], [[113, 2], [110, 2]], [[0, 2]]],
         [[[35, 1]],
             [[116, 2]],
-            [[2, 4], [29, 3]],
+            [[29, 4], [2, 3]],
+            [[0, 3]],
             [[43, 5], [117, 6]],
-            [[0, 4]],
-            [[2, 4]],
+            [[2, 3]],
             [[43, 5]]],
         [[[118, 1]], [[118, 1], [0, 1]]],
         [[[22, 1]], [[119, 2]], [[0, 2]]],
@@ -1390,9 +1390,9 @@ var ParseTables = {
         [37, null],
         [44, null],
         [49, null],
-        [45, null],
-        [38, null],
         [40, null],
+        [38, null],
+        [45, null],
         [331, null],
         [29, null],
         [21, null],
@@ -1444,11 +1444,11 @@ var ParseTables = {
         [318, null],
         [327, null],
         [13, null],
+        [273, null],
         [302, null],
-        [267, null],
         [265, null],
         [321, null],
-        [273, null],
+        [267, null],
         [322, null],
         [292, null],
         [300, null],
@@ -1534,12 +1534,12 @@ var ParseTables = {
         37: 92,
         38: 96,
         39: 87,
-        40: 97,
+        40: 95,
         41: 88,
         42: 90,
         43: 91,
         44: 93,
-        45: 95,
+        45: 97,
         46: 86,
         47: 89,
         48: 62,
@@ -6856,400 +6856,6 @@ function isMethod(functionDef) {
     return false;
 }
 
-var MutablePosition = (function () {
-    function MutablePosition(line, column) {
-        this.line = line;
-        this.column = column;
-        // TODO
-    }
-    MutablePosition.prototype.offset = function (rows, cols) {
-        this.line += rows;
-        this.column += cols;
-    };
-    MutablePosition.prototype.toString = function () {
-        return "[" + this.line + ", " + this.column + "]";
-    };
-    return MutablePosition;
-}());
-var MutableRange = (function () {
-    /**
-     *
-     */
-    function MutableRange(begin, end) {
-        this.begin = begin;
-        this.end = end;
-        assert(begin, "begin must be defined");
-        assert(end, "end must be defined");
-        this.begin = begin;
-        this.end = end;
-    }
-    MutableRange.prototype.offset = function (rows, cols) {
-        this.begin.offset(rows, cols);
-        this.end.offset(rows, cols);
-    };
-    MutableRange.prototype.toString = function () {
-        return this.begin + " to " + this.end;
-    };
-    return MutableRange;
-}());
-
-/**
- * A tree that enables ranges in the source document to be mapped to ranges in the target document.
- * The ordering of child nodes is not defined.
- * In many cases the children will be in target order owing to the writing process.
- * TODO: For more efficient searching, children should be sorted in source order.
- */
-var MappingTree = (function () {
-    /**
-     *
-     * @param source
-     * @param target
-     * @param children
-     */
-    function MappingTree(source, target, children) {
-        this.children = children;
-        assert(source, "source must be defined");
-        assert(target, "target must be defined");
-        this.source = source;
-        this.target = target;
-    }
-    MappingTree.prototype.offset = function (rows, cols) {
-        if (this.target) {
-            this.target.offset(rows, cols);
-        }
-        if (this.children) {
-            for (var _i = 0, _a = this.children; _i < _a.length; _i++) {
-                var child = _a[_i];
-                child.offset(rows, cols);
-            }
-        }
-    };
-    MappingTree.prototype.mappings = function () {
-        if (this.children) {
-            var maps = [];
-            for (var _i = 0, _a = this.children; _i < _a.length; _i++) {
-                var child = _a[_i];
-                for (var _b = 0, _c = child.mappings(); _b < _c.length; _b++) {
-                    var map = _c[_b];
-                    maps.push(map);
-                }
-            }
-            return maps;
-        }
-        else {
-            return [{ source: this.source, target: this.target }];
-        }
-    };
-    return MappingTree;
-}());
-
-// import { RangeMapping } from '../pytools/RangeMapping';
-var IndentStyle;
-(function (IndentStyle) {
-    IndentStyle[IndentStyle["None"] = 0] = "None";
-    IndentStyle[IndentStyle["Block"] = 1] = "Block";
-    IndentStyle[IndentStyle["Smart"] = 2] = "Smart";
-})(IndentStyle || (IndentStyle = {}));
-var StackElement = (function () {
-    function StackElement(bMark, eMark, targetBeginLine, targetBeginColumn, trace) {
-        this.bMark = bMark;
-        this.eMark = eMark;
-        this.texts = [];
-        this.trees = [];
-        this.cursor = new MutablePosition(targetBeginLine, targetBeginColumn);
-    }
-    /**
-     *
-     */
-    StackElement.prototype.write = function (text, tree) {
-        assert(typeof text === 'string', "text must be a string");
-        this.texts.push(text);
-        this.trees.push(tree);
-        var cursor = this.cursor;
-        var beginLine = cursor.line;
-        var beginColumn = cursor.column;
-        var endLine = cursor.line;
-        var endColumn = beginColumn + text.length;
-        if (tree) {
-            tree.target.begin.line = beginLine;
-            tree.target.begin.column = beginColumn;
-            tree.target.end.line = endLine;
-            tree.target.end.column = endColumn;
-        }
-        cursor.line = endLine;
-        cursor.column = endColumn;
-    };
-    StackElement.prototype.snapshot = function () {
-        var texts = this.texts;
-        var trees = this.trees;
-        var N = texts.length;
-        if (N === 0) {
-            return this.package('', null);
-        }
-        else {
-            var sBL = Number.MAX_SAFE_INTEGER;
-            var sBC = Number.MAX_SAFE_INTEGER;
-            var sEL = Number.MIN_SAFE_INTEGER;
-            var sEC = Number.MIN_SAFE_INTEGER;
-            var tBL = Number.MAX_SAFE_INTEGER;
-            var tBC = Number.MAX_SAFE_INTEGER;
-            var tEL = Number.MIN_SAFE_INTEGER;
-            var tEC = Number.MIN_SAFE_INTEGER;
-            var children = [];
-            for (var i = 0; i < N; i++) {
-                var tree = trees[i];
-                if (tree) {
-                    sBL = Math.min(sBL, tree.source.begin.line);
-                    sBC = Math.min(sBC, tree.source.begin.column);
-                    sEL = Math.max(sEL, tree.source.end.line);
-                    sEC = Math.max(sEC, tree.source.end.column);
-                    tBL = Math.min(tBL, tree.target.begin.line);
-                    tBC = Math.min(tBC, tree.target.begin.column);
-                    tEL = Math.max(tEL, tree.target.end.line);
-                    tEC = Math.max(tEC, tree.target.end.column);
-                    children.push(tree);
-                }
-            }
-            var text = texts.join("");
-            if (children.length > 1) {
-                var source = new Range(new Position(sBL, sBC), new Position(sEL, sEC));
-                var target = new MutableRange(new MutablePosition(tBL, tBC), new MutablePosition(tEL, tEC));
-                return this.package(text, new MappingTree(source, target, children));
-            }
-            else if (children.length === 1) {
-                return this.package(text, children[0]);
-            }
-            else {
-                return this.package(text, null);
-            }
-        }
-    };
-    StackElement.prototype.package = function (text, tree) {
-        return { text: text, tree: tree, targetEndLine: this.cursor.line, targetEndColumn: this.cursor.column };
-    };
-    StackElement.prototype.getLine = function () {
-        return this.cursor.line;
-    };
-    StackElement.prototype.getColumn = function () {
-        return this.cursor.column;
-    };
-    return StackElement;
-}());
-function IDXLAST$1(xs) {
-    return xs.length - 1;
-}
-/**
- *
- */
-var Stack = (function () {
-    function Stack(begin, end, targetLine, targetColumn, trace) {
-        this.elements = [];
-        this.elements.push(new StackElement(begin, end, targetLine, targetColumn, trace));
-    }
-    Object.defineProperty(Stack.prototype, "length", {
-        get: function () {
-            return this.elements.length;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Stack.prototype.push = function (element) {
-        this.elements.push(element);
-    };
-    Stack.prototype.pop = function () {
-        return this.elements.pop();
-    };
-    Stack.prototype.write = function (text, tree) {
-        this.elements[IDXLAST$1(this.elements)].write(text, tree);
-    };
-    Stack.prototype.dispose = function () {
-        assert(this.elements.length === 1, "stack length should be 1");
-        var textAndMappings = this.elements[IDXLAST$1(this.elements)].snapshot();
-        this.pop();
-        assert(this.elements.length === 0, "stack length should be 0");
-        return textAndMappings;
-    };
-    Stack.prototype.getLine = function () {
-        return this.elements[IDXLAST$1(this.elements)].getLine();
-    };
-    Stack.prototype.getColumn = function () {
-        return this.elements[IDXLAST$1(this.elements)].getColumn();
-    };
-    return Stack;
-}());
-/**
- * A smart buffer for writing TypeScript code.
- */
-var TypeWriter = (function () {
-    /**
-     * Determines the indentation.
-     */
-    // private indentLevel = 0;
-    /**
-     * Constructs a TypeWriter instance using the specified options.
-     */
-    function TypeWriter(beginLine, beginColumn, options, trace) {
-        if (options === void 0) { options = {}; }
-        if (trace === void 0) { trace = false; }
-        this.options = options;
-        this.trace = trace;
-        this.stack = new Stack('', '', beginLine, beginColumn, trace);
-    }
-    TypeWriter.prototype.assign = function (text, source) {
-        var target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
-        var tree = new MappingTree(source, target, null);
-        this.stack.write(text, tree);
-    };
-    /**
-     * Writes a name (identifier).
-     * @param id The identifier string to be written.
-     * @param begin The position of the beginning of the name in the original source.
-     * @param end The position of the end of the name in the original source.
-     */
-    TypeWriter.prototype.name = function (id, source) {
-        if (source) {
-            var target = new MutableRange(new MutablePosition(-2, -2), new MutablePosition(-2, -2));
-            var tree = new MappingTree(source, target, null);
-            this.stack.write(id, tree);
-        }
-        else {
-            this.stack.write(id, null);
-        }
-    };
-    TypeWriter.prototype.num = function (text, source) {
-        if (source) {
-            var target = new MutableRange(new MutablePosition(-3, -3), new MutablePosition(-3, -3));
-            var tree = new MappingTree(source, target, null);
-            this.stack.write(text, tree);
-        }
-        else {
-            this.stack.write(text, null);
-        }
-    };
-    /**
-     * Currently defined to be for string literals in unparsed form.
-     */
-    TypeWriter.prototype.str = function (text, source) {
-        if (source) {
-            var target = new MutableRange(new MutablePosition(-23, -23), new MutablePosition(-23, -23));
-            var tree = new MappingTree(source, target, null);
-            this.stack.write(text, tree);
-        }
-        else {
-            this.stack.write(text, null);
-        }
-    };
-    TypeWriter.prototype.write = function (text, tree) {
-        this.stack.write(text, tree);
-    };
-    TypeWriter.prototype.snapshot = function () {
-        assert(this.stack.length === 1, "stack length is not zero");
-        return this.stack.dispose();
-    };
-    TypeWriter.prototype.binOp = function (binOp, source) {
-        var target = new MutableRange(new MutablePosition(-5, -5), new MutablePosition(-5, -5));
-        var tree = new MappingTree(source, target, null);
-        if (this.options.insertSpaceBeforeAndAfterBinaryOperators) {
-            this.space();
-            this.stack.write(binOp, tree);
-            this.space();
-        }
-        else {
-            this.stack.write(binOp, tree);
-        }
-    };
-    TypeWriter.prototype.comma = function (begin, end) {
-        if (begin && end) {
-            var source = new Range(begin, end);
-            var target = new MutableRange(new MutablePosition(-4, -4), new MutablePosition(-4, -4));
-            var tree = new MappingTree(source, target, null);
-            this.stack.write(',', tree);
-        }
-        else {
-            this.stack.write(',', null);
-        }
-        if (this.options.insertSpaceAfterCommaDelimiter) {
-            this.stack.write(' ', null);
-        }
-    };
-    TypeWriter.prototype.space = function () {
-        this.stack.write(' ', null);
-    };
-    TypeWriter.prototype.beginBlock = function () {
-        this.prolog('{', '}');
-    };
-    TypeWriter.prototype.endBlock = function () {
-        this.epilog(false);
-    };
-    TypeWriter.prototype.beginBracket = function () {
-        this.prolog('[', ']');
-    };
-    TypeWriter.prototype.endBracket = function () {
-        this.epilog(this.options.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets);
-    };
-    TypeWriter.prototype.beginObject = function () {
-        this.prolog('{', '}');
-    };
-    TypeWriter.prototype.endObject = function () {
-        this.epilog(this.options.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces);
-    };
-    TypeWriter.prototype.openParen = function () {
-        this.prolog('(', ')');
-    };
-    TypeWriter.prototype.closeParen = function () {
-        this.epilog(this.options.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis);
-    };
-    TypeWriter.prototype.beginQuote = function () {
-        this.prolog("'", "'");
-    };
-    TypeWriter.prototype.endQuote = function () {
-        this.epilog(false);
-    };
-    TypeWriter.prototype.beginStatement = function () {
-        this.prolog('', ';');
-    };
-    TypeWriter.prototype.endStatement = function () {
-        this.epilog(false);
-    };
-    TypeWriter.prototype.prolog = function (bMark, eMark) {
-        var line = this.stack.getLine();
-        var column = this.stack.getColumn();
-        this.stack.push(new StackElement(bMark, eMark, line, column, this.trace));
-    };
-    TypeWriter.prototype.epilog = function (insertSpaceAfterOpeningAndBeforeClosingNonempty) {
-        var popped = this.stack.pop();
-        var textAndMappings = popped.snapshot();
-        var text = textAndMappings.text;
-        var tree = textAndMappings.tree;
-        // This is where we would be
-        // const line = textAndMappings.targetEndLine;
-        // const column = textAndMappings.targetEndColumn;
-        if (text.length > 0 && insertSpaceAfterOpeningAndBeforeClosingNonempty) {
-            this.write(popped.bMark, null);
-            this.space();
-            var rows = 0;
-            var cols = popped.bMark.length + 1;
-            if (tree) {
-                tree.offset(rows, cols);
-            }
-            this.write(text, tree);
-            this.space();
-            this.write(popped.eMark, null);
-        }
-        else {
-            this.write(popped.bMark, null);
-            var rows = 0;
-            var cols = popped.bMark.length;
-            if (tree) {
-                tree.offset(rows, cols);
-            }
-            this.write(text, tree);
-            this.write(popped.eMark, null);
-        }
-    };
-    return TypeWriter;
-}());
-
 var SourceMap = (function () {
     function SourceMap(sourceToTarget, targetToSource) {
         this.sourceToTarget = sourceToTarget;
@@ -7361,7 +6967,7 @@ var Printer = (function () {
         // this.gensymcount = 0;
         this.allUnits = [];
         this.source = sourceText ? sourceText.split("\n") : false;
-        this.writer = new TypeWriter(beginLine, beginColumn, {}, trace);
+        this.writer = new codeWriter.CodeWriter(beginLine, beginColumn, {}, trace);
     }
     /**
      * This is the entry point for this visitor.

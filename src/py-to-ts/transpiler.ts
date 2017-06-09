@@ -27,8 +27,8 @@ import { toStringLiteralJS } from '../pytools/toStringLiteralJS';
 import { SymbolFlags } from '../pytools/SymbolConstants';
 import { DEF_LOCAL } from '../pytools/SymbolConstants';
 import { isClassNameByConvention, isMethod } from './utils';
-import { TypeWriter, TextAndMappings } from './TypeWriter';
-import { MappingTree } from './MappingTree';
+import { CodeWriter, TextAndMappings } from 'code-writer';
+import { MappingTree } from 'code-writer';
 import { Position, positionComparator } from '../pytools/Position';
 import { RBTree } from 'generic-rbtree';
 import { SourceMap } from './SourceMap';
@@ -168,7 +168,7 @@ class Printer implements Visitor {
      * The output buffer.
      * This will be joined into a single string.
      */
-    private writer: TypeWriter;
+    private writer: CodeWriter;
     /**
      * Used to provide a unique number for generated symbol names.
      */
@@ -191,7 +191,7 @@ class Printer implements Visitor {
         // this.gensymcount = 0;
         this.allUnits = [];
         this.source = sourceText ? sourceText.split("\n") : false;
-        this.writer = new TypeWriter(beginLine, beginColumn, {}, trace);
+        this.writer = new CodeWriter(beginLine, beginColumn, {}, trace);
     }
 
     /**
