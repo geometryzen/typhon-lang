@@ -36,6 +36,7 @@ export { Num } from './pytools/types';
 export { NotEq } from './pytools/types';
 export { NotIn } from './pytools/types';
 export { Print } from './pytools/types';
+export { RangeAnnotated } from './pytools/types';
 export { ReturnStatement } from './pytools/types';
 export { RShift } from './pytools/types';
 export { Str } from './pytools/types';

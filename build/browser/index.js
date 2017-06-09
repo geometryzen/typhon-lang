@@ -1390,9 +1390,9 @@ var ParseTables = {
         [37, null],
         [44, null],
         [49, null],
-        [40, null],
-        [38, null],
         [45, null],
+        [38, null],
+        [40, null],
         [331, null],
         [29, null],
         [21, null],
@@ -1451,8 +1451,8 @@ var ParseTables = {
         [267, null],
         [322, null],
         [292, null],
-        [300, null],
         [282, null],
+        [300, null],
         [313, null],
         [326, null],
         [329, null],
@@ -1534,12 +1534,12 @@ var ParseTables = {
         37: 92,
         38: 96,
         39: 87,
-        40: 95,
+        40: 97,
         41: 88,
         42: 90,
         43: 91,
         44: 93,
-        45: 97,
+        45: 95,
         46: 86,
         47: 89,
         48: 62,
@@ -6802,6 +6802,7 @@ exports.Num = Num;
 exports.NotEq = NotEq;
 exports.NotIn = NotIn;
 exports.Print = Print;
+exports.RangeAnnotated = RangeAnnotated;
 exports.ReturnStatement = ReturnStatement;
 exports.RShift = RShift;
 exports.Str = Str;
