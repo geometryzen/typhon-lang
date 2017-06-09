@@ -1,8 +1,8 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('code-writer'), require('generic-rbtree')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'code-writer', 'generic-rbtree'], factory) :
-	(factory((global.typhon = global.typhon || {}),global.codeWriter,global.genericRbtree));
-}(this, (function (exports,codeWriter,genericRbtree) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.typhon = global.typhon || {})));
+}(this, (function (exports) { 'use strict';
 
 /**
  * Symbolic constants for various Python Language tokens.
@@ -351,17 +351,17 @@ var ParseTables = {
                 37: 1 }],
         258: [[[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
-        259: [[[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
-                [[18, 1], [0, 1]],
-                [[0, 2]],
-                [[41, 7], [42, 2]],
-                [[43, 2], [44, 8], [45, 8]],
-                [[46, 9], [47, 2]],
+        259: [[[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
+                [[0, 1]],
+                [[41, 7], [42, 1]],
+                [[43, 1], [44, 8], [45, 8]],
+                [[46, 9], [47, 1]],
                 [[48, 10]],
-                [[42, 2]],
-                [[43, 2]],
-                [[47, 2]],
-                [[14, 2]]],
+                [[18, 6], [0, 6]],
+                [[42, 1]],
+                [[43, 1]],
+                [[47, 1]],
+                [[14, 1]]],
             { 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 29: 1, 32: 1 }],
         260: [[[[49, 1]], [[50, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
@@ -1031,17 +1031,17 @@ var ParseTables = {
     states: [[[[1, 1], [2, 1], [3, 2]], [[0, 1]], [[2, 1]]],
         [[[38, 1]], [[39, 0], [0, 1]]],
         [[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
-        [[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
-            [[18, 1], [0, 1]],
-            [[0, 2]],
-            [[41, 7], [42, 2]],
-            [[43, 2], [44, 8], [45, 8]],
-            [[46, 9], [47, 2]],
+        [[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
+            [[0, 1]],
+            [[41, 7], [42, 1]],
+            [[43, 1], [44, 8], [45, 8]],
+            [[46, 9], [47, 1]],
             [[48, 10]],
-            [[42, 2]],
-            [[43, 2]],
-            [[47, 2]],
-            [[14, 2]]],
+            [[18, 6], [0, 6]],
+            [[42, 1]],
+            [[43, 1]],
+            [[47, 1]],
+            [[14, 1]]],
         [[[49, 1]], [[50, 0], [0, 1]]],
         [[[51, 1]], [[52, 0], [0, 1]]],
         [[[53, 1]], [[54, 0], [0, 1]]],
@@ -1444,8 +1444,8 @@ var ParseTables = {
         [318, null],
         [327, null],
         [13, null],
-        [273, null],
         [302, null],
+        [273, null],
         [265, null],
         [321, null],
         [267, null],
@@ -2340,25 +2340,6 @@ var Position = (function () {
     };
     return Position;
 }());
-function positionComparator(a, b) {
-    if (a.line < b.line) {
-        return -1;
-    }
-    else if (a.line > b.line) {
-        return 1;
-    }
-    else {
-        if (a.column < b.column) {
-            return -1;
-        }
-        else if (a.column > b.column) {
-            return 1;
-        }
-        else {
-            return 0;
-        }
-    }
-}
 
 var Range = (function () {
     /**
@@ -2646,20 +2627,20 @@ function existsTransition(arcs, obj) {
  */
 function makeParser(sourceKind) {
     if (sourceKind === undefined)
-        sourceKind = SourceKind.File;
+        sourceKind = exports.SourceKind.File;
     // FIXME: Would be nice to get this typing locked down. Why does Grammar not match ParseTables?
     var p = new Parser(ParseTables);
     // TODO: Can we do this over the symbolic constants?
     switch (sourceKind) {
-        case SourceKind.File: {
+        case exports.SourceKind.File: {
             p.setup(ParseTables.sym.file_input);
             break;
         }
-        case SourceKind.Eval: {
+        case exports.SourceKind.Eval: {
             p.setup(ParseTables.sym.eval_input);
             break;
         }
-        case SourceKind.Single: {
+        case exports.SourceKind.Single: {
             p.setup(ParseTables.sym.single_input);
             break;
         }
@@ -2670,7 +2651,7 @@ function makeParser(sourceKind) {
     var lineno = 1;
     var column = 0;
     var prefix = "";
-    var tokenizer = new Tokenizer(sourceKind === SourceKind.Single, function tokenizerCallback(type, value, start, end, line) {
+    var tokenizer = new Tokenizer(sourceKind === exports.SourceKind.Single, function tokenizerCallback(type, value, start, end, line) {
         // var s_lineno = start[0];
         // var s_column = start[1];
         /*
@@ -2712,7 +2693,7 @@ function makeParser(sourceKind) {
 /**
  * Determines the starting point in the grammar for parsing the source.
  */
-var SourceKind;
+
 (function (SourceKind) {
     /**
      * Suitable for a module.
@@ -2726,9 +2707,9 @@ var SourceKind;
      * Suitable for a REPL.
      */
     SourceKind[SourceKind["Single"] = 2] = "Single";
-})(SourceKind || (SourceKind = {}));
+})(exports.SourceKind || (exports.SourceKind = {}));
 function parse(sourceText, sourceKind) {
-    if (sourceKind === void 0) { sourceKind = SourceKind.File; }
+    if (sourceKind === void 0) { sourceKind = exports.SourceKind.File; }
     var parseFunc = makeParser(sourceKind);
     // sourceText.endsWith("\n");
     // Why do we normalize the sourceText in this manner?
@@ -5893,6 +5874,41 @@ function astDump(node) {
     return _format(node);
 }
 
+/* Flags for def-use information */
+/* Flags for def-use information */ var DEF_GLOBAL = 1 << 0; /* global stmt */
+/* global stmt */ var DEF_LOCAL = 2 << 0; /* assignment in code block */
+/* assignment in code block */ var DEF_PARAM = 2 << 1; /* formal parameter */
+/* formal parameter */ var USE = 2 << 2; /* name is used */
+/* name is used */  /* parameter is star arg */
+/* parameter is star arg */  /* parameter is star-star arg */
+/* parameter is star-star arg */  /* name defined in tuple in parameters */
+/* name defined in tuple in parameters */  /* name used but not defined in nested block */
+/* name used but not defined in nested block */  /* free variable is actually implicit global */
+/* free variable is actually implicit global */ var DEF_FREE_CLASS = 2 << 8; /* free variable from class's method */
+/* free variable from class's method */ var DEF_IMPORT = 2 << 9; /* assignment occurred via import */
+/* assignment occurred via import */ var DEF_BOUND = (DEF_LOCAL | DEF_PARAM | DEF_IMPORT);
+/* GLOBAL_EXPLICIT and GLOBAL_IMPLICIT are used internally by the symbol
+   table.  GLOBAL is returned from PyST_GetScope() for either of them.
+   It is stored in ste_symbols at bits 12-14.
+*/
+var SCOPE_OFF = 11;
+var SCOPE_MASK = 7;
+var LOCAL = 1;
+var GLOBAL_EXPLICIT = 2;
+var GLOBAL_IMPLICIT = 3;
+var FREE = 4;
+var CELL = 5;
+/* The following three names are used for the ste_unoptimized bit field */
+
+
+
+ /* top-level names, including eval and exec */
+/* top-level names, including eval and exec */ 
+
+var ModuleBlock = 'module';
+var FunctionBlock = 'function';
+var ClassBlock = 'class';
+
 function dictUpdate(a, b) {
     for (var kb in b) {
         if (b.hasOwnProperty(kb)) {
@@ -5928,41 +5944,6 @@ function dictUpdate(a, b) {
     strpriv = '_' + strpriv + name;
     return strpriv;
 }
-
-/* Flags for def-use information */
-/* Flags for def-use information */ var DEF_GLOBAL = 1 << 0; /* global stmt */
-/* global stmt */ var DEF_LOCAL = 2 << 0; /* assignment in code block */
-/* assignment in code block */ var DEF_PARAM = 2 << 1; /* formal parameter */
-/* formal parameter */ var USE = 2 << 2; /* name is used */
-/* name is used */  /* parameter is star arg */
-/* parameter is star arg */  /* parameter is star-star arg */
-/* parameter is star-star arg */  /* name defined in tuple in parameters */
-/* name defined in tuple in parameters */  /* name used but not defined in nested block */
-/* name used but not defined in nested block */  /* free variable is actually implicit global */
-/* free variable is actually implicit global */ var DEF_FREE_CLASS = 2 << 8; /* free variable from class's method */
-/* free variable from class's method */ var DEF_IMPORT = 2 << 9; /* assignment occurred via import */
-/* assignment occurred via import */ var DEF_BOUND = (DEF_LOCAL | DEF_PARAM | DEF_IMPORT);
-/* GLOBAL_EXPLICIT and GLOBAL_IMPLICIT are used internally by the symbol
-   table.  GLOBAL is returned from PyST_GetScope() for either of them.
-   It is stored in ste_symbols at bits 12-14.
-*/
-var SCOPE_OFF = 11;
-var SCOPE_MASK = 7;
-var LOCAL = 1;
-var GLOBAL_EXPLICIT = 2;
-var GLOBAL_IMPLICIT = 3;
-var FREE = 4;
-var CELL = 5;
-/* The following three names are used for the ste_unoptimized bit field */
-
-
-
- /* top-level names, including eval and exec */
-/* top-level names, including eval and exec */ 
-
-var ModuleBlock = 'module';
-var FunctionBlock = 'function';
-var ClassBlock = 'class';
 
 var Symbol$1 = (function () {
     /**
@@ -6781,659 +6762,54 @@ function semanticsOfModule(mod) {
  * Provides a textual representation of the SymbolTable.
  */
 
-/**
- * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
- * May be a bug when comparing to 0x7f below.
- */
-/**
- * FIXME: Argument should be declared as string but not allowed by TypeScript compiler.
- * May be a bug when comparing to 0x7f below.
- */ function toStringLiteralJS(value) {
-    // single is preferred
-    var quote = "'";
-    if (value.indexOf("'") !== -1 && value.indexOf('"') === -1) {
-        quote = '"';
-    }
-    var len = value.length;
-    var ret = quote;
-    for (var i = 0; i < len; ++i) {
-        var c = value.charAt(i);
-        if (c === quote || c === '\\')
-            ret += '\\' + c;
-        else if (c === '\t')
-            ret += '\\t';
-        else if (c === '\n')
-            ret += '\\n';
-        else if (c === '\r')
-            ret += '\\r';
-        else if (c < ' ' || c >= 0x7f) {
-            var ashex = c.charCodeAt(0).toString(16);
-            if (ashex.length < 2)
-                ashex = "0" + ashex;
-            ret += "\\x" + ashex;
-        }
-        else
-            ret += c;
-    }
-    ret += quote;
-    return ret;
-}
-
-/**
- * Determines whether the name or attribute should be considered to be a class.
- * This is a heuristic test based upon the JavaScript convention for class names.
- * In future we may be able to use type information.
- */
-function isClassNameByConvention(name) {
-    var id = name.id;
-    if (id instanceof RangeAnnotated && typeof id.value === 'string') {
-        // console.lg(`name => ${JSON.stringify(name, null, 2)}`);
-        var N = id.value.length;
-        if (N > 0) {
-            var firstChar = id.value[0];
-            return firstChar.toUpperCase() === firstChar;
-        }
-        else {
-            return false;
-        }
-    }
-    else {
-        return false;
-    }
-}
-function isMethod(functionDef) {
-    for (var i = 0; i < functionDef.args.args.length; i++) {
-        if (i === 0) {
-            var arg = functionDef.args.args[i];
-            if (arg.id.value === 'self') {
-                return true;
-            }
-        }
-        else {
-            return false;
-        }
-    }
-    return false;
-}
-
-var SourceMap = (function () {
-    function SourceMap(sourceToTarget, targetToSource) {
-        this.sourceToTarget = sourceToTarget;
-        this.targetToSource = targetToSource;
-        // Do nothing yet.
-    }
-    SourceMap.prototype.getTargetPosition = function (sourcePos) {
-        var nodeL = this.sourceToTarget.glb(sourcePos);
-        var nodeU = this.sourceToTarget.lub(sourcePos);
-        if (nodeL) {
-            if (nodeU) {
-                return interpolate(sourcePos.line, sourcePos.column, nodeL.key, nodeL.value);
-            }
-            else {
-                return null;
-            }
-        }
-        else {
-            return null;
-        }
-    };
-    SourceMap.prototype.getSourcePosition = function (targetPos) {
-        var nodeL = this.targetToSource.glb(targetPos);
-        if (nodeL) {
-            return interpolate(targetPos.line, targetPos.column, nodeL.key, nodeL.value);
-        }
-        else {
-            return null;
-        }
-    };
-    return SourceMap;
-}());
-function interpolate(sourceLine, sourceColumn, sourceBegin, targetBegin) {
-    var lineOffset = sourceLine - sourceBegin.line;
-    var columnOffset = sourceColumn - sourceBegin.column;
-    var targetLine = targetBegin.line + lineOffset;
-    var targetColumn = targetBegin.column + columnOffset;
-    return new Position(targetLine, targetColumn);
-}
-
-/**
- * Provides enhanced scope information beyond the SymbolTableScope.
- */
-var PrinterUnit = (function () {
-    /**
-     * Stuff that changes on entry/exit of code blocks. must be saved and restored
-     * when returning to a block.
-     * Corresponds to the body of a module, class, or function.
-     */
-    function PrinterUnit(name, ste) {
-        /**
-         * Used to determine whether a local variable has been declared.
-         */
-        this.declared = {};
-        assert(typeof name === 'string');
-        assert(typeof ste === 'object');
-        this.name = name;
-        this.ste = ste;
-        this.private_ = null;
-        this.beginLine = 0;
-        this.lineno = 0;
-        this.linenoSet = false;
-        this.localnames = [];
-        this.blocknum = 0;
-        this.blocks = [];
-        this.curblock = 0;
-        this.scopename = null;
-        this.prefixCode = '';
-        this.varDeclsCode = '';
-        this.switchCode = '';
-        this.suffixCode = '';
-        // stack of where to go on a break
-        this.breakBlocks = [];
-        // stack of where to go on a continue
-        this.continueBlocks = [];
-        this.exceptBlocks = [];
-        this.finallyBlocks = [];
-    }
-    PrinterUnit.prototype.activateScope = function () {
-        // Do nothing yet.
-    };
-    PrinterUnit.prototype.deactivateScope = function () {
-        // Do nothing yet.
-    };
-    return PrinterUnit;
-}());
-var Printer = (function () {
-    /**
-     *
-     * @param st The symbol table obtained from semantic analysis.
-     * @param flags Not being used yet. May become options.
-     * @param sourceText The original source code, provided for annotating the generated code and source mapping.
-     */
-    function Printer(st, flags, sourceText, beginLine, beginColumn, trace) {
-        this.beginLine = beginLine;
-        this.beginColumn = beginColumn;
-        /**
-         * Used to provide a unique number for generated symbol names.
-         */
-        this.gensymCount = 0;
-        // this.fileName = fileName;
-        this.st = st;
-        this.flags = flags;
-        this.interactive = false;
-        this.nestlevel = 0;
-        this.u = null;
-        this.stack = [];
-        this.result = [];
-        // this.gensymcount = 0;
-        this.allUnits = [];
-        this.source = sourceText ? sourceText.split("\n") : false;
-        this.writer = new codeWriter.CodeWriter(beginLine, beginColumn, {}, trace);
-    }
-    /**
-     * This is the entry point for this visitor.
-     */
-    Printer.prototype.transpileModule = function (module) {
-        // Traversing the AST sends commands to the writer.
-        this.enterScope("<module>", module, this.beginLine, this.beginColumn);
-        this.module(module);
-        this.exitScope();
-        // Now return the captured events as a transpiled module.
-        return this.writer.snapshot();
-    };
-    /**
-     * Looks up the SymbolTableScope.
-     * Pushes a new PrinterUnit onto the stack.
-     * Returns a string identifying the scope.
-     * @param name The name that will be assigned to the PrinterUnit.
-     * @param key A scope object in the AST from sematic analysis. Provides the mapping to the SymbolTableScope.
-     */
-    Printer.prototype.enterScope = function (name, key, beginLine, beginColumn) {
-        var u = new PrinterUnit(name, this.st.getStsForAst(key));
-        u.beginLine = beginLine;
-        u.beginColumn = beginColumn;
-        if (this.u && this.u.private_) {
-            u.private_ = this.u.private_;
-        }
-        this.stack.push(this.u);
-        this.allUnits.push(u);
-        var scopeName = this.gensym('scope');
-        u.scopename = scopeName;
-        this.u = u;
-        this.u.activateScope();
-        this.nestlevel++;
-        return scopeName;
-    };
-    Printer.prototype.exitScope = function () {
-        if (this.u) {
-            this.u.deactivateScope();
-        }
-        this.nestlevel--;
-        if (this.stack.length - 1 >= 0) {
-            this.u = this.stack.pop();
-        }
-        else {
-            this.u = null;
-        }
-        if (this.u) {
-            this.u.activateScope();
-        }
-    };
-    /**
-     * Generates a unique symbol name for the provided namespace.
-     */
-    Printer.prototype.gensym = function (namespace) {
-        var symbolName = namespace || '';
-        symbolName = '$' + symbolName;
-        symbolName += this.gensymCount++;
-        return symbolName;
-    };
-    // Everything below here is an implementation of the Visitor
-    Printer.prototype.assign = function (assign) {
-        this.writer.beginStatement();
-        // TODO: Declaration.
-        // TODO: How to deal with multiple target?
-        for (var _i = 0, _a = assign.targets; _i < _a.length; _i++) {
-            var target = _a[_i];
-            if (target instanceof Name) {
-                var flags = this.u.ste.symFlags[target.id.value];
-                if (flags && DEF_LOCAL) {
-                    if (this.u.declared[target.id.value]) {
-                        // The variable has already been declared.
-                    }
-                    else {
-                        // We use let for now because we would need to look ahead for more assignments.
-                        // The smenatic analysis could count the number of assignments in the current scope?
-                        this.writer.write("let ", null);
-                        this.u.declared[target.id.value] = true;
-                    }
-                }
-            }
-            target.accept(this);
-        }
-        this.writer.assign("=", assign.eqRange);
-        assign.value.accept(this);
-        this.writer.endStatement();
-    };
-    Printer.prototype.attribute = function (attribute) {
-        attribute.value.accept(this);
-        this.writer.write(".", null);
-        this.writer.str(attribute.attr.value, attribute.attr.range);
-    };
-    Printer.prototype.binOp = function (be) {
-        be.lhs.accept(this);
-        var op = be.op;
-        var opRange = be.opRange;
-        switch (op) {
-            case Add: {
-                this.writer.binOp("+", opRange);
-                break;
-            }
-            case Sub: {
-                this.writer.binOp("-", opRange);
-                break;
-            }
-            case Mult: {
-                this.writer.binOp("*", opRange);
-                break;
-            }
-            case Div: {
-                this.writer.binOp("/", opRange);
-                break;
-            }
-            case BitOr: {
-                this.writer.binOp("|", opRange);
-                break;
-            }
-            case BitXor: {
-                this.writer.binOp("^", opRange);
-                break;
-            }
-            case BitAnd: {
-                this.writer.binOp("&", opRange);
-                break;
-            }
-            case LShift: {
-                this.writer.binOp("<<", opRange);
-                break;
-            }
-            case RShift: {
-                this.writer.binOp(">>", opRange);
-                break;
-            }
-            case Mod: {
-                this.writer.binOp("%", opRange);
-                break;
-            }
-            case FloorDiv: {
-                // TODO: What is the best way to handle FloorDiv.
-                // This doesn't actually exist in TypeScript.
-                this.writer.binOp("//", opRange);
-                break;
-            }
-            default: {
-                throw new Error("Unexpected binary operator " + op + ": " + typeof op);
-            }
-        }
-        be.rhs.accept(this);
-    };
-    Printer.prototype.callExpression = function (ce) {
-        if (ce.func instanceof Name) {
-            if (isClassNameByConvention(ce.func)) {
-                this.writer.write("new ", null);
-            }
-        }
-        else if (ce.func instanceof Attribute) {
-            if (isClassNameByConvention(ce.func)) {
-                this.writer.write("new ", null);
-            }
-        }
-        else {
-            throw new Error("Call.func must be a Name " + ce.func);
-        }
-        ce.func.accept(this);
-        this.writer.openParen();
-        for (var i = 0; i < ce.args.length; i++) {
-            if (i > 0) {
-                this.writer.comma(null, null);
-            }
-            var arg = ce.args[i];
-            arg.accept(this);
-        }
-        for (var i = 0; i < ce.keywords.length; ++i) {
-            if (i > 0) {
-                this.writer.comma(null, null);
-            }
-            ce.keywords[i].value.accept(this);
-        }
-        if (ce.starargs) {
-            ce.starargs.accept(this);
-        }
-        if (ce.kwargs) {
-            ce.kwargs.accept(this);
-        }
-        this.writer.closeParen();
-    };
-    Printer.prototype.classDef = function (cd) {
-        this.writer.write("class", null);
-        this.writer.space();
-        this.writer.name(cd.name.value, cd.name.range);
-        // this.writer.openParen();
-        // this.writer.closeParen();
-        this.writer.beginBlock();
-        /*
-        this.writer.write("constructor");
-        this.writer.openParen();
-        this.writer.closeParen();
-        this.writer.beginBlock();
-        this.writer.endBlock();
-        */
-        for (var _i = 0, _a = cd.body; _i < _a.length; _i++) {
-            var stmt = _a[_i];
-            stmt.accept(this);
-        }
-        this.writer.endBlock();
-    };
-    Printer.prototype.compareExpression = function (ce) {
-        ce.left.accept(this);
-        for (var _i = 0, _a = ce.ops; _i < _a.length; _i++) {
-            var op = _a[_i];
-            switch (op) {
-                case Eq: {
-                    this.writer.write("===", null);
-                    break;
-                }
-                case NotEq: {
-                    this.writer.write("!==", null);
-                    break;
-                }
-                case Lt: {
-                    this.writer.write("<", null);
-                    break;
-                }
-                case LtE: {
-                    this.writer.write("<=", null);
-                    break;
-                }
-                case Gt: {
-                    this.writer.write(">", null);
-                    break;
-                }
-                case GtE: {
-                    this.writer.write(">=", null);
-                    break;
-                }
-                case Is: {
-                    this.writer.write("===", null);
-                    break;
-                }
-                case IsNot: {
-                    this.writer.write("!==", null);
-                    break;
-                }
-                case In: {
-                    this.writer.write(" in ", null);
-                    break;
-                }
-                case NotIn: {
-                    this.writer.write(" not in ", null);
-                    break;
-                }
-                default: {
-                    throw new Error("Unexpected comparison expression operator: " + op);
-                }
-            }
-        }
-        for (var _b = 0, _c = ce.comparators; _b < _c.length; _b++) {
-            var comparator = _c[_b];
-            comparator.accept(this);
-        }
-    };
-    Printer.prototype.dict = function (dict) {
-        var keys = dict.keys;
-        var values = dict.values;
-        var N = keys.length;
-        this.writer.beginObject();
-        for (var i = 0; i < N; i++) {
-            if (i > 0) {
-                this.writer.comma(null, null);
-            }
-            keys[i].accept(this);
-            this.writer.write(":", null);
-            values[i].accept(this);
-        }
-        this.writer.endObject();
-    };
-    Printer.prototype.expressionStatement = function (s) {
-        this.writer.beginStatement();
-        s.value.accept(this);
-        this.writer.endStatement();
-    };
-    Printer.prototype.functionDef = function (functionDef) {
-        var isClassMethod = isMethod(functionDef);
-        if (!isClassMethod) {
-            this.writer.write("function ", null);
-        }
-        this.writer.name(functionDef.name.value, functionDef.name.range);
-        this.writer.openParen();
-        for (var i = 0; i < functionDef.args.args.length; i++) {
-            var arg = functionDef.args.args[i];
-            if (i === 0) {
-                if (arg.id.value === 'self') {
-                    // Ignore.
-                }
-                else {
-                    arg.accept(this);
-                }
-            }
-            else {
-                arg.accept(this);
-            }
-        }
-        this.writer.closeParen();
-        this.writer.beginBlock();
-        for (var _i = 0, _a = functionDef.body; _i < _a.length; _i++) {
-            var stmt = _a[_i];
-            stmt.accept(this);
-        }
-        this.writer.endBlock();
-    };
-    Printer.prototype.ifStatement = function (i) {
-        this.writer.write("if", null);
-        this.writer.openParen();
-        i.test.accept(this);
-        this.writer.closeParen();
-        this.writer.beginBlock();
-        for (var _i = 0, _a = i.consequent; _i < _a.length; _i++) {
-            var con = _a[_i];
-            con.accept(this);
-        }
-        this.writer.endBlock();
-    };
-    Printer.prototype.importFrom = function (importFrom) {
-        this.writer.beginStatement();
-        this.writer.write("import", null);
-        this.writer.space();
-        this.writer.beginBlock();
-        for (var i = 0; i < importFrom.names.length; i++) {
-            if (i > 0) {
-                this.writer.comma(null, null);
-            }
-            var alias = importFrom.names[i];
-            this.writer.name(alias.name.value, alias.name.range);
-            if (alias.asname) {
-                this.writer.space();
-                this.writer.write("as", null);
-                this.writer.space();
-                this.writer.write(alias.asname, null);
-            }
-        }
-        this.writer.endBlock();
-        this.writer.space();
-        this.writer.write("from", null);
-        this.writer.space();
-        this.writer.str(toStringLiteralJS(importFrom.module.value), importFrom.module.range);
-        this.writer.endStatement();
-    };
-    Printer.prototype.list = function (list) {
-        var elements = list.elts;
-        var N = elements.length;
-        this.writer.write('[', null);
-        for (var i = 0; i < N; i++) {
-            if (i > 0) {
-                this.writer.comma(null, null);
-            }
-            elements[i].accept(this);
-        }
-        this.writer.write(']', null);
-    };
-    Printer.prototype.module = function (m) {
-        for (var _i = 0, _a = m.body; _i < _a.length; _i++) {
-            var stmt = _a[_i];
-            stmt.accept(this);
-        }
-    };
-    Printer.prototype.name = function (name) {
-        // TODO: Since 'True' and 'False' are reserved words in Python,
-        // syntactic analysis (parsing) should be sufficient to identify
-        // this name as a boolean expression - avoiding this overhead.
-        var value = name.id.value;
-        var range = name.id.range;
-        switch (value) {
-            case 'True': {
-                this.writer.name('true', range);
-                break;
-            }
-            case 'False': {
-                this.writer.name('false', range);
-                break;
-            }
-            default: {
-                this.writer.name(value, range);
-            }
-        }
-    };
-    Printer.prototype.num = function (num) {
-        var value = num.n.value;
-        var range = num.n.range;
-        this.writer.num(value.toString(), range);
-    };
-    Printer.prototype.print = function (print) {
-        this.writer.name("console", null);
-        this.writer.write(".", null);
-        this.writer.name("log", null);
-        this.writer.openParen();
-        for (var _i = 0, _a = print.values; _i < _a.length; _i++) {
-            var value = _a[_i];
-            value.accept(this);
-        }
-        this.writer.closeParen();
-    };
-    Printer.prototype.returnStatement = function (rs) {
-        this.writer.beginStatement();
-        this.writer.write("return", null);
-        this.writer.write(" ", null);
-        rs.value.accept(this);
-        this.writer.endStatement();
-    };
-    Printer.prototype.str = function (str) {
-        var s = str.s;
-        // const begin = str.begin;
-        // const end = str.end;
-        this.writer.str(toStringLiteralJS(s.value), s.range);
-    };
-    return Printer;
-}());
-function transpileModule(sourceText, trace) {
-    if (trace === void 0) { trace = false; }
-    var cst = parse(sourceText, SourceKind.File);
-    if (typeof cst === 'object') {
-        var stmts = astFromParse(cst);
-        var mod = new Module(stmts);
-        var symbolTable = semanticsOfModule(mod);
-        var printer = new Printer(symbolTable, 0, sourceText, 1, 0, trace);
-        var textAndMappings = printer.transpileModule(mod);
-        var code = textAndMappings.text;
-        var sourceMap = mappingTreeToSourceMap(textAndMappings.tree, trace);
-        return { code: code, sourceMap: sourceMap, cst: cst, mod: mod, symbolTable: symbolTable };
-    }
-    else {
-        throw new Error("Error parsing source for file.");
-    }
-}
-var NIL_VALUE = new Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
-var HI_KEY = new Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
-var LO_KEY = new Position(Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
-function mappingTreeToSourceMap(mappingTree, trace) {
-    var sourceToTarget = new genericRbtree.RBTree(LO_KEY, HI_KEY, NIL_VALUE, positionComparator);
-    var targetToSource = new genericRbtree.RBTree(LO_KEY, HI_KEY, NIL_VALUE, positionComparator);
-    if (mappingTree) {
-        for (var _i = 0, _a = mappingTree.mappings(); _i < _a.length; _i++) {
-            var mapping = _a[_i];
-            var source = mapping.source;
-            var target = mapping.target;
-            // Convert to immutable values for targets.
-            var tBegin = new Position(target.begin.line, target.begin.column);
-            var tEnd = new Position(target.end.line, target.end.column);
-            if (trace) {
-                console.log(source.begin + " => " + tBegin);
-                console.log(source.end + " => " + tEnd);
-            }
-            sourceToTarget.insert(source.begin, tBegin);
-            sourceToTarget.insert(source.end, tEnd);
-            targetToSource.insert(tBegin, source.begin);
-            targetToSource.insert(tEnd, source.end);
-        }
-    }
-    return new SourceMap(sourceToTarget, targetToSource);
-}
-
 exports.parse = parse;
 exports.cstDump = cstDump;
 exports.ParseError = ParseError;
 exports.astFromParse = astFromParse;
 exports.astDump = astDump;
-exports.transpileModule = transpileModule;
-exports.SourceMap = SourceMap;
+exports.Add = Add;
+exports.Assign = Assign;
+exports.Attribute = Attribute;
+exports.BinOp = BinOp;
+exports.BitAnd = BitAnd;
+exports.BitOr = BitOr;
+exports.BitXor = BitXor;
+exports.Call = Call;
+exports.ClassDef = ClassDef;
+exports.Compare = Compare;
+exports.Dict = Dict;
+exports.Div = Div;
+exports.Eq = Eq;
+exports.ExpressionStatement = ExpressionStatement;
+exports.FloorDiv = FloorDiv;
+exports.FunctionDef = FunctionDef;
+exports.Gt = Gt;
+exports.GtE = GtE;
+exports.IfStatement = IfStatement;
+exports.ImportFrom = ImportFrom;
+exports.In = In;
+exports.Is = Is;
+exports.IsNot = IsNot;
+exports.List = List;
+exports.Lt = Lt;
+exports.LtE = LtE;
+exports.LShift = LShift;
+exports.Mod = Mod;
+exports.Module = Module;
+exports.Mult = Mult;
+exports.Name = Name;
+exports.Num = Num;
+exports.NotEq = NotEq;
+exports.NotIn = NotIn;
+exports.Print = Print;
+exports.ReturnStatement = ReturnStatement;
+exports.RShift = RShift;
+exports.Str = Str;
+exports.Sub = Sub;
+exports.DEF_LOCAL = DEF_LOCAL;
+exports.semanticsOfModule = semanticsOfModule;
+exports.SymbolTable = SymbolTable;
+exports.SymbolTableScope = SymbolTableScope;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
