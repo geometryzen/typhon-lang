@@ -83,17 +83,23 @@ exports.NotEq = types_34.NotEq;
 var types_35 = require("./pytools/types");
 exports.NotIn = types_35.NotIn;
 var types_36 = require("./pytools/types");
-exports.Print = types_36.Print;
+exports.Param = types_36.Param;
+var Position_1 = require("./pytools/Position");
+exports.Position = Position_1.Position;
 var types_37 = require("./pytools/types");
-exports.RangeAnnotated = types_37.RangeAnnotated;
+exports.Print = types_37.Print;
+var Range_1 = require("./pytools/Range");
+exports.Range = Range_1.Range;
 var types_38 = require("./pytools/types");
-exports.ReturnStatement = types_38.ReturnStatement;
+exports.RangeAnnotated = types_38.RangeAnnotated;
 var types_39 = require("./pytools/types");
-exports.RShift = types_39.RShift;
+exports.ReturnStatement = types_39.ReturnStatement;
 var types_40 = require("./pytools/types");
-exports.Str = types_40.Str;
+exports.RShift = types_40.RShift;
 var types_41 = require("./pytools/types");
-exports.Sub = types_41.Sub;
+exports.Str = types_41.Str;
+var types_42 = require("./pytools/types");
+exports.Sub = types_42.Sub;
 //
 // Symbol Table
 //
