@@ -17,6 +17,7 @@ export { Compare } from './pytools/types';
 export { Dict } from './pytools/types';
 export { Div } from './pytools/types';
 export { Eq } from './pytools/types';
+export { Expression } from './pytools/types';
 export { ExpressionStatement } from './pytools/types';
 export { FloorDiv } from './pytools/types';
 export { FunctionDef } from './pytools/types';

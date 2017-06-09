@@ -17,6 +17,7 @@ export { Compare } from './pytools/types';
 export { Dict } from './pytools/types';
 export { Div } from './pytools/types';
 export { Eq } from './pytools/types';
+export { Expression } from './pytools/types';
 export { ExpressionStatement } from './pytools/types';
 export { FloorDiv } from './pytools/types';
 export { FunctionDef } from './pytools/types';
@@ -44,6 +45,7 @@ export { ReturnStatement } from './pytools/types';
 export { RShift } from './pytools/types';
 export { Str } from './pytools/types';
 export { Sub } from './pytools/types';
+export { Visitable } from './pytools/types';
 export { Visitor } from './pytools/types';
 //
 // Symbol Table
