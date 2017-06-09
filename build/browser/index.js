@@ -351,17 +351,17 @@ var ParseTables = {
                 37: 1 }],
         258: [[[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
-        259: [[[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
-                [[0, 1]],
-                [[41, 7], [42, 1]],
-                [[43, 1], [44, 8], [45, 8]],
-                [[46, 9], [47, 1]],
+        259: [[[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
+                [[18, 1], [0, 1]],
+                [[0, 2]],
+                [[41, 7], [42, 2]],
+                [[43, 2], [44, 8], [45, 8]],
+                [[46, 9], [47, 2]],
                 [[48, 10]],
-                [[18, 6], [0, 6]],
-                [[42, 1]],
-                [[43, 1]],
-                [[47, 1]],
-                [[14, 1]]],
+                [[42, 2]],
+                [[43, 2]],
+                [[47, 2]],
+                [[14, 2]]],
             { 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 29: 1, 32: 1 }],
         260: [[[[49, 1]], [[50, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
@@ -1031,17 +1031,17 @@ var ParseTables = {
     states: [[[[1, 1], [2, 1], [3, 2]], [[0, 1]], [[2, 1]]],
         [[[38, 1]], [[39, 0], [0, 1]]],
         [[[40, 1]], [[25, 0], [37, 0], [0, 1]]],
-        [[[21, 1], [8, 1], [9, 4], [29, 3], [32, 2], [14, 5], [18, 6]],
-            [[0, 1]],
-            [[41, 7], [42, 1]],
-            [[43, 1], [44, 8], [45, 8]],
-            [[46, 9], [47, 1]],
+        [[[18, 1], [8, 2], [9, 5], [29, 4], [32, 3], [14, 6], [21, 2]],
+            [[18, 1], [0, 1]],
+            [[0, 2]],
+            [[41, 7], [42, 2]],
+            [[43, 2], [44, 8], [45, 8]],
+            [[46, 9], [47, 2]],
             [[48, 10]],
-            [[18, 6], [0, 6]],
-            [[42, 1]],
-            [[43, 1]],
-            [[47, 1]],
-            [[14, 1]]],
+            [[42, 2]],
+            [[43, 2]],
+            [[47, 2]],
+            [[14, 2]]],
         [[[49, 1]], [[50, 0], [0, 1]]],
         [[[51, 1]], [[52, 0], [0, 1]]],
         [[[53, 1]], [[54, 0], [0, 1]]],
@@ -1390,9 +1390,9 @@ var ParseTables = {
         [37, null],
         [44, null],
         [49, null],
-        [40, null],
-        [38, null],
         [45, null],
+        [38, null],
+        [40, null],
         [331, null],
         [29, null],
         [21, null],
@@ -1444,15 +1444,15 @@ var ParseTables = {
         [318, null],
         [327, null],
         [13, null],
-        [273, null],
         [302, null],
+        [273, null],
         [265, null],
         [321, null],
         [267, null],
         [322, null],
         [292, null],
-        [300, null],
         [282, null],
+        [300, null],
         [313, null],
         [326, null],
         [329, null],
@@ -1534,12 +1534,12 @@ var ParseTables = {
         37: 92,
         38: 96,
         39: 87,
-        40: 95,
+        40: 97,
         41: 88,
         42: 90,
         43: 91,
         44: 93,
-        45: 97,
+        45: 95,
         46: 86,
         47: 89,
         48: 62,
@@ -3524,19 +3524,19 @@ var Subscript = (function (_super) {
     }
     return Subscript;
 }(Expression));
-var Identifier = (function (_super) {
-    __extends(Identifier, _super);
-    function Identifier(id, ctx, range) {
+var Name = (function (_super) {
+    __extends(Name, _super);
+    function Name(id, ctx, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
         _this.id = id;
         _this.ctx = ctx;
         return _this;
     }
-    Identifier.prototype.accept = function (visitor) {
+    Name.prototype.accept = function (visitor) {
         visitor.name(this);
     };
-    return Identifier;
+    return Name;
 }(Expression));
 var List = (function (_super) {
     __extends(List, _super);
@@ -3854,8 +3854,8 @@ Subscript.prototype['_fields'] = [
     'slice', function (n) { return n.slice; },
     'ctx', function (n) { return n.ctx; }
 ];
-Identifier.prototype['_astname'] = 'Identifier';
-Identifier.prototype['_fields'] = [
+Name.prototype['_astname'] = 'Name';
+Name.prototype['_fields'] = [
     'id', function (n) { return n.id.value; },
     'ctx', function (n) { return n.ctx; }
 ];
@@ -4138,7 +4138,7 @@ function setContext(c, e, ctx, n) {
             forbiddenCheck(c, n, e.attr.value, n.range);
         e.ctx = ctx;
     }
-    else if (e instanceof Identifier) {
+    else if (e instanceof Name) {
         if (ctx === Store)
             forbiddenCheck(c, n, /*e.attr*/ void 0, n.range);
         e.ctx = ctx;
@@ -4382,7 +4382,7 @@ function astForDottedName(c, n) {
     REQ(n, SYM.dotted_name);
     var child = CHILD(n, 0);
     var id = new RangeAnnotated(child.value, child.range);
-    var e = new Identifier(id, Load, n.range);
+    var e = new Name(id, Load, n.range);
     for (var i = 2; i < NCH(n); i += 2) {
         var child_1 = CHILD(n, i);
         id = new RangeAnnotated(child_1.value, child_1.range);
@@ -4878,7 +4878,7 @@ function astForCall(c, n, func) {
                 var e = astForExpr(c, CHILD(ch, 0));
                 if (e.constructor === Lambda)
                     throw syntaxError$1("lambda cannot contain assignment", n.range);
-                else if (e.constructor !== Identifier)
+                else if (e.constructor !== Name)
                     throw syntaxError$1("keyword can't be an expression", n.range);
                 var key = e.id;
                 forbiddenCheck(c, CHILD(ch, 0), key.value, n.range);
@@ -5050,7 +5050,7 @@ function astForArguments(c, n) {
                     if (childZero.type === Tokens.T_NAME) {
                         forbiddenCheck(c, n, childZero.value, n.range);
                         var id = new RangeAnnotated(childZero.value, childZero.range);
-                        args[k++] = new Identifier(id, Param, ch.range);
+                        args[k++] = new Name(id, Param, ch.range);
                     }
                     i += 2;
                     if (parenthesized)
@@ -5297,7 +5297,7 @@ function astForExprStmt(c, node) {
         switch (expr1.constructor) {
             case GeneratorExp: throw syntaxError$1("augmented assignment to generator expression not possible", n.range);
             case Yield: throw syntaxError$1("augmented assignment to yield expression not possible", n.range);
-            case Identifier: {
+            case Name: {
                 var varName = expr1.id;
                 forbiddenCheck(c, ch, varName.value, n.range);
                 break;
@@ -5559,7 +5559,7 @@ function astForSlice(c, node) {
     if (ch.type === SYM.sliceop) {
         if (NCH(ch) === 1) {
             ch = CHILD(ch, 0);
-            step = new Identifier(new RangeAnnotated("None", null), Load, ch.range);
+            step = new Name(new RangeAnnotated("None", null), Load, ch.range);
         }
         else {
             ch = CHILD(ch, 1);
@@ -5574,7 +5574,7 @@ function astForAtomExpr(c, n) {
     switch (c0.type) {
         case Tokens.T_NAME:
             // All names start in Load context, but may be changed later
-            return new Identifier(new RangeAnnotated(c0.value, c0.range), Load, n.range);
+            return new Name(new RangeAnnotated(c0.value, c0.range), Load, n.range);
         case Tokens.T_STRING: {
             // FIXME: Owing to the way that Python allows string concatenation, this is imprecise.
             return new Str(new RangeAnnotated(parsestrplus(c, n), n.range));
@@ -6225,7 +6225,7 @@ var SymbolTable = (function () {
     SymbolTable.prototype.visitParams = function (args, toplevel) {
         for (var i = 0; i < args.length; ++i) {
             var arg = args[i];
-            if (arg.constructor === Identifier) {
+            if (arg.constructor === Name) {
                 assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
                 this.addDef(arg.id.value, DEF_PARAM, arg.range);
             }
@@ -6530,7 +6530,7 @@ var SymbolTable = (function () {
             this.visitExpr(e.value);
             this.visitSlice(e.slice);
         }
-        else if (e instanceof Identifier) {
+        else if (e instanceof Name) {
             this.addDef(e.id.value, e.ctx === Load ? USE : DEF_LOCAL, e.range);
         }
         else if (e instanceof List || e instanceof Tuple) {
@@ -6786,7 +6786,6 @@ exports.FloorDiv = FloorDiv;
 exports.FunctionDef = FunctionDef;
 exports.Gt = Gt;
 exports.GtE = GtE;
-exports.Identifier = Identifier;
 exports.IfStatement = IfStatement;
 exports.ImportFrom = ImportFrom;
 exports.In = In;
@@ -6799,6 +6798,7 @@ exports.LShift = LShift;
 exports.Mod = Mod;
 exports.Module = Module;
 exports.Mult = Mult;
+exports.Name = Name;
 exports.Num = Num;
 exports.NotEq = NotEq;
 exports.NotIn = NotIn;

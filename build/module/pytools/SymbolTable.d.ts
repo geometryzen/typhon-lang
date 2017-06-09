@@ -16,12 +16,12 @@ import { ExpressionStatement } from './types';
 import { ExtSlice } from './types';
 import { FunctionDef } from './types';
 import { GeneratorExp } from './types';
-import { Identifier } from './types';
 import { IfStatement } from './types';
 import { ImportFrom } from './types';
 import { Index } from './types';
 import { List } from './types';
 import { Module } from './types';
+import { Name } from './types';
 import { Num } from './types';
 import { Print } from './types';
 import { ReturnStatement } from './types';
@@ -51,7 +51,7 @@ export declare class SemanticVisitor implements Visitor {
     importFrom(importFrom: ImportFrom): void;
     list(list: List): void;
     module(module: Module): void;
-    name(name: Identifier): void;
+    name(name: Name): void;
     num(num: Num): void;
     print(print: Print): void;
     returnStatement(rs: ReturnStatement): void;
@@ -102,7 +102,7 @@ export declare class SymbolTable {
         scopeId: number;
     }, range: Range): void;
     exitBlock(): void;
-    visitParams(args: Identifier[], toplevel: boolean): void;
+    visitParams(args: Name[], toplevel: boolean): void;
     visitArguments(a: Arguments, range: Range): void;
     /**
      *
