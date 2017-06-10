@@ -50,99 +50,10 @@ FILE_TYPE_TEST = 'test'
 
 def gen():
     """regenerate the parser/ast source code"""
-    if not os.path.exists("src/pytools"): os.mkdir("src/pytools")
+    if not os.path.exists("src/cst"): os.mkdir("src/cst")
     os.chdir("src/pgen/parser")
-    os.system("python main.py ../../../src/pytools/tables.ts")
-    os.chdir("../ast")
+    os.system("python main.py ../../../src/cst/tables.ts")
     os.chdir("../../..")
-
-def regenasttests(togen="{0}/run/*.py".format(TEST_DIR)):
-    """regenerate the ast test files by running our helper script via real python"""
-    for f in glob.glob(togen):
-        transname = f.replace(".py", ".trans")
-        os.system("python {0}/astppdump.py {1} > {2}".format(TEST_DIR, f, transname))
-        forcename = f.replace(".py", ".trans.force")
-        if os.path.exists(forcename):
-            shutil.copy(forcename, transname)
-        if crlfprog:
-            os.system("python {0} {1}".format(crlfprog, transname))
-
-
-def regenruntests(togen="{0}/run/*.py".format(TEST_DIR)):
-    """regenerate the test data by running the tests on real python"""
-    for f in glob.glob(togen):
-        os.system("python {0} > {1}.real 2>&1".format(f, f))
-        forcename = f + ".real.force"
-        if os.path.exists(forcename):
-            shutil.copy(forcename, "%s.real" % f)
-        if crlfprog:
-            os.system("python %s %s.real" % (crlfprog, f))
-    for f in glob.glob("{0}/interactive/*.py".format(TEST_DIR)):
-        p = Popen("python -i > %s.real 2>%s" % (f, nul), shell=True, stdin=PIPE)
-        p.communicate(open(f).read() + "\004")
-        forcename = f + ".real.force"
-        if os.path.exists(forcename):
-            shutil.copy(forcename, "%s.real" % f)
-        if crlfprog:
-            os.system("python %s %s.real" % (crlfprog, f))
-
-
-
-def symtabdump(fn):
-    if not os.path.exists(fn):
-        print "%s doesn't exist" % fn
-        raise SystemExit()
-    text = open(fn).read()
-    mod = symtable.symtable(text, os.path.split(fn)[1], "exec")
-    def getidents(obj, indent=""):
-        ret = ""
-        ret += """%sSym_type: %s
-%sSym_name: %s
-%sSym_lineno: %s
-%sSym_nested: %s
-%sSym_haschildren: %s
-""" % (
-        indent, obj.get_type(),
-        indent, obj.get_name(),
-        indent, obj.get_lineno(),
-        indent, obj.is_nested(),
-        indent, obj.has_children())
-        if obj.get_type() == "function":
-            ret += "%sFunc_params: %s\n%sFunc_locals: %s\n%sFunc_globals: %s\n%sFunc_frees: %s\n" % (
-                    indent, sorted(obj.get_parameters()),
-                    indent, sorted(obj.get_locals()),
-                    indent, sorted(obj.get_globals()),
-                    indent, sorted(obj.get_frees()))
-        elif obj.get_type() == "class":
-            ret += "%sClass_methods: %s\n" % (
-                    indent, sorted(obj.get_methods()))
-        ret += "%s-- Identifiers --\n" % indent
-        for ident in sorted(obj.get_identifiers()):
-            info = obj.lookup(ident)
-            ret += "%sname: %s\n  %sis_referenced: %s\n  %sis_imported: %s\n  %sis_parameter: %s\n  %sis_global: %s\n  %sis_declared_global: %s\n  %sis_local: %s\n  %sis_free: %s\n  %sis_assigned: %s\n  %sis_namespace: %s\n  %snamespaces: [\n%s  %s]\n" % (
-                    indent, info.get_name(),
-                    indent, info.is_referenced(),
-                    indent, info.is_imported(),
-                    indent, info.is_parameter(),
-                    indent, info.is_global(),
-                    indent, info.is_declared_global(),
-                    indent, info.is_local(),
-                    indent, info.is_free(),
-                    indent, info.is_assigned(),
-                    indent, info.is_namespace(),
-                    indent, '\n'.join([getidents(x, indent + "    ") for x in info.get_namespaces()]),
-                    indent
-                    )
-        return ret
-    return getidents(mod)
-
-def regensymtabtests(togen="{0}/run/*.py".format(TEST_DIR)):
-    """regenerate the test data by running the symtab dump via real python"""
-    for fn in glob.glob(togen):
-        outfn = "%s.symtab" % fn
-        f = open(outfn, "wb")
-        f.write(symtabdump(fn))
-        f.close()
 
 def usageString(program):
     return '''
@@ -152,10 +63,6 @@ def usageString(program):
 Commands:
 
     gen              Regenerate parser
-    regenasttests    Regen abstract symbol table tests
-    regenruntests    Regenerate runtime unit tests
-    regensymtabtests Regenerate symbol table tests
-    regentests       Regenerate all of the above
 
     help             Display help information
 
@@ -190,23 +97,8 @@ def main():
     else:
         cmd = sys.argv[1]
 
-    if cmd == "regentests":
-        if len(sys.argv) > 2:
-            togen = "{0}/run/".format(TEST_DIR) + sys.argv[2]
-        else:
-            togen = "{0}/run/*.py".format(TEST_DIR)
-        print "generating tests for ", togen
-        regensymtabtests(togen)
-        regenasttests(togen)
-        regenruntests(togen)
-    elif cmd == "regensymtabtests":
-        regensymtabtests()
-    elif cmd == "gen":
+    if cmd == "gen":
         gen()
-    elif cmd == "regenasttests":
-        regenasttests()
-    elif cmd == "regenruntests":
-        regenruntests()
     else:
         print usageString(os.path.basename(sys.argv[0]))
         sys.exit(2)
