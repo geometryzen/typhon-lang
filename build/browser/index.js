@@ -1,15 +1,13 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.typhon = global.typhon || {})));
+	(factory((global[''typhon''] = global[''typhon''] || {})));
 }(this, (function (exports) { 'use strict';
 
 /**
  * Symbolic constants for various Python Language tokens.
  */
-/**
- * Symbolic constants for various Python Language tokens.
- */ var Tokens;
+var Tokens;
 (function (Tokens) {
     Tokens[Tokens["T_ENDMARKER"] = 0] = "T_ENDMARKER";
     Tokens[Tokens["T_NAME"] = 1] = "T_NAME";
@@ -1552,9 +1550,7 @@ var ParseTables = {
 /**
  * We're looking for something that is truthy, not just true.
  */
-/**
- * We're looking for something that is truthy, not just true.
- */ function assert(condition, message) {
+function assert(condition, message) {
     if (!condition) {
         throw new Error(message);
     }
@@ -1610,9 +1606,7 @@ function IDXLAST(xs) {
 /**
  * Null function used for default values of callbacks, etc.
  */
-/**
- * Null function used for default values of callbacks, etc.
- */ 
+
 /**
  * When defining a class Foo with an abstract method bar(), you can do:
  * Foo.prototype.bar = base.abstractMethod
@@ -5873,18 +5867,18 @@ function astDump(node) {
 }
 
 /* Flags for def-use information */
-/* Flags for def-use information */ var DEF_GLOBAL = 1 << 0; /* global stmt */
-/* global stmt */ var DEF_LOCAL = 2 << 0; /* assignment in code block */
-/* assignment in code block */ var DEF_PARAM = 2 << 1; /* formal parameter */
-/* formal parameter */ var USE = 2 << 2; /* name is used */
-/* name is used */  /* parameter is star arg */
-/* parameter is star arg */  /* parameter is star-star arg */
-/* parameter is star-star arg */  /* name defined in tuple in parameters */
-/* name defined in tuple in parameters */  /* name used but not defined in nested block */
-/* name used but not defined in nested block */  /* free variable is actually implicit global */
-/* free variable is actually implicit global */ var DEF_FREE_CLASS = 2 << 8; /* free variable from class's method */
-/* free variable from class's method */ var DEF_IMPORT = 2 << 9; /* assignment occurred via import */
-/* assignment occurred via import */ var DEF_BOUND = (DEF_LOCAL | DEF_PARAM | DEF_IMPORT);
+var DEF_GLOBAL = 1 << 0; /* global stmt */
+var DEF_LOCAL = 2 << 0; /* assignment in code block */
+var DEF_PARAM = 2 << 1; /* formal parameter */
+var USE = 2 << 2; /* name is used */
+ /* parameter is star arg */
+ /* parameter is star-star arg */
+ /* name defined in tuple in parameters */
+ /* name used but not defined in nested block */
+ /* free variable is actually implicit global */
+var DEF_FREE_CLASS = 2 << 8; /* free variable from class's method */
+var DEF_IMPORT = 2 << 9; /* assignment occurred via import */
+var DEF_BOUND = (DEF_LOCAL | DEF_PARAM | DEF_IMPORT);
 /* GLOBAL_EXPLICIT and GLOBAL_IMPLICIT are used internally by the symbol
    table.  GLOBAL is returned from PyST_GetScope() for either of them.
    It is stored in ste_symbols at bits 12-14.
@@ -5901,7 +5895,7 @@ var CELL = 5;
 
 
  /* top-level names, including eval and exec */
-/* top-level names, including eval and exec */ 
+
 
 var ModuleBlock = 'module';
 var FunctionBlock = 'function';
@@ -5919,10 +5913,7 @@ function dictUpdate(a, b) {
  * @param priv
  * @param name
  */
-/**
- * @param priv
- * @param name
- */ function mangleName(priv, name) {
+function mangleName(priv, name) {
     var strpriv = null;
     if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_') {
         return name;
