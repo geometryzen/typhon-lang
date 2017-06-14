@@ -1,9 +1,9 @@
-import { parse, PyNode } from '../cst/parser';
+import { parse, PyNode, cstDump } from '../cst/parser';
 import { ParseError } from '../common/syntaxError';
 import { astFromParse, astDump } from './builder';
 import { semanticsOfModule } from '../sym/symtable';
 // import { dumpSymbolTable } from './symtable';
-import { Module } from './types';
+import { Module, FunctionDef, Name } from './types';
 
 describe('AST', function () {
 
@@ -220,7 +220,7 @@ describe('AST', function () {
         const cst = parse('def foo():\n pass') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
+        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=None,decorator_list=[])])');
         /* const st = */ semanticsOfModule(ast);
         // const dumpST = dumpSymbolTable(st);
         // console.lg(dumpST);
@@ -230,21 +230,43 @@ describe('AST', function () {
         const cst = parse('def foo():\n return a') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[ReturnStatement(value=Name(id=a,ctx=Load()))],decorator_list=[])])');
+        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[ReturnStatement(value=Name(id=a,ctx=Load()))],returnType=None,decorator_list=[])])');
     });
 
     it('def foo(x):\n pass', function () {
         const cst = parse('def foo(x):\n pass') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
+        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=None,decorator_list=[])])');
+    });
+
+    it('def foo(x) -> GG:\n pass', function () {
+        const sourceText = [
+            "def foo(x) -> GG:",
+            "   pass"
+        ].join("\n");
+        const cst = parse(sourceText) as PyNode;
+        console.log(cstDump(cst));
+        const ast = new Module(astFromParse(cst));
+        const dump = astDump(ast);
+        if (ast instanceof Module) {
+            const body = ast.body;
+            if (body instanceof FunctionDef) {
+                const returnType = body.returnType;
+                if (returnType instanceof Name) {
+                    const id = returnType.id;
+                    expect(id.value).toBe("GG");
+                }
+            }
+        }
+        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=Name(id=GG,ctx=Load()),decorator_list=[])])');
     });
 
     it('def foo(x, y):\n pass', function () {
         const cst = parse('def foo(x, y):\n pass') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param()),Name(id=y,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],decorator_list=[])])');
+        expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param()),Name(id=y,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=None,decorator_list=[])])');
     });
 
     it('if a:\n pass', function () {

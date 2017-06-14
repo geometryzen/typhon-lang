@@ -7,6 +7,7 @@ export interface Tree {
 
 /**
  * Returns the number of children in the specified node.
+ * Returns n.children.length
  */
 export function NCH<T extends Tree>(n: T): number {
     assert(n !== undefined);

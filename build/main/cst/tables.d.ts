@@ -1039,6 +1039,7 @@ export declare const ParseTables: {
         48: number;
         49: number;
         50: number;
+        55: number;
     };
     start: number;
 };

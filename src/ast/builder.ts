@@ -1226,14 +1226,31 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
 }
 
 function astForFuncdef(c: Compiling, n: PyNode, decoratorSeq: (Attribute | Call | Name)[]): FunctionDef {
-    /* funcdef: 'def' NAME parameters ':' suite */
-    REQ(n, SYM.funcdef);
+    /**
+     * funcdef: 'def' NAME parameters ['->' IfExpr] ':' suite
+     */
+    // REQ(n, SYM.funcdef);
     const ch1 = CHILD(n, 1);
     const name = strobj(ch1.value);
     forbiddenCheck(c, ch1, name, n.range);
     const args = astForArguments(c, CHILD(n, 2));
-    const body = astForSuite(c, CHILD(n, 4));
-    return new FunctionDef(new RangeAnnotated(name, ch1.range), args, body, decoratorSeq, n.range);
+    // suite is either 4 or 6, depending on whether functype is there
+    let body: Statement[];
+    let returnType: Expression;
+    const numberOfChildren: number = NCH(n);
+    if (numberOfChildren === 5) {
+        body = astForSuite(c, CHILD(n, 4));
+        returnType = null;
+    }
+    else if (numberOfChildren === 7) {
+        returnType = astForExpr(c, CHILD(n, 4));
+        body = astForSuite(c, CHILD(n, 6));
+    }
+    else {
+        fail(`Was expecting 6 or 8 children, received ${numberOfChildren} children`);
+    }
+
+    return new FunctionDef(new RangeAnnotated(name, ch1.range), args, body, returnType, decoratorSeq, n.range);
 }
 
 function astForClassBases(c: Compiling, n: PyNode): Expression[] {

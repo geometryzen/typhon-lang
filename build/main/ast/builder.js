@@ -1144,14 +1144,31 @@ function astForArguments(c, n) {
     return new types_3.Arguments(args, vararg, kwarg, defaults);
 }
 function astForFuncdef(c, n, decoratorSeq) {
-    /* funcdef: 'def' NAME parameters ':' suite */
+    /**
+     * funcdef: 'def' NAME parameters [functype] ':' suite
+     * functype: '->' IfExpr
+     */
     REQ(n, SYM.funcdef);
     var ch1 = tree_1.CHILD(n, 1);
     var name = strobj(ch1.value);
     forbiddenCheck(c, ch1, name, n.range);
     var args = astForArguments(c, tree_1.CHILD(n, 2));
-    var body = astForSuite(c, tree_1.CHILD(n, 4));
-    return new types_34.FunctionDef(new types_70.RangeAnnotated(name, ch1.range), args, body, decoratorSeq, n.range);
+    // suite is either 4 or 6, depending on whether functype is there
+    var body;
+    var returnType;
+    var numberOfChildren = tree_1.NCH(n);
+    if (numberOfChildren === 5) {
+        body = astForSuite(c, tree_1.CHILD(n, 5));
+        returnType = null;
+    }
+    else if (numberOfChildren === 7) {
+        body = astForSuite(c, tree_1.CHILD(n, 5));
+        returnType = astForExpr(c, tree_1.CHILD(n, 7));
+    }
+    else {
+        asserts_1.fail("Was expecting 5 or 7 children, received " + numberOfChildren + " children");
+    }
+    return new types_34.FunctionDef(new types_70.RangeAnnotated(name, ch1.range), args, body, returnType, decoratorSeq, n.range);
 }
 function astForClassBases(c, n) {
     asserts_1.assert(tree_1.NCH(n) > 0);

@@ -280,13 +280,14 @@ var Suite = (function () {
 export { Suite };
 var FunctionDef = (function (_super) {
     tslib_1.__extends(FunctionDef, _super);
-    function FunctionDef(name, args, body, decorator_list, range) {
+    function FunctionDef(name, args, body, returnType, decorator_list, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
         _this.name = name;
         _this.args = args;
         _this.body = body;
         _this.decorator_list = decorator_list;
+        _this.returnType = returnType;
         return _this;
     }
     FunctionDef.prototype.accept = function (visitor) {
