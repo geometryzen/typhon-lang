@@ -97,4 +97,4 @@ export interface Grammar {
 /**
  *
  */
-export declare const ParseTables: Grammar;
+export declare const ParseTables: Gramma
