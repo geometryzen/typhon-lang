@@ -1227,36 +1227,63 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
 
 function astForFuncdef(c: Compiling, n: PyNode, decoratorSeq: (Attribute | Call | Name)[]): FunctionDef {
     /**
-     * funcdef: 'def' NAME parameters ['->' IfExpr] ':' suite
+     * funcdef: ['export'] def' NAME parameters ['->' IfExpr] ':' suite
      */
-    // REQ(n, SYM.funcdef);
-    const ch1 = CHILD(n, 1);
-    const name = strobj(ch1.value);
-    forbiddenCheck(c, ch1, name, n.range);
-    const args = astForArguments(c, CHILD(n, 2));
-    // suite is either 4 or 6, depending on whether functype is there
+    REQ(n, SYM.funcdef);
+    const numberOfChildren: number = NCH(n);
+    let ch1: PyNode;
+    let name: string;
+    let args: Arguments;
+    // Name and args are 1 node further if 'export' exists
+    if (numberOfChildren !== 8 && numberOfChildren !== 6) {
+        ch1 = CHILD(n, 1);
+        name = strobj(ch1.value);
+        forbiddenCheck(c, ch1, name, n.range);
+        args = astForArguments(c, CHILD(n, 2));
+    }
+    else {
+        ch1 = CHILD(n, 2);
+        name = strobj(ch1.value);
+        forbiddenCheck(c, ch1, name, n.range);
+        args = astForArguments(c, CHILD(n, 3));
+    }
+
+    // suite is either 4, 6 or 7, depending on whether functype exists
     let body: Statement[];
     let returnType: Expression;
-    const numberOfChildren: number = NCH(n);
+
+    // Neither Export nor FuncType exist
     if (numberOfChildren === 5) {
         body = astForSuite(c, CHILD(n, 4));
         returnType = null;
     }
+    // Only Export exists
+    else if (numberOfChildren === 6) {
+        body = astForSuite(c, CHILD(n, 5));
+        returnType = null;
+    }
+    // Only FuncType exists
     else if (numberOfChildren === 7) {
         returnType = astForExpr(c, CHILD(n, 4));
         body = astForSuite(c, CHILD(n, 6));
     }
+    // Export AND FuncType exist
+    else if (numberOfChildren === 8) {
+        returnType = astForExpr(c, CHILD(n, 5));
+        body = astForSuite(c, CHILD(n, 7));
+    }
     else {
-        fail(`Was expecting 6 or 8 children, received ${numberOfChildren} children`);
+        fail(`Was expecting 5, 7 or 8 children, received ${numberOfChildren} children`);
     }
 
     return new FunctionDef(new RangeAnnotated(name, ch1.range), args, body, returnType, decoratorSeq, n.range);
 }
 
 function astForClassBases(c: Compiling, n: PyNode): Expression[] {
-    assert(NCH(n) > 0);
+    const numberOfChildren = NCH(n);
+    assert(numberOfChildren > 0);
     REQ(n, SYM.testlist);
-    if (NCH(n) === 1) {
+    if (numberOfChildren === 1) {
         return [astForExpr(c, CHILD(n, 0))];
     }
     return seqForTestlist(c, n);
@@ -1264,12 +1291,13 @@ function astForClassBases(c: Compiling, n: PyNode): Expression[] {
 
 function astForClassdef(c: Compiling, node: PyNode, decoratorSeq: (Attribute | Call | Name)[]) {
     const n = node;
+    const numberOfChildren = NCH(n);
     REQ(n, SYM.classdef);
     const c1 = CHILD(n, 1);
     forbiddenCheck(c, n, c1.value, n.range);
     const className = strobj(c1.value);
     const nameRange = c1.range;
-    if (NCH(n) === 4) {
+    if (numberOfChildren === 4) {
         return new ClassDef(new RangeAnnotated(className, nameRange), [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
     }
     const c3 = CHILD(n, 3);

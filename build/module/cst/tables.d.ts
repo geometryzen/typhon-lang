@@ -224,6 +224,7 @@ export declare const ParseTables: {
             35: number;
             36: number;
             37: number;
+            38: number;
         })[];
         257: (number[][][] | {
             6: number;
@@ -233,10 +234,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         258: (number[][][] | {
             6: number;
@@ -245,10 +246,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         259: (number[][][] | {
             8: number;
@@ -256,8 +257,8 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            29: number;
-            32: number;
+            30: number;
+            33: number;
         })[];
         260: (number[][][] | {
             6: number;
@@ -266,10 +267,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         261: (number[][][] | {
             6: number;
@@ -278,10 +279,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         262: (number[][][] | {
             6: number;
@@ -290,10 +291,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         263: (number[][][] | {
             6: number;
@@ -302,10 +303,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         264: (number[][][] | {
             6: number;
@@ -314,10 +315,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         265: (number[][][] | {
             6: number;
@@ -328,10 +329,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         266: (number[][][] | {
             6: number;
@@ -340,13 +341,13 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         267: (number[][][] | {
-            27: number;
+            28: number;
         })[];
         268: (number[][][] | {
             6: number;
@@ -357,10 +358,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         269: (number[][][] | {
             21: number;
@@ -385,10 +386,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         275: (number[][][] | {
             6: number;
@@ -398,10 +399,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         276: (number[][][] | {
             8: number;
@@ -409,8 +410,8 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            29: number;
-            32: number;
+            30: number;
+            33: number;
         })[];
         277: (number[][][] | {
             6: number;
@@ -419,10 +420,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         278: (number[][][] | {
             6: number;
@@ -431,13 +432,13 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         279: (number[][][] | {
-            26: number;
+            27: number;
         })[];
         280: (number[][][] | {
             6: number;
@@ -448,11 +449,11 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
-            63: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
+            64: number;
             79: number;
         })[];
         281: (number[][][] | {
@@ -464,16 +465,15 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         282: (number[][][] | {
             20: number;
         })[];
         283: (number[][][] | {
-            86: number;
             87: number;
             88: number;
             89: number;
@@ -485,16 +485,16 @@ export declare const ParseTables: {
             95: number;
             96: number;
             97: number;
+            98: number;
         })[];
         284: (number[][][] | {
-            33: number;
+            34: number;
         })[];
         285: (number[][][] | {
             10: number;
         })[];
         286: (number[][][] | {
             7: number;
-            99: number;
             100: number;
             101: number;
             102: number;
@@ -502,28 +502,30 @@ export declare const ParseTables: {
             104: number;
             105: number;
             106: number;
+            107: number;
         })[];
         287: (number[][][] | {
             4: number;
             10: number;
             15: number;
             17: number;
-            28: number;
-            31: number;
-            35: number;
+            24: number;
+            29: number;
+            32: number;
             36: number;
+            37: number;
         })[];
         288: (number[][][] | {
-            34: number;
+            35: number;
         })[];
         289: (number[][][] | {
-            35: number;
+            36: number;
         })[];
         290: (number[][][] | {
-            35: number;
+            36: number;
         })[];
         291: (number[][][] | {
-            35: number;
+            36: number;
         })[];
         292: (number[][][] | {
             22: number;
@@ -537,10 +539,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         294: (number[][][] | {
             21: number;
@@ -563,13 +565,13 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         299: (number[][][] | {
-            123: number;
+            124: number;
         })[];
         300: (number[][][] | {
             16: number;
@@ -610,61 +612,63 @@ export declare const ParseTables: {
             35: number;
             36: number;
             37: number;
-            122: number;
+            38: number;
+            123: number;
         })[];
         302: (number[][][] | {
             5: number;
             19: number;
-            26: number;
-            33: number;
+            27: number;
             34: number;
+            35: number;
         })[];
         303: (number[][][] | {
-            28: number;
+            29: number;
         })[];
         304: (number[][][] | {
             21: number;
-            29: number;
+            30: number;
         })[];
         305: (number[][][] | {
             21: number;
-            29: number;
+            30: number;
         })[];
         306: (number[][][] | {
             4: number;
+            15: number;
         })[];
         307: (number[][][] | {
-            28: number;
+            29: number;
         })[];
         308: (number[][][] | {
-            31: number;
+            32: number;
         })[];
         309: (number[][][] | {
-            28: number;
-            31: number;
+            29: number;
+            32: number;
         })[];
         310: (number[][][] | {
-            31: number;
+            32: number;
         })[];
         311: (number[][][] | {
-            30: number;
+            31: number;
         })[];
         312: (number[][][] | {
-            24: number;
+            25: number;
         })[];
         313: (number[][][] | {
-            24: number;
-            30: number;
+            25: number;
+            31: number;
         })[];
         314: (number[][][] | {
-            28: number;
+            29: number;
         })[];
         315: (number[][][] | {
-            31: number;
+            32: number;
         })[];
         316: (number[][][] | {
-            28: number;
-            31: number;
+            29: number;
+            32: number;
         })[];
         317: (number[][][] | {
             6: number;
@@ -675,10 +679,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         318: (number[][][] | {
             11: number;
@@ -692,13 +696,13 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         320: (number[][][] | {
-            29: number;
+            30: number;
         })[];
         321: (number[][][] | {
             23: number;
@@ -729,19 +733,19 @@ export declare const ParseTables: {
             21: number;
             22: number;
             23: number;
-            24: number;
             25: number;
             26: number;
             27: number;
-            29: number;
+            28: number;
             30: number;
-            32: number;
+            31: number;
             33: number;
             34: number;
-            37: number;
+            35: number;
+            38: number;
         })[];
         326: (number[][][] | {
-            72: number;
+            73: number;
         })[];
         327: (number[][][] | {
             5: number;
@@ -760,16 +764,16 @@ export declare const ParseTables: {
             21: number;
             22: number;
             23: number;
-            24: number;
             25: number;
             26: number;
             27: number;
-            29: number;
+            28: number;
             30: number;
-            32: number;
+            31: number;
             33: number;
             34: number;
-            37: number;
+            35: number;
+            38: number;
         })[];
         328: (number[][][] | {
             4: number;
@@ -806,6 +810,7 @@ export declare const ParseTables: {
             35: number;
             36: number;
             37: number;
+            38: number;
         })[];
         329: (number[][][] | {
             6: number;
@@ -816,12 +821,12 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
-            72: number;
-            121: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
+            73: number;
+            122: number;
         })[];
         330: (number[][][] | {
             6: number;
@@ -832,12 +837,12 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
-            72: number;
-            121: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
+            73: number;
+            122: number;
         })[];
         331: (number[][][] | {
             2: number;
@@ -857,16 +862,16 @@ export declare const ParseTables: {
             21: number;
             22: number;
             23: number;
-            24: number;
             25: number;
             26: number;
             27: number;
-            29: number;
+            28: number;
             30: number;
-            32: number;
+            31: number;
             33: number;
             34: number;
-            37: number;
+            35: number;
+            38: number;
         })[];
         332: (number[][][] | {
             6: number;
@@ -877,10 +882,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         333: (number[][][] | {
             6: number;
@@ -891,10 +896,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         334: (number[][][] | {
             6: number;
@@ -905,10 +910,10 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         335: (number[][][] | {
             6: number;
@@ -919,36 +924,36 @@ export declare const ParseTables: {
             14: number;
             18: number;
             21: number;
-            25: number;
-            29: number;
-            32: number;
-            37: number;
+            26: number;
+            30: number;
+            33: number;
+            38: number;
         })[];
         336: (number[][][] | {
-            29: number;
-            32: number;
-            121: number;
+            30: number;
+            33: number;
+            122: number;
         })[];
         337: (number[][][] | {
-            15: number;
+            24: number;
         })[];
         338: (number[][][] | {
             21: number;
-            29: number;
-            63: number;
+            30: number;
+            64: number;
             79: number;
         })[];
         339: (number[][][] | {
             17: number;
         })[];
         340: (number[][][] | {
-            36: number;
+            37: number;
         })[];
         341: (number[][][] | {
-            71: number;
+            72: number;
         })[];
         342: (number[][][] | {
-            26: number;
+            27: number;
         })[];
     };
     states: number[][][][];
@@ -966,6 +971,7 @@ export declare const ParseTables: {
         'else': number;
         'except': number;
         'exec': number;
+        'export': number;
         'finally': number;
         'for': number;
         'from': number;

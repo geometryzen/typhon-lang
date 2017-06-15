@@ -1143,8 +1143,7 @@ function astForArguments(c, n) {
 }
 function astForFuncdef(c, n, decoratorSeq) {
     /**
-     * funcdef: 'def' NAME parameters [functype] ':' suite
-     * functype: '->' IfExpr
+     * funcdef: 'def' NAME parameters ['->' IfExpr] ':' suite
      */
     REQ(n, SYM.funcdef);
     var ch1 = CHILD(n, 1);
@@ -1156,34 +1155,36 @@ function astForFuncdef(c, n, decoratorSeq) {
     var returnType;
     var numberOfChildren = NCH(n);
     if (numberOfChildren === 5) {
-        body = astForSuite(c, CHILD(n, 5));
+        body = astForSuite(c, CHILD(n, 4));
         returnType = null;
     }
     else if (numberOfChildren === 7) {
-        body = astForSuite(c, CHILD(n, 5));
-        returnType = astForExpr(c, CHILD(n, 7));
+        returnType = astForExpr(c, CHILD(n, 4));
+        body = astForSuite(c, CHILD(n, 6));
     }
     else {
-        fail("Was expecting 5 or 7 children, received " + numberOfChildren + " children");
+        fail("Was expecting 6 or 8 children, received " + numberOfChildren + " children");
     }
     return new FunctionDef(new RangeAnnotated(name, ch1.range), args, body, returnType, decoratorSeq, n.range);
 }
 function astForClassBases(c, n) {
-    assert(NCH(n) > 0);
+    var numberOfChildren = NCH(n);
+    assert(numberOfChildren > 0);
     REQ(n, SYM.testlist);
-    if (NCH(n) === 1) {
+    if (numberOfChildren === 1) {
         return [astForExpr(c, CHILD(n, 0))];
     }
     return seqForTestlist(c, n);
 }
 function astForClassdef(c, node, decoratorSeq) {
     var n = node;
+    var numberOfChildren = NCH(n);
     REQ(n, SYM.classdef);
     var c1 = CHILD(n, 1);
     forbiddenCheck(c, n, c1.value, n.range);
     var className = strobj(c1.value);
     var nameRange = c1.range;
-    if (NCH(n) === 4) {
+    if (numberOfChildren === 4) {
         return new ClassDef(new RangeAnnotated(className, nameRange), [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
     }
     var c3 = CHILD(n, 3);

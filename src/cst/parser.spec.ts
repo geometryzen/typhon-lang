@@ -384,42 +384,36 @@ describe('parse', function () {
     });
 
     describe('funcDef', function () {
-        const sourceText = [
-            "def foo() -> GG: xyz"
-        ].join('\n');
-        const cst = parse(sourceText) as PyNode;
-        // console.lg(JSON.stringify(DECODE(cst), null, 2));
-        const ns = TERMS(cst);
 
-        it("should have correct number of terminals", function () {
-            expect(Array.isArray(ns)).toBeTruthy();
-            expect(ns.length).toBe(10);
+        describe("Return typed function", function () {
+            const sourceText = [
+                "def foo() -> GG: xyz"
+            ].join('\n');
+            const cst = parse(sourceText) as PyNode;
+            // console.lg(JSON.stringify(DECODE(cst), null, 2));
+            const ns = TERMS(cst);
+
+            it("should have correct number of terminals", function () {
+                expect(Array.isArray(ns)).toBeTruthy();
+                expect(ns.length).toBe(10);
+            });
         });
 
-        const n0 = ns[0];
-        const nl = ns[1];
-        const em = ns[2];
+        describe("Exported function", function() {
+            const sourceText = [
+                "export def foo() -> GG:",
+                "   return 1"
+            ].join('\n');
+            const cst = parse(sourceText) as PyNode;
+            console.log(JSON.stringify(DECODE(cst), null, 2));
+            const ns = TERMS(cst);
 
-        xit("should have the correct terminals", function () {
-            expect(n0.type).toBe(Tokens.T_NAME);
-            expect(n0.value).toBe('a');
-            expect(n0.range.begin.line).toBe(1);
-            expect(n0.range.begin.column).toBe(0);
-            expect(n0.children).toBeNull();
-
-            expect(nl.type).toBe(Tokens.T_NEWLINE);
-            expect(nl.value).toBe("\n");
-            expect(nl.range.begin.line).toBe(1);
-            expect(nl.range.begin.column).toBe(1);
-            expect(nl.children).toBeNull();
-
-            expect(em.type).toBe(Tokens.T_ENDMARKER);
-            expect(em.value).toBe("");
-            expect(em.range.begin.line).toBe(2);
-            expect(em.range.begin.column).toBe(0);
-            expect(em.children).toBeNull();
-
+            it("should have correct number of terminals", function() {
+                expect(ns.length).toBe(15);
+            });
         });
+
+
     });
 
     describe('Unary Plus', function () {

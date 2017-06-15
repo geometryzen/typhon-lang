@@ -986,6 +986,7 @@ FunctionDef.prototype['_fields'] = [
     'name', function (n) { return n.name.value; },
     'args', function (n) { return n.args; },
     'body', function (n) { return n.body; },
+    'returnType', function (n) { return n.returnType; },
     'decorator_list', function (n) { return n.decorator_list; }
 ];
 ClassDef.prototype['_astname'] = 'ClassDef';

@@ -1,6 +1,7 @@
 import { assert } from './asserts';
 /**
  * Returns the number of children in the specified node.
+ * Returns n.children.length
  */
 export function NCH(n) {
     assert(n !== undefined);
