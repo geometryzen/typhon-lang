@@ -1299,11 +1299,14 @@ function astForClassdef(c: Compiling, node: PyNode, decoratorSeq: (Attribute | C
     let nameNode;
     let className;
     let nameRange;
-    if (numberOfChildren !== 5 && numberOfChildren !== 7 && numberOfChildren !== 8 && CHILD(n, 3).type !== TOK.T_RPAR) {
-        nameNode = CHILD(n, 1);
-        forbiddenCheck(c, n, nameNode.value, n.range);
-        className = strobj(nameNode.value);
-        nameRange = nameNode.range;
+    if (numberOfChildren !== 5 && numberOfChildren !== 8) {
+        if (numberOfChildren !== 7 || CHILD(n, 4).type !== TOK.T_RPAR) {
+            nameNode = CHILD(n, 1);
+            forbiddenCheck(c, n, nameNode.value, n.range);
+            className = strobj(nameNode.value);
+            nameRange = nameNode.range;
+        }
+
     }
     else {
         nameNode = CHILD(n, 2);

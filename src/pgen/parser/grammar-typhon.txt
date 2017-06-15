@@ -12,7 +12,7 @@ eval_input: testlist NEWLINE* ENDMARKER
 decorator: '@' dotted_name [ '(' [arglist] ')' ] NEWLINE
 decorators: decorator+
 decorated: decorators (classdef | funcdef)
-funcdef: ['export'] 'def' NAME parameters ['->' IfExpr] ':' suite
+funcdef: 'def' NAME parameters ['->' IfExpr] ':' suite
 parameters: '(' [varargslist] ')'
 varargslist: ((fpdef ['=' IfExpr] ',')* ('*' NAME [',' '**' NAME] | '**' NAME) | fpdef ['=' IfExpr] (',' fpdef ['=' IfExpr])* [','])
 fpdef: NAME | '(' fplist ')'
@@ -115,7 +115,7 @@ ExprList: ArithmeticExpr (',' ArithmeticExpr)* [',']
 testlist: IfExpr (',' IfExpr)* [',']
 dictmaker: IfExpr ':' IfExpr (',' IfExpr ':' IfExpr)* [',']
 
-classdef: ['export'] 'class' NAME ['(' [testlist] ')'] ':' suite
+classdef: 'class' NAME ['(' [testlist] ')'] ':' suite
 
 arglist: (argument ',')* (argument [','] |'*' IfExpr (',' argument)* [',' '**' IfExpr] |'**' IfExpr)
 argument: IfExpr [gen_for] | IfExpr '=' IfExpr  # Really [keyword '='] IfExpr

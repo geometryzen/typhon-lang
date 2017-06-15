@@ -399,13 +399,13 @@ describe('parse', function () {
             });
         });
 
-        describe("Exported function", function() {
+        xdescribe("Exported function", function() {
             const sourceText = [
                 "export def foo() -> GG:",
                 "   return 1"
             ].join('\n');
             const cst = parse(sourceText) as PyNode;
-            console.log(JSON.stringify(DECODE(cst), null, 2));
+            // console.log(JSON.stringify(DECODE(cst), null, 2));
             const ns = TERMS(cst);
 
             it("should have correct number of terminals", function() {

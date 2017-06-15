@@ -1,6 +1,6 @@
-import { OpMap, ParseTables } from './tables';
-import { IDXLAST } from '../common/tree';
-// import { assert } from './asserts';
+import { BeginTokens, Dfa, DfaAndBeginTokens, IDX_DFABT_DFA, IDX_DFABT_BEGIN_TOKENS } from './tables';
+import { Arc, ARC_SYMBOL_LABEL, ARC_TO_STATE, Grammar, OpMap, ParseTables } from './tables';
+import { assert } from '../common/asserts';
 import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
 import { tokenNames } from './tokenNames';
@@ -8,6 +8,7 @@ import { grammarName } from './grammarName';
 import { parseError } from '../common/syntaxError';
 import { Position } from '../common/Position';
 import { Range } from '../common/Range';
+import { splitSourceTextIntoLines } from './splitSourceTextIntoLines';
 
 // Dereference certain tokens for performance.
 const T_COMMENT = Tokens.T_COMMENT;
@@ -16,61 +17,6 @@ const T_NAME = Tokens.T_NAME;
 const T_NL = Tokens.T_NL;
 const T_NT_OFFSET = Tokens.T_NT_OFFSET;
 const T_OP = Tokens.T_OP;
-
-/**
- * Forget about the array wrapper!
- * An Arc is a two-part object consisting a ... and a to-state.
- */
-const ARC_SYMBOL_LABEL = 0;
-const ARC_TO_STATE = 1;
-export type Arc = [number, number];
-
-/**
- * Forget about the array wrapper!
- * A Dfa is a two-part object consisting of:
- * 1. A list of arcs for each state
- * 2. A mapping?
- * Interestingly, the second part does not seem to be used here.
- */
-const DFA_STATES = 0;
-// const DFA_SECOND = 1;
-export type Dfa = [Arc[][], { [value: number]: number }];
-
-/**
- * Describes the shape of the ParseTables objects (which needs to be renamed BTW).
- */
-export interface Grammar {
-    start: Tokens;
-    /**
-     *
-     */
-    dfas: { [value: number]: Dfa };
-    /**
-     * The first index is the symbol for a transition (a number).
-     * The second index is the haman-readable decode of the symbol, if it exists, otherwise `null`.
-     * Not all symbols have human-readable names.
-     * All symbols that have human-readable names are keywords, with one exception.
-     * The symbol 0 (zero) is an exceptional symbol and has the human-readavble name 'EMPTY'.
-     */
-    labels: [number, string | null][];
-    /**
-     * A mapping from a keyword to the symbol that has been assigned to it.
-     */
-    keywords: { [keyword: string]: number };
-    /**
-     * A mapping from a token to a symbol.
-     */
-    tokens: { [token: number]: number };
-    /**
-     * Actually maps from the node constructor name.
-     */
-    sym: { [name: string]: number };
-    /**
-     * A lookup table for converting the value in the `sym` mapping back to a string.
-     */
-    number2symbol: { [value: number]: string };
-    states: any;
-}
 
 /**
  * The first element is the line number.
@@ -95,9 +41,10 @@ export interface PyNode {
     children: PyNode[] | null;
 }
 
-export interface StackElement {
+interface StackElement {
     dfa: Dfa;
-    state: number;
+    beginTokens: BeginTokens;
+    stateId: number;
     node: PyNode;
 }
 
@@ -127,8 +74,9 @@ class Parser {
             children: []
         };
         const stackentry: StackElement = {
-            dfa: this.grammar.dfas[start],
-            state: 0,
+            dfa: this.grammar.dfas[start][IDX_DFABT_DFA],
+            beginTokens: this.grammar.dfas[start][IDX_DFABT_BEGIN_TOKENS],
+            stateId: 0,
             node: newnode
         };
         this.stack.push(stackentry);
@@ -157,11 +105,11 @@ class Parser {
         // This code is very performance sensitive.
         OUTERWHILE:
         while (true) {
-            let top = stack[stack.length - 1];
-            let states = top.dfa[DFA_STATES];
+            let stackTop = stack[stack.length - 1];
+            let dfa: Dfa = stackTop.dfa;
             // This is not being used. Why?
             // let first = tp.dfa[DFA_SECOND];
-            const arcs = states[top.state];
+            const arcs = dfa[stackTop.stateId];
 
             // look for a to-state with this label
             for (const arc of arcs) {
@@ -173,12 +121,12 @@ class Parser {
                 if (tokenSymbol === arcSymbol) {
                     this.shiftToken(type, value, newState, begin, end, line);
                     // pop while we are in an accept-only state
-                    let state = newState;
+                    let stateId = newState;
                     /**
                      * Temporary variable to save a few CPU cycles.
                      */
-                    let statesOfState: [number, number][] = states[state];
-                    while (statesOfState.length === 1 && statesOfState[0][ARC_SYMBOL_LABEL] === 0 && statesOfState[0][ARC_TO_STATE] === state) {
+                    let statesOfState: [number, number][] = dfa[stateId];
+                    while (statesOfState.length === 1 && statesOfState[0][ARC_SYMBOL_LABEL] === 0 && statesOfState[0][ARC_TO_STATE] === stateId) {
                         this.popNonTerminal();
                         // Much of the time we won't be done so cache the stack length.
                         const stackLength = stack.length;
@@ -187,28 +135,30 @@ class Parser {
                             return true;
                         }
                         else {
-                            top = stack[stackLength - 1];
-                            state = top.state;
-                            states = top.dfa[DFA_STATES];
+                            stackTop = stack[stackLength - 1];
+                            stateId = stackTop.stateId;
+                            dfa = stackTop.dfa;
+                            // first = stackTop.beginTokens;
                             // first = top.dfa[1];
-                            statesOfState = states[state];
+                            statesOfState = dfa[stateId];
                         }
                     }
                     // done with this token
                     return false;
                 }
                 else if (isNonTerminal(t)) {
-                    const dfa = dfas[t];
-                    const itsfirst = dfa[1];
-                    if (itsfirst.hasOwnProperty(tokenSymbol)) {
-                        this.pushNonTerminal(t, dfa, newState, begin, end, line);
+                    const dfabt: DfaAndBeginTokens = dfas[t];
+                    const dfa: Dfa = dfabt[IDX_DFABT_DFA];
+                    const beginTokens: BeginTokens = dfabt[IDX_DFABT_BEGIN_TOKENS];
+                    if (beginTokens.hasOwnProperty(tokenSymbol)) {
+                        this.pushNonTerminal(t, dfa, beginTokens, newState, begin, end, line);
                         continue OUTERWHILE;
                     }
                 }
             }
 
             // We've exhaused all the arcs for the for the state.
-            if (existsTransition(arcs, [T_ENDMARKER, top.state])) {
+            if (existsTransition(arcs, [T_ENDMARKER, stackTop.stateId])) {
                 // an accepting state, pop it and try something else
                 this.popNonTerminal();
                 if (stack.length === 0) {
@@ -216,7 +166,7 @@ class Parser {
                 }
             }
             else {
-                const found = grammarName(top.state);
+                const found = grammarName(stackTop.stateId);
                 // FIXME:
                 throw parseError(`Unexpected ${found} at ${JSON.stringify([begin[0], begin[1] + 1])}`, begin, end);
             }
@@ -232,7 +182,7 @@ class Parser {
      */
     private classify(type: Tokens, value: string, begin: LineColumn, end: LineColumn, line: string): number {
         // Assertion commented out for efficiency.
-        // assertTerminal(type);
+        assertTerminal(type);
         const g = this.grammar;
         if (type === T_NAME) {
             this.used_names[value] = true;
@@ -249,6 +199,7 @@ class Parser {
             ilabel = tokenToSymbol[type];
         }
         if (!ilabel) {
+            console.log(`ilabel = ${ilabel}, type = ${type}, value = ${value}, begin = ${JSON.stringify(begin)}, end = ${JSON.stringify(end)}`);
             throw parseError("bad token", begin, end);
         }
         return ilabel;
@@ -280,7 +231,7 @@ class Parser {
             node.children.push(newnode);
         }
 
-        stackTop.state = newState;
+        stackTop.stateId = newState;
     }
 
     /**
@@ -289,7 +240,7 @@ class Parser {
      * 2. Push a new element onto the stack corresponding to the symbol.
      * The new stack elements uses the newDfa and has state 0.
      */
-    private pushNonTerminal(type: number, newDfa: Dfa, newState: number, begin: LineColumn, end: LineColumn, line: string): void {
+    private pushNonTerminal(type: number, dfa: Dfa, beginTokens: BeginTokens, newState: number, begin: LineColumn, end: LineColumn, line: string): void {
         // Based on how this function is called, there is really no need for this assertion.
         // Retain it for now while it is not the performance bottleneck.
         // assertNonTerminal(type);
@@ -297,14 +248,14 @@ class Parser {
         const stack = this.stack;
         const stackTop = stack[stack.length - 1];
 
-        stackTop.state = newState;
+        stackTop.stateId = newState;
 
         const beginPos = begin ? new Position(begin[0], begin[1]) : null;
         const endPos = end ? new Position(end[0], end[1]) : null;
         const newnode: PyNode = { type, value: null, range: new Range(beginPos, endPos), children: [] };
 
         // TODO: Is there a symbolic constant for the zero state?
-        stack.push({ dfa: newDfa, state: 0, node: newnode });
+        stack.push({ dfa, beginTokens,  stateId: 0, node: newnode });
     }
 
     /**
@@ -454,21 +405,12 @@ export enum SourceKind {
 }
 
 export function parse(sourceText: string, sourceKind: SourceKind = SourceKind.File): boolean | PyNode {
-    const parseFunc = makeParser(sourceKind);
-    // sourceText.endsWith("\n");
-    // Why do we normalize the sourceText in this manner?
-    if (sourceText.substr(IDXLAST(sourceText), 1) !== "\n") {
-        sourceText += "\n";
-    }
-    // Splitting this ay will create a final line that is the zero-length string.
-    const lines = sourceText.split("\n");
+    const parser = makeParser(sourceKind);
+    const lines = splitSourceTextIntoLines(sourceText);
     // FIXME: Mixing the types this way is awkward for the consumer.
     let ret: boolean | PyNode = false;
-    const N = lines.length;
-    for (let i = 0; i < N; ++i) {
-        // FIXME: Lots of string creation going on here. Why?
-        // We're adding back newline characters for all but the last line.
-        ret = parseFunc(lines[i] + ((i === IDXLAST(lines)) ? "" : "\n"));
+    for (const line of lines) {
+        ret = parser(line);
     }
     return ret;
 }
@@ -499,11 +441,11 @@ export function cstDump(parseTree: PyNode): string {
  * Terminal symbols hsould be less than T_NT_OFFSET.
  * NT_OFFSET means non-terminal offset.
  */
-/*
+
 function assertTerminal(type: Tokens): void {
     assert(type < T_NT_OFFSET, "terminal symbols should be less than T_NT_OFFSET");
 }
-*/
+
 /*
 function assertNonTerminal(type: number): void {
     assert(isNonTerminal(type), "non terminal symbols should be greater than or equal to T_NT_OFFSET");
