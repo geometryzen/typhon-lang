@@ -132,7 +132,7 @@ export interface Grammar {
 /**
  *
  */
-export const ParseTables = {
+export const ParseTables: Grammar = {
 sym:
 {AndExpr: 257,
  ArithmeticExpr: 258,
