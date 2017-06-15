@@ -1,9 +1,7 @@
 /**
  * Null function used for default values of callbacks, etc.
  */
-/**
- * Null function used for default values of callbacks, etc.
- */ export function nullFunction() { }
+export function nullFunction() { }
 /**
  * When defining a class Foo with an abstract method bar(), you can do:
  * Foo.prototype.bar = base.abstractMethod

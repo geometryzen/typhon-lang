@@ -1,9 +1,7 @@
 /**
  * Symbolic constants for various Python Language tokens.
  */
-/**
- * Symbolic constants for various Python Language tokens.
- */ export var Tokens;
+export var Tokens;
 (function (Tokens) {
     Tokens[Tokens["T_ENDMARKER"] = 0] = "T_ENDMARKER";
     Tokens[Tokens["T_NAME"] = 1] = "T_NAME";

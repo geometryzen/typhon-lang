@@ -1,15 +1,13 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.typhon = global.typhon || {})));
+	(factory((global.typhonLang = global.typhonLang || {})));
 }(this, (function (exports) { 'use strict';
 
 /**
  * Symbolic constants for various Python Language tokens.
  */
-/**
- * Symbolic constants for various Python Language tokens.
- */ var Tokens;
+var Tokens;
 (function (Tokens) {
     Tokens[Tokens["T_ENDMARKER"] = 0] = "T_ENDMARKER";
     Tokens[Tokens["T_NAME"] = 1] = "T_NAME";
@@ -457,21 +455,21 @@ var ParseTables = {
                 29: 1,
                 32: 1,
                 37: 1 }],
-        276: [[[[77, 1]], [[78, 2], [79, 1], [0, 1]], [[49, 3]], [[0, 3]]],
+        276: [[[[77, 1]], [[78, 1], [79, 2], [0, 1]], [[49, 3]], [[0, 3]]],
             { 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 29: 1, 32: 1 }],
         277: [[[[80, 1]], [[81, 0], [82, 0], [0, 1]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
         278: [[[[25, 1], [6, 1], [37, 1], [83, 2]], [[49, 2]], [[0, 2]]],
             { 6: 1, 8: 1, 9: 1, 14: 1, 18: 1, 21: 1, 25: 1, 29: 1, 32: 1, 37: 1 }],
         279: [[[[26, 1]], [[58, 2], [0, 1]], [[0, 2]]], { 26: 1 }],
-        280: [[[[63, 1], [84, 2], [78, 3]],
+        280: [[[[63, 1], [84, 2], [79, 3]],
                 [[69, 4]],
                 [[57, 5], [0, 2]],
                 [[69, 6]],
                 [[57, 7], [0, 4]],
-                [[63, 1], [84, 2], [78, 3], [0, 5]],
+                [[63, 1], [84, 2], [79, 3], [0, 5]],
                 [[0, 6]],
-                [[84, 4], [78, 3]]],
+                [[84, 4], [79, 3]]],
             { 6: 1,
                 7: 1,
                 8: 1,
@@ -485,7 +483,7 @@ var ParseTables = {
                 32: 1,
                 37: 1,
                 63: 1,
-                78: 1 }],
+                79: 1 }],
         281: [[[[69, 1]], [[85, 2], [60, 3], [0, 1]], [[0, 2]], [[69, 2]]],
             { 6: 1,
                 7: 1,
@@ -564,10 +562,10 @@ var ParseTables = {
         289: [[[[115, 1]], [[113, 2], [110, 2]], [[0, 2]]], { 35: 1 }],
         290: [[[[35, 1]],
                 [[116, 2]],
-                [[2, 4], [29, 3]],
+                [[29, 4], [2, 3]],
+                [[0, 3]],
                 [[43, 5], [117, 6]],
-                [[0, 4]],
-                [[2, 4]],
+                [[2, 3]],
                 [[43, 5]]],
             { 35: 1 }],
         291: [[[[118, 1]], [[118, 1], [0, 1]]], { 35: 1 }],
@@ -675,11 +673,11 @@ var ParseTables = {
         306: [[[[4, 1]],
                 [[21, 2]],
                 [[132, 3]],
-                [[72, 4], [133, 5]],
-                [[98, 6]],
-                [[69, 7]],
-                [[0, 6]],
-                [[72, 4]]],
+                [[133, 4], [72, 5]],
+                [[69, 6]],
+                [[98, 7]],
+                [[72, 5]],
+                [[0, 7]]],
             { 4: 1 }],
         307: [[[[28, 1]],
                 [[119, 2]],
@@ -702,7 +700,7 @@ var ParseTables = {
         311: [[[[30, 1]],
                 [[138, 2]],
                 [[24, 3]],
-                [[139, 4], [29, 5], [63, 4]],
+                [[63, 4], [29, 5], [139, 4]],
                 [[0, 4]],
                 [[139, 6]],
                 [[43, 4]]],
@@ -737,7 +735,7 @@ var ParseTables = {
                 37: 1 }],
         318: [[[[11, 1]], [[72, 2], [73, 3]], [[135, 4]], [[72, 2]], [[0, 4]]],
             { 11: 1 }],
-        319: [[[[67, 1], [147, 1]], [[0, 1]]],
+        319: [[[[147, 1], [67, 1]], [[0, 1]]],
             { 6: 1,
                 7: 1,
                 8: 1,
@@ -1021,17 +1019,17 @@ var ParseTables = {
                 [[98, 12]],
                 [[166, 5], [0, 12]]],
             { 15: 1 }],
-        338: [[[[63, 1], [131, 2], [78, 3]],
+        338: [[[[63, 1], [131, 2], [79, 3]],
                 [[21, 4]],
                 [[60, 5], [57, 6], [0, 2]],
                 [[21, 7]],
                 [[57, 8], [0, 4]],
                 [[69, 9]],
-                [[63, 1], [131, 2], [78, 3], [0, 6]],
+                [[63, 1], [131, 2], [79, 3], [0, 6]],
                 [[0, 7]],
-                [[78, 3]],
+                [[79, 3]],
                 [[57, 6], [0, 9]]],
-            { 21: 1, 29: 1, 63: 1, 78: 1 }],
+            { 21: 1, 29: 1, 63: 1, 79: 1 }],
         339: [[[[17, 1]],
                 [[69, 2]],
                 [[72, 3]],
@@ -1090,18 +1088,18 @@ var ParseTables = {
         [[[13, 1]], [[21, 2]], [[57, 1], [0, 2]]],
         [[[7, 1], [74, 2]], [[38, 2]], [[0, 2]]],
         [[[75, 1]], [[76, 0], [0, 1]]],
-        [[[77, 1]], [[78, 2], [79, 1], [0, 1]], [[49, 3]], [[0, 3]]],
+        [[[77, 1]], [[78, 1], [79, 2], [0, 1]], [[49, 3]], [[0, 3]]],
         [[[80, 1]], [[81, 0], [82, 0], [0, 1]]],
         [[[25, 1], [6, 1], [37, 1], [83, 2]], [[49, 2]], [[0, 2]]],
         [[[26, 1]], [[58, 2], [0, 1]], [[0, 2]]],
-        [[[63, 1], [84, 2], [78, 3]],
+        [[[63, 1], [84, 2], [79, 3]],
             [[69, 4]],
             [[57, 5], [0, 2]],
             [[69, 6]],
             [[57, 7], [0, 4]],
-            [[63, 1], [84, 2], [78, 3], [0, 5]],
+            [[63, 1], [84, 2], [79, 3], [0, 5]],
             [[0, 6]],
-            [[84, 4], [78, 3]]],
+            [[84, 4], [79, 3]]],
         [[[69, 1]], [[85, 2], [60, 3], [0, 1]], [[0, 2]], [[69, 2]]],
         [[[20, 1]], [[69, 2]], [[57, 3], [0, 2]], [[69, 4]], [[0, 4]]],
         [[[86, 1],
@@ -1152,10 +1150,10 @@ var ParseTables = {
         [[[115, 1]], [[113, 2], [110, 2]], [[0, 2]]],
         [[[35, 1]],
             [[116, 2]],
-            [[2, 4], [29, 3]],
+            [[29, 4], [2, 3]],
+            [[0, 3]],
             [[43, 5], [117, 6]],
-            [[0, 4]],
-            [[2, 4]],
+            [[2, 3]],
             [[43, 5]]],
         [[[118, 1]], [[118, 1], [0, 1]]],
         [[[22, 1]], [[119, 2]], [[0, 2]]],
@@ -1194,11 +1192,11 @@ var ParseTables = {
         [[[4, 1]],
             [[21, 2]],
             [[132, 3]],
-            [[72, 4], [133, 5]],
-            [[98, 6]],
-            [[69, 7]],
-            [[0, 6]],
-            [[72, 4]]],
+            [[133, 4], [72, 5]],
+            [[69, 6]],
+            [[98, 7]],
+            [[72, 5]],
+            [[0, 7]]],
         [[[28, 1]], [[119, 2]], [[102, 3]], [[67, 4]], [[134, 5], [0, 4]], [[0, 5]]],
         [[[31, 1]], [[135, 2]], [[134, 3], [0, 2]], [[0, 3]]],
         [[[85, 1], [136, 1]], [[0, 1]]],
@@ -1213,7 +1211,7 @@ var ParseTables = {
         [[[30, 1]],
             [[138, 2]],
             [[24, 3]],
-            [[139, 4], [29, 5], [63, 4]],
+            [[63, 4], [29, 5], [139, 4]],
             [[0, 4]],
             [[139, 6]],
             [[43, 4]]],
@@ -1228,7 +1226,7 @@ var ParseTables = {
             [[69, 4], [0, 3]],
             [[57, 3], [0, 4]]],
         [[[11, 1]], [[72, 2], [73, 3]], [[135, 4]], [[72, 2]], [[0, 4]]],
-        [[[67, 1], [147, 1]], [[0, 1]]],
+        [[[147, 1], [67, 1]], [[0, 1]]],
         [[[29, 1]], [[43, 2], [73, 3]], [[0, 2]], [[43, 2]]],
         [[[23, 1]], [[0, 1]]],
         [[[12, 1]],
@@ -1303,15 +1301,15 @@ var ParseTables = {
             [[72, 11]],
             [[98, 12]],
             [[166, 5], [0, 12]]],
-        [[[63, 1], [131, 2], [78, 3]],
+        [[[63, 1], [131, 2], [79, 3]],
             [[21, 4]],
             [[60, 5], [57, 6], [0, 2]],
             [[21, 7]],
             [[57, 8], [0, 4]],
             [[69, 9]],
-            [[63, 1], [131, 2], [78, 3], [0, 6]],
+            [[63, 1], [131, 2], [79, 3], [0, 6]],
             [[0, 7]],
-            [[78, 3]],
+            [[79, 3]],
             [[57, 6], [0, 9]]],
         [[[17, 1]],
             [[69, 2]],
@@ -1402,8 +1400,8 @@ var ParseTables = {
         [257, null],
         [1, 'or'],
         [259, null],
-        [36, null],
         [336, null],
+        [36, null],
         [261, null],
         [35, null],
         [34, null],
@@ -1419,9 +1417,9 @@ var ParseTables = {
         [37, null],
         [44, null],
         [49, null],
-        [45, null],
-        [38, null],
         [40, null],
+        [38, null],
+        [45, null],
         [331, null],
         [29, null],
         [21, null],
@@ -1474,11 +1472,11 @@ var ParseTables = {
         [318, null],
         [327, null],
         [13, null],
+        [273, null],
         [302, null],
-        [267, null],
         [265, null],
         [321, null],
-        [273, null],
+        [267, null],
         [322, null],
         [292, null],
         [300, null],
@@ -1560,16 +1558,16 @@ var ParseTables = {
         33: 54,
         34: 82,
         35: 81,
-        36: 78,
+        36: 79,
         37: 92,
         38: 96,
         39: 87,
-        40: 97,
+        40: 95,
         41: 88,
         42: 90,
         43: 91,
         44: 93,
-        45: 95,
+        45: 97,
         46: 86,
         47: 89,
         48: 62,
@@ -1583,9 +1581,7 @@ var ParseTables = {
 /**
  * We're looking for something that is truthy, not just true.
  */
-/**
- * We're looking for something that is truthy, not just true.
- */ function assert(condition, message) {
+function assert(condition, message) {
     if (!condition) {
         throw new Error(message);
     }
@@ -1597,9 +1593,7 @@ function fail(message) {
 /**
  * Null function used for default values of callbacks, etc.
  */
-/**
- * Null function used for default values of callbacks, etc.
- */ 
+
 /**
  * When defining a class Foo with an abstract method bar(), you can do:
  * Foo.prototype.bar = base.abstractMethod
@@ -5977,18 +5971,18 @@ function astDump(node) {
 }
 
 /* Flags for def-use information */
-/* Flags for def-use information */ var DEF_GLOBAL = 1 << 0; /* global stmt */
-/* global stmt */ var DEF_LOCAL = 2 << 0; /* assignment in code block */
-/* assignment in code block */ var DEF_PARAM = 2 << 1; /* formal parameter */
-/* formal parameter */ var USE = 2 << 2; /* name is used */
-/* name is used */  /* parameter is star arg */
-/* parameter is star arg */  /* parameter is star-star arg */
-/* parameter is star-star arg */  /* name defined in tuple in parameters */
-/* name defined in tuple in parameters */  /* name used but not defined in nested block */
-/* name used but not defined in nested block */  /* free variable is actually implicit global */
-/* free variable is actually implicit global */ var DEF_FREE_CLASS = 2 << 8; /* free variable from class's method */
-/* free variable from class's method */ var DEF_IMPORT = 2 << 9; /* assignment occurred via import */
-/* assignment occurred via import */ var DEF_BOUND = (DEF_LOCAL | DEF_PARAM | DEF_IMPORT);
+var DEF_GLOBAL = 1 << 0; /* global stmt */
+var DEF_LOCAL = 2 << 0; /* assignment in code block */
+var DEF_PARAM = 2 << 1; /* formal parameter */
+var USE = 2 << 2; /* name is used */
+ /* parameter is star arg */
+ /* parameter is star-star arg */
+ /* name defined in tuple in parameters */
+ /* name used but not defined in nested block */
+ /* free variable is actually implicit global */
+var DEF_FREE_CLASS = 2 << 8; /* free variable from class's method */
+var DEF_IMPORT = 2 << 9; /* assignment occurred via import */
+var DEF_BOUND = (DEF_LOCAL | DEF_PARAM | DEF_IMPORT);
 /* GLOBAL_EXPLICIT and GLOBAL_IMPLICIT are used internally by the symbol
    table.  GLOBAL is returned from PyST_GetScope() for either of them.
    It is stored in ste_symbols at bits 12-14.
@@ -6005,7 +5999,7 @@ var CELL = 5;
 
 
  /* top-level names, including eval and exec */
-/* top-level names, including eval and exec */ 
+
 
 var ModuleBlock = 'module';
 var FunctionBlock = 'function';
@@ -6023,10 +6017,7 @@ function dictUpdate(a, b) {
  * @param priv
  * @param name
  */
-/**
- * @param priv
- * @param name
- */ function mangleName(priv, name) {
+function mangleName(priv, name) {
     var strpriv = null;
     if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_') {
         return name;
