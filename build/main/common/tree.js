@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var asserts_1 = require("./asserts");
 /**
  * Returns the number of children in the specified node.
+ * Returns n.children.length
  */
 function NCH(n) {
     asserts_1.assert(n !== undefined);

@@ -152,7 +152,8 @@ export declare class FunctionDef extends Statement {
     body: Statement[];
     decorator_list: Decorator[];
     scopeId: number;
-    constructor(name: RangeAnnotated<string>, args: Arguments, body: Statement[], decorator_list: Decorator[], range?: Range);
+    returnType: Expression;
+    constructor(name: RangeAnnotated<string>, args: Arguments, body: Statement[], returnType: Expression, decorator_list: Decorator[], range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class ClassDef extends Statement {

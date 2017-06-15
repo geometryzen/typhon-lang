@@ -383,6 +383,39 @@ describe('parse', function () {
         });
     });
 
+    describe('funcDef', function () {
+
+        describe("Return typed function", function () {
+            const sourceText = [
+                "def foo() -> GG: xyz"
+            ].join('\n');
+            const cst = parse(sourceText) as PyNode;
+            // console.lg(JSON.stringify(DECODE(cst), null, 2));
+            const ns = TERMS(cst);
+
+            it("should have correct number of terminals", function () {
+                expect(Array.isArray(ns)).toBeTruthy();
+                expect(ns.length).toBe(10);
+            });
+        });
+
+        xdescribe("Exported function", function() {
+            const sourceText = [
+                "export def foo() -> GG:",
+                "   return 1"
+            ].join('\n');
+            const cst = parse(sourceText) as PyNode;
+            // console.log(JSON.stringify(DECODE(cst), null, 2));
+            const ns = TERMS(cst);
+
+            it("should have correct number of terminals", function() {
+                expect(ns.length).toBe(15);
+            });
+        });
+
+
+    });
+
     describe('Unary Plus', function () {
         const cst = parse('+a') as PyNode;
         // console.lg(JSON.stringify(DECODE(cst), null, 2));

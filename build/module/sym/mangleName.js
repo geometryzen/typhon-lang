@@ -2,10 +2,7 @@
  * @param priv
  * @param name
  */
-/**
- * @param priv
- * @param name
- */ export function mangleName(priv, name) {
+export function mangleName(priv, name) {
     var strpriv = null;
     if (priv === null || name === null || name.charAt(0) !== '_' || name.charAt(1) !== '_') {
         return name;

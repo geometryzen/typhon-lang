@@ -1,54 +1,5 @@
 import { Tokens } from './Tokens';
 import { Range } from '../common/Range';
-export declare type Arc = [number, number];
-export declare type Dfa = [Arc[][], {
-    [value: number]: number;
-}];
-/**
- * Describes the shape of the ParseTables objects (which needs to be renamed BTW).
- */
-export interface Grammar {
-    start: Tokens;
-    /**
-     *
-     */
-    dfas: {
-        [value: number]: Dfa;
-    };
-    /**
-     * The first index is the symbol for a transition (a number).
-     * The second index is the haman-readable decode of the symbol, if it exists, otherwise `null`.
-     * Not all symbols have human-readable names.
-     * All symbols that have human-readable names are keywords, with one exception.
-     * The symbol 0 (zero) is an exceptional symbol and has the human-readavble name 'EMPTY'.
-     */
-    labels: [number, string | null][];
-    /**
-     * A mapping from a keyword to the symbol that has been assigned to it.
-     */
-    keywords: {
-        [keyword: string]: number;
-    };
-    /**
-     * A mapping from a token to a symbol.
-     */
-    tokens: {
-        [token: number]: number;
-    };
-    /**
-     * Actually maps from the node constructor name.
-     */
-    sym: {
-        [name: string]: number;
-    };
-    /**
-     * A lookup table for converting the value in the `sym` mapping back to a string.
-     */
-    number2symbol: {
-        [value: number]: string;
-    };
-    states: any;
-}
 /**
  * The first element is the line number.
  * The line number is 1-based.
@@ -71,11 +22,6 @@ export interface PyNode {
         [name: string]: boolean;
     };
     children: PyNode[] | null;
-}
-export interface StackElement {
-    dfa: Dfa;
-    state: number;
-    node: PyNode;
 }
 /**
  * Determines the starting point in the grammar for parsing the source.

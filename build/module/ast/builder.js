@@ -1142,37 +1142,108 @@ function astForArguments(c, n) {
     return new Arguments(args, vararg, kwarg, defaults);
 }
 function astForFuncdef(c, n, decoratorSeq) {
-    /* funcdef: 'def' NAME parameters ':' suite */
+    /**
+     * funcdef: ['export'] def' NAME parameters ['->' IfExpr] ':' suite
+     */
     REQ(n, SYM.funcdef);
-    var ch1 = CHILD(n, 1);
-    var name = strobj(ch1.value);
-    forbiddenCheck(c, ch1, name, n.range);
-    var args = astForArguments(c, CHILD(n, 2));
-    var body = astForSuite(c, CHILD(n, 4));
-    return new FunctionDef(new RangeAnnotated(name, ch1.range), args, body, decoratorSeq, n.range);
+    var numberOfChildren = NCH(n);
+    var ch1;
+    var name;
+    var args;
+    // Name and args are 1 node further if 'export' exists
+    if (numberOfChildren !== 8 && numberOfChildren !== 6) {
+        ch1 = CHILD(n, 1);
+        name = strobj(ch1.value);
+        forbiddenCheck(c, ch1, name, n.range);
+        args = astForArguments(c, CHILD(n, 2));
+    }
+    else {
+        ch1 = CHILD(n, 2);
+        name = strobj(ch1.value);
+        forbiddenCheck(c, ch1, name, n.range);
+        args = astForArguments(c, CHILD(n, 3));
+    }
+    // suite is either 4, 6 or 7, depending on whether functype exists
+    var body;
+    var returnType;
+    // Neither Export nor FuncType exist
+    if (numberOfChildren === 5) {
+        body = astForSuite(c, CHILD(n, 4));
+        returnType = null;
+    }
+    else if (numberOfChildren === 6) {
+        body = astForSuite(c, CHILD(n, 5));
+        returnType = null;
+    }
+    else if (numberOfChildren === 7) {
+        returnType = astForExpr(c, CHILD(n, 4));
+        body = astForSuite(c, CHILD(n, 6));
+    }
+    else if (numberOfChildren === 8) {
+        returnType = astForExpr(c, CHILD(n, 5));
+        body = astForSuite(c, CHILD(n, 7));
+    }
+    else {
+        fail("Was expecting 5, 7 or 8 children, received " + numberOfChildren + " children");
+    }
+    return new FunctionDef(new RangeAnnotated(name, ch1.range), args, body, returnType, decoratorSeq, n.range);
 }
 function astForClassBases(c, n) {
-    assert(NCH(n) > 0);
+    var numberOfChildren = NCH(n);
+    assert(numberOfChildren > 0);
     REQ(n, SYM.testlist);
-    if (NCH(n) === 1) {
+    if (numberOfChildren === 1) {
         return [astForExpr(c, CHILD(n, 0))];
     }
     return seqForTestlist(c, n);
 }
 function astForClassdef(c, node, decoratorSeq) {
+    /**
+     * ['export'] 'class' NAME ['(' [testlist] ')'] ':' suite
+     */
     var n = node;
+    var numberOfChildren = NCH(n);
     REQ(n, SYM.classdef);
-    var c1 = CHILD(n, 1);
-    forbiddenCheck(c, n, c1.value, n.range);
-    var className = strobj(c1.value);
-    var nameRange = c1.range;
-    if (NCH(n) === 4) {
+    var nameNode;
+    var className;
+    var nameRange;
+    if (numberOfChildren !== 5 && numberOfChildren !== 8) {
+        if (numberOfChildren !== 7 || CHILD(n, 4).type !== TOK.T_RPAR) {
+            nameNode = CHILD(n, 1);
+            forbiddenCheck(c, n, nameNode.value, n.range);
+            className = strobj(nameNode.value);
+            nameRange = nameNode.range;
+        }
+    }
+    else {
+        nameNode = CHILD(n, 2);
+        forbiddenCheck(c, n, nameNode.value, n.range);
+        className = strobj(nameNode.value);
+        nameRange = nameNode.range;
+    }
+    // If grammar looks like 'class NAME : suite'
+    if (numberOfChildren === 4) {
         return new ClassDef(new RangeAnnotated(className, nameRange), [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
     }
+    // If grammar looks like 'export class NAME : suite'
+    if (numberOfChildren === 5) {
+        // temp
+    }
+    // If grammar looks like 'export class NAME '(' ')' : suite'
+    if (numberOfChildren === 7 && CHILD(n, 3).type !== TOK.T_RPAR) {
+        // temp
+    }
+    // If grammar looks like 'export class NAME '(' testlist ')' : suite '
+    if (numberOfChildren === 8) {
+        // temp
+    }
     var c3 = CHILD(n, 3);
+    // If grammar looks like 'class NAME '(' ')' : suite'
     if (c3.type === TOK.T_RPAR) {
         return new ClassDef(new RangeAnnotated(className, nameRange), [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
     }
+    // Otherwise grammar looks like 'class NAME '(' testlist ')' : suite'
+    // ClassBases are 'testlist'
     var bases = astForClassBases(c, c3);
     var s = astForSuite(c, CHILD(n, 6));
     return new ClassDef(new RangeAnnotated(className, nameRange), bases, s, decoratorSeq, n.range);

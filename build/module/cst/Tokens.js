@@ -1,9 +1,7 @@
 /**
  * Symbolic constants for various Python Language tokens.
  */
-/**
- * Symbolic constants for various Python Language tokens.
- */ export var Tokens;
+export var Tokens;
 (function (Tokens) {
     Tokens[Tokens["T_ENDMARKER"] = 0] = "T_ENDMARKER";
     Tokens[Tokens["T_NAME"] = 1] = "T_NAME";
@@ -56,11 +54,14 @@
     Tokens[Tokens["T_DOUBLESLASH"] = 48] = "T_DOUBLESLASH";
     Tokens[Tokens["T_DOUBLESLASHEQUAL"] = 49] = "T_DOUBLESLASHEQUAL";
     Tokens[Tokens["T_AT"] = 50] = "T_AT";
-    Tokens[Tokens["T_OP"] = 51] = "T_OP";
-    Tokens[Tokens["T_COMMENT"] = 52] = "T_COMMENT";
-    Tokens[Tokens["T_NL"] = 53] = "T_NL";
-    Tokens[Tokens["T_RARROW"] = 54] = "T_RARROW";
-    Tokens[Tokens["T_ERRORTOKEN"] = 55] = "T_ERRORTOKEN";
-    Tokens[Tokens["T_N_TOKENS"] = 56] = "T_N_TOKENS";
+    Tokens[Tokens["T_ATEQUAL"] = 51] = "T_ATEQUAL";
+    Tokens[Tokens["T_OP"] = 52] = "T_OP";
+    Tokens[Tokens["T_COMMENT"] = 53] = "T_COMMENT";
+    Tokens[Tokens["T_NL"] = 54] = "T_NL";
+    Tokens[Tokens["T_RARROW"] = 55] = "T_RARROW";
+    Tokens[Tokens["T_AWAIT"] = 56] = "T_AWAIT";
+    Tokens[Tokens["T_ASYNC"] = 57] = "T_ASYNC";
+    Tokens[Tokens["T_ERRORTOKEN"] = 58] = "T_ERRORTOKEN";
+    Tokens[Tokens["T_N_TOKENS"] = 59] = "T_N_TOKENS";
     Tokens[Tokens["T_NT_OFFSET"] = 256] = "T_NT_OFFSET";
 })(Tokens || (Tokens = {}));

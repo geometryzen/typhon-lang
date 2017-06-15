@@ -4,6 +4,7 @@ export interface Tree {
 }
 /**
  * Returns the number of children in the specified node.
+ * Returns n.children.length
  */
 export declare function NCH<T extends Tree>(n: T): number;
 export declare function CHILD<T extends Tree>(n: T, i: number): T;

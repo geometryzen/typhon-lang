@@ -178,12 +178,14 @@ export class FunctionDef extends Statement {
     body: Statement[];
     decorator_list: Decorator[];
     scopeId: number;
-    constructor(name: RangeAnnotated<string>, args: Arguments, body: Statement[], decorator_list: Decorator[], public readonly range?: Range) {
+    returnType: Expression;
+    constructor(name: RangeAnnotated<string>, args: Arguments, body: Statement[], returnType: Expression, decorator_list: Decorator[], public readonly range?: Range) {
         super();
         this.name = name;
         this.args = args;
         this.body = body;
         this.decorator_list = decorator_list;
+        this.returnType = returnType;
     }
     accept(visitor: Visitor): void {
         visitor.functionDef(this);
@@ -840,6 +842,7 @@ FunctionDef.prototype['_fields'] = [
     'name', function (n: FunctionDef) { return n.name.value; },
     'args', function (n: FunctionDef) { return n.args; },
     'body', function (n: FunctionDef) { return n.body; },
+    'returnType', function (n: FunctionDef) { return n.returnType; },
     'decorator_list', function (n: FunctionDef) { return n.decorator_list; }
 ];
 ClassDef.prototype['_astname'] = 'ClassDef';

@@ -1,6 +1,6 @@
-import { OpMap, ParseTables } from './tables';
-import { IDXLAST } from '../common/tree';
-// import { assert } from './asserts';
+import { IDX_DFABT_DFA, IDX_DFABT_BEGIN_TOKENS } from './tables';
+import { ARC_SYMBOL_LABEL, ARC_TO_STATE, OpMap, ParseTables } from './tables';
+import { assert } from '../common/asserts';
 import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
 import { tokenNames } from './tokenNames';
@@ -8,6 +8,7 @@ import { grammarName } from './grammarName';
 import { parseError } from '../common/syntaxError';
 import { Position } from '../common/Position';
 import { Range } from '../common/Range';
+import { splitSourceTextIntoLines } from './splitSourceTextIntoLines';
 // Dereference certain tokens for performance.
 var T_COMMENT = Tokens.T_COMMENT;
 var T_ENDMARKER = Tokens.T_ENDMARKER;
@@ -15,20 +16,6 @@ var T_NAME = Tokens.T_NAME;
 var T_NL = Tokens.T_NL;
 var T_NT_OFFSET = Tokens.T_NT_OFFSET;
 var T_OP = Tokens.T_OP;
-/**
- * Forget about the array wrapper!
- * An Arc is a two-part object consisting a ... and a to-state.
- */
-var ARC_SYMBOL_LABEL = 0;
-var ARC_TO_STATE = 1;
-/**
- * Forget about the array wrapper!
- * A Dfa is a two-part object consisting of:
- * 1. A list of arcs for each state
- * 2. A mapping?
- * Interestingly, the second part does not seem to be used here.
- */
-var DFA_STATES = 0;
 // low level parser to a concrete syntax tree, derived from cpython's lib2to3
 // TODO: The parser does not report whitespace nodes.
 // It would be nice if there were an ignoreWhitespace option.
@@ -50,8 +37,9 @@ var Parser = (function () {
             children: []
         };
         var stackentry = {
-            dfa: this.grammar.dfas[start],
-            state: 0,
+            dfa: this.grammar.dfas[start][IDX_DFABT_DFA],
+            beginTokens: this.grammar.dfas[start][IDX_DFABT_BEGIN_TOKENS],
+            stateId: 0,
             node: newnode
         };
         this.stack.push(stackentry);
@@ -77,11 +65,11 @@ var Parser = (function () {
         var labels = g.labels;
         // This code is very performance sensitive.
         OUTERWHILE: while (true) {
-            var top_1 = stack[stack.length - 1];
-            var states = top_1.dfa[DFA_STATES];
+            var stackTop = stack[stack.length - 1];
+            var dfa = stackTop.dfa;
             // This is not being used. Why?
             // let first = tp.dfa[DFA_SECOND];
-            var arcs = states[top_1.state];
+            var arcs = dfa[stackTop.stateId];
             // look for a to-state with this label
             for (var _i = 0, arcs_1 = arcs; _i < arcs_1.length; _i++) {
                 var arc = arcs_1[_i];
@@ -93,12 +81,12 @@ var Parser = (function () {
                 if (tokenSymbol === arcSymbol) {
                     this.shiftToken(type, value, newState, begin, end, line);
                     // pop while we are in an accept-only state
-                    var state = newState;
+                    var stateId = newState;
                     /**
                      * Temporary variable to save a few CPU cycles.
                      */
-                    var statesOfState = states[state];
-                    while (statesOfState.length === 1 && statesOfState[0][ARC_SYMBOL_LABEL] === 0 && statesOfState[0][ARC_TO_STATE] === state) {
+                    var statesOfState = dfa[stateId];
+                    while (statesOfState.length === 1 && statesOfState[0][ARC_SYMBOL_LABEL] === 0 && statesOfState[0][ARC_TO_STATE] === stateId) {
                         this.popNonTerminal();
                         // Much of the time we won't be done so cache the stack length.
                         var stackLength = stack.length;
@@ -107,27 +95,29 @@ var Parser = (function () {
                             return true;
                         }
                         else {
-                            top_1 = stack[stackLength - 1];
-                            state = top_1.state;
-                            states = top_1.dfa[DFA_STATES];
+                            stackTop = stack[stackLength - 1];
+                            stateId = stackTop.stateId;
+                            dfa = stackTop.dfa;
+                            // first = stackTop.beginTokens;
                             // first = top.dfa[1];
-                            statesOfState = states[state];
+                            statesOfState = dfa[stateId];
                         }
                     }
                     // done with this token
                     return false;
                 }
                 else if (isNonTerminal(t)) {
-                    var dfa = dfas[t];
-                    var itsfirst = dfa[1];
-                    if (itsfirst.hasOwnProperty(tokenSymbol)) {
-                        this.pushNonTerminal(t, dfa, newState, begin, end, line);
+                    var dfabt = dfas[t];
+                    var dfa_1 = dfabt[IDX_DFABT_DFA];
+                    var beginTokens = dfabt[IDX_DFABT_BEGIN_TOKENS];
+                    if (beginTokens.hasOwnProperty(tokenSymbol)) {
+                        this.pushNonTerminal(t, dfa_1, beginTokens, newState, begin, end, line);
                         continue OUTERWHILE;
                     }
                 }
             }
             // We've exhaused all the arcs for the for the state.
-            if (existsTransition(arcs, [T_ENDMARKER, top_1.state])) {
+            if (existsTransition(arcs, [T_ENDMARKER, stackTop.stateId])) {
                 // an accepting state, pop it and try something else
                 this.popNonTerminal();
                 if (stack.length === 0) {
@@ -135,7 +125,7 @@ var Parser = (function () {
                 }
             }
             else {
-                var found = grammarName(top_1.state);
+                var found = grammarName(stackTop.stateId);
                 // FIXME:
                 throw parseError("Unexpected " + found + " at " + JSON.stringify([begin[0], begin[1] + 1]), begin, end);
             }
@@ -150,7 +140,7 @@ var Parser = (function () {
      */
     Parser.prototype.classify = function (type, value, begin, end, line) {
         // Assertion commented out for efficiency.
-        // assertTerminal(type);
+        assertTerminal(type);
         var g = this.grammar;
         if (type === T_NAME) {
             this.used_names[value] = true;
@@ -167,6 +157,7 @@ var Parser = (function () {
             ilabel = tokenToSymbol[type];
         }
         if (!ilabel) {
+            console.log("ilabel = " + ilabel + ", type = " + type + ", value = " + value + ", begin = " + JSON.stringify(begin) + ", end = " + JSON.stringify(end));
             throw parseError("bad token", begin, end);
         }
         return ilabel;
@@ -195,7 +186,7 @@ var Parser = (function () {
         if (newnode && node.children) {
             node.children.push(newnode);
         }
-        stackTop.state = newState;
+        stackTop.stateId = newState;
     };
     /**
      * Push a non-terminal symbol onto the stack as a new node.
@@ -203,19 +194,19 @@ var Parser = (function () {
      * 2. Push a new element onto the stack corresponding to the symbol.
      * The new stack elements uses the newDfa and has state 0.
      */
-    Parser.prototype.pushNonTerminal = function (type, newDfa, newState, begin, end, line) {
+    Parser.prototype.pushNonTerminal = function (type, dfa, beginTokens, newState, begin, end, line) {
         // Based on how this function is called, there is really no need for this assertion.
         // Retain it for now while it is not the performance bottleneck.
         // assertNonTerminal(type);
         // Local variable for efficiency.
         var stack = this.stack;
         var stackTop = stack[stack.length - 1];
-        stackTop.state = newState;
+        stackTop.stateId = newState;
         var beginPos = begin ? new Position(begin[0], begin[1]) : null;
         var endPos = end ? new Position(end[0], end[1]) : null;
         var newnode = { type: type, value: null, range: new Range(beginPos, endPos), children: [] };
         // TODO: Is there a symbolic constant for the zero state?
-        stack.push({ dfa: newDfa, state: 0, node: newnode });
+        stack.push({ dfa: dfa, beginTokens: beginTokens, stateId: 0, node: newnode });
     };
     /**
      * Pop a nonterminal.
@@ -360,21 +351,13 @@ export var SourceKind;
 })(SourceKind || (SourceKind = {}));
 export function parse(sourceText, sourceKind) {
     if (sourceKind === void 0) { sourceKind = SourceKind.File; }
-    var parseFunc = makeParser(sourceKind);
-    // sourceText.endsWith("\n");
-    // Why do we normalize the sourceText in this manner?
-    if (sourceText.substr(IDXLAST(sourceText), 1) !== "\n") {
-        sourceText += "\n";
-    }
-    // Splitting this ay will create a final line that is the zero-length string.
-    var lines = sourceText.split("\n");
+    var parser = makeParser(sourceKind);
+    var lines = splitSourceTextIntoLines(sourceText);
     // FIXME: Mixing the types this way is awkward for the consumer.
     var ret = false;
-    var N = lines.length;
-    for (var i = 0; i < N; ++i) {
-        // FIXME: Lots of string creation going on here. Why?
-        // We're adding back newline characters for all but the last line.
-        ret = parseFunc(lines[i] + ((i === IDXLAST(lines)) ? "" : "\n"));
+    for (var _i = 0, lines_1 = lines; _i < lines_1.length; _i++) {
+        var line = lines_1[_i];
+        ret = parser(line);
     }
     return ret;
 }
@@ -403,11 +386,9 @@ export function cstDump(parseTree) {
  * Terminal symbols hsould be less than T_NT_OFFSET.
  * NT_OFFSET means non-terminal offset.
  */
-/*
-function assertTerminal(type: Tokens): void {
+function assertTerminal(type) {
     assert(type < T_NT_OFFSET, "terminal symbols should be less than T_NT_OFFSET");
 }
-*/
 /*
 function assertNonTerminal(type: number): void {
     assert(isNonTerminal(type), "non terminal symbols should be greater than or equal to T_NT_OFFSET");

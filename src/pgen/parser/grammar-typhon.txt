@@ -12,7 +12,7 @@ eval_input: testlist NEWLINE* ENDMARKER
 decorator: '@' dotted_name [ '(' [arglist] ')' ] NEWLINE
 decorators: decorator+
 decorated: decorators (classdef | funcdef)
-funcdef: 'def' NAME parameters ':' suite
+funcdef: 'def' NAME parameters ['->' IfExpr] ':' suite
 parameters: '(' [varargslist] ')'
 varargslist: ((fpdef ['=' IfExpr] ',')* ('*' NAME [',' '**' NAME] | '**' NAME) | fpdef ['=' IfExpr] (',' fpdef ['=' IfExpr])* [','])
 fpdef: NAME | '(' fplist ')'
