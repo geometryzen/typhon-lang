@@ -1290,21 +1290,51 @@ function astForClassBases(c: Compiling, n: PyNode): Expression[] {
 }
 
 function astForClassdef(c: Compiling, node: PyNode, decoratorSeq: (Attribute | Call | Name)[]) {
+    /**
+     * ['export'] 'class' NAME ['(' [testlist] ')'] ':' suite
+     */
     const n = node;
     const numberOfChildren = NCH(n);
     REQ(n, SYM.classdef);
-    const c1 = CHILD(n, 1);
-    forbiddenCheck(c, n, c1.value, n.range);
-    const className = strobj(c1.value);
-    const nameRange = c1.range;
+    let nameNode;
+    let className;
+    let nameRange;
+    if (numberOfChildren !== 5 && numberOfChildren !== 7 && numberOfChildren !== 8 && CHILD(n, 3).type !== TOK.T_RPAR) {
+        nameNode = CHILD(n, 1);
+        forbiddenCheck(c, n, nameNode.value, n.range);
+        className = strobj(nameNode.value);
+        nameRange = nameNode.range;
+    }
+    else {
+        nameNode = CHILD(n, 2);
+        forbiddenCheck(c, n, nameNode.value, n.range);
+        className = strobj(nameNode.value);
+        nameRange = nameNode.range;
+    }
+
+    // If grammar looks like 'class NAME : suite'
     if (numberOfChildren === 4) {
         return new ClassDef(new RangeAnnotated(className, nameRange), [], astForSuite(c, CHILD(n, 3)), decoratorSeq, n.range);
     }
+    // If grammar looks like 'export class NAME : suite'
+    if (numberOfChildren === 5) {
+        // temp
+    }
+    // If grammar looks like 'export class NAME '(' ')' : suite'
+    if (numberOfChildren === 7 && CHILD(n, 3).type !== TOK.T_RPAR) {
+        // temp
+    }
+    // If grammar looks like 'export class NAME '(' testlist ')' : suite '
+    if (numberOfChildren === 8) {
+        // temp
+    }
     const c3 = CHILD(n, 3);
+    // If grammar looks like 'class NAME '(' ')' : suite'
     if (c3.type === TOK.T_RPAR) {
         return new ClassDef(new RangeAnnotated(className, nameRange), [], astForSuite(c, CHILD(n, 5)), decoratorSeq, n.range);
     }
-
+    // Otherwise grammar looks like 'class NAME '(' testlist ')' : suite'
+    // ClassBases are 'testlist'
     const bases = astForClassBases(c, c3);
     const s = astForSuite(c, CHILD(n, 6));
     return new ClassDef(new RangeAnnotated(className, nameRange), bases, s, decoratorSeq, n.range);
