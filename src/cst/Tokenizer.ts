@@ -19,6 +19,7 @@ const T_STRING = Tokens.T_STRING;
     * does something strange. */
 // const Whitespace = "[ \\f\\t]*";
 const Comment_ = "#[^\\r\\n]*";
+const MultiComment_ = "'{3}[^]*'{3}";
 const Ident = "[a-zA-Z_]\\w*";
 
 const Binnumber = '0[bB][01]*';
@@ -61,7 +62,7 @@ const ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
     group("'", '\\\\\\r?\\n'),
     '[uUbB]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*' +
     group('"', '\\\\\\r?\\n'));
-const PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
+const PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple, MultiComment_);
 // Need to prefix with "^" as we only want to match what's next
 const PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
 
@@ -325,6 +326,32 @@ export class Tokenizer {
                 }
             }
 
+            if ("'''".indexOf(line.charAt(pos)) !== -1) {
+                if (line.charAt(pos) === "'") {
+                    const comment_token = line.substring(pos);
+                    const nl_pos = pos + comment_token.length;
+                    begin[COLUMN] = pos;
+                    end[COLUMN] = nl_pos;
+                    if (callback(T_COMMENT, comment_token, begin, end, line)) {
+                        return Done;
+                    }
+                    begin[COLUMN] = nl_pos;
+                    end[COLUMN] = line.length;
+                    if (callback(T_NL, line.substring(nl_pos), begin, end, line)) {
+                        return Done;
+                    }
+                    return false;
+                }
+                else {
+                    begin[COLUMN] = pos;
+                    end[COLUMN] = line.length;
+                    if (callback(T_NL, line.substring(pos), begin, end, line)) {
+                        return Done;
+                    }
+                    if (!this.interactive) return false;
+                }
+            }
+
             if (column > this.indents[this.indents.length - 1]) {
                 this.indents.push(column);
                 begin[COLUMN] = 0;
@@ -385,7 +412,7 @@ export class Tokenizer {
                         return Done;
                     }
                 }
-                else if (initial === '#') {
+                else if (initial === '#' || initial === "'''") {
                     if (callback(T_COMMENT, token, begin, end, line)) {
                         return Done;
                     }

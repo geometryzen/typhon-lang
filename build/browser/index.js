@@ -1721,6 +1721,7 @@ var T_STRING = Tokens.T_STRING;
     * does something strange. */
 // const Whitespace = "[ \\f\\t]*";
 var Comment_ = "#[^\\r\\n]*";
+var MultiComment_ = "'{3}[^]*'{3}";
 var Ident = "[a-zA-Z_]\\w*";
 var Binnumber = '0[bB][01]*';
 var Hexnumber = '0[xX][\\da-fA-F]*[lL]?';
@@ -1753,7 +1754,7 @@ var Funny = group(Operator, Bracket, Special);
 var ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
     group("'", '\\\\\\r?\\n'), '[uUbB]?[rR]?"[^\\n"\\\\]*(?:\\\\.[^\\n"\\\\]*)*' +
     group('"', '\\\\\\r?\\n'));
-var PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple);
+var PseudoExtras = group('\\\\\\r?\\n', Comment_, Triple, MultiComment_);
 // Need to prefix with "^" as we only want to match what's next
 var PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
 var pseudoprog = new RegExp(PseudoToken);
@@ -1985,6 +1986,32 @@ var Tokenizer = (function () {
                         return false;
                 }
             }
+            if ("'''".indexOf(line.charAt(pos)) !== -1) {
+                if (line.charAt(pos) === "'") {
+                    var comment_token = line.substring(pos);
+                    var nl_pos = pos + comment_token.length;
+                    begin[COLUMN] = pos;
+                    end[COLUMN] = nl_pos;
+                    if (callback(T_COMMENT$1, comment_token, begin, end, line)) {
+                        return Done;
+                    }
+                    begin[COLUMN] = nl_pos;
+                    end[COLUMN] = line.length;
+                    if (callback(T_NL$1, line.substring(nl_pos), begin, end, line)) {
+                        return Done;
+                    }
+                    return false;
+                }
+                else {
+                    begin[COLUMN] = pos;
+                    end[COLUMN] = line.length;
+                    if (callback(T_NL$1, line.substring(pos), begin, end, line)) {
+                        return Done;
+                    }
+                    if (!this.interactive)
+                        return false;
+                }
+            }
             if (column > this.indents[this.indents.length - 1]) {
                 this.indents.push(column);
                 begin[COLUMN] = 0;
@@ -2045,7 +2072,7 @@ var Tokenizer = (function () {
                         return Done;
                     }
                 }
-                else if (initial === '#') {
+                else if (initial === '#' || initial === "'''") {
                     if (callback(T_COMMENT$1, token, begin, end, line)) {
                         return Done;
                     }

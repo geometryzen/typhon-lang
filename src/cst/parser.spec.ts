@@ -417,6 +417,20 @@ describe('parse', function () {
         });
     });
 
+    describe("comment parsing", function() {
+        const singleComment = [
+            "#sdfsd",
+            "'''asdf'''"
+        ].join("\n");
+        const cstS = parse(singleComment) as PyNode;
+        console.log(JSON.stringify(DECODE(cstS), null, 2));
+        const ns = TERMS(cstS);
+
+        it("should have correct number of terminals", function() {
+            expect(ns.length).toBe(1);
+        });
+    });
+
     describe('Unary Plus', function () {
         const cst = parse('+a') as PyNode;
         // console.lg(JSON.stringify(DECODE(cst), null, 2));
