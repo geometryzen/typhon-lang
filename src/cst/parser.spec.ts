@@ -398,22 +398,23 @@ describe('parse', function () {
                 expect(ns.length).toBe(10);
             });
         });
+    });
 
-        xdescribe("Exported function", function() {
+    describe('Special python typing', function () {
+
+        describe("Dict testing", function () {
             const sourceText = [
-                "export def foo() -> GG:",
-                "   return 1"
-            ].join('\n');
+                "dict(one=1)",
+                ""
+            ].join("\n");
             const cst = parse(sourceText) as PyNode;
             // console.log(JSON.stringify(DECODE(cst), null, 2));
             const ns = TERMS(cst);
 
             it("should have correct number of terminals", function() {
-                expect(ns.length).toBe(15);
+                expect(ns.length).toBe(8);
             });
         });
-
-
     });
 
     describe('Unary Plus', function () {

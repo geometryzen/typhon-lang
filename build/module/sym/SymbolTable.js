@@ -155,7 +155,7 @@ var SemanticVisitor = (function () {
         throw new Error("module");
     };
     SemanticVisitor.prototype.name = function (name) {
-        this.st.addDef(name.id.value, name.ctx === Load ? USE : DEF_LOCAL, name.range);
+        this.st.addDef(name.id.value, name.ctx === Load ? USE : DEF_LOCAL, name.id.range);
     };
     SemanticVisitor.prototype.num = function (num) {
         // Do nothing, unless we are doing type inference.
@@ -265,7 +265,7 @@ var SymbolTable = (function () {
             var arg = args[i];
             if (arg.constructor === Name) {
                 assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
-                this.addDef(arg.id.value, DEF_PARAM, arg.range);
+                this.addDef(arg.id.value, DEF_PARAM, arg.id.range);
             }
             else {
                 // Tuple isn't supported
@@ -569,7 +569,7 @@ var SymbolTable = (function () {
             this.visitSlice(e.slice);
         }
         else if (e instanceof Name) {
-            this.addDef(e.id.value, e.ctx === Load ? USE : DEF_LOCAL, e.range);
+            this.addDef(e.id.value, e.ctx === Load ? USE : DEF_LOCAL, e.id.range);
         }
         else if (e instanceof List || e instanceof Tuple) {
             this.SEQExpr(e.elts);

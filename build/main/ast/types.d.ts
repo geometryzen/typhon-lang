@@ -421,10 +421,9 @@ export declare class Subscript extends Expression {
     constructor(value: Expression, slice: Ellipsis | Index | Name | Slice, ctx: SubscriptContext, range?: Range);
 }
 export declare class Name extends Expression {
-    readonly range: Range;
     id: RangeAnnotated<string>;
     ctx: Param;
-    constructor(id: RangeAnnotated<string>, ctx: Param, range: Range);
+    constructor(id: RangeAnnotated<string>, ctx: Param);
     accept(visitor: Visitor): void;
 }
 export declare class List extends Expression {
@@ -480,9 +479,9 @@ export declare class Arguments {
     constructor(args: Name[], vararg: string, kwarg: string, defaults: Expression[]);
 }
 export declare class Keyword {
-    arg: string;
+    arg: RangeAnnotated<string>;
     value: Expression;
-    constructor(arg: string, value: Expression);
+    constructor(arg: RangeAnnotated<string>, value: Expression);
 }
 export declare class Alias {
     name: RangeAnnotated<string>;

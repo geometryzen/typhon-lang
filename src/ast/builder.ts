@@ -474,7 +474,7 @@ function astForDottedName(c: Compiling, n: PyNode): Attribute | Name {
     REQ(n, SYM.dotted_name);
     const child = CHILD(n, 0);
     let id = new RangeAnnotated(child.value, child.range);
-    let e: Attribute | Name = new Name(id, Load, n.range);
+    let e: Attribute | Name = new Name(id, Load);
     for (let i = 2; i < NCH(n); i += 2) {
         const child = CHILD(n, i);
         id = new RangeAnnotated(child.value, child.range);
@@ -1020,10 +1020,10 @@ function astForCall(c: Compiling, n: PyNode, func: Expression): Call {
                 const key = e.id;
                 forbiddenCheck(c, CHILD(ch, 0), key.value, n.range);
                 for (let k = 0; k < nkeywords; ++k) {
-                    const tmp = keywords[k].arg;
+                    const tmp = keywords[k].arg.value;
                     if (tmp === key.value) throw syntaxError("keyword argument repeated", n.range);
                 }
-                keywords[nkeywords++] = new Keyword(key.value, astForExpr(c, CHILD(ch, 2)));
+                keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
             }
         }
         else if (ch.type === TOK.T_STAR)
@@ -1031,7 +1031,22 @@ function astForCall(c: Compiling, n: PyNode, func: Expression): Call {
         else if (ch.type === TOK.T_DOUBLESTAR)
             kwarg = astForExpr(c, CHILD(n, ++i));
     }
-    return new Call(func, args, keywords, vararg, kwarg);
+    // Convert keywords to a Dict, which is one arg
+    const keywordDict = keywordsToDict(keywords);
+    if (keywordDict.keys.length !== 0) {
+        args.push(keywordDict);
+    }
+    return new Call(func, args, [], vararg, kwarg);
+}
+
+function keywordsToDict(keywords: Keyword[]): Dict {
+    let keys: Expression[] = [];
+    let values: Expression[] = [];
+    for (const keyword of keywords) {
+        values.push(keyword.value);
+        keys.push(new Name(new RangeAnnotated(keyword.arg.value, keyword.arg.range), Load));
+    }
+    return new Dict(keys, values);
 }
 
 function astForTrailer(c: Compiling, node: PyNode, leftExpr: Expression): Attribute | Call | Subscript {
@@ -1039,6 +1054,7 @@ function astForTrailer(c: Compiling, node: PyNode, leftExpr: Expression): Attrib
         subscriptlist: subscript (',' subscript)* [',']
         subscript: '.' '.' '.' | test | [test] ':' [test] [sliceop]
         */
+
     const n = node;
     const childZero = CHILD(n, 0);
     const childOne = CHILD(n, 1);
@@ -1199,7 +1215,7 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
                     if (childZero.type === TOK.T_NAME) {
                         forbiddenCheck(c, n, childZero.value, n.range);
                         const id = new RangeAnnotated(childZero.value, childZero.range);
-                        args[k++] = new Name(id, Param, ch.range);
+                        args[k++] = new Name(id, Param);
                     }
                     i += 2;
                     if (parenthesized)
@@ -1816,7 +1832,7 @@ function astForSlice(c: Compiling, node: PyNode): Ellipsis | Index | Name | Slic
     if (ch.type === SYM.sliceop) {
         if (NCH(ch) === 1) {
             ch = CHILD(ch, 0);
-            step = new Name(new RangeAnnotated("None", null), Load, ch.range);
+            step = new Name(new RangeAnnotated("None", null), Load);
         }
         else {
             ch = CHILD(ch, 1);
@@ -1832,7 +1848,7 @@ function astForAtomExpr(c: Compiling, n: PyNode): Name | Expression {
     switch (c0.type) {
         case TOK.T_NAME:
             // All names start in Load context, but may be changed later
-            return new Name(new RangeAnnotated(c0.value, c0.range), Load, n.range);
+            return new Name(new RangeAnnotated(c0.value, c0.range), Load);
         case TOK.T_STRING: {
             // FIXME: Owing to the way that Python allows string concatenation, this is imprecise.
             return new Str(new RangeAnnotated(parsestrplus(c, n), n.range));

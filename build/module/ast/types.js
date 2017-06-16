@@ -841,9 +841,8 @@ var Subscript = (function (_super) {
 export { Subscript };
 var Name = (function (_super) {
     tslib_1.__extends(Name, _super);
-    function Name(id, ctx, range) {
+    function Name(id, ctx) {
         var _this = _super.call(this) || this;
-        _this.range = range;
         _this.id = id;
         _this.ctx = ctx;
         return _this;
@@ -1302,7 +1301,7 @@ Arguments.prototype['_fields'] = [
 ];
 Keyword.prototype['_astname'] = 'Keyword';
 Keyword.prototype['_fields'] = [
-    'arg', function (n) { return n.arg; },
+    'arg', function (n) { return n.arg.value; },
     'value', function (n) { return n.value; }
 ];
 Alias.prototype['_astname'] = 'Alias';

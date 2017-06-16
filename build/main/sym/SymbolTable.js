@@ -157,7 +157,7 @@ var SemanticVisitor = (function () {
         throw new Error("module");
     };
     SemanticVisitor.prototype.name = function (name) {
-        this.st.addDef(name.id.value, name.ctx === types_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, name.range);
+        this.st.addDef(name.id.value, name.ctx === types_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, name.id.range);
     };
     SemanticVisitor.prototype.num = function (num) {
         // Do nothing, unless we are doing type inference.
@@ -267,7 +267,7 @@ var SymbolTable = (function () {
             var arg = args[i];
             if (arg.constructor === types_31.Name) {
                 asserts_1.assert(arg.ctx === types_33.Param || (arg.ctx === types_39.Store && !toplevel));
-                this.addDef(arg.id.value, SymbolConstants_8.DEF_PARAM, arg.range);
+                this.addDef(arg.id.value, SymbolConstants_8.DEF_PARAM, arg.id.range);
             }
             else {
                 // Tuple isn't supported
@@ -571,7 +571,7 @@ var SymbolTable = (function () {
             this.visitSlice(e.slice);
         }
         else if (e instanceof types_31.Name) {
-            this.addDef(e.id.value, e.ctx === types_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.range);
+            this.addDef(e.id.value, e.ctx === types_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.id.range);
         }
         else if (e instanceof types_29.List || e instanceof types_44.Tuple) {
             this.SEQExpr(e.elts);

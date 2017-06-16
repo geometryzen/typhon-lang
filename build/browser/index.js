@@ -3550,9 +3550,8 @@ var Subscript = (function (_super) {
 }(Expression));
 var Name = (function (_super) {
     __extends(Name, _super);
-    function Name(id, ctx, range) {
+    function Name(id, ctx) {
         var _this = _super.call(this) || this;
-        _this.range = range;
         _this.id = id;
         _this.ctx = ctx;
         return _this;
@@ -3999,7 +3998,7 @@ Arguments.prototype['_fields'] = [
 ];
 Keyword.prototype['_astname'] = 'Keyword';
 Keyword.prototype['_fields'] = [
-    'arg', function (n) { return n.arg; },
+    'arg', function (n) { return n.arg.value; },
     'value', function (n) { return n.value; }
 ];
 Alias.prototype['_astname'] = 'Alias';
@@ -4407,7 +4406,7 @@ function astForDottedName(c, n) {
     REQ(n, SYM.dotted_name);
     var child = CHILD(n, 0);
     var id = new RangeAnnotated(child.value, child.range);
-    var e = new Name(id, Load, n.range);
+    var e = new Name(id, Load);
     for (var i = 2; i < NCH(n); i += 2) {
         var child_1 = CHILD(n, i);
         id = new RangeAnnotated(child_1.value, child_1.range);
@@ -4908,11 +4907,11 @@ function astForCall(c, n, func) {
                 var key = e.id;
                 forbiddenCheck(c, CHILD(ch, 0), key.value, n.range);
                 for (var k = 0; k < nkeywords; ++k) {
-                    var tmp = keywords[k].arg;
+                    var tmp = keywords[k].arg.value;
                     if (tmp === key.value)
                         throw syntaxError$1("keyword argument repeated", n.range);
                 }
-                keywords[nkeywords++] = new Keyword(key.value, astForExpr(c, CHILD(ch, 2)));
+                keywords[nkeywords++] = new Keyword(key, astForExpr(c, CHILD(ch, 2)));
             }
         }
         else if (ch.type === Tokens.T_STAR)
@@ -4920,7 +4919,22 @@ function astForCall(c, n, func) {
         else if (ch.type === Tokens.T_DOUBLESTAR)
             kwarg = astForExpr(c, CHILD(n, ++i));
     }
-    return new Call(func, args, keywords, vararg, kwarg);
+    // Convert keywords to a Dict, which is one arg
+    var keywordDict = keywordsToDict(keywords);
+    if (keywordDict.keys.length !== 0) {
+        args.push(keywordDict);
+    }
+    return new Call(func, args, [], vararg, kwarg);
+}
+function keywordsToDict(keywords) {
+    var keys = [];
+    var values = [];
+    for (var _i = 0, keywords_1 = keywords; _i < keywords_1.length; _i++) {
+        var keyword = keywords_1[_i];
+        values.push(keyword.value);
+        keys.push(new Name(new RangeAnnotated(keyword.arg.value, keyword.arg.range), Load));
+    }
+    return new Dict(keys, values);
 }
 function astForTrailer(c, node, leftExpr) {
     /* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
@@ -5075,7 +5089,7 @@ function astForArguments(c, n) {
                     if (childZero.type === Tokens.T_NAME) {
                         forbiddenCheck(c, n, childZero.value, n.range);
                         var id = new RangeAnnotated(childZero.value, childZero.range);
-                        args[k++] = new Name(id, Param, ch.range);
+                        args[k++] = new Name(id, Param);
                     }
                     i += 2;
                     if (parenthesized)
@@ -5655,7 +5669,7 @@ function astForSlice(c, node) {
     if (ch.type === SYM.sliceop) {
         if (NCH(ch) === 1) {
             ch = CHILD(ch, 0);
-            step = new Name(new RangeAnnotated("None", null), Load, ch.range);
+            step = new Name(new RangeAnnotated("None", null), Load);
         }
         else {
             ch = CHILD(ch, 1);
@@ -5670,7 +5684,7 @@ function astForAtomExpr(c, n) {
     switch (c0.type) {
         case Tokens.T_NAME:
             // All names start in Load context, but may be changed later
-            return new Name(new RangeAnnotated(c0.value, c0.range), Load, n.range);
+            return new Name(new RangeAnnotated(c0.value, c0.range), Load);
         case Tokens.T_STRING: {
             // FIXME: Owing to the way that Python allows string concatenation, this is imprecise.
             return new Str(new RangeAnnotated(parsestrplus(c, n), n.range));
@@ -6320,7 +6334,7 @@ var SymbolTable = (function () {
             var arg = args[i];
             if (arg.constructor === Name) {
                 assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
-                this.addDef(arg.id.value, DEF_PARAM, arg.range);
+                this.addDef(arg.id.value, DEF_PARAM, arg.id.range);
             }
             else {
                 // Tuple isn't supported
@@ -6624,7 +6638,7 @@ var SymbolTable = (function () {
             this.visitSlice(e.slice);
         }
         else if (e instanceof Name) {
-            this.addDef(e.id.value, e.ctx === Load ? USE : DEF_LOCAL, e.range);
+            this.addDef(e.id.value, e.ctx === Load ? USE : DEF_LOCAL, e.id.range);
         }
         else if (e instanceof List || e instanceof Tuple) {
             this.SEQExpr(e.elts);

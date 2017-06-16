@@ -450,7 +450,7 @@ function astForDottedName(c, n) {
     REQ(n, SYM.dotted_name);
     var child = tree_1.CHILD(n, 0);
     var id = new types_70.RangeAnnotated(child.value, child.range);
-    var e = new types_59.Name(id, types_52.Load, n.range);
+    var e = new types_59.Name(id, types_52.Load);
     for (var i = 2; i < tree_1.NCH(n); i += 2) {
         var child_1 = tree_1.CHILD(n, i);
         id = new types_70.RangeAnnotated(child_1.value, child_1.range);
@@ -951,11 +951,11 @@ function astForCall(c, n, func) {
                 var key = e.id;
                 forbiddenCheck(c, tree_1.CHILD(ch, 0), key.value, n.range);
                 for (var k = 0; k < nkeywords; ++k) {
-                    var tmp = keywords[k].arg;
+                    var tmp = keywords[k].arg.value;
                     if (tmp === key.value)
                         throw syntaxError("keyword argument repeated", n.range);
                 }
-                keywords[nkeywords++] = new types_39.Keyword(key.value, astForExpr(c, tree_1.CHILD(ch, 2)));
+                keywords[nkeywords++] = new types_39.Keyword(key, astForExpr(c, tree_1.CHILD(ch, 2)));
             }
         }
         else if (ch.type === Tokens_1.Tokens.T_STAR)
@@ -963,7 +963,22 @@ function astForCall(c, n, func) {
         else if (ch.type === Tokens_1.Tokens.T_DOUBLESTAR)
             kwarg = astForExpr(c, tree_1.CHILD(n, ++i));
     }
-    return new types_17.Call(func, args, keywords, vararg, kwarg);
+    // Convert keywords to a Dict, which is one arg
+    var keywordDict = keywordsToDict(keywords);
+    if (keywordDict.keys.length !== 0) {
+        args.push(keywordDict);
+    }
+    return new types_17.Call(func, args, [], vararg, kwarg);
+}
+function keywordsToDict(keywords) {
+    var keys = [];
+    var values = [];
+    for (var _i = 0, keywords_1 = keywords; _i < keywords_1.length; _i++) {
+        var keyword = keywords_1[_i];
+        values.push(keyword.value);
+        keys.push(new types_59.Name(new types_70.RangeAnnotated(keyword.arg.value, keyword.arg.range), types_52.Load));
+    }
+    return new types_24.Dict(keys, values);
 }
 function astForTrailer(c, node, leftExpr) {
     /* trailer: '(' [arglist] ')' | '[' subscriptlist ']' | '.' NAME
@@ -1118,7 +1133,7 @@ function astForArguments(c, n) {
                     if (childZero.type === Tokens_1.Tokens.T_NAME) {
                         forbiddenCheck(c, n, childZero.value, n.range);
                         var id = new types_70.RangeAnnotated(childZero.value, childZero.range);
-                        args[k++] = new types_59.Name(id, types_65.Param, ch.range);
+                        args[k++] = new types_59.Name(id, types_65.Param);
                     }
                     i += 2;
                     if (parenthesized)
@@ -1698,7 +1713,7 @@ function astForSlice(c, node) {
     if (ch.type === SYM.sliceop) {
         if (tree_1.NCH(ch) === 1) {
             ch = tree_1.CHILD(ch, 0);
-            step = new types_59.Name(new types_70.RangeAnnotated("None", null), types_52.Load, ch.range);
+            step = new types_59.Name(new types_70.RangeAnnotated("None", null), types_52.Load);
         }
         else {
             ch = tree_1.CHILD(ch, 1);
@@ -1713,7 +1728,7 @@ function astForAtomExpr(c, n) {
     switch (c0.type) {
         case Tokens_1.Tokens.T_NAME:
             // All names start in Load context, but may be changed later
-            return new types_59.Name(new types_70.RangeAnnotated(c0.value, c0.range), types_52.Load, n.range);
+            return new types_59.Name(new types_70.RangeAnnotated(c0.value, c0.range), types_52.Load);
         case Tokens_1.Tokens.T_STRING: {
             // FIXME: Owing to the way that Python allows string concatenation, this is imprecise.
             return new types_75.Str(new types_70.RangeAnnotated(parsestrplus(c, n), n.range));

@@ -219,7 +219,7 @@ describe('AST', function () {
     describe("Class testing", function () {
         it('class test :\n pass', function () {
             const cst = parse('class test :\n pass') as PyNode;
-            console.log(cstDump(cst));
+            // console.log(cstDump(cst));
             const ast = new Module(astFromParse(cst));
             const dump = (astDump(ast));
             expect(dump).toBe('Module(body=[ClassDef(name=test,bases=[],body=[Pass()],decorator_list=[])])');
@@ -227,13 +227,68 @@ describe('AST', function () {
 
         it('class test () :\n pass', function () {
             const cst = parse('class test () :\n pass') as PyNode;
-            console.log(cstDump(cst));
+            // console.log(cstDump(cst));
             const ast = new Module(astFromParse(cst));
             const dump = (astDump(ast));
-            console.log(dump);
+            // console.log(dump);
             expect(dump).toBe('Module(body=[ClassDef(name=test,bases=[],body=[Pass()],decorator_list=[])])');
         });
     });
+
+    describe('Special python typing', function () {
+
+        describe("Dict testing", function () {
+            const sourceText = [
+                "dict(one=1)",
+                ""
+            ].join("\n");
+            const cst = parse(sourceText) as PyNode;
+            // console.log
+            (cstDump(cst));
+            const ast = new Module(astFromParse(cst));
+            // const dump =
+            (astDump(ast));
+            // console.log(dump);
+            it("always true", function () {
+                expect(1).toBe(1);
+            });
+        });
+
+        describe("Mapping", function () {
+            const sourceText = [
+                "dict({three:3},one=1, two=2)",
+                ""
+            ].join("\n");
+            const cst = parse(sourceText) as PyNode;
+            // console.log
+            (cstDump(cst));
+            const ast = new Module(astFromParse(cst));
+            // const dump =
+            (astDump(ast));
+            // console.log(dump);
+            it("always true", function () {
+                expect(1).toBe(1);
+            });
+        });
+
+    });
+
+/*
+    [
+        Dict
+            (
+            keys =
+            [
+                Name(id = one, ctx = Load())
+            ],
+            values =
+            [
+                Num(n = 1)
+            ]
+            )
+    ]
+*/
+
     describe("Function testing", function () {
 
         it('def foo():\n pass', function () {

@@ -691,7 +691,7 @@ export class Subscript extends Expression {
 export class Name extends Expression {
     id: RangeAnnotated<string>;
     ctx: Param;
-    constructor(id: RangeAnnotated<string>, ctx: Param, public readonly range: Range) {
+    constructor(id: RangeAnnotated<string>, ctx: Param) {
         super();
         this.id = id;
         this.ctx = ctx;
@@ -795,9 +795,9 @@ export class Arguments {
 
 export class Keyword {
     // TODO: RangeAnnotated...
-    arg: string;
+    arg: RangeAnnotated<string>;
     value: Expression;
-    constructor(arg: string, value: Expression) {
+    constructor(arg: RangeAnnotated<string>, value: Expression) {
         this.arg = arg;
         this.value = value;
     }
@@ -1162,7 +1162,7 @@ Arguments.prototype['_fields'] = [
 ];
 Keyword.prototype['_astname'] = 'Keyword';
 Keyword.prototype['_fields'] = [
-    'arg', function (n: Keyword) { return n.arg; },
+    'arg', function (n: Keyword) { return n.arg.value; },
     'value', function (n: Keyword) { return n.value; }
 ];
 Alias.prototype['_astname'] = 'Alias';
