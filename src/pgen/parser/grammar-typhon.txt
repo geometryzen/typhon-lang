@@ -15,7 +15,7 @@ decorated: decorators (classdef | funcdef)
 funcdef: 'def' NAME parameters ['->' IfExpr] ':' suite
 parameters: '(' [varargslist] ')'
 varargslist: ((fpdef ['=' IfExpr] ',')* ('*' NAME [',' '**' NAME] | '**' NAME) | fpdef ['=' IfExpr] (',' fpdef ['=' IfExpr])* [','])
-fpdef: NAME | '(' fplist ')'
+fpdef: NAME [':' IfExpr] | '(' fplist ')'
 fplist: fpdef (',' fpdef)* [',']
 
 stmt: simple_stmt | compound_stmt

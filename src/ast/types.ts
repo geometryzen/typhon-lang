@@ -691,10 +691,14 @@ export class Subscript extends Expression {
 export class Name extends Expression {
     id: RangeAnnotated<string>;
     ctx: Param;
-    constructor(id: RangeAnnotated<string>, ctx: Param) {
+    paramType: RangeAnnotated<string>;
+    constructor(id: RangeAnnotated<string>, ctx: Param, paramType?: RangeAnnotated<string>) {
         super();
         this.id = id;
         this.ctx = ctx;
+        if (paramType) {
+            this.paramType = paramType;
+        }
     }
     accept(visitor: Visitor): void {
         visitor.name(this);
@@ -1044,7 +1048,14 @@ Subscript.prototype['_fields'] = [
 Name.prototype['_astname'] = 'Name';
 Name.prototype['_fields'] = [
     'id', function (n: Name) { return n.id.value; },
-    'ctx', function (n: Name) { return n.ctx; }
+    'ctx', function (n: Name) { return n.ctx; },
+    'paramType', function (n: Name) {
+        if (n.paramType) {
+            return n.paramType.value;
+        } else {
+            return null;
+        }
+    }
 ];
 List.prototype['_astname'] = 'List';
 List.prototype['_fields'] = [

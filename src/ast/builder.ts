@@ -1161,23 +1161,25 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
     if (n.type === SYM.parameters) {
         if (NCH(n) === 2) // () as arglist
             return new Arguments([], null, null, []);
-        n = CHILD(n, 1);
+        n = CHILD(n, 1); // n is a varargslist here on out
     }
     REQ(n, SYM.varargslist);
 
     const args: Name[] = [];
     const defaults: Expression[] = [];
 
-    /* fpdef: NAME | '(' fplist ')'
+    /* fpdef: NAME [':' IfExpr] | '(' fplist ')'
         fplist: fpdef (',' fpdef)* [',']
     */
     let foundDefault = false;
     let i = 0;
     let j = 0; // index for defaults
     let k = 0; // index for args
+    // loop through the children of the varargslist
     while (i < NCH(n)) {
         ch = CHILD(n, i);
         switch (ch.type) {
+            // If it is a fpdef - act here
             case SYM.fpdef:
                 let complexArgs = 0;
                 let parenthesized = false;
@@ -1195,7 +1197,8 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
                         throw syntaxError("non-default argument follows default argument", n.range);
                     }
 
-                    if (NCH(ch) === 3) {
+                    // For unpacking a tuple
+                    if (NCH(ch) === 3 && ch.children[2].type === TOK.T_RPAR) {
                         ch = CHILD(ch, 1);
                         // def foo((x)): is not complex, special case.
                         if (NCH(ch) !== 1) {
@@ -1211,11 +1214,26 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
                             continue handle_fpdef;
                         }
                     }
+                    // childzero here is possibly the 'NAME' in fpdef: NAME [':' IfExpr]
                     const childZero = CHILD(ch, 0);
                     if (childZero.type === TOK.T_NAME) {
                         forbiddenCheck(c, n, childZero.value, n.range);
                         const id = new RangeAnnotated(childZero.value, childZero.range);
-                        args[k++] = new Name(id, Param);
+                        /**
+                         * Setting the type of the param here, will be third child of fpdef if it exists
+                         * If it doesn't exist then set the type as null and have typescript attempt to infer it later
+                         */
+                        const paramTypeNode: PyNode = CHILD(ch, 2);
+
+                        if (paramTypeNode) {
+                            let paramTypeExpr = astForExpr(c, paramTypeNode);
+                            const paramType: RangeAnnotated<string> = new RangeAnnotated(paramTypeExpr.id.value, paramTypeExpr.id.range);
+                            args[k++] = new Name(id, Param, paramType);
+                        }
+                        else {
+                            args[k++] = new Name(id, Param);
+                        }
+
                     }
                     i += 2;
                     if (parenthesized)

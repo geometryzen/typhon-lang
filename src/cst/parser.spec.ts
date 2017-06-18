@@ -398,6 +398,19 @@ describe('parse', function () {
                 expect(ns.length).toBe(10);
             });
         });
+
+        describe("Typed parameters", function() {
+            const sourceText = [
+                "def foo(x: num) -> GG: xyz"
+            ].join('\n');
+            const cst = parse(sourceText) as PyNode;
+            const ns = TERMS(cst);
+
+            it("should have correct number of terminals", function () {
+                expect(Array.isArray(ns)).toBeTruthy();
+                expect(ns.length).toBe(13);
+            });
+        });
     });
 
     describe('Special python typing', function () {
@@ -423,7 +436,7 @@ describe('parse', function () {
             "'''asdf'''"
         ].join("\n");
         const cstS = parse(singleComment) as PyNode;
-        console.log(JSON.stringify(DECODE(cstS), null, 2));
+        // console.log(JSON.stringify(DECODE(cstS), null, 2));
         const ns = TERMS(cstS);
 
         it("should have correct number of terminals", function() {

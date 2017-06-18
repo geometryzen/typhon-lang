@@ -59,14 +59,14 @@ describe('AST', function () {
         const cst = parse('True') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=Name(id=True,ctx=Load()))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=Name(id=True,ctx=Load(),paramType=None))])');
     });
 
     it('False', function () {
         const cst = parse('False') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=Name(id=False,ctx=Load()))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=Name(id=False,ctx=Load(),paramType=None))])');
     });
 
     it('[]', function () {
@@ -87,133 +87,133 @@ describe('AST', function () {
         const cst = parse('a') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=Name(id=a,ctx=Load()))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=Name(id=a,ctx=Load(),paramType=None))])');
     });
 
     it('+a', function () {
         const cst = parse('+a') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=UnaryOp(op=UAdd(),operand=Name(id=a,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=UnaryOp(op=UAdd(),operand=Name(id=a,ctx=Load(),paramType=None)))])');
     });
 
     it('-a', function () {
         const cst = parse('-a') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=UnaryOp(op=USub(),operand=Name(id=a,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=UnaryOp(op=USub(),operand=Name(id=a,ctx=Load(),paramType=None)))])');
     });
 
     it('~a', function () {
         const cst = parse('~a') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=UnaryOp(op=Invert(),operand=Name(id=a,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=UnaryOp(op=Invert(),operand=Name(id=a,ctx=Load(),paramType=None)))])');
     });
 
     it('a + b', function () {
         const cst = parse('a + b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Add(),rhs=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load(),paramType=None),op=Add(),rhs=Name(id=b,ctx=Load(),paramType=None)))])');
     });
 
     it('a - b', function () {
         const cst = parse('a - b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Sub(),rhs=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load(),paramType=None),op=Sub(),rhs=Name(id=b,ctx=Load(),paramType=None)))])');
     });
 
     it('a * b', function () {
         const cst = parse('a * b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Mult(),rhs=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load(),paramType=None),op=Mult(),rhs=Name(id=b,ctx=Load(),paramType=None)))])');
     });
 
     it('a / b', function () {
         const cst = parse('a / b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Div(),rhs=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load(),paramType=None),op=Div(),rhs=Name(id=b,ctx=Load(),paramType=None)))])');
     });
 
     it('a % b', function () {
         const cst = parse('a % b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Mod(),rhs=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load(),paramType=None),op=Mod(),rhs=Name(id=b,ctx=Load(),paramType=None)))])');
     });
 
     it('a << b', function () {
         const cst = parse('a << b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=LShift(),rhs=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load(),paramType=None),op=LShift(),rhs=Name(id=b,ctx=Load(),paramType=None)))])');
     });
 
     it('a >> b', function () {
         const cst = parse('a >> b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=RShift(),rhs=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load(),paramType=None),op=RShift(),rhs=Name(id=b,ctx=Load(),paramType=None)))])');
     });
 
     it('a ^ b', function () {
         const cst = parse('a ^ b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=BitXor(),rhs=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load(),paramType=None),op=BitXor(),rhs=Name(id=b,ctx=Load(),paramType=None)))])');
     });
 
     it('a & b', function () {
         const cst = parse('a & b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=BitAnd(),rhs=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load(),paramType=None),op=BitAnd(),rhs=Name(id=b,ctx=Load(),paramType=None)))])');
     });
 
     it('a | b', function () {
         const cst = parse('a | b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=BitOr(),rhs=Name(id=b,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load(),paramType=None),op=BitOr(),rhs=Name(id=b,ctx=Load(),paramType=None)))])');
     });
 
     it('a or b', function () {
         const cst = parse('a or b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BoolOp(op=Or(),values=[Name(id=a,ctx=Load()),Name(id=b,ctx=Load())]))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BoolOp(op=Or(),values=[Name(id=a,ctx=Load(),paramType=None),Name(id=b,ctx=Load(),paramType=None)]))])');
     });
 
     it('a and b', function () {
         const cst = parse('a and b') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BoolOp(op=And(),values=[Name(id=a,ctx=Load()),Name(id=b,ctx=Load())]))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BoolOp(op=And(),values=[Name(id=a,ctx=Load(),paramType=None),Name(id=b,ctx=Load(),paramType=None)]))])');
     });
 
     it('a + b * c', function () {
         const cst = parse('a + b * c') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Add(),rhs=BinOp(lhs=Name(id=b,ctx=Load()),op=Mult(),rhs=Name(id=c,ctx=Load()))))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load(),paramType=None),op=Add(),rhs=BinOp(lhs=Name(id=b,ctx=Load(),paramType=None),op=Mult(),rhs=Name(id=c,ctx=Load(),paramType=None))))])');
     });
 
     it('a + b ^ c', function () {
         const cst = parse('a + b ^ c') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load()),op=Add(),rhs=BinOp(lhs=Name(id=b,ctx=Load()),op=BitXor(),rhs=Name(id=c,ctx=Load()))))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=BinOp(lhs=Name(id=a,ctx=Load(),paramType=None),op=Add(),rhs=BinOp(lhs=Name(id=b,ctx=Load(),paramType=None),op=BitXor(),rhs=Name(id=c,ctx=Load(),paramType=None))))])');
     });
 
     it('not a', function () {
         const cst = parse('not a') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=UnaryOp(op=Not(),operand=Name(id=a,ctx=Load())))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=UnaryOp(op=Not(),operand=Name(id=a,ctx=Load(),paramType=None)))])');
     });
 
     describe("Class testing", function () {
@@ -305,14 +305,21 @@ describe('AST', function () {
             const cst = parse('def foo():\n return a') as PyNode;
             const ast = new Module(astFromParse(cst));
             const dump = astDump(ast);
-            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[ReturnStatement(value=Name(id=a,ctx=Load()))],returnType=None,decorator_list=[])])');
+            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[],vararg=None,kwarg=None,defaults=[]),body=[ReturnStatement(value=Name(id=a,ctx=Load(),paramType=None))],returnType=None,decorator_list=[])])');
         });
 
         it('def foo(x):\n pass', function () {
             const cst = parse('def foo(x):\n pass') as PyNode;
             const ast = new Module(astFromParse(cst));
             const dump = astDump(ast);
-            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=None,decorator_list=[])])');
+            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param(),paramType=None)],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=None,decorator_list=[])])');
+        });
+
+        it('def foo(x: num):\n pass', function () {
+            const cst = parse('def foo(test: num):\n pass') as PyNode;
+            const ast = new Module(astFromParse(cst));
+            const dump = astDump(ast);
+            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=test,ctx=Param(),paramType=num)],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=None,decorator_list=[])])');
         });
 
         it('def foo(x) -> GG:\n pass', function () {
@@ -351,7 +358,7 @@ describe('AST', function () {
                     }
                 }
             }
-            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=Name(id=GG,ctx=Load()),decorator_list=[])])');
+            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param(),paramType=None)],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=Name(id=GG,ctx=Load(),paramType=None),decorator_list=[])])');
         });
 
         xit("export def foo(x) -> GG:\n pass", function () {
@@ -391,7 +398,7 @@ describe('AST', function () {
                     }
                 }
             }
-            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=Name(id=GG,ctx=Load()),decorator_list=[])])');
+            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param(),paramType=None)],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=Name(id=GG,ctx=Load()),decorator_list=[])])');
         });
 
         xit("export def foo(x):\n pass", function () {
@@ -431,14 +438,14 @@ describe('AST', function () {
                     }
                 }
             }
-            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=None,decorator_list=[])])');
+            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param(),paramType=None)],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=None,decorator_list=[])])');
         });
 
         it('def foo(x, y):\n pass', function () {
             const cst = parse('def foo(x, y):\n pass') as PyNode;
             const ast = new Module(astFromParse(cst));
             const dump = astDump(ast);
-            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param()),Name(id=y,ctx=Param())],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=None,decorator_list=[])])');
+            expect(dump).toBe('Module(body=[FunctionDef(name=foo,args=Arguments(args=[Name(id=x,ctx=Param(),paramType=None),Name(id=y,ctx=Param(),paramType=None)],vararg=None,kwarg=None,defaults=[]),body=[Pass()],returnType=None,decorator_list=[])])');
         });
 
     });
@@ -447,28 +454,28 @@ describe('AST', function () {
         const cst = parse('if a:\n pass') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[IfStatement(test=Name(id=a,ctx=Load()),consequent=[Pass()],alternate=[])])');
+        expect(dump).toBe('Module(body=[IfStatement(test=Name(id=a,ctx=Load(),paramType=None),consequent=[Pass()],alternate=[])])');
     });
 
     it('if a:\n pass\nelse:\n pass', function () {
         const cst = parse('if a:\n pass\nelse:\n pass') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[IfStatement(test=Name(id=a,ctx=Load()),consequent=[Pass()],alternate=[Pass()])])');
+        expect(dump).toBe('Module(body=[IfStatement(test=Name(id=a,ctx=Load(),paramType=None),consequent=[Pass()],alternate=[Pass()])])');
     });
 
     it('while a:\n pass', function () {
         const cst = parse('while a:\n pass') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[WhileStatement(test=Name(id=a,ctx=Load()),body=[Pass()],orelse=[])])');
+        expect(dump).toBe('Module(body=[WhileStatement(test=Name(id=a,ctx=Load(),paramType=None),body=[Pass()],orelse=[])])');
     });
 
     it('a().b()', function () {
         const cst = parse('a().b()') as PyNode;
         const ast = new Module(astFromParse(cst));
         const dump = astDump(ast);
-        expect(dump).toBe('Module(body=[ExpressionStatement(value=Call(func=Attribute(value=Call(func=Name(id=a,ctx=Load()),args=[],keywords=[],starargs=None,kwargs=None),attr=b,ctx=Load()),args=[],keywords=[],starargs=None,kwargs=None))])');
+        expect(dump).toBe('Module(body=[ExpressionStatement(value=Call(func=Attribute(value=Call(func=Name(id=a,ctx=Load(),paramType=None),args=[],keywords=[],starargs=None,kwargs=None),attr=b,ctx=Load()),args=[],keywords=[],starargs=None,kwargs=None))])');
     });
 
     it('ParseError', function () {
