@@ -32,8 +32,8 @@ small_stmt: (ExprStmt |
              exec_stmt |
              assert_stmt)
 
-ExprStmt: testlist (augassign (YieldExpr|testlist) | ('=' (YieldExpr|testlist))*)
-
+ExprStmt: testlist (annasign | augassign (YieldExpr|testlist) | ('=' (YieldExpr|testlist))*)
+annasign: ':' IfExpr ['=' IfExpr]
 augassign: ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '**=' | '//=')
 
 # For normal assignments, additional restrictions enforced by the interpreter

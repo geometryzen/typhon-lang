@@ -31,7 +31,7 @@
         "build:browser": "rollup --config rollup.config.js --format umd --name \"typhonLang\" --output build/browser/index.js && sorcery -i build/browser/index.js",
         "lint": "tslint src/**/*.ts",
         "test": "yarn lint && yarn unit && nyc check-coverage --lines 40 --functions 30 --branches 20",
-        "unit": "trash test && tsc -p tsconfig.json && karma start",
+        "unit": "trash test && tsc -p tsconfig.json",
         "watch": "concurrently -r --kill-others \"tsc -p tsconfig.json -w\""
     },
     "devDependencies": {

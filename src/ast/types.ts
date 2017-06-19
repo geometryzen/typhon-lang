@@ -262,6 +262,21 @@ export class Assign extends Statement {
     }
 }
 
+export class TypedAssign extends Statement {
+    targets: Target[];
+    value: Target;
+    type: Expression;
+    constructor(type: Expression, targets: Target[], value: Target, public readonly range: Range, public readonly eqRange: Range) {
+        super();
+        this.targets = targets;
+        this.value = value;
+        this.type = type;
+    }
+    accept(visitor: Visitor): void {
+        visitor.assign(this);
+    }
+}
+
 export type AugAssignOperator = Add | Sub | FloorDiv | Div | Mod | LShift | RShift | BitAnd | BitXor | BitOr | Pow | Mult;
 
 export class AugAssign extends Statement {
@@ -273,6 +288,16 @@ export class AugAssign extends Statement {
         this.target = target;
         this.op = op;
         this.value = value;
+    }
+}
+
+export class AnnAssign extends Statement {
+    value: Expression;
+    target: Expression;
+    constructor (type: Expression, target: Expression, public readonly range?: Range) {
+        super();
+        this.value = type;
+        this.target = target;
     }
 }
 
@@ -880,11 +905,22 @@ Assign.prototype['_fields'] = [
     'targets', function (n: Assign) { return n.targets; },
     'value', function (n: Assign) { return n.value; }
 ];
+TypedAssign.prototype['_astname'] = 'TypedAssign';
+TypedAssign.prototype['_fields'] = [
+    'targets', function (n: TypedAssign) { return n.targets;},
+    'type', function (n: TypedAssign) { return n.type; },
+    'value', function (n: TypedAssign) { return n.value; }
+];
 AugAssign.prototype['_astname'] = 'AugAssign';
 AugAssign.prototype['_fields'] = [
     'target', function (n: AugAssign) { return n.target; },
     'op', function (n: AugAssign) { return n.op; },
     'value', function (n: AugAssign) { return n.value; }
+];
+AnnAssign.prototype['_astname'] = 'AnnAssign';
+AnnAssign.prototype['_fields'] = [
+    'target', function (n: AnnAssign) { return n.target; },
+    'type', function (n: AnnAssign) { return n.value; }
 ];
 Print.prototype['_astname'] = 'Print';
 Print.prototype['_fields'] = [

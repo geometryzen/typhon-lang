@@ -399,7 +399,7 @@ describe('parse', function () {
             });
         });
 
-        describe("Typed parameters", function() {
+        describe("Typed parameters", function () {
             const sourceText = [
                 "def foo(x: num) -> GG: xyz"
             ].join('\n');
@@ -413,6 +413,39 @@ describe('parse', function () {
         });
     });
 
+    describe("Normal variable typing", function () {
+        describe("No assignment", function () {
+            const sourceText = [
+                "test: num",
+                ""
+            ].join('\n');
+            const cst = parse(sourceText) as PyNode;
+            console.log(cstDump(cst));
+            const ns = TERMS(cst);
+
+            it("should have correct number of terminals", function () {
+                expect(Array.isArray(ns)).toBeTruthy();
+                expect(ns.length).toBe(5);
+            });
+        });
+
+        describe("With assignment", function() {
+            const sourceText = [
+                "test: num = 5",
+                ""
+            ].join('\n');
+            const cst = parse(sourceText) as PyNode;
+            console.log(cstDump(cst));
+            const ns = TERMS(cst);
+
+            it("should have correct number of terminals", function () {
+                expect(Array.isArray(ns)).toBeTruthy();
+                expect(ns.length).toBe(7);
+            });
+        });
+
+    });
+
     describe('Special python typing', function () {
 
         describe("Dict testing", function () {
@@ -424,13 +457,13 @@ describe('parse', function () {
             // console.log(JSON.stringify(DECODE(cst), null, 2));
             const ns = TERMS(cst);
 
-            it("should have correct number of terminals", function() {
+            it("should have correct number of terminals", function () {
                 expect(ns.length).toBe(8);
             });
         });
     });
 
-    describe("comment parsing", function() {
+    describe("comment parsing", function () {
         const singleComment = [
             "#sdfsd",
             "'''asdf'''"
@@ -439,7 +472,7 @@ describe('parse', function () {
         // console.log(JSON.stringify(DECODE(cstS), null, 2));
         const ns = TERMS(cstS);
 
-        it("should have correct number of terminals", function() {
+        it("should have correct number of terminals", function () {
             expect(ns.length).toBe(1);
         });
     });

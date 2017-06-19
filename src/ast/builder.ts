@@ -6,6 +6,7 @@ import { Add } from './types';
 import { Alias } from './types';
 import { Arguments } from './types';
 import { And } from './types';
+import { AnnAssign } from './types';
 import { Assert } from './types';
 import { Assign } from './types';
 import { Attribute } from './types';
@@ -87,6 +88,7 @@ import { Sub } from './types';
 import { Subscript } from './types';
 import { TryExcept } from './types';
 import { TryFinally } from './types';
+import { TypedAssign } from './types';
 import { Tuple } from './types';
 import { UAdd } from './types';
 import { UnaryOp } from './types';
@@ -1590,12 +1592,37 @@ function astForExprStmt(c: Compiling, node: PyNode): Assign | ExpressionStatemen
 
         ch = CHILD(n, 2);
         let expr2: Expression;
-        if (ch.type === SYM.testlist)
+        if (ch.type === SYM.testlist) {
             expr2 = astForTestlist(c, ch);
+        }
         else
             expr2 = astForExpr(c, ch);
 
         return new AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.range);
+    }
+    else if (CHILD(n, 1).type === SYM.annasign) {
+        // annasign
+        // ':' 'IfExpr' ['=' 'IfExpr]
+        const ch = CHILD(n, 0);
+        const annasignChild = CHILD(n, 1);
+        const type: Expression = astForExpr(c, CHILD(annasignChild, 1));
+        const eq = CHILD(annasignChild, 2); // Equals sign
+        if (eq) {
+            REQ(eq, TOK.T_EQUAL);
+            const variable: Expression[] = [astForTestlist(c, ch)]; // variable is the first node (before the annasign)
+            const valueNode = CHILD(annasignChild, 3);
+            let value: Expression;
+            if (valueNode.type === SYM.testlist) {
+                value = astForTestlist(c, valueNode);
+            }
+            else {
+                value = astForExpr(c, valueNode);
+            }
+            return new TypedAssign(type, variable, value, n.range, eq.range);
+        }
+        else {
+            return new AnnAssign(type, astForTestlist(c, ch), n.range);
+        }
     }
     else {
         // normal assignment

@@ -273,21 +273,51 @@ describe('AST', function () {
 
     });
 
-/*
-    [
-        Dict
-            (
-            keys =
-            [
-                Name(id = one, ctx = Load())
-            ],
-            values =
-            [
-                Num(n = 1)
-            ]
-            )
-    ]
-*/
+    /*
+        [
+            Dict
+                (
+                keys =
+                [
+                    Name(id = one, ctx = Load())
+                ],
+                values =
+                [
+                    Num(n = 1)
+                ]
+                )
+        ]
+    */
+
+    describe("Normal variable typing", function () {
+        describe("No assignment", function () {
+            const sourceText = [
+                "test: num",
+                ""
+            ].join('\n');
+            const cst = parse(sourceText) as PyNode;
+            const ast = new Module(astFromParse(cst));
+            console.log(astDump(ast));
+            it("Expect", function () {
+                expect(1).toBe(1);
+            });
+        });
+
+        describe("With assignment", function () {
+            const sourceText = [
+                "test: num = 5",
+                ""
+            ].join('\n');
+            const cst = parse(sourceText) as PyNode;
+            const ast = new Module(astFromParse(cst));
+            console.log(astDump(ast));
+            it("Expect", function () {
+                expect(1).toBe(1);
+            });
+
+        });
+
+    });
 
     describe("Function testing", function () {
 
