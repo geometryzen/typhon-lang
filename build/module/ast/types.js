@@ -296,6 +296,19 @@ var FunctionDef = (function (_super) {
     return FunctionDef;
 }(Statement));
 export { FunctionDef };
+var FunctionParamDef = (function () {
+    function FunctionParamDef(name, type) {
+        this.name = name;
+        if (type) {
+            this.type = type;
+        }
+        else {
+            this.type = null;
+        }
+    }
+    return FunctionParamDef;
+}());
+export { FunctionParamDef };
 var ClassDef = (function (_super) {
     tslib_1.__extends(ClassDef, _super);
     function ClassDef(name, bases, body, decorator_list, range) {
@@ -1303,6 +1316,11 @@ Keyword.prototype['_astname'] = 'Keyword';
 Keyword.prototype['_fields'] = [
     'arg', function (n) { return n.arg.value; },
     'value', function (n) { return n.value; }
+];
+FunctionParamDef.prototype['_astname'] = 'FunctionParamDef';
+FunctionParamDef.prototype['_fields'] = [
+    'name', function (n) { return n.name; },
+    'type', function (n) { return n.type; }
 ];
 Alias.prototype['_astname'] = 'Alias';
 Alias.prototype['_fields'] = [

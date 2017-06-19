@@ -41,8 +41,8 @@ var types_35 = require("./types");
 var types_36 = require("./types");
 var types_37 = require("./types");
 var types_38 = require("./types");
-// FIXME: Convention
 var types_39 = require("./types");
+// FIXME: Convention
 var types_40 = require("./types");
 var types_41 = require("./types");
 var types_42 = require("./types");
@@ -60,8 +60,8 @@ var types_53 = require("./types");
 var types_54 = require("./types");
 var types_55 = require("./types");
 var types_56 = require("./types");
-// import { Module } from './types';
 var types_57 = require("./types");
+// import { Module } from './types';
 var types_58 = require("./types");
 var types_59 = require("./types");
 var types_60 = require("./types");
@@ -91,6 +91,7 @@ var types_83 = require("./types");
 var types_84 = require("./types");
 var types_85 = require("./types");
 var types_86 = require("./types");
+var types_87 = require("./types");
 var base_1 = require("../common/base");
 var tables_1 = require("../cst/tables");
 var Tokens_1 = require("../cst/Tokens");
@@ -202,30 +203,30 @@ function setContext(c, e, ctx, n) {
     var s = null;
     var exprName = null;
     if (e instanceof types_7.Attribute) {
-        if (ctx === types_74.Store)
+        if (ctx === types_75.Store)
             forbiddenCheck(c, n, e.attr.value, n.range);
         e.ctx = ctx;
     }
-    else if (e instanceof types_59.Name) {
-        if (ctx === types_74.Store)
+    else if (e instanceof types_60.Name) {
+        if (ctx === types_75.Store)
             forbiddenCheck(c, n, /*e.attr*/ void 0, n.range);
         e.ctx = ctx;
     }
-    else if (e instanceof types_77.Subscript) {
+    else if (e instanceof types_78.Subscript) {
         e.ctx = ctx;
     }
-    else if (e instanceof types_50.List) {
+    else if (e instanceof types_51.List) {
         e.ctx = ctx;
         s = e.elts;
     }
-    else if (e instanceof types_80.Tuple) {
+    else if (e instanceof types_81.Tuple) {
         if (e.elts.length === 0) {
             throw syntaxError("can't assign to ()", n.range);
         }
         e.ctx = ctx;
         s = e.elts;
     }
-    else if (e instanceof types_49.Lambda) {
+    else if (e instanceof types_50.Lambda) {
         exprName = "lambda";
     }
     else if (e instanceof types_17.Call) {
@@ -238,27 +239,27 @@ function setContext(c, e, ctx, n) {
         switch (e.constructor) {
             case types_15.BoolOp:
             case types_11.BinOp:
-            case types_82.UnaryOp:
+            case types_83.UnaryOp:
                 exprName = "operator";
                 break;
-            case types_35.GeneratorExp:
+            case types_36.GeneratorExp:
                 exprName = "generator expression";
                 break;
-            case types_86.Yield:
+            case types_87.Yield:
                 exprName = "yield expression";
                 break;
-            case types_51.ListComp:
+            case types_52.ListComp:
                 exprName = "list comprehension";
                 break;
             case types_24.Dict:
-            case types_63.Num:
-            case types_75.Str:
+            case types_64.Num:
+            case types_76.Str:
                 exprName = "literal";
                 break;
             case types_19.Compare:
                 exprName = "comparison expression";
                 break;
-            case types_41.IfExp:
+            case types_42.IfExp:
                 exprName = "conditional expression";
                 break;
             default: {
@@ -267,7 +268,7 @@ function setContext(c, e, ctx, n) {
         }
     }
     if (exprName) {
-        throw syntaxError("can't " + (ctx === types_74.Store ? "assign to" : "delete") + " " + exprName, n.range);
+        throw syntaxError("can't " + (ctx === types_75.Store ? "assign to" : "delete") + " " + exprName, n.range);
     }
     if (s) {
         for (var _i = 0, s_1 = s; _i < s_1.length; _i++) {
@@ -284,14 +285,14 @@ var operatorMap = {};
     operatorMap[Tokens_1.Tokens.T_VBAR] = types_13.BitOr;
     operatorMap[Tokens_1.Tokens.T_CIRCUMFLEX] = types_14.BitXor;
     operatorMap[Tokens_1.Tokens.T_AMPER] = types_12.BitAnd;
-    operatorMap[Tokens_1.Tokens.T_LEFTSHIFT] = types_53.LShift;
-    operatorMap[Tokens_1.Tokens.T_RIGHTSHIFT] = types_72.RShift;
+    operatorMap[Tokens_1.Tokens.T_LEFTSHIFT] = types_54.LShift;
+    operatorMap[Tokens_1.Tokens.T_RIGHTSHIFT] = types_73.RShift;
     operatorMap[Tokens_1.Tokens.T_PLUS] = types_1.Add;
-    operatorMap[Tokens_1.Tokens.T_MINUS] = types_76.Sub;
-    operatorMap[Tokens_1.Tokens.T_STAR] = types_57.Mult;
+    operatorMap[Tokens_1.Tokens.T_MINUS] = types_77.Sub;
+    operatorMap[Tokens_1.Tokens.T_STAR] = types_58.Mult;
     operatorMap[Tokens_1.Tokens.T_SLASH] = types_25.Div;
     operatorMap[Tokens_1.Tokens.T_DOUBLESLASH] = types_32.FloorDiv;
-    operatorMap[Tokens_1.Tokens.T_PERCENT] = types_56.Mod;
+    operatorMap[Tokens_1.Tokens.T_PERCENT] = types_57.Mod;
 }());
 function getOperator(n) {
     asserts_1.assert(operatorMap[n.type] !== undefined, "" + n.type);
@@ -303,25 +304,25 @@ function astForCompOp(c, n) {
     if (tree_1.NCH(n) === 1) {
         n = tree_1.CHILD(n, 0);
         switch (n.type) {
-            case Tokens_1.Tokens.T_LESS: return types_54.Lt;
-            case Tokens_1.Tokens.T_GREATER: return types_37.Gt;
+            case Tokens_1.Tokens.T_LESS: return types_55.Lt;
+            case Tokens_1.Tokens.T_GREATER: return types_38.Gt;
             case Tokens_1.Tokens.T_EQEQUAL: return types_27.Eq;
-            case Tokens_1.Tokens.T_LESSEQUAL: return types_55.LtE;
-            case Tokens_1.Tokens.T_GREATEREQUAL: return types_38.GtE;
-            case Tokens_1.Tokens.T_NOTEQUAL: return types_61.NotEq;
+            case Tokens_1.Tokens.T_LESSEQUAL: return types_56.LtE;
+            case Tokens_1.Tokens.T_GREATEREQUAL: return types_39.GtE;
+            case Tokens_1.Tokens.T_NOTEQUAL: return types_62.NotEq;
             case Tokens_1.Tokens.T_NAME:
                 if (n.value === "in")
-                    return types_45.In;
+                    return types_46.In;
                 if (n.value === "is")
-                    return types_47.Is;
+                    return types_48.Is;
         }
     }
     else if (tree_1.NCH(n) === 2) {
         if (tree_1.CHILD(n, 0).type === Tokens_1.Tokens.T_NAME) {
             if (tree_1.CHILD(n, 1).value === "in")
-                return types_62.NotIn;
+                return types_63.NotIn;
             if (tree_1.CHILD(n, 0).value === "is")
-                return types_48.IsNot;
+                return types_49.IsNot;
         }
     }
     throw new Error("invalid comp_op");
@@ -395,7 +396,7 @@ function astForExceptClause(c, exc, body) {
         return new types_28.ExceptHandler(astForExpr(c, tree_1.CHILD(exc, 1)), null, astForSuite(c, body), exc.range);
     else if (tree_1.NCH(exc) === 4) {
         var e = astForExpr(c, tree_1.CHILD(exc, 3));
-        setContext(c, e, types_74.Store, tree_1.CHILD(exc, 3));
+        setContext(c, e, types_75.Store, tree_1.CHILD(exc, 3));
         return new types_28.ExceptHandler(astForExpr(c, tree_1.CHILD(exc, 1)), e, astForSuite(c, body), exc.range);
     }
     else {
@@ -436,7 +437,7 @@ function astForTryStmt(c, n) {
         for (var i = 0; i < nexcept; ++i) {
             handlers[i] = astForExceptClause(c, tree_1.CHILD(n, 3 + i * 3), tree_1.CHILD(n, 5 + i * 3));
         }
-        var exceptSt = new types_78.TryExcept(body, handlers, orelse, n.range);
+        var exceptSt = new types_79.TryExcept(body, handlers, orelse, n.range);
         if (!finally_)
             return exceptSt;
         /* if a 'finally' is present too, we nest the TryExcept within a
@@ -444,17 +445,17 @@ function astForTryStmt(c, n) {
         body = [exceptSt];
     }
     asserts_1.assert(finally_ !== null);
-    return new types_79.TryFinally(body, finally_, n.range);
+    return new types_80.TryFinally(body, finally_, n.range);
 }
 function astForDottedName(c, n) {
     REQ(n, SYM.dotted_name);
     var child = tree_1.CHILD(n, 0);
-    var id = new types_70.RangeAnnotated(child.value, child.range);
-    var e = new types_59.Name(id, types_52.Load);
+    var id = new types_71.RangeAnnotated(child.value, child.range);
+    var e = new types_60.Name(id, types_53.Load);
     for (var i = 2; i < tree_1.NCH(n); i += 2) {
         var child_1 = tree_1.CHILD(n, i);
-        id = new types_70.RangeAnnotated(child_1.value, child_1.range);
-        e = new types_7.Attribute(e, id, types_52.Load, n.range);
+        id = new types_71.RangeAnnotated(child_1.value, child_1.range);
+        e = new types_7.Attribute(e, id, types_53.Load, n.range);
     }
     return e;
 }
@@ -511,10 +512,10 @@ function astForWithStmt(c, n) {
     var optionalVars;
     if (tree_1.CHILD(n, 2).type === SYM.with_var) {
         optionalVars = astForWithVar(c, tree_1.CHILD(n, 2));
-        setContext(c, optionalVars, types_74.Store, n);
+        setContext(c, optionalVars, types_75.Store, n);
         suiteIndex = 4;
     }
-    return new types_85.WithStatement(contextExpr, optionalVars, astForSuite(c, tree_1.CHILD(n, suiteIndex)), n.range);
+    return new types_86.WithStatement(contextExpr, optionalVars, astForSuite(c, tree_1.CHILD(n, suiteIndex)), n.range);
 }
 function astForExecStmt(c, n) {
     var globals = null;
@@ -538,11 +539,11 @@ function astForIfStmt(c, n) {
     */
     REQ(n, SYM.if_stmt);
     if (tree_1.NCH(n) === 4)
-        return new types_40.IfStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), [], n.range);
+        return new types_41.IfStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), [], n.range);
     var s = tree_1.CHILD(n, 4).value;
     var decider = s.charAt(2); // elSe or elIf
     if (decider === 's') {
-        return new types_40.IfStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), astForSuite(c, tree_1.CHILD(n, 6)), n.range);
+        return new types_41.IfStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), astForSuite(c, tree_1.CHILD(n, 6)), n.range);
     }
     else if (decider === 'i') {
         var nElif = tree_1.NCH(n) - 4;
@@ -557,17 +558,17 @@ function astForIfStmt(c, n) {
         nElif /= 4;
         if (hasElse) {
             orelse = [
-                new types_40.IfStatement(astForExpr(c, tree_1.CHILD(n, tree_1.NCH(n) - 6)), astForSuite(c, tree_1.CHILD(n, tree_1.NCH(n) - 4)), astForSuite(c, tree_1.CHILD(n, tree_1.NCH(n) - 1)), tree_1.CHILD(n, tree_1.NCH(n) - 6).range)
+                new types_41.IfStatement(astForExpr(c, tree_1.CHILD(n, tree_1.NCH(n) - 6)), astForSuite(c, tree_1.CHILD(n, tree_1.NCH(n) - 4)), astForSuite(c, tree_1.CHILD(n, tree_1.NCH(n) - 1)), tree_1.CHILD(n, tree_1.NCH(n) - 6).range)
             ];
             nElif--;
         }
         for (var i = 0; i < nElif; ++i) {
             var off = 5 + (nElif - i - 1) * 4;
             orelse = [
-                new types_40.IfStatement(astForExpr(c, tree_1.CHILD(n, off)), astForSuite(c, tree_1.CHILD(n, off + 2)), orelse, tree_1.CHILD(n, off).range)
+                new types_41.IfStatement(astForExpr(c, tree_1.CHILD(n, off)), astForSuite(c, tree_1.CHILD(n, off + 2)), orelse, tree_1.CHILD(n, off).range)
             ];
         }
-        return new types_40.IfStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), orelse, n.range);
+        return new types_41.IfStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), orelse, n.range);
     }
     throw new Error("unexpected token in 'if' statement");
 }
@@ -592,7 +593,7 @@ function astForGlobalStmt(c, n) {
     for (var i = 1; i < tree_1.NCH(n); i += 2) {
         s[(i - 1) / 2] = strobj(tree_1.CHILD(n, i).value);
     }
-    return new types_36.Global(s, n.range);
+    return new types_37.Global(s, n.range);
 }
 function astForNonLocalStmt(c, n) {
     REQ(n, SYM.NonLocalStmt);
@@ -600,7 +601,7 @@ function astForNonLocalStmt(c, n) {
     for (var i = 1; i < tree_1.NCH(n); i += 2) {
         s[(i - 1) / 2] = strobj(tree_1.CHILD(n, i).value);
     }
-    return new types_58.NonLocal(s, n.range);
+    return new types_59.NonLocal(s, n.range);
 }
 function astForAssertStmt(c, n) {
     /* assert_stmt: 'assert' test [',' test] */
@@ -629,7 +630,7 @@ function aliasForImportName(c, n) {
                 if (tree_1.NCH(n) === 3) {
                     str = tree_1.CHILD(n, 2).value;
                 }
-                return new types_2.Alias(new types_70.RangeAnnotated(name_1, nameRange), str == null ? null : strobj(str));
+                return new types_2.Alias(new types_71.RangeAnnotated(name_1, nameRange), str == null ? null : strobj(str));
             }
             case SYM.dotted_as_name:
                 if (tree_1.NCH(n) === 1) {
@@ -647,7 +648,7 @@ function aliasForImportName(c, n) {
                     var nameNode = tree_1.CHILD(n, 0);
                     var name_2 = strobj(nameNode.value);
                     var nameRange = nameNode.range;
-                    return new types_2.Alias(new types_70.RangeAnnotated(name_2, nameRange), null);
+                    return new types_2.Alias(new types_71.RangeAnnotated(name_2, nameRange), null);
                 }
                 else {
                     // create a string of the form a.b.c
@@ -655,14 +656,14 @@ function aliasForImportName(c, n) {
                     for (var i = 0; i < tree_1.NCH(n); i += 2) {
                         str += tree_1.CHILD(n, i).value + ".";
                     }
-                    return new types_2.Alias(new types_70.RangeAnnotated(str.substr(0, str.length - 1), null), null);
+                    return new types_2.Alias(new types_71.RangeAnnotated(str.substr(0, str.length - 1), null), null);
                 }
             case Tokens_1.Tokens.T_STAR: {
-                return new types_2.Alias(new types_70.RangeAnnotated("*", n.range), null);
+                return new types_2.Alias(new types_71.RangeAnnotated("*", n.range), null);
             }
             case Tokens_1.Tokens.T_NAME: {
                 // Temporary.
-                return new types_2.Alias(new types_70.RangeAnnotated(n.value, n.range), null);
+                return new types_2.Alias(new types_71.RangeAnnotated(n.value, n.range), null);
             }
             default: {
                 throw syntaxError("unexpected import name " + grammarName_1.grammarName(n.type), n.range);
@@ -692,7 +693,7 @@ function astForImportStmt(c, importStatementNode) {
         for (var i = 0; i < tree_1.NCH(n); i += 2) {
             aliases[i / 2] = aliasForImportName(c, tree_1.CHILD(n, i));
         }
-        return new types_42.ImportStatement(aliases, importStatementNode.range);
+        return new types_43.ImportStatement(aliases, importStatementNode.range);
     }
     else if (nameOrFrom.type === SYM.import_from) {
         // let mod: Alias = null;
@@ -756,7 +757,7 @@ function astForImportStmt(c, importStatementNode) {
         }
         // moduleName = mod ? mod.name : moduleName;
         asserts_1.assert(typeof moduleSpec.value === 'string');
-        return new types_43.ImportFrom(new types_70.RangeAnnotated(moduleSpec.value, moduleSpec.range), aliases, ndots, importStatementNode.range);
+        return new types_44.ImportFrom(new types_71.RangeAnnotated(moduleSpec.value, moduleSpec.range), aliases, ndots, importStatementNode.range);
     }
     else {
         throw syntaxError("unknown import statement " + grammarName_1.grammarName(nameOrFrom.type) + ".", nameOrFrom.range);
@@ -832,13 +833,13 @@ function astForListcomp(c, n) {
     for (var i = 0; i < nfors; ++i) {
         REQ(ch, SYM.list_for);
         var forch = tree_1.CHILD(ch, 1);
-        var t = astForExprlist(c, forch, types_74.Store);
+        var t = astForExprlist(c, forch, types_75.Store);
         var expression = astForTestlist(c, tree_1.CHILD(ch, 3));
         var lc = void 0;
         if (tree_1.NCH(forch) === 1)
             lc = new types_20.Comprehension(t[0], expression, []);
         else
-            lc = new types_20.Comprehension(new types_80.Tuple(t, types_74.Store, ch.range), expression, []);
+            lc = new types_20.Comprehension(new types_81.Tuple(t, types_75.Store, ch.range), expression, []);
         if (tree_1.NCH(ch) === 5) {
             ch = tree_1.CHILD(ch, 4);
             var nifs = countListIfs(c, ch);
@@ -857,7 +858,7 @@ function astForListcomp(c, n) {
         }
         listcomps[i] = lc;
     }
-    return new types_51.ListComp(elt, listcomps, n.range);
+    return new types_52.ListComp(elt, listcomps, n.range);
 }
 function astForUnaryExpr(c, n) {
     if (tree_1.CHILD(n, 0).type === Tokens_1.Tokens.T_MINUS && tree_1.NCH(n) === 2) {
@@ -878,9 +879,9 @@ function astForUnaryExpr(c, n) {
     }
     var expression = astForExpr(c, tree_1.CHILD(n, 1));
     switch (tree_1.CHILD(n, 0).type) {
-        case Tokens_1.Tokens.T_PLUS: return new types_82.UnaryOp(types_81.UAdd, expression, n.range);
-        case Tokens_1.Tokens.T_MINUS: return new types_82.UnaryOp(types_83.USub, expression, n.range);
-        case Tokens_1.Tokens.T_TILDE: return new types_82.UnaryOp(types_46.Invert, expression, n.range);
+        case Tokens_1.Tokens.T_PLUS: return new types_83.UnaryOp(types_82.UAdd, expression, n.range);
+        case Tokens_1.Tokens.T_MINUS: return new types_83.UnaryOp(types_84.USub, expression, n.range);
+        case Tokens_1.Tokens.T_TILDE: return new types_83.UnaryOp(types_47.Invert, expression, n.range);
     }
     throw new Error("unhandled UnaryExpr");
 }
@@ -891,13 +892,13 @@ function astForForStmt(c, n) {
         seq = astForSuite(c, tree_1.CHILD(n, 8));
     }
     var nodeTarget = tree_1.CHILD(n, 1);
-    var _target = astForExprlist(c, nodeTarget, types_74.Store);
+    var _target = astForExprlist(c, nodeTarget, types_75.Store);
     var target;
     if (tree_1.NCH(nodeTarget) === 1)
         target = _target[0];
     else
-        target = new types_80.Tuple(_target, types_74.Store, n.range);
-    return new types_33.ForStatement(target, astForTestlist(c, tree_1.CHILD(n, 3)), astForSuite(c, tree_1.CHILD(n, 5)), seq, n.range);
+        target = new types_81.Tuple(_target, types_75.Store, n.range);
+    return new types_34.ForStatement(target, astForTestlist(c, tree_1.CHILD(n, 3)), astForSuite(c, tree_1.CHILD(n, 5)), seq, n.range);
 }
 function astForCall(c, n, func) {
     /*
@@ -944,9 +945,9 @@ function astForCall(c, n, func) {
                 args[nargs++] = astForGenexp(c, ch);
             else {
                 var e = astForExpr(c, tree_1.CHILD(ch, 0));
-                if (e.constructor === types_49.Lambda)
+                if (e.constructor === types_50.Lambda)
                     throw syntaxError("lambda cannot contain assignment", n.range);
-                else if (e.constructor !== types_59.Name)
+                else if (e.constructor !== types_60.Name)
                     throw syntaxError("keyword can't be an expression", n.range);
                 var key = e.id;
                 forbiddenCheck(c, tree_1.CHILD(ch, 0), key.value, n.range);
@@ -955,7 +956,7 @@ function astForCall(c, n, func) {
                     if (tmp === key.value)
                         throw syntaxError("keyword argument repeated", n.range);
                 }
-                keywords[nkeywords++] = new types_39.Keyword(key, astForExpr(c, tree_1.CHILD(ch, 2)));
+                keywords[nkeywords++] = new types_40.Keyword(key, astForExpr(c, tree_1.CHILD(ch, 2)));
             }
         }
         else if (ch.type === Tokens_1.Tokens.T_STAR)
@@ -976,7 +977,7 @@ function keywordsToDict(keywords) {
     for (var _i = 0, keywords_1 = keywords; _i < keywords_1.length; _i++) {
         var keyword = keywords_1[_i];
         values.push(keyword.value);
-        keys.push(new types_59.Name(new types_70.RangeAnnotated(keyword.arg.value, keyword.arg.range), types_52.Load));
+        keys.push(new types_60.Name(new types_71.RangeAnnotated(keyword.arg.value, keyword.arg.range), types_53.Load));
     }
     return new types_24.Dict(keys, values);
 }
@@ -999,14 +1000,14 @@ function astForTrailer(c, node, leftExpr) {
         }
     }
     else if (childZero.type === Tokens_1.Tokens.T_DOT) {
-        return new types_7.Attribute(leftExpr, new types_70.RangeAnnotated(childOne.value, childOne.range), types_52.Load, n.range);
+        return new types_7.Attribute(leftExpr, new types_71.RangeAnnotated(childOne.value, childOne.range), types_53.Load, n.range);
     }
     else {
         REQ(childZero, Tokens_1.Tokens.T_LSQB);
         REQ(childTwo, Tokens_1.Tokens.T_RSQB);
         var n_1 = childOne;
         if (tree_1.NCH(n_1) === 1)
-            return new types_77.Subscript(leftExpr, astForSlice(c, tree_1.CHILD(n_1, 0)), types_52.Load, n_1.range);
+            return new types_78.Subscript(leftExpr, astForSlice(c, tree_1.CHILD(n_1, 0)), types_53.Load, n_1.range);
         else {
             /* The grammar is ambiguous here. The ambiguity is resolved
                 by treating the sequence as a tuple literal if there are
@@ -1016,27 +1017,27 @@ function astForTrailer(c, node, leftExpr) {
             var slices = [];
             for (var j = 0; j < tree_1.NCH(n_1); j += 2) {
                 var slc = astForSlice(c, tree_1.CHILD(n_1, j));
-                if (slc.constructor !== types_44.Index) {
+                if (slc.constructor !== types_45.Index) {
                     simple = false;
                 }
                 slices[j / 2] = slc;
             }
             if (!simple) {
-                return new types_77.Subscript(leftExpr, new types_31.ExtSlice(slices), types_52.Load, n_1.range);
+                return new types_78.Subscript(leftExpr, new types_31.ExtSlice(slices), types_53.Load, n_1.range);
             }
             var elts = [];
             for (var j = 0; j < slices.length; ++j) {
                 var slc = slices[j];
-                if (slc instanceof types_44.Index) {
+                if (slc instanceof types_45.Index) {
                     asserts_1.assert(slc.value !== null && slc.value !== undefined);
                     elts[j] = slc.value;
                 }
                 else {
-                    asserts_1.assert(slc instanceof types_44.Index);
+                    asserts_1.assert(slc instanceof types_45.Index);
                 }
             }
-            var e = new types_80.Tuple(elts, types_52.Load, n_1.range);
-            return new types_77.Subscript(leftExpr, new types_44.Index(e), types_52.Load, n_1.range);
+            var e = new types_81.Tuple(elts, types_53.Load, n_1.range);
+            return new types_78.Subscript(leftExpr, new types_45.Index(e), types_53.Load, n_1.range);
         }
     }
 }
@@ -1050,18 +1051,18 @@ function astForFlowStmt(c, n) {
             return new types_30.ExpressionStatement(astForExpr(c, tree_1.CHILD(ch, 0)), n.range);
         case SYM.return_stmt:
             if (tree_1.NCH(ch) === 1)
-                return new types_71.ReturnStatement(null, n.range);
+                return new types_72.ReturnStatement(null, n.range);
             else
-                return new types_71.ReturnStatement(astForTestlist(c, tree_1.CHILD(ch, 1)), n.range);
+                return new types_72.ReturnStatement(astForTestlist(c, tree_1.CHILD(ch, 1)), n.range);
         case SYM.raise_stmt: {
             if (tree_1.NCH(ch) === 1)
-                return new types_69.Raise(null, null, null, n.range);
+                return new types_70.Raise(null, null, null, n.range);
             else if (tree_1.NCH(ch) === 2)
-                return new types_69.Raise(astForExpr(c, tree_1.CHILD(ch, 1)), null, null, n.range);
+                return new types_70.Raise(astForExpr(c, tree_1.CHILD(ch, 1)), null, null, n.range);
             else if (tree_1.NCH(ch) === 4)
-                return new types_69.Raise(astForExpr(c, tree_1.CHILD(ch, 1)), astForExpr(c, tree_1.CHILD(ch, 3)), null, n.range);
+                return new types_70.Raise(astForExpr(c, tree_1.CHILD(ch, 1)), astForExpr(c, tree_1.CHILD(ch, 3)), null, n.range);
             else if (tree_1.NCH(ch) === 6)
-                return new types_69.Raise(astForExpr(c, tree_1.CHILD(ch, 1)), astForExpr(c, tree_1.CHILD(ch, 3)), astForExpr(c, tree_1.CHILD(ch, 5)), n.range);
+                return new types_70.Raise(astForExpr(c, tree_1.CHILD(ch, 1)), astForExpr(c, tree_1.CHILD(ch, 3)), astForExpr(c, tree_1.CHILD(ch, 5)), n.range);
             else {
                 throw new Error("unhandled flow statement");
             }
@@ -1082,21 +1083,23 @@ function astForArguments(c, n) {
     if (n.type === SYM.parameters) {
         if (tree_1.NCH(n) === 2)
             return new types_3.Arguments([], null, null, []);
-        n = tree_1.CHILD(n, 1);
+        n = tree_1.CHILD(n, 1); // n is a varargslist here on out
     }
     REQ(n, SYM.varargslist);
     var args = [];
     var defaults = [];
-    /* fpdef: NAME | '(' fplist ')'
+    /* fpdef: NAME [':' IfExpr] | '(' fplist ')'
         fplist: fpdef (',' fpdef)* [',']
     */
     var foundDefault = false;
     var i = 0;
     var j = 0; // index for defaults
     var k = 0; // index for args
+    // loop through the children of the varargslist
     while (i < tree_1.NCH(n)) {
         ch = tree_1.CHILD(n, i);
         switch (ch.type) {
+            // If it is a fpdef - act here
             case SYM.fpdef:
                 var complexArgs = 0;
                 var parenthesized = false;
@@ -1113,7 +1116,8 @@ function astForArguments(c, n) {
                             throw syntaxError("parenthesized arg with default", n.range);
                         throw syntaxError("non-default argument follows default argument", n.range);
                     }
-                    if (tree_1.NCH(ch) === 3) {
+                    // For unpacking a tuple
+                    if (tree_1.NCH(ch) === 3 && ch.children[2].type === Tokens_1.Tokens.T_RPAR) {
                         ch = tree_1.CHILD(ch, 1);
                         // def foo((x)): is not complex, special case.
                         if (tree_1.NCH(ch) !== 1) {
@@ -1129,11 +1133,23 @@ function astForArguments(c, n) {
                             continue handle_fpdef;
                         }
                     }
+                    // childzero here is possibly the 'NAME' in fpdef: NAME [':' IfExpr]
                     var childZero = tree_1.CHILD(ch, 0);
                     if (childZero.type === Tokens_1.Tokens.T_NAME) {
                         forbiddenCheck(c, n, childZero.value, n.range);
-                        var id = new types_70.RangeAnnotated(childZero.value, childZero.range);
-                        args[k++] = new types_59.Name(id, types_65.Param);
+                        var id = new types_71.RangeAnnotated(childZero.value, childZero.range);
+                        /**
+                         * Setting the type of the param here, will be third child of fpdef if it exists
+                         * If it doesn't exist then set the type as null and have typescript attempt to infer it later
+                         */
+                        var paramTypeNode = tree_1.CHILD(ch, 2);
+                        if (paramTypeNode) {
+                            var paramTypeExpr = astForExpr(c, paramTypeNode);
+                            args[k++] = new types_33.FunctionParamDef(new types_60.Name(id, types_66.Param), paramTypeExpr);
+                        }
+                        else {
+                            args[k++] = new types_33.FunctionParamDef(new types_60.Name(id, types_66.Param));
+                        }
                     }
                     i += 2;
                     if (parenthesized)
@@ -1203,7 +1219,7 @@ function astForFuncdef(c, n, decoratorSeq) {
     else {
         asserts_1.fail("Was expecting 5, 7 or 8 children, received " + numberOfChildren + " children");
     }
-    return new types_34.FunctionDef(new types_70.RangeAnnotated(name, ch1.range), args, body, returnType, decoratorSeq, n.range);
+    return new types_35.FunctionDef(new types_71.RangeAnnotated(name, ch1.range), args, body, returnType, decoratorSeq, n.range);
 }
 function astForClassBases(c, n) {
     var numberOfChildren = tree_1.NCH(n);
@@ -1240,7 +1256,7 @@ function astForClassdef(c, node, decoratorSeq) {
     }
     // If grammar looks like 'class NAME : suite'
     if (numberOfChildren === 4) {
-        return new types_18.ClassDef(new types_70.RangeAnnotated(className, nameRange), [], astForSuite(c, tree_1.CHILD(n, 3)), decoratorSeq, n.range);
+        return new types_18.ClassDef(new types_71.RangeAnnotated(className, nameRange), [], astForSuite(c, tree_1.CHILD(n, 3)), decoratorSeq, n.range);
     }
     // If grammar looks like 'export class NAME : suite'
     if (numberOfChildren === 5) {
@@ -1257,13 +1273,13 @@ function astForClassdef(c, node, decoratorSeq) {
     var c3 = tree_1.CHILD(n, 3);
     // If grammar looks like 'class NAME '(' ')' : suite'
     if (c3.type === Tokens_1.Tokens.T_RPAR) {
-        return new types_18.ClassDef(new types_70.RangeAnnotated(className, nameRange), [], astForSuite(c, tree_1.CHILD(n, 5)), decoratorSeq, n.range);
+        return new types_18.ClassDef(new types_71.RangeAnnotated(className, nameRange), [], astForSuite(c, tree_1.CHILD(n, 5)), decoratorSeq, n.range);
     }
     // Otherwise grammar looks like 'class NAME '(' testlist ')' : suite'
     // ClassBases are 'testlist'
     var bases = astForClassBases(c, c3);
     var s = astForSuite(c, tree_1.CHILD(n, 6));
-    return new types_18.ClassDef(new types_70.RangeAnnotated(className, nameRange), bases, s, decoratorSeq, n.range);
+    return new types_18.ClassDef(new types_71.RangeAnnotated(className, nameRange), bases, s, decoratorSeq, n.range);
 }
 function astForLambdef(c, n) {
     var args;
@@ -1276,7 +1292,7 @@ function astForLambdef(c, n) {
         args = astForArguments(c, tree_1.CHILD(n, 1));
         expression = astForExpr(c, tree_1.CHILD(n, 3));
     }
-    return new types_49.Lambda(args, expression, n.range);
+    return new types_50.Lambda(args, expression, n.range);
 }
 function astForGenexp(c, n) {
     /* testlist_gexp: test ( gen_for | (',' test)* [','] )
@@ -1333,13 +1349,13 @@ function astForGenexp(c, n) {
     for (var i = 0; i < nfors; ++i) {
         REQ(ch, SYM.gen_for);
         var forch = tree_1.CHILD(ch, 1);
-        var t = astForExprlist(c, forch, types_74.Store);
+        var t = astForExprlist(c, forch, types_75.Store);
         var expression = astForExpr(c, tree_1.CHILD(ch, 3));
         var ge = void 0;
         if (tree_1.NCH(forch) === 1)
             ge = new types_20.Comprehension(t[0], expression, []);
         else
-            ge = new types_20.Comprehension(new types_80.Tuple(t, types_74.Store, ch.range), expression, []);
+            ge = new types_20.Comprehension(new types_81.Tuple(t, types_75.Store, ch.range), expression, []);
         if (tree_1.NCH(ch) === 5) {
             ch = tree_1.CHILD(ch, 4);
             var nifs = countGenIfs(c, ch);
@@ -1359,15 +1375,15 @@ function astForGenexp(c, n) {
         }
         genexps[i] = ge;
     }
-    return new types_35.GeneratorExp(elt, genexps, n.range);
+    return new types_36.GeneratorExp(elt, genexps, n.range);
 }
 function astForWhileStmt(c, n) {
     /* while_stmt: 'while' test ':' suite ['else' ':' suite] */
     REQ(n, SYM.while_stmt);
     if (tree_1.NCH(n) === 4)
-        return new types_84.WhileStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), [], n.range);
+        return new types_85.WhileStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), [], n.range);
     else if (tree_1.NCH(n) === 7)
-        return new types_84.WhileStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), astForSuite(c, tree_1.CHILD(n, 6)), n.range);
+        return new types_85.WhileStatement(astForExpr(c, tree_1.CHILD(n, 1)), astForSuite(c, tree_1.CHILD(n, 3)), astForSuite(c, tree_1.CHILD(n, 6)), n.range);
     throw new Error("wrong number of tokens for 'while' stmt");
 }
 function astForAugassign(c, n) {
@@ -1375,7 +1391,7 @@ function astForAugassign(c, n) {
     n = tree_1.CHILD(n, 0);
     switch (n.value.charAt(0)) {
         case '+': return types_1.Add;
-        case '-': return types_76.Sub;
+        case '-': return types_77.Sub;
         case '/': {
             if (n.value.charAt(1) === '/') {
                 return types_32.FloorDiv;
@@ -1384,18 +1400,18 @@ function astForAugassign(c, n) {
                 return types_25.Div;
             }
         }
-        case '%': return types_56.Mod;
-        case '<': return types_53.LShift;
-        case '>': return types_72.RShift;
+        case '%': return types_57.Mod;
+        case '<': return types_54.LShift;
+        case '>': return types_73.RShift;
         case '&': return types_12.BitAnd;
         case '^': return types_14.BitXor;
         case '|': return types_13.BitOr;
         case '*': {
             if (n.value.charAt(1) === '*') {
-                return types_67.Pow;
+                return types_68.Pow;
             }
             else {
-                return types_57.Mult;
+                return types_58.Mult;
             }
         }
         default: {
@@ -1435,7 +1451,7 @@ function astForTestlist(c, n) {
         return astForExpr(c, tree_1.CHILD(n, 0));
     }
     else {
-        return new types_80.Tuple(seqForTestlist(c, n), types_52.Load, n.range);
+        return new types_81.Tuple(seqForTestlist(c, n), types_53.Load, n.range);
     }
 }
 function astForExprStmt(c, node) {
@@ -1449,20 +1465,20 @@ function astForExprStmt(c, node) {
         var ch = tree_1.CHILD(n, 0);
         var expr1 = astForTestlist(c, ch);
         switch (expr1.constructor) {
-            case types_35.GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.range);
-            case types_86.Yield: throw syntaxError("augmented assignment to yield expression not possible", n.range);
-            case types_59.Name: {
+            case types_36.GeneratorExp: throw syntaxError("augmented assignment to generator expression not possible", n.range);
+            case types_87.Yield: throw syntaxError("augmented assignment to yield expression not possible", n.range);
+            case types_60.Name: {
                 var varName = expr1.id;
                 forbiddenCheck(c, ch, varName.value, n.range);
                 break;
             }
             case types_7.Attribute:
-            case types_77.Subscript:
+            case types_78.Subscript:
                 break;
             default:
                 throw syntaxError("illegal expression for augmented assignment", n.range);
         }
-        setContext(c, expr1, types_74.Store, ch);
+        setContext(c, expr1, types_75.Store, ch);
         ch = tree_1.CHILD(n, 2);
         var expr2 = void 0;
         if (ch.type === SYM.testlist)
@@ -1482,7 +1498,7 @@ function astForExprStmt(c, node) {
             if (ch.type === SYM.YieldExpr)
                 throw syntaxError("assignment to yield expression not possible", n.range);
             var e = astForTestlist(c, ch);
-            setContext(c, e, types_74.Store, tree_1.CHILD(n, i));
+            setContext(c, e, types_75.Store, tree_1.CHILD(n, i));
             targets[i / 2] = e;
         }
         var value = tree_1.CHILD(n, N - 1);
@@ -1496,7 +1512,7 @@ function astForExprStmt(c, node) {
 }
 function astForIfexpr(c, n) {
     asserts_1.assert(tree_1.NCH(n) === 5);
-    return new types_41.IfExp(astForExpr(c, tree_1.CHILD(n, 2)), astForExpr(c, tree_1.CHILD(n, 0)), astForExpr(c, tree_1.CHILD(n, 4)), n.range);
+    return new types_42.IfExp(astForExpr(c, tree_1.CHILD(n, 2)), astForExpr(c, tree_1.CHILD(n, 0)), astForExpr(c, tree_1.CHILD(n, 4)), n.range);
 }
 // escape() was deprecated in JavaScript 1.5. Use encodeURI or encodeURIComponent instead.
 function escape(s) {
@@ -1691,7 +1707,7 @@ function astForSlice(c, node) {
         return new types_26.Ellipsis();
     }
     if (tree_1.NCH(n) === 1 && ch.type === SYM.IfExpr) {
-        return new types_44.Index(astForExpr(c, ch));
+        return new types_45.Index(astForExpr(c, ch));
     }
     if (ch.type === SYM.IfExpr) {
         lower = astForExpr(c, ch);
@@ -1713,7 +1729,7 @@ function astForSlice(c, node) {
     if (ch.type === SYM.sliceop) {
         if (tree_1.NCH(ch) === 1) {
             ch = tree_1.CHILD(ch, 0);
-            step = new types_59.Name(new types_70.RangeAnnotated("None", null), types_52.Load);
+            step = new types_60.Name(new types_71.RangeAnnotated("None", null), types_53.Load);
         }
         else {
             ch = tree_1.CHILD(ch, 1);
@@ -1721,25 +1737,25 @@ function astForSlice(c, node) {
                 step = astForExpr(c, ch);
         }
     }
-    return new types_73.Slice(lower, upper, step);
+    return new types_74.Slice(lower, upper, step);
 }
 function astForAtomExpr(c, n) {
     var c0 = tree_1.CHILD(n, 0);
     switch (c0.type) {
         case Tokens_1.Tokens.T_NAME:
             // All names start in Load context, but may be changed later
-            return new types_59.Name(new types_70.RangeAnnotated(c0.value, c0.range), types_52.Load);
+            return new types_60.Name(new types_71.RangeAnnotated(c0.value, c0.range), types_53.Load);
         case Tokens_1.Tokens.T_STRING: {
             // FIXME: Owing to the way that Python allows string concatenation, this is imprecise.
-            return new types_75.Str(new types_70.RangeAnnotated(parsestrplus(c, n), n.range));
+            return new types_76.Str(new types_71.RangeAnnotated(parsestrplus(c, n), n.range));
         }
         case Tokens_1.Tokens.T_NUMBER: {
-            return new types_63.Num(new types_70.RangeAnnotated(parsenumber(c, c0.value, c0.range), n.range));
+            return new types_64.Num(new types_71.RangeAnnotated(parsenumber(c, c0.value, c0.range), n.range));
         }
         case Tokens_1.Tokens.T_LPAR: {
             var c1 = tree_1.CHILD(n, 1);
             if (c1.type === Tokens_1.Tokens.T_RPAR) {
-                return new types_80.Tuple([], types_52.Load, n.range);
+                return new types_81.Tuple([], types_53.Load, n.range);
             }
             if (c1.type === SYM.YieldExpr) {
                 return astForExpr(c, c1);
@@ -1752,10 +1768,10 @@ function astForAtomExpr(c, n) {
         case Tokens_1.Tokens.T_LSQB: {
             var c1 = tree_1.CHILD(n, 1);
             if (c1.type === Tokens_1.Tokens.T_RSQB)
-                return new types_50.List([], types_52.Load, n.range);
+                return new types_51.List([], types_53.Load, n.range);
             REQ(c1, SYM.listmaker);
             if (tree_1.NCH(c1) === 1 || tree_1.CHILD(c1, 1).type === Tokens_1.Tokens.T_COMMA)
-                return new types_50.List(seqForTestlist(c, c1), types_52.Load, n.range);
+                return new types_51.List(seqForTestlist(c, c1), types_53.Load, n.range);
             else
                 return astForListcomp(c, c1);
         }
@@ -1797,7 +1813,7 @@ function astForPowerExpr(c, node) {
     }
     if (tree_1.CHILD(n, NminusOne).type === SYM.UnaryExpr) {
         var f = astForExpr(c, tree_1.CHILD(n, NminusOne));
-        return new types_11.BinOp(e, { op: types_67.Pow, range: null }, f, n.range);
+        return new types_11.BinOp(e, { op: types_68.Pow, range: null }, f, n.range);
     }
     else {
         return e;
@@ -1827,14 +1843,14 @@ function astForExpr(c, n) {
                     return new types_15.BoolOp(types_4.And, seq, n.range);
                 }
                 asserts_1.assert(tree_1.CHILD(n, 1).value === "or");
-                return new types_15.BoolOp(types_64.Or, seq, n.range);
+                return new types_15.BoolOp(types_65.Or, seq, n.range);
             case SYM.NotExpr:
                 if (tree_1.NCH(n) === 1) {
                     n = tree_1.CHILD(n, 0);
                     continue LOOP;
                 }
                 else {
-                    return new types_82.UnaryOp(types_60.Not, astForExpr(c, tree_1.CHILD(n, 1)), n.range);
+                    return new types_83.UnaryOp(types_61.Not, astForExpr(c, tree_1.CHILD(n, 1)), n.range);
                 }
             case SYM.ComparisonExpr:
                 if (tree_1.NCH(n) === 1) {
@@ -1866,7 +1882,7 @@ function astForExpr(c, n) {
                 if (tree_1.NCH(n) === 2) {
                     exp = astForTestlist(c, tree_1.CHILD(n, 1));
                 }
-                return new types_86.Yield(exp, n.range);
+                return new types_87.Yield(exp, n.range);
             case SYM.UnaryExpr:
                 if (tree_1.NCH(n) === 1) {
                     n = tree_1.CHILD(n, 0);
@@ -1894,7 +1910,7 @@ function astForPrintStmt(c, n) {
         seq[j] = astForExpr(c, tree_1.CHILD(n, i));
     }
     var nl = (tree_1.CHILD(n, tree_1.NCH(n) - 1)).type === Tokens_1.Tokens.T_COMMA ? false : true;
-    return new types_68.Print(dest, seq, nl, n.range);
+    return new types_69.Print(dest, seq, nl, n.range);
 }
 function astForStmt(c, n) {
     if (n.type === SYM.stmt) {
@@ -1912,7 +1928,7 @@ function astForStmt(c, n) {
             case SYM.ExprStmt: return astForExprStmt(c, n);
             case SYM.print_stmt: return astForPrintStmt(c, n);
             case SYM.del_stmt: return astForDelStmt(c, n);
-            case SYM.pass_stmt: return new types_66.Pass(n.range);
+            case SYM.pass_stmt: return new types_67.Pass(n.range);
             case SYM.flow_stmt: return astForFlowStmt(c, n);
             case SYM.import_stmt: return astForImportStmt(c, n);
             case SYM.GlobalStmt: return astForGlobalStmt(c, n);

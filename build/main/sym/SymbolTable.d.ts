@@ -15,6 +15,7 @@ import { Expression } from '../ast/types';
 import { ExpressionStatement } from '../ast/types';
 import { ExtSlice } from '../ast/types';
 import { FunctionDef } from '../ast/types';
+import { FunctionParamDef } from '../ast/types';
 import { GeneratorExp } from '../ast/types';
 import { IfStatement } from '../ast/types';
 import { ImportFrom } from '../ast/types';
@@ -102,7 +103,7 @@ export declare class SymbolTable {
         scopeId: number;
     }, range: Range): void;
     exitBlock(): void;
-    visitParams(args: Name[], toplevel: boolean): void;
+    visitParams(args: FunctionParamDef[], toplevel: boolean): void;
     visitArguments(a: Arguments, range: Range): void;
     /**
      *

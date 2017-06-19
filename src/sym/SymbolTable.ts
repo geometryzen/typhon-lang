@@ -28,6 +28,7 @@ import { ExpressionStatement } from '../ast/types';
 import { ExtSlice } from '../ast/types';
 import { ForStatement } from '../ast/types';
 import { FunctionDef } from '../ast/types';
+import { FunctionParamDef } from '../ast/types';
 import { GeneratorExp } from '../ast/types';
 import { Global } from '../ast/types';
 import { IfStatement } from '../ast/types';
@@ -283,12 +284,12 @@ export class SymbolTable {
             this.cur = this.stack.pop();
     }
 
-    visitParams(args: Name[], toplevel: boolean) {
+    visitParams(args: FunctionParamDef[], toplevel: boolean) {
         for (let i = 0; i < args.length; ++i) {
             const arg = args[i];
             if (arg.constructor === Name) {
-                assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
-                this.addDef(arg.id.value, DEF_PARAM, arg.id.range);
+                assert(arg.name.ctx === Param || (arg.name.ctx === Store && !toplevel));
+                this.addDef(arg.name.id.value, DEF_PARAM, arg.name.id.range);
             }
             else {
                 // Tuple isn't supported

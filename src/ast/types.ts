@@ -192,6 +192,21 @@ export class FunctionDef extends Statement {
     }
 }
 
+export class FunctionParamDef {
+    name: Name;
+    type: Expression;
+
+    constructor(name: Name, type?: Expression) {
+        this.name = name;
+        if (type) {
+            this.type = type;
+        }
+        else {
+            this.type = null;
+        }
+
+    }
+}
 export class ClassDef extends Statement {
     name: RangeAnnotated<string>;
     bases: Expression[];
@@ -691,14 +706,10 @@ export class Subscript extends Expression {
 export class Name extends Expression {
     id: RangeAnnotated<string>;
     ctx: Param;
-    paramType: RangeAnnotated<string>;
-    constructor(id: RangeAnnotated<string>, ctx: Param, paramType?: RangeAnnotated<string>) {
+    constructor(id: RangeAnnotated<string>, ctx: Param) {
         super();
         this.id = id;
         this.ctx = ctx;
-        if (paramType) {
-            this.paramType = paramType;
-        }
     }
     accept(visitor: Visitor): void {
         visitor.name(this);
@@ -783,13 +794,13 @@ export class ExceptHandler {
 }
 
 export class Arguments {
-    args: Name[];
+    args: FunctionParamDef[];
     // TODO: RangeAnnotated...
     vararg: string;
     // TODO: RangeAnnotated...
     kwarg: string;
     defaults: Expression[];
-    constructor(args: Name[], vararg: string, kwarg: string, defaults: Expression[]) {
+    constructor(args: FunctionParamDef[], vararg: string, kwarg: string, defaults: Expression[]) {
         this.args = args;
         this.vararg = vararg;
         this.kwarg = kwarg;
@@ -1048,14 +1059,7 @@ Subscript.prototype['_fields'] = [
 Name.prototype['_astname'] = 'Name';
 Name.prototype['_fields'] = [
     'id', function (n: Name) { return n.id.value; },
-    'ctx', function (n: Name) { return n.ctx; },
-    'paramType', function (n: Name) {
-        if (n.paramType) {
-            return n.paramType.value;
-        } else {
-            return null;
-        }
-    }
+    'ctx', function (n: Name) { return n.ctx; }
 ];
 List.prototype['_astname'] = 'List';
 List.prototype['_fields'] = [
@@ -1176,8 +1180,15 @@ Keyword.prototype['_fields'] = [
     'arg', function (n: Keyword) { return n.arg.value; },
     'value', function (n: Keyword) { return n.value; }
 ];
+FunctionParamDef.prototype['_astname'] = 'FunctionParamDef';
+FunctionParamDef.prototype['_fields'] = [
+    'name', function (n: FunctionParamDef) { return n.name; },
+    'type', function (n: FunctionParamDef) { return n.type; }
+];
 Alias.prototype['_astname'] = 'Alias';
 Alias.prototype['_fields'] = [
     'name', function (n: Alias) { return n.name.value; },
     'asname', function (n: Alias) { return n.asname; }
 ];
+
+

@@ -156,6 +156,11 @@ export declare class FunctionDef extends Statement {
     constructor(name: RangeAnnotated<string>, args: Arguments, body: Statement[], returnType: Expression, decorator_list: Decorator[], range?: Range);
     accept(visitor: Visitor): void;
 }
+export declare class FunctionParamDef {
+    name: Name;
+    type: Expression;
+    constructor(name: Name, type?: Expression);
+}
 export declare class ClassDef extends Statement {
     readonly range: Range;
     name: RangeAnnotated<string>;
@@ -472,11 +477,11 @@ export declare class ExceptHandler {
     constructor(type: Expression | null, name: Expression | null, body: Statement[], range?: Range);
 }
 export declare class Arguments {
-    args: Name[];
+    args: FunctionParamDef[];
     vararg: string;
     kwarg: string;
     defaults: Expression[];
-    constructor(args: Name[], vararg: string, kwarg: string, defaults: Expression[]);
+    constructor(args: FunctionParamDef[], vararg: string, kwarg: string, defaults: Expression[]);
 }
 export declare class Keyword {
     arg: RangeAnnotated<string>;

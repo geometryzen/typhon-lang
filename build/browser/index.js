@@ -3081,6 +3081,18 @@ var FunctionDef = (function (_super) {
     };
     return FunctionDef;
 }(Statement));
+var FunctionParamDef = (function () {
+    function FunctionParamDef(name, type) {
+        this.name = name;
+        if (type) {
+            this.type = type;
+        }
+        else {
+            this.type = null;
+        }
+    }
+    return FunctionParamDef;
+}());
 var ClassDef = (function (_super) {
     __extends(ClassDef, _super);
     function ClassDef(name, bases, body, decorator_list, range) {
@@ -4038,6 +4050,11 @@ Keyword.prototype['_astname'] = 'Keyword';
 Keyword.prototype['_fields'] = [
     'arg', function (n) { return n.arg.value; },
     'value', function (n) { return n.value; }
+];
+FunctionParamDef.prototype['_astname'] = 'FunctionParamDef';
+FunctionParamDef.prototype['_fields'] = [
+    'name', function (n) { return n.name; },
+    'type', function (n) { return n.type; }
 ];
 Alias.prototype['_astname'] = 'Alias';
 Alias.prototype['_fields'] = [
@@ -5076,21 +5093,23 @@ function astForArguments(c, n) {
     if (n.type === SYM.parameters) {
         if (NCH(n) === 2)
             return new Arguments([], null, null, []);
-        n = CHILD(n, 1);
+        n = CHILD(n, 1); // n is a varargslist here on out
     }
     REQ(n, SYM.varargslist);
     var args = [];
     var defaults = [];
-    /* fpdef: NAME | '(' fplist ')'
+    /* fpdef: NAME [':' IfExpr] | '(' fplist ')'
         fplist: fpdef (',' fpdef)* [',']
     */
     var foundDefault = false;
     var i = 0;
     var j = 0; // index for defaults
     var k = 0; // index for args
+    // loop through the children of the varargslist
     while (i < NCH(n)) {
         ch = CHILD(n, i);
         switch (ch.type) {
+            // If it is a fpdef - act here
             case SYM.fpdef:
                 var complexArgs = 0;
                 var parenthesized = false;
@@ -5107,7 +5126,8 @@ function astForArguments(c, n) {
                             throw syntaxError$1("parenthesized arg with default", n.range);
                         throw syntaxError$1("non-default argument follows default argument", n.range);
                     }
-                    if (NCH(ch) === 3) {
+                    // For unpacking a tuple
+                    if (NCH(ch) === 3 && ch.children[2].type === Tokens.T_RPAR) {
                         ch = CHILD(ch, 1);
                         // def foo((x)): is not complex, special case.
                         if (NCH(ch) !== 1) {
@@ -5123,11 +5143,23 @@ function astForArguments(c, n) {
                             continue handle_fpdef;
                         }
                     }
+                    // childzero here is possibly the 'NAME' in fpdef: NAME [':' IfExpr]
                     var childZero = CHILD(ch, 0);
                     if (childZero.type === Tokens.T_NAME) {
                         forbiddenCheck(c, n, childZero.value, n.range);
                         var id = new RangeAnnotated(childZero.value, childZero.range);
-                        args[k++] = new Name(id, Param);
+                        /**
+                         * Setting the type of the param here, will be third child of fpdef if it exists
+                         * If it doesn't exist then set the type as null and have typescript attempt to infer it later
+                         */
+                        var paramTypeNode = CHILD(ch, 2);
+                        if (paramTypeNode) {
+                            var paramTypeExpr = astForExpr(c, paramTypeNode);
+                            args[k++] = new FunctionParamDef(new Name(id, Param), paramTypeExpr);
+                        }
+                        else {
+                            args[k++] = new FunctionParamDef(new Name(id, Param));
+                        }
                     }
                     i += 2;
                     if (parenthesized)
@@ -6371,8 +6403,8 @@ var SymbolTable = (function () {
         for (var i = 0; i < args.length; ++i) {
             var arg = args[i];
             if (arg.constructor === Name) {
-                assert(arg.ctx === Param || (arg.ctx === Store && !toplevel));
-                this.addDef(arg.id.value, DEF_PARAM, arg.id.range);
+                assert(arg.name.ctx === Param || (arg.name.ctx === Store && !toplevel));
+                this.addDef(arg.name.id.value, DEF_PARAM, arg.name.id.range);
             }
             else {
                 // Tuple isn't supported

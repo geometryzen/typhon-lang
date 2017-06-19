@@ -35,6 +35,7 @@ import { Expression } from './types';
 import { ExpressionStatement } from './types';
 import { ExtSlice } from './types';
 import { FloorDiv } from './types';
+import { FunctionParamDef } from './types';
 import { ForStatement } from './types';
 import { FunctionDef } from './types';
 import { GeneratorExp } from './types';
@@ -1165,7 +1166,7 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
     }
     REQ(n, SYM.varargslist);
 
-    const args: Name[] = [];
+    const args: FunctionParamDef[] = [];
     const defaults: Expression[] = [];
 
     /* fpdef: NAME [':' IfExpr] | '(' fplist ')'
@@ -1227,11 +1228,10 @@ function astForArguments(c: Compiling, n: PyNode): Arguments {
 
                         if (paramTypeNode) {
                             let paramTypeExpr = astForExpr(c, paramTypeNode);
-                            const paramType: RangeAnnotated<string> = new RangeAnnotated(paramTypeExpr.id.value, paramTypeExpr.id.range);
-                            args[k++] = new Name(id, Param, paramType);
+                            args[k++] = new FunctionParamDef(new Name(id, Param), paramTypeExpr);
                         }
                         else {
-                            args[k++] = new Name(id, Param);
+                            args[k++] = new FunctionParamDef(new Name(id, Param));
                         }
 
                     }

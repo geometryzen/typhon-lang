@@ -266,8 +266,8 @@ var SymbolTable = (function () {
         for (var i = 0; i < args.length; ++i) {
             var arg = args[i];
             if (arg.constructor === types_31.Name) {
-                asserts_1.assert(arg.ctx === types_33.Param || (arg.ctx === types_39.Store && !toplevel));
-                this.addDef(arg.id.value, SymbolConstants_8.DEF_PARAM, arg.id.range);
+                asserts_1.assert(arg.name.ctx === types_33.Param || (arg.name.ctx === types_39.Store && !toplevel));
+                this.addDef(arg.name.id.value, SymbolConstants_8.DEF_PARAM, arg.name.id.range);
             }
             else {
                 // Tuple isn't supported

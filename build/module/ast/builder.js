@@ -33,6 +33,7 @@ import { Exec } from './types';
 import { ExpressionStatement } from './types';
 import { ExtSlice } from './types';
 import { FloorDiv } from './types';
+import { FunctionParamDef } from './types';
 import { ForStatement } from './types';
 import { FunctionDef } from './types';
 import { GeneratorExp } from './types';
@@ -1080,21 +1081,23 @@ function astForArguments(c, n) {
     if (n.type === SYM.parameters) {
         if (NCH(n) === 2)
             return new Arguments([], null, null, []);
-        n = CHILD(n, 1);
+        n = CHILD(n, 1); // n is a varargslist here on out
     }
     REQ(n, SYM.varargslist);
     var args = [];
     var defaults = [];
-    /* fpdef: NAME | '(' fplist ')'
+    /* fpdef: NAME [':' IfExpr] | '(' fplist ')'
         fplist: fpdef (',' fpdef)* [',']
     */
     var foundDefault = false;
     var i = 0;
     var j = 0; // index for defaults
     var k = 0; // index for args
+    // loop through the children of the varargslist
     while (i < NCH(n)) {
         ch = CHILD(n, i);
         switch (ch.type) {
+            // If it is a fpdef - act here
             case SYM.fpdef:
                 var complexArgs = 0;
                 var parenthesized = false;
@@ -1111,7 +1114,8 @@ function astForArguments(c, n) {
                             throw syntaxError("parenthesized arg with default", n.range);
                         throw syntaxError("non-default argument follows default argument", n.range);
                     }
-                    if (NCH(ch) === 3) {
+                    // For unpacking a tuple
+                    if (NCH(ch) === 3 && ch.children[2].type === TOK.T_RPAR) {
                         ch = CHILD(ch, 1);
                         // def foo((x)): is not complex, special case.
                         if (NCH(ch) !== 1) {
@@ -1127,11 +1131,23 @@ function astForArguments(c, n) {
                             continue handle_fpdef;
                         }
                     }
+                    // childzero here is possibly the 'NAME' in fpdef: NAME [':' IfExpr]
                     var childZero = CHILD(ch, 0);
                     if (childZero.type === TOK.T_NAME) {
                         forbiddenCheck(c, n, childZero.value, n.range);
                         var id = new RangeAnnotated(childZero.value, childZero.range);
-                        args[k++] = new Name(id, Param);
+                        /**
+                         * Setting the type of the param here, will be third child of fpdef if it exists
+                         * If it doesn't exist then set the type as null and have typescript attempt to infer it later
+                         */
+                        var paramTypeNode = CHILD(ch, 2);
+                        if (paramTypeNode) {
+                            var paramTypeExpr = astForExpr(c, paramTypeNode);
+                            args[k++] = new FunctionParamDef(new Name(id, Param), paramTypeExpr);
+                        }
+                        else {
+                            args[k++] = new FunctionParamDef(new Name(id, Param));
+                        }
                     }
                     i += 2;
                     if (parenthesized)
