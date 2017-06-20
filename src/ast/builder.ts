@@ -88,7 +88,6 @@ import { Sub } from './types';
 import { Subscript } from './types';
 import { TryExcept } from './types';
 import { TryFinally } from './types';
-import { TypedAssign } from './types';
 import { Tuple } from './types';
 import { UAdd } from './types';
 import { UnaryOp } from './types';
@@ -1618,7 +1617,7 @@ function astForExprStmt(c: Compiling, node: PyNode): Assign | ExpressionStatemen
             else {
                 value = astForExpr(c, valueNode);
             }
-            return new TypedAssign(type, variable, value, n.range, eq.range);
+            return new Assign(variable, value, n.range, eq.range, type);
         }
         else {
             return new AnnAssign(type, astForTestlist(c, ch), n.range);

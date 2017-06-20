@@ -252,25 +252,14 @@ export type Target = Expression | Tuple;
 export class Assign extends Statement {
     targets: Target[];
     value: Target;
-    constructor(targets: Target[], value: Target, public readonly range: Range, public readonly eqRange: Range) {
+    type?: Expression;
+    constructor(targets: Target[], value: Target, public readonly range: Range, public readonly eqRange: Range, type?: Expression) {
         super();
         this.targets = targets;
         this.value = value;
-    }
-    accept(visitor: Visitor): void {
-        visitor.assign(this);
-    }
-}
-
-export class TypedAssign extends Statement {
-    targets: Target[];
-    value: Target;
-    type: Expression;
-    constructor(type: Expression, targets: Target[], value: Target, public readonly range: Range, public readonly eqRange: Range) {
-        super();
-        this.targets = targets;
-        this.value = value;
-        this.type = type;
+        if (type) {
+            this.type = type;
+        }
     }
     accept(visitor: Visitor): void {
         visitor.assign(this);
@@ -904,12 +893,6 @@ Assign.prototype['_astname'] = 'Assign';
 Assign.prototype['_fields'] = [
     'targets', function (n: Assign) { return n.targets; },
     'value', function (n: Assign) { return n.value; }
-];
-TypedAssign.prototype['_astname'] = 'TypedAssign';
-TypedAssign.prototype['_fields'] = [
-    'targets', function (n: TypedAssign) { return n.targets;},
-    'type', function (n: TypedAssign) { return n.type; },
-    'value', function (n: TypedAssign) { return n.value; }
 ];
 AugAssign.prototype['_astname'] = 'AugAssign';
 AugAssign.prototype['_fields'] = [
