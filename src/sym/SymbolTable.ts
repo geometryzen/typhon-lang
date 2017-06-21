@@ -287,7 +287,7 @@ export class SymbolTable {
     visitParams(args: FunctionParamDef[], toplevel: boolean) {
         for (let i = 0; i < args.length; ++i) {
             const arg = args[i];
-            if (arg.constructor === Name) {
+            if (arg.name.constructor === Name) {
                 assert(arg.name.ctx === Param || (arg.name.ctx === Store && !toplevel));
                 this.addDef(arg.name.id.value, DEF_PARAM, arg.name.id.range);
             }

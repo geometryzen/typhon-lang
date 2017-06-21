@@ -13,8 +13,11 @@ function syntaxError(message, range) {
         asserts_1.assert(base_1.isNumber(range.begin.line), "lineNumber must be a number");
     }
     var e = new SyntaxError(message /*, fileName*/);
-    if (typeof range.begin.line === 'number') {
-        e['lineNumber'] = range.begin.line;
+    if (range) {
+        asserts_1.assert(base_1.isNumber(range.begin.line), "lineNumber must be a number");
+        if (typeof range.begin.line === 'number') {
+            e['lineNumber'] = range.begin.line;
+        }
     }
     return e;
 }

@@ -182,7 +182,7 @@ export function isDateLike(val: any) {
  * @param {*} val Variable to test.
  * @return {boolean} Whether variable is a string.
  */
-export function isString(val: any) {
+export function isString(val: any): val is string {
     return typeof val === 'string';
 }
 

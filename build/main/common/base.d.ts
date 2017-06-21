@@ -62,7 +62,7 @@ export declare function isDateLike(val: any): boolean;
  * @param {*} val Variable to test.
  * @return {boolean} Whether variable is a string.
  */
-export declare function isString(val: any): boolean;
+export declare function isString(val: any): val is string;
 /**
  * Returns true if the specified value is a boolean.
  * @param {*} val Variable to test.

@@ -263,7 +263,7 @@ var SymbolTable = (function () {
     SymbolTable.prototype.visitParams = function (args, toplevel) {
         for (var i = 0; i < args.length; ++i) {
             var arg = args[i];
-            if (arg.constructor === Name) {
+            if (arg.name.constructor === Name) {
                 assert(arg.name.ctx === Param || (arg.name.ctx === Store && !toplevel));
                 this.addDef(arg.name.id.value, DEF_PARAM, arg.name.id.range);
             }

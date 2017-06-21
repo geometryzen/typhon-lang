@@ -191,7 +191,8 @@ export declare class Assign extends Statement {
     readonly eqRange: Range;
     targets: Target[];
     value: Target;
-    constructor(targets: Target[], value: Target, range: Range, eqRange: Range);
+    type?: Expression;
+    constructor(targets: Target[], value: Target, range: Range, eqRange: Range, type?: Expression);
     accept(visitor: Visitor): void;
 }
 export declare type AugAssignOperator = Add | Sub | FloorDiv | Div | Mod | LShift | RShift | BitAnd | BitXor | BitOr | Pow | Mult;
@@ -201,6 +202,12 @@ export declare class AugAssign extends Statement {
     op: AugAssignOperator;
     value: Expression | Tuple;
     constructor(target: Expression | Tuple, op: AugAssignOperator, value: Expression | Tuple, range?: Range);
+}
+export declare class AnnAssign extends Statement {
+    readonly range: Range;
+    value: Expression;
+    target: Expression;
+    constructor(type: Expression, target: Expression, range?: Range);
 }
 export declare class Print extends Statement {
     readonly range: Range;

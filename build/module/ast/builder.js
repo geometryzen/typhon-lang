@@ -5,6 +5,7 @@ import { Add } from './types';
 import { Alias } from './types';
 import { Arguments } from './types';
 import { And } from './types';
+import { AnnAssign } from './types';
 import { Assert } from './types';
 import { Assign } from './types';
 import { Attribute } from './types';
@@ -1479,11 +1480,36 @@ function astForExprStmt(c, node) {
         setContext(c, expr1, Store, ch);
         ch = CHILD(n, 2);
         var expr2 = void 0;
-        if (ch.type === SYM.testlist)
+        if (ch.type === SYM.testlist) {
             expr2 = astForTestlist(c, ch);
+        }
         else
             expr2 = astForExpr(c, ch);
         return new AugAssign(expr1, astForAugassign(c, CHILD(n, 1)), expr2, n.range);
+    }
+    else if (CHILD(n, 1).type === SYM.annasign) {
+        // annasign
+        // ':' 'IfExpr' ['=' 'IfExpr]
+        var ch = CHILD(n, 0);
+        var annasignChild = CHILD(n, 1);
+        var type = astForExpr(c, CHILD(annasignChild, 1));
+        var eq = CHILD(annasignChild, 2); // Equals sign
+        if (eq) {
+            REQ(eq, TOK.T_EQUAL);
+            var variable = [astForTestlist(c, ch)]; // variable is the first node (before the annasign)
+            var valueNode = CHILD(annasignChild, 3);
+            var value = void 0;
+            if (valueNode.type === SYM.testlist) {
+                value = astForTestlist(c, valueNode);
+            }
+            else {
+                value = astForExpr(c, valueNode);
+            }
+            return new Assign(variable, value, n.range, eq.range, type);
+        }
+        else {
+            return new AnnAssign(type, astForTestlist(c, ch), n.range);
+        }
     }
     else {
         // normal assignment

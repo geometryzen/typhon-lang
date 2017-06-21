@@ -11,9 +11,13 @@ export function syntaxError(message: string, range?: Range) {
         assert(isNumber(range.begin.line), "lineNumber must be a number");
     }
     const e = new SyntaxError(message/*, fileName*/);
-    if (typeof range.begin.line === 'number') {
-        e['lineNumber'] = range.begin.line;
+    if (range) {
+        assert(isNumber(range.begin.line), "lineNumber must be a number");
+        if (typeof range.begin.line === 'number') {
+            e['lineNumber'] = range.begin.line;
+        }
     }
+
     return e;
 }
 export type LineColumn = [number, number];

@@ -353,12 +353,15 @@ var DeleteStatement = (function (_super) {
 export { DeleteStatement };
 var Assign = (function (_super) {
     tslib_1.__extends(Assign, _super);
-    function Assign(targets, value, range, eqRange) {
+    function Assign(targets, value, range, eqRange, type) {
         var _this = _super.call(this) || this;
         _this.range = range;
         _this.eqRange = eqRange;
         _this.targets = targets;
         _this.value = value;
+        if (type) {
+            _this.type = type;
+        }
         return _this;
     }
     Assign.prototype.accept = function (visitor) {
@@ -380,6 +383,18 @@ var AugAssign = (function (_super) {
     return AugAssign;
 }(Statement));
 export { AugAssign };
+var AnnAssign = (function (_super) {
+    tslib_1.__extends(AnnAssign, _super);
+    function AnnAssign(type, target, range) {
+        var _this = _super.call(this) || this;
+        _this.range = range;
+        _this.value = type;
+        _this.target = target;
+        return _this;
+    }
+    return AnnAssign;
+}(Statement));
+export { AnnAssign };
 var Print = (function (_super) {
     tslib_1.__extends(Print, _super);
     function Print(dest, values, nl, range) {
@@ -1026,6 +1041,11 @@ AugAssign.prototype['_fields'] = [
     'target', function (n) { return n.target; },
     'op', function (n) { return n.op; },
     'value', function (n) { return n.value; }
+];
+AnnAssign.prototype['_astname'] = 'AnnAssign';
+AnnAssign.prototype['_fields'] = [
+    'target', function (n) { return n.target; },
+    'type', function (n) { return n.value; }
 ];
 Print.prototype['_astname'] = 'Print';
 Print.prototype['_fields'] = [

@@ -463,6 +463,17 @@ describe('parse', function () {
         });
     });
 
+    describe("in operator", function () {
+        const txt = [
+            "3 in [1,2,3,4]",
+            ""
+        ].join("\n");
+        const cst = parse(txt) as PyNode;
+        const ns = TERMS(cst);
+        it("terms are correct", function() {
+            expect(ns.length).toBe(13);
+        });
+    });
     describe("comment parsing", function () {
         const singleComment = [
             "#sdfsd",
