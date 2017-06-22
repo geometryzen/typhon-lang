@@ -37,6 +37,7 @@ export interface Visitor {
     print(print: Print): void;
     returnStatement(rs: ReturnStatement): void;
     str(str: Str): void;
+    forStatement(fs: ForStatement): void;
 }
 
 export interface Visitable {
@@ -305,7 +306,7 @@ export class Print extends Statement {
     }
 }
 
-export class ForStatement extends IterationStatement {
+export class ForStatement extends Statement {
     target: Target;
     iter: Expression | Tuple;
     body: Statement[];
@@ -316,6 +317,9 @@ export class ForStatement extends IterationStatement {
         this.iter = iter;
         this.body = body;
         this.orelse = orelse;
+    }
+    accept(visitor: Visitor): void {
+        visitor.forStatement(this);
     }
 }
 

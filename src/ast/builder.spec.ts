@@ -480,6 +480,20 @@ describe('AST', function () {
 
     });
 
+    describe("For statements", function () {
+        const forStatement = [
+            "for x in range(0, 3):",
+            "   print \"We're on time\";"
+        ].join("\n");
+        it("Parse for statement shoudl work", function () {
+            const cst = parse(forStatement) as PyNode;
+            const ast = new Module(astFromParse(cst));
+            const dump = astDump(ast);
+            console.log(dump);
+            expect(dump).toBe("Module(body=[ForStatement(target=Name(id=x,ctx=Store()),iter=Call(func=Name(id=range,ctx=Load()),args=[Num(n=0),Num(n=3)],keywords=[],starargs=None,kwargs=None),body=[Print(dest=None,values=[Str(s=We're on time)],nl=True)],orelse=[])])");
+        });
+    });
+
     it('if a:\n pass', function () {
         const cst = parse('if a:\n pass') as PyNode;
         const ast = new Module(astFromParse(cst));

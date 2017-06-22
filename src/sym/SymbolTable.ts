@@ -93,6 +93,9 @@ export class SemanticVisitor implements Visitor {
     constructor(private st: SymbolTable) {
         // Do nothing.
     }
+    forStatement(fs: ForStatement): void {
+        // TODO
+    }
     assign(assign: Assign): void {
         this.st.SEQExpr(assign.targets);
         assign.value.accept(this);
