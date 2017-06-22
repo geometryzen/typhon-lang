@@ -7016,6 +7016,7 @@ exports.Eq = Eq;
 exports.Expression = Expression;
 exports.ExpressionStatement = ExpressionStatement;
 exports.FloorDiv = FloorDiv;
+exports.ForStatement = ForStatement;
 exports.FunctionDef = FunctionDef;
 exports.Gt = Gt;
 exports.GtE = GtE;

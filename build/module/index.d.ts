@@ -17,6 +17,7 @@ export { Eq } from './ast/types';
 export { Expression } from './ast/types';
 export { ExpressionStatement } from './ast/types';
 export { FloorDiv } from './ast/types';
+export { ForStatement } from './ast/types';
 export { FunctionDef } from './ast/types';
 export { Gt } from './ast/types';
 export { GtE } from './ast/types';
