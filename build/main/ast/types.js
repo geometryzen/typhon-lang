@@ -424,8 +424,11 @@ var ForStatement = (function (_super) {
         _this.orelse = orelse;
         return _this;
     }
+    ForStatement.prototype.accept = function (visitor) {
+        visitor.forStatement(this);
+    };
     return ForStatement;
-}(IterationStatement));
+}(Statement));
 exports.ForStatement = ForStatement;
 var WhileStatement = (function (_super) {
     tslib_1.__extends(WhileStatement, _super);

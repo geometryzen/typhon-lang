@@ -14,6 +14,7 @@ import { ExceptHandler } from '../ast/types';
 import { Expression } from '../ast/types';
 import { ExpressionStatement } from '../ast/types';
 import { ExtSlice } from '../ast/types';
+import { ForStatement } from '../ast/types';
 import { FunctionDef } from '../ast/types';
 import { FunctionParamDef } from '../ast/types';
 import { GeneratorExp } from '../ast/types';
@@ -39,6 +40,7 @@ import { Range } from '../common/Range';
 export declare class SemanticVisitor implements Visitor {
     private st;
     constructor(st: SymbolTable);
+    forStatement(fs: ForStatement): void;
     assign(assign: Assign): void;
     attribute(attribute: Attribute): void;
     binOp(be: BinOp): void;

@@ -78,6 +78,9 @@ var SemanticVisitor = (function () {
         this.st = st;
         // Do nothing.
     }
+    SemanticVisitor.prototype.forStatement = function (fs) {
+        // TODO
+    };
     SemanticVisitor.prototype.assign = function (assign) {
         this.st.SEQExpr(assign.targets);
         assign.value.accept(this);

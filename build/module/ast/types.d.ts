@@ -30,6 +30,7 @@ export interface Visitor {
     print(print: Print): void;
     returnStatement(rs: ReturnStatement): void;
     str(str: Str): void;
+    forStatement(fs: ForStatement): void;
 }
 export interface Visitable {
     /**
@@ -217,13 +218,14 @@ export declare class Print extends Statement {
     constructor(dest: Expression, values: Expression[], nl: boolean, range?: Range);
     accept(visitor: Visitor): void;
 }
-export declare class ForStatement extends IterationStatement {
+export declare class ForStatement extends Statement {
     readonly range: Range;
     target: Target;
     iter: Expression | Tuple;
     body: Statement[];
     orelse: Statement[];
     constructor(target: Target, iter: Expression | Tuple, body: Statement[], orelse: Statement[], range?: Range);
+    accept(visitor: Visitor): void;
 }
 export declare class WhileStatement extends IterationStatement {
     readonly range: Range;
