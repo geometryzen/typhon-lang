@@ -7008,6 +7008,7 @@ exports.ParseError = ParseError;
 exports.astFromParse = astFromParse;
 exports.astDump = astDump;
 exports.Add = Add;
+exports.AnnAssign = AnnAssign;
 exports.Assign = Assign;
 exports.Attribute = Attribute;
 exports.BinOp = BinOp;

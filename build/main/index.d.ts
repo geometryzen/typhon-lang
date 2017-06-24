@@ -2,6 +2,7 @@ export { parse, cstDump, PyNode, SourceKind } from './cst/parser';
 export { ParseError } from './common/syntaxError';
 export { astFromParse, astDump } from './ast/builder';
 export { Add } from './ast/types';
+export { AnnAssign } from './ast/types';
 export { Assign } from './ast/types';
 export { Attribute } from './ast/types';
 export { BinOp } from './ast/types';

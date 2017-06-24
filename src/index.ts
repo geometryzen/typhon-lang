@@ -5,6 +5,7 @@ export { astFromParse, astDump } from './ast/builder';
 // Abstract Syntax Tree
 //
 export { Add } from './ast/types';
+export { AnnAssign } from './ast/types';
 export { Assign } from './ast/types';
 export { Attribute } from './ast/types';
 export { BinOp } from './ast/types';
