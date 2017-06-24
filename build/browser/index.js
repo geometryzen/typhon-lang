@@ -6589,6 +6589,10 @@ var SymbolTable = (function () {
             this.visitExpr(s.target);
             this.visitExpr(s.value);
         }
+        else if (s instanceof AnnAssign) {
+            this.visitExpr(s.target);
+            this.visitExpr(s.value);
+        }
         else if (s instanceof Print) {
             if (s.dest)
                 this.visitExpr(s.dest);

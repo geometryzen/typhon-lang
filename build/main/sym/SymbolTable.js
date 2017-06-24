@@ -53,6 +53,7 @@ var types_45 = require("../ast/types");
 var types_46 = require("../ast/types");
 var types_47 = require("../ast/types");
 var types_48 = require("../ast/types");
+var types_49 = require("../ast/types");
 var SymbolConstants_1 = require("./SymbolConstants");
 var SymbolConstants_2 = require("./SymbolConstants");
 var SymbolConstants_3 = require("./SymbolConstants");
@@ -160,7 +161,7 @@ var SemanticVisitor = (function () {
         throw new Error("module");
     };
     SemanticVisitor.prototype.name = function (name) {
-        this.st.addDef(name.id.value, name.ctx === types_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, name.id.range);
+        this.st.addDef(name.id.value, name.ctx === types_29.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, name.id.range);
     };
     SemanticVisitor.prototype.num = function (num) {
         // Do nothing, unless we are doing type inference.
@@ -268,8 +269,8 @@ var SymbolTable = (function () {
     SymbolTable.prototype.visitParams = function (args, toplevel) {
         for (var i = 0; i < args.length; ++i) {
             var arg = args[i];
-            if (arg.name.constructor === types_31.Name) {
-                asserts_1.assert(arg.name.ctx === types_33.Param || (arg.name.ctx === types_39.Store && !toplevel));
+            if (arg.name.constructor === types_32.Name) {
+                asserts_1.assert(arg.name.ctx === types_34.Param || (arg.name.ctx === types_40.Store && !toplevel));
                 this.addDef(arg.name.id.value, SymbolConstants_8.DEF_PARAM, arg.name.id.range);
             }
             else {
@@ -331,7 +332,7 @@ var SymbolTable = (function () {
         }
     };
     SymbolTable.prototype.visitSlice = function (s) {
-        if (s instanceof types_38.Slice) {
+        if (s instanceof types_39.Slice) {
             if (s.lower)
                 this.visitExpr(s.lower);
             if (s.upper)
@@ -339,15 +340,15 @@ var SymbolTable = (function () {
             if (s.step)
                 this.visitExpr(s.step);
         }
-        else if (s instanceof types_17.ExtSlice) {
+        else if (s instanceof types_18.ExtSlice) {
             for (var i = 0; i < s.dims.length; ++i) {
                 this.visitSlice(s.dims[i]);
             }
         }
-        else if (s instanceof types_26.Index) {
+        else if (s instanceof types_27.Index) {
             this.visitExpr(s.value);
         }
-        else if (s instanceof types_14.Ellipsis) {
+        else if (s instanceof types_15.Ellipsis) {
             // Do nothing.
         }
     };
@@ -356,7 +357,7 @@ var SymbolTable = (function () {
      */
     SymbolTable.prototype.visitStmt = function (s) {
         asserts_1.assert(s !== undefined, "visitStmt called with undefined");
-        if (s instanceof types_19.FunctionDef) {
+        if (s instanceof types_20.FunctionDef) {
             this.addDef(s.name.value, SymbolConstants_7.DEF_LOCAL, s.range);
             if (s.args.defaults)
                 this.SEQExpr(s.args.defaults);
@@ -367,7 +368,7 @@ var SymbolTable = (function () {
             this.SEQStmt(s.body);
             this.exitBlock();
         }
-        else if (s instanceof types_9.ClassDef) {
+        else if (s instanceof types_10.ClassDef) {
             this.addDef(s.name.value, SymbolConstants_7.DEF_LOCAL, s.range);
             this.SEQExpr(s.bases);
             if (s.decorator_list)
@@ -379,7 +380,7 @@ var SymbolTable = (function () {
             this.curClass = tmp;
             this.exitBlock();
         }
-        else if (s instanceof types_37.ReturnStatement) {
+        else if (s instanceof types_38.ReturnStatement) {
             if (s.value) {
                 this.visitExpr(s.value);
                 this.cur.returnsValue = true;
@@ -388,43 +389,47 @@ var SymbolTable = (function () {
                 }
             }
         }
-        else if (s instanceof types_12.DeleteStatement) {
+        else if (s instanceof types_13.DeleteStatement) {
             this.SEQExpr(s.targets);
         }
         else if (s instanceof types_2.Assign) {
             this.SEQExpr(s.targets);
             this.visitExpr(s.value);
         }
-        else if (s instanceof types_4.AugAssign) {
+        else if (s instanceof types_5.AugAssign) {
             this.visitExpr(s.target);
             this.visitExpr(s.value);
         }
-        else if (s instanceof types_35.Print) {
+        else if (s instanceof types_3.AnnAssign) {
+            this.visitExpr(s.target);
+            this.visitExpr(s.value);
+        }
+        else if (s instanceof types_36.Print) {
             if (s.dest)
                 this.visitExpr(s.dest);
             this.SEQExpr(s.values);
         }
-        else if (s instanceof types_18.ForStatement) {
+        else if (s instanceof types_19.ForStatement) {
             this.visitExpr(s.target);
             this.visitExpr(s.iter);
             this.SEQStmt(s.body);
             if (s.orelse)
                 this.SEQStmt(s.orelse);
         }
-        else if (s instanceof types_46.WhileStatement) {
+        else if (s instanceof types_47.WhileStatement) {
             this.visitExpr(s.test);
             this.SEQStmt(s.body);
             if (s.orelse)
                 this.SEQStmt(s.orelse);
         }
-        else if (s instanceof types_22.IfStatement) {
+        else if (s instanceof types_23.IfStatement) {
             this.visitExpr(s.test);
             this.SEQStmt(s.consequent);
             if (s.alternate) {
                 this.SEQStmt(s.alternate);
             }
         }
-        else if (s instanceof types_36.Raise) {
+        else if (s instanceof types_37.Raise) {
             if (s.type) {
                 this.visitExpr(s.type);
                 if (s.inst) {
@@ -434,12 +439,12 @@ var SymbolTable = (function () {
                 }
             }
         }
-        else if (s instanceof types_42.TryExcept) {
+        else if (s instanceof types_43.TryExcept) {
             this.SEQStmt(s.body);
             this.SEQStmt(s.orelse);
             this.visitExcepthandlers(s.handlers);
         }
-        else if (s instanceof types_43.TryFinally) {
+        else if (s instanceof types_44.TryFinally) {
             this.SEQStmt(s.body);
             this.SEQStmt(s.finalbody);
         }
@@ -448,15 +453,15 @@ var SymbolTable = (function () {
             if (s.msg)
                 this.visitExpr(s.msg);
         }
-        else if (s instanceof types_24.ImportStatement) {
+        else if (s instanceof types_25.ImportStatement) {
             var imps = s;
             this.visitAlias(imps.names, imps.range);
         }
-        else if (s instanceof types_25.ImportFrom) {
+        else if (s instanceof types_26.ImportFrom) {
             var impFrom = s;
             this.visitAlias(impFrom.names, impFrom.range);
         }
-        else if (s instanceof types_15.Exec) {
+        else if (s instanceof types_16.Exec) {
             this.visitExpr(s.body);
             if (s.globals) {
                 this.visitExpr(s.globals);
@@ -464,7 +469,7 @@ var SymbolTable = (function () {
                     this.visitExpr(s.locals);
             }
         }
-        else if (s instanceof types_21.Global) {
+        else if (s instanceof types_22.Global) {
             var nameslen = s.names.length;
             for (var i = 0; i < nameslen; ++i) {
                 var name_1 = mangleName_1.mangleName(this.curClass, s.names[i]);
@@ -481,13 +486,13 @@ var SymbolTable = (function () {
                 this.addDef(name_1, SymbolConstants_5.DEF_GLOBAL, s.range);
             }
         }
-        else if (s instanceof types_16.ExpressionStatement) {
+        else if (s instanceof types_17.ExpressionStatement) {
             this.visitExpr(s.value);
         }
-        else if (s instanceof types_34.Pass || s instanceof types_7.BreakStatement || s instanceof types_11.ContinueStatement) {
+        else if (s instanceof types_35.Pass || s instanceof types_8.BreakStatement || s instanceof types_12.ContinueStatement) {
             // Do nothing.
         }
-        else if (s instanceof types_47.WithStatement) {
+        else if (s instanceof types_48.WithStatement) {
             var ws = s;
             this.newTmpname(ws.range);
             this.visitExpr(ws.context_expr);
@@ -503,17 +508,17 @@ var SymbolTable = (function () {
     };
     SymbolTable.prototype.visitExpr = function (e) {
         asserts_1.assert(e !== undefined, "visitExpr called with undefined");
-        if (e instanceof types_6.BoolOp) {
+        if (e instanceof types_7.BoolOp) {
             this.SEQExpr(e.values);
         }
-        else if (e instanceof types_5.BinOp) {
+        else if (e instanceof types_6.BinOp) {
             this.visitExpr(e.lhs);
             this.visitExpr(e.rhs);
         }
-        else if (e instanceof types_45.UnaryOp) {
+        else if (e instanceof types_46.UnaryOp) {
             this.visitExpr(e.operand);
         }
-        else if (e instanceof types_27.Lambda) {
+        else if (e instanceof types_28.Lambda) {
             this.addDef("lambda", SymbolConstants_7.DEF_LOCAL, e.range);
             if (e.args.defaults)
                 this.SEQExpr(e.args.defaults);
@@ -522,24 +527,24 @@ var SymbolTable = (function () {
             this.visitExpr(e.body);
             this.exitBlock();
         }
-        else if (e instanceof types_23.IfExp) {
+        else if (e instanceof types_24.IfExp) {
             this.visitExpr(e.test);
             this.visitExpr(e.body);
             this.visitExpr(e.orelse);
         }
-        else if (e instanceof types_13.Dict) {
+        else if (e instanceof types_14.Dict) {
             this.SEQExpr(e.keys);
             this.SEQExpr(e.values);
         }
-        else if (e instanceof types_30.ListComp) {
+        else if (e instanceof types_31.ListComp) {
             this.newTmpname(e.range);
             this.visitExpr(e.elt);
             this.visitComprehension(e.generators, 0);
         }
-        else if (e instanceof types_20.GeneratorExp) {
+        else if (e instanceof types_21.GeneratorExp) {
             this.visitGenexp(e);
         }
-        else if (e instanceof types_48.Yield) {
+        else if (e instanceof types_49.Yield) {
             if (e.value)
                 this.visitExpr(e.value);
             this.cur.generator = true;
@@ -547,11 +552,11 @@ var SymbolTable = (function () {
                 throw syntaxError_1.syntaxError("'return' with argument inside generator");
             }
         }
-        else if (e instanceof types_10.Compare) {
+        else if (e instanceof types_11.Compare) {
             this.visitExpr(e.left);
             this.SEQExpr(e.comparators);
         }
-        else if (e instanceof types_8.Call) {
+        else if (e instanceof types_9.Call) {
             this.visitExpr(e.func);
             this.SEQExpr(e.args);
             for (var i = 0; i < e.keywords.length; ++i)
@@ -563,20 +568,20 @@ var SymbolTable = (function () {
             if (e.kwargs)
                 this.visitExpr(e.kwargs);
         }
-        else if (e instanceof types_32.Num || e instanceof types_40.Str) {
+        else if (e instanceof types_33.Num || e instanceof types_41.Str) {
             // Do nothing.
         }
-        else if (e instanceof types_3.Attribute) {
+        else if (e instanceof types_4.Attribute) {
             this.visitExpr(e.value);
         }
-        else if (e instanceof types_41.Subscript) {
+        else if (e instanceof types_42.Subscript) {
             this.visitExpr(e.value);
             this.visitSlice(e.slice);
         }
-        else if (e instanceof types_31.Name) {
-            this.addDef(e.id.value, e.ctx === types_28.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.id.range);
+        else if (e instanceof types_32.Name) {
+            this.addDef(e.id.value, e.ctx === types_29.Load ? SymbolConstants_15.USE : SymbolConstants_7.DEF_LOCAL, e.id.range);
         }
-        else if (e instanceof types_29.List || e instanceof types_44.Tuple) {
+        else if (e instanceof types_30.List || e instanceof types_45.Tuple) {
             this.SEQExpr(e.elts);
         }
         else {

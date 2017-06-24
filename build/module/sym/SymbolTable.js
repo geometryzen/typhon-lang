@@ -5,6 +5,7 @@ import { SymbolTableScope } from './SymbolTableScope';
 import { syntaxError } from '../common/syntaxError';
 import { Assert } from '../ast/types';
 import { Assign } from '../ast/types';
+import { AnnAssign } from '../ast/types';
 import { Attribute } from '../ast/types';
 import { AugAssign } from '../ast/types';
 import { BinOp } from '../ast/types';
@@ -394,6 +395,10 @@ var SymbolTable = (function () {
             this.visitExpr(s.value);
         }
         else if (s instanceof AugAssign) {
+            this.visitExpr(s.target);
+            this.visitExpr(s.value);
+        }
+        else if (s instanceof AnnAssign) {
             this.visitExpr(s.target);
             this.visitExpr(s.value);
         }
