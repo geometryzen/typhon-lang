@@ -12,6 +12,7 @@ export interface INumericLiteral {
     value?: number;
 }
 export interface Visitor {
+    annAssign(annassign: AnnAssign): void;
     assign(assign: Assign): void;
     attribute(attribute: Attribute): void;
     binOp(be: BinOp): void;
@@ -209,6 +210,7 @@ export declare class AnnAssign extends Statement {
     value: Expression;
     target: Expression;
     constructor(type: Expression, target: Expression, range?: Range);
+    accept(visitor: Visitor): void;
 }
 export declare class Print extends Statement {
     readonly range: Range;

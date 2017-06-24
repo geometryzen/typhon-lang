@@ -392,6 +392,9 @@ var AnnAssign = (function (_super) {
         _this.target = target;
         return _this;
     }
+    AnnAssign.prototype.accept = function (visitor) {
+        visitor.annAssign(this);
+    };
     return AnnAssign;
 }(Statement));
 export { AnnAssign };

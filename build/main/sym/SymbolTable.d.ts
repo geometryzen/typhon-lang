@@ -2,6 +2,7 @@ import { BlockType, SymbolTableScope } from './SymbolTableScope';
 import { Alias } from '../ast/types';
 import { Arguments } from '../ast/types';
 import { Assign } from '../ast/types';
+import { AnnAssign } from '../ast/types';
 import { Attribute } from '../ast/types';
 import { BinOp } from '../ast/types';
 import { Call } from '../ast/types';
@@ -41,6 +42,7 @@ export declare class SemanticVisitor implements Visitor {
     private st;
     constructor(st: SymbolTable);
     forStatement(fs: ForStatement): void;
+    annAssign(annassign: AnnAssign): void;
     assign(assign: Assign): void;
     attribute(attribute: Attribute): void;
     binOp(be: BinOp): void;

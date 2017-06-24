@@ -489,7 +489,7 @@ describe('AST', function () {
             const cst = parse(forStatement) as PyNode;
             const ast = new Module(astFromParse(cst));
             const dump = astDump(ast);
-            console.log(dump);
+            // console.log(dump);
             expect(dump).toBe("Module(body=[ForStatement(target=Name(id=x,ctx=Store()),iter=Call(func=Name(id=range,ctx=Load()),args=[Num(n=0),Num(n=3)],keywords=[],starargs=None,kwargs=None),body=[Print(dest=None,values=[Str(s=We're on time)],nl=True)],orelse=[])])");
         });
     });

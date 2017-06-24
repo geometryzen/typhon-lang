@@ -19,6 +19,7 @@ export interface INumericLiteral {
 }
 
 export interface Visitor {
+    annAssign(annassign: AnnAssign): void;
     assign(assign: Assign): void;
     attribute(attribute: Attribute): void;
     binOp(be: BinOp): void;
@@ -288,6 +289,9 @@ export class AnnAssign extends Statement {
         super();
         this.value = type;
         this.target = target;
+    }
+    accept(visitor: Visitor): void {
+        visitor.annAssign(this);
     }
 }
 

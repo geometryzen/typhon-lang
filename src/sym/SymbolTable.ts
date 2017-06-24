@@ -97,6 +97,9 @@ export class SemanticVisitor implements Visitor {
     forStatement(fs: ForStatement): void {
         // TODO
     }
+    annAssign(annassign: AnnAssign): void {
+        // TODO
+    }
     assign(assign: Assign): void {
         this.st.SEQExpr(assign.targets);
         assign.value.accept(this);
