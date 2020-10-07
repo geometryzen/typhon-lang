@@ -148,7 +148,7 @@ export declare class Suite {
 }
 export declare type Decorator = Attribute | Call | Name;
 export declare class FunctionDef extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     name: RangeAnnotated<string>;
     args: Arguments;
     body: Statement[];
@@ -164,7 +164,7 @@ export declare class FunctionParamDef {
     constructor(name: Name, type?: Expression);
 }
 export declare class ClassDef extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     name: RangeAnnotated<string>;
     bases: Expression[];
     body: Statement[];
@@ -174,7 +174,7 @@ export declare class ClassDef extends Statement {
     accept(visitor: Visitor): void;
 }
 export declare class ReturnStatement extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     /**
      * An expression, and probably should be optional.
      */
@@ -183,7 +183,7 @@ export declare class ReturnStatement extends Statement {
     accept(visitor: Visitor): void;
 }
 export declare class DeleteStatement extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     targets: Expression[];
     constructor(targets: Expression[], range?: Range);
 }
@@ -199,21 +199,21 @@ export declare class Assign extends Statement {
 }
 export declare type AugAssignOperator = Add | Sub | FloorDiv | Div | Mod | LShift | RShift | BitAnd | BitXor | BitOr | Pow | Mult;
 export declare class AugAssign extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     target: Expression | Tuple;
     op: AugAssignOperator;
     value: Expression | Tuple;
     constructor(target: Expression | Tuple, op: AugAssignOperator, value: Expression | Tuple, range?: Range);
 }
 export declare class AnnAssign extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     value: Expression;
     target: Expression;
     constructor(type: Expression, target: Expression, range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class Print extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     dest: Expression;
     values: Expression[];
     nl: boolean;
@@ -221,7 +221,7 @@ export declare class Print extends Statement {
     accept(visitor: Visitor): void;
 }
 export declare class ForStatement extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     target: Target;
     iter: Expression | Tuple;
     body: Statement[];
@@ -230,14 +230,14 @@ export declare class ForStatement extends Statement {
     accept(visitor: Visitor): void;
 }
 export declare class WhileStatement extends IterationStatement {
-    readonly range: Range;
+    readonly range?: Range;
     test: Expression;
     body: Statement[];
     orelse: Statement[];
     constructor(test: Expression, body: Statement[], orelse: Statement[], range?: Range);
 }
 export declare class IfStatement extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     test: Expression;
     consequent: Statement[];
     alternate: Statement[];
@@ -245,45 +245,45 @@ export declare class IfStatement extends Statement {
     accept(visitor: Visitor): void;
 }
 export declare class WithStatement extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     context_expr: Expression;
     optional_vars: Expression | undefined;
     body: Statement[];
     constructor(context_expr: Expression, optional_vars: Expression | undefined, body: Statement[], range?: Range);
 }
 export declare class Raise extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     type: Expression;
     inst: Expression;
     tback: Expression;
     constructor(type: Expression, inst: Expression, tback: Expression, range?: Range);
 }
 export declare class TryExcept extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     body: Statement[];
     handlers: ExceptHandler[];
     orelse: Statement[];
     constructor(body: Statement[], handlers: ExceptHandler[], orelse: Statement[], range?: Range);
 }
 export declare class TryFinally extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     body: Statement[];
     finalbody: Statement[];
     constructor(body: Statement[], finalbody: Statement[], range?: Range);
 }
 export declare class Assert extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     test: Expression;
     msg: Expression;
     constructor(test: Expression, msg: Expression, range?: Range);
 }
 export declare class ImportStatement extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     names: Alias[];
     constructor(names: Alias[], range?: Range);
 }
 export declare class ImportFrom extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     module: RangeAnnotated<string>;
     names: Alias[];
     level: number;
@@ -291,42 +291,42 @@ export declare class ImportFrom extends Statement {
     accept(visitor: Visitor): void;
 }
 export declare class Exec extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     body: Expression;
     globals: Expression | null;
     locals: Expression | null;
     constructor(body: Expression, globals: Expression | null, locals: Expression | null, range?: Range);
 }
 export declare class Global extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     names: string[];
     constructor(names: string[], range?: Range);
 }
 export declare class NonLocal extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     names: string[];
     constructor(names: string[], range?: Range);
 }
 export declare class ExpressionStatement extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     value: Expression;
     constructor(value: Expression, range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class Pass extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     constructor(range?: Range);
 }
 export declare class BreakStatement extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     constructor(range?: Range);
 }
 export declare class ContinueStatement extends Statement {
-    readonly range: Range;
+    readonly range?: Range;
     constructor(range?: Range);
 }
 export declare class BoolOp extends Expression {
-    readonly range: Range;
+    readonly range?: Range;
     op: And;
     values: Expression[];
     constructor(op: And, values: Expression[], range?: Range);
@@ -345,47 +345,47 @@ export declare class BinOp extends Expression {
 }
 export declare type UnaryOperator = UAdd | USub | Invert | Not;
 export declare class UnaryOp extends Expression {
-    readonly range: Range;
+    readonly range?: Range;
     op: UnaryOperator;
     operand: Expression;
     constructor(op: UnaryOperator, operand: Expression, range?: Range);
 }
 export declare class Lambda extends Expression {
-    readonly range: Range;
+    readonly range?: Range;
     args: Arguments;
     body: Expression;
     scopeId: number;
     constructor(args: Arguments, body: Expression, range?: Range);
 }
 export declare class IfExp extends Expression {
-    readonly range: Range;
+    readonly range?: Range;
     test: Expression;
     body: Expression;
     orelse: Expression;
     constructor(test: Expression, body: Expression, orelse: Expression, range?: Range);
 }
 export declare class Dict extends Expression {
-    readonly range: Range;
+    readonly range?: Range;
     keys: Expression[];
     values: Expression[];
     constructor(keys: Expression[], values: Expression[], range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class ListComp extends Expression {
-    readonly range: Range;
+    readonly range?: Range;
     elt: Expression;
     generators: Comprehension[];
     constructor(elt: Expression, generators: Comprehension[], range?: Range);
 }
 export declare class GeneratorExp extends Expression {
-    readonly range: Range;
+    readonly range?: Range;
     elt: Expression;
     generators: Comprehension[];
     scopeId: number;
     constructor(elt: Expression, generators: Comprehension[], range?: Range);
 }
 export declare class Yield extends Expression {
-    readonly range: Range;
+    readonly range?: Range;
     value: Expression;
     constructor(value: Expression, range?: Range);
 }
@@ -394,7 +394,7 @@ export declare class Yield extends Expression {
  */
 export declare type CompareOperator = Eq | NotEq | Gt | GtE | Lt | LtE | Is | IsNot | In | NotIn;
 export declare class Compare extends Expression {
-    readonly range: Range;
+    readonly range?: Range;
     left: Expression;
     ops: CompareOperator[];
     comparators: Expression[];
@@ -430,7 +430,7 @@ export declare class Attribute extends Expression {
 }
 export declare type SubscriptContext = AugLoad | AugStore | Load | Store | Del | Param;
 export declare class Subscript extends Expression {
-    readonly range: Range;
+    readonly range?: Range;
     value: Expression;
     slice: Ellipsis | Index | Name | Slice;
     ctx: SubscriptContext;
@@ -443,14 +443,14 @@ export declare class Name extends Expression {
     accept(visitor: Visitor): void;
 }
 export declare class List extends Expression {
-    readonly range: Range;
+    readonly range?: Range;
     elts: Expression[];
     ctx: Load;
     constructor(elts: Expression[], ctx: Load, range?: Range);
     accept(visitor: Visitor): void;
 }
 export declare class Tuple extends Expression {
-    readonly range: Range;
+    readonly range?: Range;
     elts: Expression[];
     ctx: Load;
     id?: RangeAnnotated<string>;
@@ -474,14 +474,14 @@ export declare class Index {
     constructor(value: Tuple);
 }
 export declare class Comprehension {
-    readonly range: Range;
+    readonly range?: Range;
     target: Expression | Tuple;
     iter: Expression;
     ifs: any[];
     constructor(target: Expression | Tuple, iter: Expression, ifs: any[], range?: Range);
 }
 export declare class ExceptHandler {
-    readonly range: Range;
+    readonly range?: Range;
     type: Expression | null;
     name: Expression | null;
     body: Statement[];

@@ -13,7 +13,7 @@ var astScopeCounter = 0;
  * A SymbolTableScope is created for nodes in the AST.
  * It is created only when the SymbolTable enters a block.
  */
-var SymbolTableScope = (function () {
+var SymbolTableScope = /** @class */ (function () {
     /**
      * @param table
      * @param name The name of the node defining the scope.
@@ -34,7 +34,7 @@ var SymbolTableScope = (function () {
          */
         this.varnames = [];
         this.children = [];
-        this.table = table;
+        // this.table = table;
         this.name = name;
         this.blockType = blockType;
         astNode.scopeId = astScopeCounter++;

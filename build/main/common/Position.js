@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var Position = (function () {
+exports.positionComparator = exports.Position = void 0;
+var Position = /** @class */ (function () {
     /**
      *
      */

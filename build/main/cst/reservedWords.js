@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.reservedWords = void 0;
 /**
  * TODO: Reserved for whom?
  */

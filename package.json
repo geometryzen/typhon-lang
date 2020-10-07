@@ -27,15 +27,15 @@
         "generic-rbtree": "^1.1.1"
     },
     "scripts": {
-        "build": "trash build && ./build.py gen && tsc -p tsconfig.main.json && tsc -p tsconfig.module.json && yarn build:browser",
+        "build": "trash build && python3 ./build.py gen && tsc -p tsconfig.main.json && tsc -p tsconfig.module.json && npm run build:browser",
         "build:browser": "rollup --config rollup.config.js --format umd --name \"typhonLang\" --output build/browser/index.js && sorcery -i build/browser/index.js",
         "lint": "tslint src/**/*.ts",
-        "test": "yarn lint && yarn unit && nyc check-coverage --lines 40 --functions 30 --branches 20",
-        "unit": "trash test && tsc -p tsconfig.json",
+        "test": "npm run lint && npm run unit",
+        "unit": "trash test && tsc -p tsconfig.json && karma start",
         "watch": "concurrently -r --kill-others \"tsc -p tsconfig.json -w\""
     },
     "devDependencies": {
-        "@types/jasmine": "^2.5.51",
+        "@types/jasmine": "^2.8.17",
         "concurrently": "^3.4.0",
         "jasmine-core": "2.6.3",
         "karma": "^1.7.0",
@@ -46,16 +46,16 @@
         "karma-jasmine-html-reporter": "^0.2.2",
         "karma-phantomjs-launcher": "^1.0.4",
         "rollup": "^0.42.0",
-        "rollup-plugin-alias": "^1.3.1",
+        "rollup-plugin-alias": "^1.5.2",
         "rollup-plugin-commonjs": "^8.0.2",
         "rollup-plugin-node-resolve": "^3.0.0",
         "rollup-watch": "^4.0.0",
         "sorcery": "^0.10.0",
         "systemjs": "^0.19.41",
         "trash-cli": "^1.4.0",
-        "tslib": "^1.7.1",
-        "tslint": "^5.4.3",
+        "tslib": "^1.14.0",
+        "tslint": "^5.20.1",
         "tslint-config-standard": "^5.0.2",
-        "typescript": "^2.3.3"
+        "typescript": "^4.0.3"
     }
 }

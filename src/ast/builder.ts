@@ -1017,9 +1017,13 @@ function astForCall(c: Compiling, n: PyNode, func: Expression): Call {
                 args[nargs++] = astForGenexp(c, ch);
             else {
                 const e = astForExpr(c, CHILD(ch, 0));
-                if (e.constructor === Lambda) throw syntaxError("lambda cannot contain assignment", n.range);
-                else if (e.constructor !== Name) throw syntaxError("keyword can't be an expression", n.range);
-                const key = e.id;
+                if (e.constructor === Lambda) {
+                    throw syntaxError("lambda cannot contain assignment", n.range);
+                } else if (e.constructor !== Name) {
+                    throw syntaxError("keyword can't be an expression", n.range);
+                }
+                // TODO: Why does TypeScript think that the type is never?
+                const key = (e as Expression).id;
                 forbiddenCheck(c, CHILD(ch, 0), key.value, n.range);
                 for (let k = 0; k < nkeywords; ++k) {
                     const tmp = keywords[k].arg.value;

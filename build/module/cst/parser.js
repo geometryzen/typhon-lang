@@ -19,7 +19,7 @@ var T_OP = Tokens.T_OP;
 // low level parser to a concrete syntax tree, derived from cpython's lib2to3
 // TODO: The parser does not report whitespace nodes.
 // It would be nice if there were an ignoreWhitespace option.
-var Parser = (function () {
+var Parser = /** @class */ (function () {
     /**
      *
      */
@@ -157,7 +157,7 @@ var Parser = (function () {
             ilabel = tokenToSymbol[type];
         }
         if (!ilabel) {
-            console.log("ilabel = " + ilabel + ", type = " + type + ", value = " + value + ", begin = " + JSON.stringify(begin) + ", end = " + JSON.stringify(end));
+            // console.lg(`ilabel = ${ilabel}, type = ${type}, value = ${value}, begin = ${JSON.stringify(begin)}, end = ${JSON.stringify(end)}`);
             throw parseError("bad token", begin, end);
         }
         return ilabel;
@@ -291,18 +291,15 @@ function makeParser(sourceKind) {
     }
     var lineno = 1;
     var column = 0;
-    var prefix = "";
+    // let prefix = "";
     var tokenizer = new Tokenizer(sourceKind === SourceKind.Single, function tokenizerCallback(type, value, start, end, line) {
-        // var s_lineno = start[0];
-        // var s_column = start[1];
-        /*
-        if (s_lineno !== lineno && s_column !== column)
-        {
+        var s_lineno = start[0];
+        var s_column = start[1];
+        if (s_lineno !== lineno && s_column !== column) {
             // todo; update prefix and line/col
         }
-        */
         if (type === T_COMMENT || type === T_NL) {
-            prefix += value;
+            // prefix += value;
             lineno = end[0];
             column = end[1];
             if (value[value.length - 1] === "\n") {

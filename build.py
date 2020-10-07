@@ -52,7 +52,7 @@ def gen():
     """regenerate the parser/ast source code"""
     if not os.path.exists("src/cst"): os.mkdir("src/cst")
     os.chdir("src/pgen/parser")
-    os.system("python main.py ../../../src/cst/tables.ts")
+    os.system("python3 main.py ../../../src/cst/tables.ts")
     os.chdir("../../..")
 
 def usageString(program):
@@ -100,7 +100,7 @@ def main():
     if cmd == "gen":
         gen()
     else:
-        print usageString(os.path.basename(sys.argv[0]))
+        print(usageString(os.path.basename(sys.argv[0])))
         sys.exit(2)
 
 if __name__ == "__main__":

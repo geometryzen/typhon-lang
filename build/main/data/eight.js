@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.sourceLines = void 0;
 exports.sourceLines = [
     // Each of these is about 2 ms.
     "from 'davinci-eight' import Geometric3, Color",

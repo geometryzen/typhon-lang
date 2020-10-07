@@ -1,4 +1,4 @@
-import * as tslib_1 from "tslib";
+import { __extends } from "tslib";
 import { assert } from './asserts';
 import { isDef, isNumber, isString } from './base';
 /**
@@ -19,8 +19,8 @@ export function syntaxError(message, range) {
     }
     return e;
 }
-var ParseError = (function (_super) {
-    tslib_1.__extends(ParseError, _super);
+var ParseError = /** @class */ (function (_super) {
+    __extends(ParseError, _super);
     function ParseError(message) {
         var _this = _super.call(this, message) || this;
         _this.name = 'ParseError';

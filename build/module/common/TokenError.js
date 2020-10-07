@@ -3,7 +3,7 @@ import { isNumber, isString } from './base';
 /**
  *
  */
-var TokenError = (function () {
+var TokenError = /** @class */ (function () {
     function TokenError(message, lineNumber, columnNumber) {
         assert(isString(message), "message must be a string");
         assert(isNumber(lineNumber), "lineNumber must be a number");

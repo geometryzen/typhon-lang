@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.TERMS = exports.IDXLAST = exports.CHILDREN = exports.FIND = exports.CHILD = exports.NCH = void 0;
 var asserts_1 = require("./asserts");
 /**
  * Returns the number of children in the specified node.

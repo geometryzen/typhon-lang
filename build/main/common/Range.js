@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Range = void 0;
 var asserts_1 = require("./asserts");
-var Range = (function () {
+var Range = /** @class */ (function () {
     /**
      *
      */

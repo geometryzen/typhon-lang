@@ -121,7 +121,7 @@ function syntaxError(message, range) {
     e['lineNumber'] = range.begin.line;
     return e;
 }
-var Compiling = (function () {
+var Compiling = /** @class */ (function () {
     function Compiling(encoding) {
         this.c_encoding = encoding;
     }
@@ -464,9 +464,9 @@ function astForDecorator(c, n) {
     REQ(CHILD(n, 0), TOK.T_AT);
     REQ(CHILD(n, NCH(n) - 1), TOK.T_NEWLINE);
     var nameExpr = astForDottedName(c, CHILD(n, 1));
-    if (NCH(n) === 3)
+    if (NCH(n) === 3) // no args
         return nameExpr;
-    else if (NCH(n) === 5)
+    else if (NCH(n) === 5) // call with no args
         return new Call(nameExpr, [], [], null, null);
     else
         return astForCall(c, CHILD(n, 3), nameExpr);
@@ -944,10 +944,13 @@ function astForCall(c, n, func) {
                 args[nargs++] = astForGenexp(c, ch);
             else {
                 var e = astForExpr(c, CHILD(ch, 0));
-                if (e.constructor === Lambda)
+                if (e.constructor === Lambda) {
                     throw syntaxError("lambda cannot contain assignment", n.range);
-                else if (e.constructor !== Name)
+                }
+                else if (e.constructor !== Name) {
                     throw syntaxError("keyword can't be an expression", n.range);
+                }
+                // TODO: Why does TypeScript think that the type is never?
                 var key = e.id;
                 forbiddenCheck(c, CHILD(ch, 0), key.value, n.range);
                 for (var k = 0; k < nkeywords; ++k) {
@@ -1080,7 +1083,7 @@ function astForArguments(c, n) {
     var vararg = null;
     var kwarg = null;
     if (n.type === SYM.parameters) {
-        if (NCH(n) === 2)
+        if (NCH(n) === 2) // () as arglist
             return new Arguments([], null, null, []);
         n = CHILD(n, 1); // n is a varargslist here on out
     }
@@ -1203,14 +1206,17 @@ function astForFuncdef(c, n, decoratorSeq) {
         body = astForSuite(c, CHILD(n, 4));
         returnType = null;
     }
+    // Only Export exists
     else if (numberOfChildren === 6) {
         body = astForSuite(c, CHILD(n, 5));
         returnType = null;
     }
+    // Only FuncType exists
     else if (numberOfChildren === 7) {
         returnType = astForExpr(c, CHILD(n, 4));
         body = astForSuite(c, CHILD(n, 6));
     }
+    // Export AND FuncType exist
     else if (numberOfChildren === 8) {
         returnType = astForExpr(c, CHILD(n, 5));
         body = astForSuite(c, CHILD(n, 7));
@@ -1577,7 +1583,7 @@ function parsestr(c, s) {
                     ret += '"';
                 else if (c_1 === '\'')
                     ret += '\'';
-                else if (c_1 === '\n') { }
+                else if (c_1 === '\n') /* escaped newline, join lines */ { /* Do nothing */ }
                 else if (c_1 === 'x') {
                     var d0 = s.charAt(++i);
                     var d1 = s.charAt(++i);
@@ -1776,7 +1782,7 @@ function astForAtomExpr(c, n) {
         case TOK.T_NUMBER: {
             return new Num(new RangeAnnotated(parsenumber(c, c0.value, c0.range), n.range));
         }
-        case TOK.T_LPAR: {
+        case TOK.T_LPAR: { // various uses for parens
             var c1 = CHILD(n, 1);
             if (c1.type === TOK.T_RPAR) {
                 return new Tuple([], Load, n.range);
@@ -1789,7 +1795,7 @@ function astForAtomExpr(c, n) {
             }
             return astForTestlistGexp(c, c1);
         }
-        case TOK.T_LSQB: {
+        case TOK.T_LSQB: { // list or listcomp
             var c1 = CHILD(n, 1);
             if (c1.type === TOK.T_RSQB)
                 return new List([], Load, n.range);

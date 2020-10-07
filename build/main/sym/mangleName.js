@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.mangleName = void 0;
 /**
  * @param priv
  * @param name

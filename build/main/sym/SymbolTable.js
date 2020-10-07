@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SymbolTable = exports.SemanticVisitor = void 0;
 var asserts_1 = require("../common/asserts");
 var dictUpdate_1 = require("../common/dictUpdate");
 var mangleName_1 = require("./mangleName");
@@ -76,7 +77,7 @@ var SymbolConstants_16 = require("./SymbolConstants");
 /**
  * Migrate to using this class to providing the implementation for the SymbolTable.
  */
-var SemanticVisitor = (function () {
+var SemanticVisitor = /** @class */ (function () {
     function SemanticVisitor(st) {
         this.st = st;
         // Do nothing.
@@ -193,7 +194,7 @@ exports.SemanticVisitor = SemanticVisitor;
 /**
  * The symbol table uses the abstract synntax tree (not the parse tree).
  */
-var SymbolTable = (function () {
+var SymbolTable = /** @class */ (function () {
     /**
      *
      */

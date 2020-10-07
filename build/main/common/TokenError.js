@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.TokenError = void 0;
 var asserts_1 = require("./asserts");
 var base_1 = require("./base");
 /**
  *
  */
-var TokenError = (function () {
+var TokenError = /** @class */ (function () {
     function TokenError(message, lineNumber, columnNumber) {
         asserts_1.assert(base_1.isString(message), "message must be a string");
         asserts_1.assert(base_1.isNumber(lineNumber), "lineNumber must be a number");

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.tokenNames = void 0;
 var Tokens_1 = require("./Tokens");
 /**
  * Decodes of the tokens.

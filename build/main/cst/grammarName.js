@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.grammarName = void 0;
 var tables_1 = require("./tables");
 var tokenNames_1 = require("./tokenNames");
 function grammarName(type) {

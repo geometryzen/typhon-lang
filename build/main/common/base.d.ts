@@ -22,7 +22,7 @@ export declare function abstractMethod(): void;
  * @param {*} value The value to get the type of.
  * @return {string} The name of the type.
  */
-export declare function typeOf(value: any): "string" | "number" | "boolean" | "symbol" | "undefined" | "object" | "function" | "array" | "null";
+export declare function typeOf(value: any): "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function" | "array" | "null";
 /**
  * Returns true if the specified value is not undefined.
  * WARNING: Do not use this to test if an object has a property. Use the in

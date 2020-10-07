@@ -219,7 +219,7 @@ describe('AST', function () {
     describe("Class testing", function () {
         it('class test :\n pass', function () {
             const cst = parse('class test :\n pass') as PyNode;
-            // console.log(cstDump(cst));
+            // console.lg(cstDump(cst));
             const ast = new Module(astFromParse(cst));
             const dump = (astDump(ast));
             expect(dump).toBe('Module(body=[ClassDef(name=test,bases=[],body=[Pass()],decorator_list=[])])');
@@ -227,10 +227,10 @@ describe('AST', function () {
 
         it('class test () :\n pass', function () {
             const cst = parse('class test () :\n pass') as PyNode;
-            // console.log(cstDump(cst));
+            // console.lg(cstDump(cst));
             const ast = new Module(astFromParse(cst));
             const dump = (astDump(ast));
-            // console.log(dump);
+            // console.lg(dump);
             expect(dump).toBe('Module(body=[ClassDef(name=test,bases=[],body=[Pass()],decorator_list=[])])');
         });
     });
@@ -243,12 +243,12 @@ describe('AST', function () {
                 ""
             ].join("\n");
             const cst = parse(sourceText) as PyNode;
-            // console.log
+            // console.lg
             (cstDump(cst));
             const ast = new Module(astFromParse(cst));
             // const dump =
             (astDump(ast));
-            // console.log(dump);
+            // console.lg(dump);
             it("always true", function () {
                 expect(1).toBe(1);
             });
@@ -260,12 +260,12 @@ describe('AST', function () {
                 ""
             ].join("\n");
             const cst = parse(sourceText) as PyNode;
-            // console.log
+            // console.lg
             (cstDump(cst));
             const ast = new Module(astFromParse(cst));
             // const dump =
             (astDump(ast));
-            // console.log(dump);
+            // console.lg(dump);
             it("always true", function () {
                 expect(1).toBe(1);
             });

@@ -1,4 +1,4 @@
-var Position = (function () {
+var Position = /** @class */ (function () {
     /**
      *
      */

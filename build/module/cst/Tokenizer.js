@@ -132,7 +132,7 @@ export var Failed = 'failed';
  *
  * callback can return true to abort.
  */
-var Tokenizer = (function () {
+var Tokenizer = /** @class */ (function () {
     /**
      *
      */

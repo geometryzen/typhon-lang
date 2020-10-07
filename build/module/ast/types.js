@@ -1,214 +1,214 @@
-import * as tslib_1 from "tslib";
+import { __extends } from "tslib";
 //
 // This module is at the bottom.
 // It should only import modules that don't introduce circularity.
 //
 import { assert } from '../common/asserts';
-var Load = (function () {
+var Load = /** @class */ (function () {
     function Load() {
     }
     return Load;
 }());
 export { Load };
-var Store = (function () {
+var Store = /** @class */ (function () {
     function Store() {
     }
     return Store;
 }());
 export { Store };
-var Del = (function () {
+var Del = /** @class */ (function () {
     function Del() {
     }
     return Del;
 }());
 export { Del };
-var AugLoad = (function () {
+var AugLoad = /** @class */ (function () {
     function AugLoad() {
     }
     return AugLoad;
 }());
 export { AugLoad };
-var AugStore = (function () {
+var AugStore = /** @class */ (function () {
     function AugStore() {
     }
     return AugStore;
 }());
 export { AugStore };
-var Param = (function () {
+var Param = /** @class */ (function () {
     function Param() {
     }
     return Param;
 }());
 export { Param };
-var And = (function () {
+var And = /** @class */ (function () {
     function And() {
     }
     return And;
 }());
 export { And };
-var Or = (function () {
+var Or = /** @class */ (function () {
     function Or() {
     }
     return Or;
 }());
 export { Or };
-var Add = (function () {
+var Add = /** @class */ (function () {
     function Add() {
     }
     return Add;
 }());
 export { Add };
-var Sub = (function () {
+var Sub = /** @class */ (function () {
     function Sub() {
     }
     return Sub;
 }());
 export { Sub };
-var Mult = (function () {
+var Mult = /** @class */ (function () {
     function Mult() {
     }
     return Mult;
 }());
 export { Mult };
-var Div = (function () {
+var Div = /** @class */ (function () {
     function Div() {
     }
     return Div;
 }());
 export { Div };
-var Mod = (function () {
+var Mod = /** @class */ (function () {
     function Mod() {
     }
     return Mod;
 }());
 export { Mod };
-var Pow = (function () {
+var Pow = /** @class */ (function () {
     function Pow() {
     }
     return Pow;
 }());
 export { Pow };
-var LShift = (function () {
+var LShift = /** @class */ (function () {
     function LShift() {
     }
     return LShift;
 }());
 export { LShift };
-var RShift = (function () {
+var RShift = /** @class */ (function () {
     function RShift() {
     }
     return RShift;
 }());
 export { RShift };
-var BitOr = (function () {
+var BitOr = /** @class */ (function () {
     function BitOr() {
     }
     return BitOr;
 }());
 export { BitOr };
-var BitXor = (function () {
+var BitXor = /** @class */ (function () {
     function BitXor() {
     }
     return BitXor;
 }());
 export { BitXor };
-var BitAnd = (function () {
+var BitAnd = /** @class */ (function () {
     function BitAnd() {
     }
     return BitAnd;
 }());
 export { BitAnd };
-var FloorDiv = (function () {
+var FloorDiv = /** @class */ (function () {
     function FloorDiv() {
     }
     return FloorDiv;
 }());
 export { FloorDiv };
-var Invert = (function () {
+var Invert = /** @class */ (function () {
     function Invert() {
     }
     return Invert;
 }());
 export { Invert };
-var Not = (function () {
+var Not = /** @class */ (function () {
     function Not() {
     }
     return Not;
 }());
 export { Not };
-var UAdd = (function () {
+var UAdd = /** @class */ (function () {
     function UAdd() {
     }
     return UAdd;
 }());
 export { UAdd };
-var USub = (function () {
+var USub = /** @class */ (function () {
     function USub() {
     }
     return USub;
 }());
 export { USub };
-var Eq = (function () {
+var Eq = /** @class */ (function () {
     function Eq() {
     }
     return Eq;
 }());
 export { Eq };
-var NotEq = (function () {
+var NotEq = /** @class */ (function () {
     function NotEq() {
     }
     return NotEq;
 }());
 export { NotEq };
-var Lt = (function () {
+var Lt = /** @class */ (function () {
     function Lt() {
     }
     return Lt;
 }());
 export { Lt };
-var LtE = (function () {
+var LtE = /** @class */ (function () {
     function LtE() {
     }
     return LtE;
 }());
 export { LtE };
-var Gt = (function () {
+var Gt = /** @class */ (function () {
     function Gt() {
     }
     return Gt;
 }());
 export { Gt };
-var GtE = (function () {
+var GtE = /** @class */ (function () {
     function GtE() {
     }
     return GtE;
 }());
 export { GtE };
-var Is = (function () {
+var Is = /** @class */ (function () {
     function Is() {
     }
     return Is;
 }());
 export { Is };
-var IsNot = (function () {
+var IsNot = /** @class */ (function () {
     function IsNot() {
     }
     return IsNot;
 }());
 export { IsNot };
-var In = (function () {
+var In = /** @class */ (function () {
     function In() {
     }
     return In;
 }());
 export { In };
-var NotIn = (function () {
+var NotIn = /** @class */ (function () {
     function NotIn() {
     }
     return NotIn;
 }());
 export { NotIn };
-var RangeAnnotated = (function () {
+var RangeAnnotated = /** @class */ (function () {
     function RangeAnnotated(value, range) {
         this.value = value;
         this.range = range;
@@ -217,7 +217,7 @@ var RangeAnnotated = (function () {
     return RangeAnnotated;
 }());
 export { RangeAnnotated };
-var Expression = (function () {
+var Expression = /** @class */ (function () {
     function Expression() {
         // Do noting yet.
     }
@@ -228,7 +228,7 @@ var Expression = (function () {
     return Expression;
 }());
 export { Expression };
-var Statement = (function () {
+var Statement = /** @class */ (function () {
     function Statement() {
     }
     Statement.prototype.accept = function (visitor) {
@@ -238,15 +238,15 @@ var Statement = (function () {
     return Statement;
 }());
 export { Statement };
-var IterationStatement = (function (_super) {
-    tslib_1.__extends(IterationStatement, _super);
+var IterationStatement = /** @class */ (function (_super) {
+    __extends(IterationStatement, _super);
     function IterationStatement() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     return IterationStatement;
 }(Statement));
 export { IterationStatement };
-var Module = (function () {
+var Module = /** @class */ (function () {
     function Module(body) {
         this.body = body;
     }
@@ -256,30 +256,30 @@ var Module = (function () {
     return Module;
 }());
 export { Module };
-var Interactive = (function () {
+var Interactive = /** @class */ (function () {
     function Interactive(body) {
         this.body = body;
     }
     return Interactive;
 }());
 export { Interactive };
-var UnaryExpression = (function (_super) {
-    tslib_1.__extends(UnaryExpression, _super);
+var UnaryExpression = /** @class */ (function (_super) {
+    __extends(UnaryExpression, _super);
     function UnaryExpression() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     return UnaryExpression;
 }(Expression));
 export { UnaryExpression };
-var Suite = (function () {
+var Suite = /** @class */ (function () {
     function Suite(body) {
         this.body = body;
     }
     return Suite;
 }());
 export { Suite };
-var FunctionDef = (function (_super) {
-    tslib_1.__extends(FunctionDef, _super);
+var FunctionDef = /** @class */ (function (_super) {
+    __extends(FunctionDef, _super);
     function FunctionDef(name, args, body, returnType, decorator_list, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -296,7 +296,7 @@ var FunctionDef = (function (_super) {
     return FunctionDef;
 }(Statement));
 export { FunctionDef };
-var FunctionParamDef = (function () {
+var FunctionParamDef = /** @class */ (function () {
     function FunctionParamDef(name, type) {
         this.name = name;
         if (type) {
@@ -309,8 +309,8 @@ var FunctionParamDef = (function () {
     return FunctionParamDef;
 }());
 export { FunctionParamDef };
-var ClassDef = (function (_super) {
-    tslib_1.__extends(ClassDef, _super);
+var ClassDef = /** @class */ (function (_super) {
+    __extends(ClassDef, _super);
     function ClassDef(name, bases, body, decorator_list, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -326,8 +326,8 @@ var ClassDef = (function (_super) {
     return ClassDef;
 }(Statement));
 export { ClassDef };
-var ReturnStatement = (function (_super) {
-    tslib_1.__extends(ReturnStatement, _super);
+var ReturnStatement = /** @class */ (function (_super) {
+    __extends(ReturnStatement, _super);
     function ReturnStatement(value, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -340,8 +340,8 @@ var ReturnStatement = (function (_super) {
     return ReturnStatement;
 }(Statement));
 export { ReturnStatement };
-var DeleteStatement = (function (_super) {
-    tslib_1.__extends(DeleteStatement, _super);
+var DeleteStatement = /** @class */ (function (_super) {
+    __extends(DeleteStatement, _super);
     function DeleteStatement(targets, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -351,8 +351,8 @@ var DeleteStatement = (function (_super) {
     return DeleteStatement;
 }(Statement));
 export { DeleteStatement };
-var Assign = (function (_super) {
-    tslib_1.__extends(Assign, _super);
+var Assign = /** @class */ (function (_super) {
+    __extends(Assign, _super);
     function Assign(targets, value, range, eqRange, type) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -370,8 +370,8 @@ var Assign = (function (_super) {
     return Assign;
 }(Statement));
 export { Assign };
-var AugAssign = (function (_super) {
-    tslib_1.__extends(AugAssign, _super);
+var AugAssign = /** @class */ (function (_super) {
+    __extends(AugAssign, _super);
     function AugAssign(target, op, value, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -383,8 +383,8 @@ var AugAssign = (function (_super) {
     return AugAssign;
 }(Statement));
 export { AugAssign };
-var AnnAssign = (function (_super) {
-    tslib_1.__extends(AnnAssign, _super);
+var AnnAssign = /** @class */ (function (_super) {
+    __extends(AnnAssign, _super);
     function AnnAssign(type, target, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -398,8 +398,8 @@ var AnnAssign = (function (_super) {
     return AnnAssign;
 }(Statement));
 export { AnnAssign };
-var Print = (function (_super) {
-    tslib_1.__extends(Print, _super);
+var Print = /** @class */ (function (_super) {
+    __extends(Print, _super);
     function Print(dest, values, nl, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -414,8 +414,8 @@ var Print = (function (_super) {
     return Print;
 }(Statement));
 export { Print };
-var ForStatement = (function (_super) {
-    tslib_1.__extends(ForStatement, _super);
+var ForStatement = /** @class */ (function (_super) {
+    __extends(ForStatement, _super);
     function ForStatement(target, iter, body, orelse, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -431,8 +431,8 @@ var ForStatement = (function (_super) {
     return ForStatement;
 }(Statement));
 export { ForStatement };
-var WhileStatement = (function (_super) {
-    tslib_1.__extends(WhileStatement, _super);
+var WhileStatement = /** @class */ (function (_super) {
+    __extends(WhileStatement, _super);
     function WhileStatement(test, body, orelse, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -444,8 +444,8 @@ var WhileStatement = (function (_super) {
     return WhileStatement;
 }(IterationStatement));
 export { WhileStatement };
-var IfStatement = (function (_super) {
-    tslib_1.__extends(IfStatement, _super);
+var IfStatement = /** @class */ (function (_super) {
+    __extends(IfStatement, _super);
     function IfStatement(test, consequent, alternate, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -460,8 +460,8 @@ var IfStatement = (function (_super) {
     return IfStatement;
 }(Statement));
 export { IfStatement };
-var WithStatement = (function (_super) {
-    tslib_1.__extends(WithStatement, _super);
+var WithStatement = /** @class */ (function (_super) {
+    __extends(WithStatement, _super);
     function WithStatement(context_expr, optional_vars, body, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -473,8 +473,8 @@ var WithStatement = (function (_super) {
     return WithStatement;
 }(Statement));
 export { WithStatement };
-var Raise = (function (_super) {
-    tslib_1.__extends(Raise, _super);
+var Raise = /** @class */ (function (_super) {
+    __extends(Raise, _super);
     function Raise(type, inst, tback, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -486,8 +486,8 @@ var Raise = (function (_super) {
     return Raise;
 }(Statement));
 export { Raise };
-var TryExcept = (function (_super) {
-    tslib_1.__extends(TryExcept, _super);
+var TryExcept = /** @class */ (function (_super) {
+    __extends(TryExcept, _super);
     function TryExcept(body, handlers, orelse, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -499,8 +499,8 @@ var TryExcept = (function (_super) {
     return TryExcept;
 }(Statement));
 export { TryExcept };
-var TryFinally = (function (_super) {
-    tslib_1.__extends(TryFinally, _super);
+var TryFinally = /** @class */ (function (_super) {
+    __extends(TryFinally, _super);
     function TryFinally(body, finalbody, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -511,8 +511,8 @@ var TryFinally = (function (_super) {
     return TryFinally;
 }(Statement));
 export { TryFinally };
-var Assert = (function (_super) {
-    tslib_1.__extends(Assert, _super);
+var Assert = /** @class */ (function (_super) {
+    __extends(Assert, _super);
     function Assert(test, msg, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -523,8 +523,8 @@ var Assert = (function (_super) {
     return Assert;
 }(Statement));
 export { Assert };
-var ImportStatement = (function (_super) {
-    tslib_1.__extends(ImportStatement, _super);
+var ImportStatement = /** @class */ (function (_super) {
+    __extends(ImportStatement, _super);
     function ImportStatement(names, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -534,8 +534,8 @@ var ImportStatement = (function (_super) {
     return ImportStatement;
 }(Statement));
 export { ImportStatement };
-var ImportFrom = (function (_super) {
-    tslib_1.__extends(ImportFrom, _super);
+var ImportFrom = /** @class */ (function (_super) {
+    __extends(ImportFrom, _super);
     function ImportFrom(module, names, level, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -552,8 +552,8 @@ var ImportFrom = (function (_super) {
     return ImportFrom;
 }(Statement));
 export { ImportFrom };
-var Exec = (function (_super) {
-    tslib_1.__extends(Exec, _super);
+var Exec = /** @class */ (function (_super) {
+    __extends(Exec, _super);
     function Exec(body, globals, locals, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -565,8 +565,8 @@ var Exec = (function (_super) {
     return Exec;
 }(Statement));
 export { Exec };
-var Global = (function (_super) {
-    tslib_1.__extends(Global, _super);
+var Global = /** @class */ (function (_super) {
+    __extends(Global, _super);
     function Global(names, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -576,8 +576,8 @@ var Global = (function (_super) {
     return Global;
 }(Statement));
 export { Global };
-var NonLocal = (function (_super) {
-    tslib_1.__extends(NonLocal, _super);
+var NonLocal = /** @class */ (function (_super) {
+    __extends(NonLocal, _super);
     function NonLocal(names, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -587,8 +587,8 @@ var NonLocal = (function (_super) {
     return NonLocal;
 }(Statement));
 export { NonLocal };
-var ExpressionStatement = (function (_super) {
-    tslib_1.__extends(ExpressionStatement, _super);
+var ExpressionStatement = /** @class */ (function (_super) {
+    __extends(ExpressionStatement, _super);
     function ExpressionStatement(value, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -601,8 +601,8 @@ var ExpressionStatement = (function (_super) {
     return ExpressionStatement;
 }(Statement));
 export { ExpressionStatement };
-var Pass = (function (_super) {
-    tslib_1.__extends(Pass, _super);
+var Pass = /** @class */ (function (_super) {
+    __extends(Pass, _super);
     function Pass(range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -611,8 +611,8 @@ var Pass = (function (_super) {
     return Pass;
 }(Statement));
 export { Pass };
-var BreakStatement = (function (_super) {
-    tslib_1.__extends(BreakStatement, _super);
+var BreakStatement = /** @class */ (function (_super) {
+    __extends(BreakStatement, _super);
     function BreakStatement(range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -621,8 +621,8 @@ var BreakStatement = (function (_super) {
     return BreakStatement;
 }(Statement));
 export { BreakStatement };
-var ContinueStatement = (function (_super) {
-    tslib_1.__extends(ContinueStatement, _super);
+var ContinueStatement = /** @class */ (function (_super) {
+    __extends(ContinueStatement, _super);
     function ContinueStatement(range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -631,8 +631,8 @@ var ContinueStatement = (function (_super) {
     return ContinueStatement;
 }(Statement));
 export { ContinueStatement };
-var BoolOp = (function (_super) {
-    tslib_1.__extends(BoolOp, _super);
+var BoolOp = /** @class */ (function (_super) {
+    __extends(BoolOp, _super);
     function BoolOp(op, values, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -643,8 +643,8 @@ var BoolOp = (function (_super) {
     return BoolOp;
 }(Expression));
 export { BoolOp };
-var BinOp = (function (_super) {
-    tslib_1.__extends(BinOp, _super);
+var BinOp = /** @class */ (function (_super) {
+    __extends(BinOp, _super);
     function BinOp(lhs, ops, rhs, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -660,8 +660,8 @@ var BinOp = (function (_super) {
     return BinOp;
 }(Expression));
 export { BinOp };
-var UnaryOp = (function (_super) {
-    tslib_1.__extends(UnaryOp, _super);
+var UnaryOp = /** @class */ (function (_super) {
+    __extends(UnaryOp, _super);
     function UnaryOp(op, operand, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -672,8 +672,8 @@ var UnaryOp = (function (_super) {
     return UnaryOp;
 }(Expression));
 export { UnaryOp };
-var Lambda = (function (_super) {
-    tslib_1.__extends(Lambda, _super);
+var Lambda = /** @class */ (function (_super) {
+    __extends(Lambda, _super);
     function Lambda(args, body, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -684,8 +684,8 @@ var Lambda = (function (_super) {
     return Lambda;
 }(Expression));
 export { Lambda };
-var IfExp = (function (_super) {
-    tslib_1.__extends(IfExp, _super);
+var IfExp = /** @class */ (function (_super) {
+    __extends(IfExp, _super);
     function IfExp(test, body, orelse, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -697,8 +697,8 @@ var IfExp = (function (_super) {
     return IfExp;
 }(Expression));
 export { IfExp };
-var Dict = (function (_super) {
-    tslib_1.__extends(Dict, _super);
+var Dict = /** @class */ (function (_super) {
+    __extends(Dict, _super);
     function Dict(keys, values, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -712,8 +712,8 @@ var Dict = (function (_super) {
     return Dict;
 }(Expression));
 export { Dict };
-var ListComp = (function (_super) {
-    tslib_1.__extends(ListComp, _super);
+var ListComp = /** @class */ (function (_super) {
+    __extends(ListComp, _super);
     function ListComp(elt, generators, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -724,8 +724,8 @@ var ListComp = (function (_super) {
     return ListComp;
 }(Expression));
 export { ListComp };
-var GeneratorExp = (function (_super) {
-    tslib_1.__extends(GeneratorExp, _super);
+var GeneratorExp = /** @class */ (function (_super) {
+    __extends(GeneratorExp, _super);
     function GeneratorExp(elt, generators, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -736,8 +736,8 @@ var GeneratorExp = (function (_super) {
     return GeneratorExp;
 }(Expression));
 export { GeneratorExp };
-var Yield = (function (_super) {
-    tslib_1.__extends(Yield, _super);
+var Yield = /** @class */ (function (_super) {
+    __extends(Yield, _super);
     function Yield(value, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -747,8 +747,8 @@ var Yield = (function (_super) {
     return Yield;
 }(Expression));
 export { Yield };
-var Compare = (function (_super) {
-    tslib_1.__extends(Compare, _super);
+var Compare = /** @class */ (function (_super) {
+    __extends(Compare, _super);
     function Compare(left, ops, comparators, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -801,8 +801,8 @@ var Compare = (function (_super) {
     return Compare;
 }(Expression));
 export { Compare };
-var Call = (function (_super) {
-    tslib_1.__extends(Call, _super);
+var Call = /** @class */ (function (_super) {
+    __extends(Call, _super);
     function Call(func, args, keywords, starargs, kwargs) {
         var _this = _super.call(this) || this;
         _this.func = func;
@@ -818,8 +818,8 @@ var Call = (function (_super) {
     return Call;
 }(Expression));
 export { Call };
-var Num = (function (_super) {
-    tslib_1.__extends(Num, _super);
+var Num = /** @class */ (function (_super) {
+    __extends(Num, _super);
     function Num(n) {
         var _this = _super.call(this) || this;
         _this.n = n;
@@ -831,8 +831,8 @@ var Num = (function (_super) {
     return Num;
 }(Expression));
 export { Num };
-var Str = (function (_super) {
-    tslib_1.__extends(Str, _super);
+var Str = /** @class */ (function (_super) {
+    __extends(Str, _super);
     function Str(s) {
         var _this = _super.call(this) || this;
         _this.s = s;
@@ -844,8 +844,8 @@ var Str = (function (_super) {
     return Str;
 }(Expression));
 export { Str };
-var Attribute = (function (_super) {
-    tslib_1.__extends(Attribute, _super);
+var Attribute = /** @class */ (function (_super) {
+    __extends(Attribute, _super);
     function Attribute(value, attr, ctx, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -860,8 +860,8 @@ var Attribute = (function (_super) {
     return Attribute;
 }(Expression));
 export { Attribute };
-var Subscript = (function (_super) {
-    tslib_1.__extends(Subscript, _super);
+var Subscript = /** @class */ (function (_super) {
+    __extends(Subscript, _super);
     function Subscript(value, slice, ctx, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -873,8 +873,8 @@ var Subscript = (function (_super) {
     return Subscript;
 }(Expression));
 export { Subscript };
-var Name = (function (_super) {
-    tslib_1.__extends(Name, _super);
+var Name = /** @class */ (function (_super) {
+    __extends(Name, _super);
     function Name(id, ctx) {
         var _this = _super.call(this) || this;
         _this.id = id;
@@ -887,8 +887,8 @@ var Name = (function (_super) {
     return Name;
 }(Expression));
 export { Name };
-var List = (function (_super) {
-    tslib_1.__extends(List, _super);
+var List = /** @class */ (function (_super) {
+    __extends(List, _super);
     function List(elts, ctx, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -902,8 +902,8 @@ var List = (function (_super) {
     return List;
 }(Expression));
 export { List };
-var Tuple = (function (_super) {
-    tslib_1.__extends(Tuple, _super);
+var Tuple = /** @class */ (function (_super) {
+    __extends(Tuple, _super);
     function Tuple(elts, ctx, range) {
         var _this = _super.call(this) || this;
         _this.range = range;
@@ -914,14 +914,14 @@ var Tuple = (function (_super) {
     return Tuple;
 }(Expression));
 export { Tuple };
-var Ellipsis = (function () {
+var Ellipsis = /** @class */ (function () {
     function Ellipsis() {
         // Do nothing yet.
     }
     return Ellipsis;
 }());
 export { Ellipsis };
-var Slice = (function () {
+var Slice = /** @class */ (function () {
     function Slice(lower, upper, step) {
         this.lower = lower;
         this.upper = upper;
@@ -930,21 +930,21 @@ var Slice = (function () {
     return Slice;
 }());
 export { Slice };
-var ExtSlice = (function () {
+var ExtSlice = /** @class */ (function () {
     function ExtSlice(dims) {
         this.dims = dims;
     }
     return ExtSlice;
 }());
 export { ExtSlice };
-var Index = (function () {
+var Index = /** @class */ (function () {
     function Index(value) {
         this.value = value;
     }
     return Index;
 }());
 export { Index };
-var Comprehension = (function () {
+var Comprehension = /** @class */ (function () {
     function Comprehension(target, iter, ifs, range) {
         this.range = range;
         this.target = target;
@@ -954,7 +954,7 @@ var Comprehension = (function () {
     return Comprehension;
 }());
 export { Comprehension };
-var ExceptHandler = (function () {
+var ExceptHandler = /** @class */ (function () {
     function ExceptHandler(type, name, body, range) {
         this.range = range;
         this.type = type;
@@ -964,7 +964,7 @@ var ExceptHandler = (function () {
     return ExceptHandler;
 }());
 export { ExceptHandler };
-var Arguments = (function () {
+var Arguments = /** @class */ (function () {
     function Arguments(args, vararg, kwarg, defaults) {
         this.args = args;
         this.vararg = vararg;
@@ -974,7 +974,7 @@ var Arguments = (function () {
     return Arguments;
 }());
 export { Arguments };
-var Keyword = (function () {
+var Keyword = /** @class */ (function () {
     function Keyword(arg, value) {
         this.arg = arg;
         this.value = value;
@@ -982,7 +982,7 @@ var Keyword = (function () {
     return Keyword;
 }());
 export { Keyword };
-var Alias = (function () {
+var Alias = /** @class */ (function () {
     function Alias(name, asname) {
         assert(typeof name.value === 'string');
         assert(typeof asname === 'string' || asname === null);
@@ -997,142 +997,200 @@ var Alias = (function () {
 export { Alias };
 Module.prototype['_astname'] = 'Module';
 Module.prototype['_fields'] = [
-    'body', function (n) { return n.body; }
+    'body',
+    function (n) { return n.body; }
 ];
 Interactive.prototype['_astname'] = 'Interactive';
 Interactive.prototype['_fields'] = [
-    'body', function (n) { return n.body; }
+    'body',
+    function (n) { return n.body; }
 ];
 Expression.prototype['_astname'] = 'Expression';
 Expression.prototype['_fields'] = [
-    'body', function (n) {
+    'body',
+    function (n) {
         // TOD: Expression is abstract so we should not be here?
         return void 0;
     }
 ];
 Suite.prototype['_astname'] = 'Suite';
 Suite.prototype['_fields'] = [
-    'body', function (n) { return n.body; }
+    'body',
+    function (n) { return n.body; }
 ];
 FunctionDef.prototype['_astname'] = 'FunctionDef';
 FunctionDef.prototype['_fields'] = [
-    'name', function (n) { return n.name.value; },
-    'args', function (n) { return n.args; },
-    'body', function (n) { return n.body; },
-    'returnType', function (n) { return n.returnType; },
-    'decorator_list', function (n) { return n.decorator_list; }
+    'name',
+    function (n) { return n.name.value; },
+    'args',
+    function (n) { return n.args; },
+    'body',
+    function (n) { return n.body; },
+    'returnType',
+    function (n) { return n.returnType; },
+    'decorator_list',
+    function (n) { return n.decorator_list; }
 ];
 ClassDef.prototype['_astname'] = 'ClassDef';
 ClassDef.prototype['_fields'] = [
-    'name', function (n) { return n.name.value; },
-    'bases', function (n) { return n.bases; },
-    'body', function (n) { return n.body; },
-    'decorator_list', function (n) { return n.decorator_list; }
+    'name',
+    function (n) { return n.name.value; },
+    'bases',
+    function (n) { return n.bases; },
+    'body',
+    function (n) { return n.body; },
+    'decorator_list',
+    function (n) { return n.decorator_list; }
 ];
 ReturnStatement.prototype['_astname'] = 'ReturnStatement';
 ReturnStatement.prototype['_fields'] = [
-    'value', function (n) { return n.value; }
+    'value',
+    function (n) { return n.value; }
 ];
 DeleteStatement.prototype['_astname'] = 'DeleteStatement';
 DeleteStatement.prototype['_fields'] = [
-    'targets', function (n) { return n.targets; }
+    'targets',
+    function (n) { return n.targets; }
 ];
 Assign.prototype['_astname'] = 'Assign';
 Assign.prototype['_fields'] = [
-    'targets', function (n) { return n.targets; },
-    'value', function (n) { return n.value; }
+    'targets',
+    function (n) { return n.targets; },
+    'value',
+    function (n) { return n.value; }
 ];
 AugAssign.prototype['_astname'] = 'AugAssign';
 AugAssign.prototype['_fields'] = [
-    'target', function (n) { return n.target; },
-    'op', function (n) { return n.op; },
-    'value', function (n) { return n.value; }
+    'target',
+    function (n) { return n.target; },
+    'op',
+    function (n) { return n.op; },
+    'value',
+    function (n) { return n.value; }
 ];
 AnnAssign.prototype['_astname'] = 'AnnAssign';
 AnnAssign.prototype['_fields'] = [
-    'target', function (n) { return n.target; },
-    'type', function (n) { return n.value; }
+    'target',
+    function (n) { return n.target; },
+    'type',
+    function (n) { return n.value; }
 ];
 Print.prototype['_astname'] = 'Print';
 Print.prototype['_fields'] = [
-    'dest', function (n) { return n.dest; },
-    'values', function (n) { return n.values; },
-    'nl', function (n) { return n.nl; }
+    'dest',
+    function (n) { return n.dest; },
+    'values',
+    function (n) { return n.values; },
+    'nl',
+    function (n) { return n.nl; }
 ];
 ForStatement.prototype['_astname'] = 'ForStatement';
 ForStatement.prototype['_fields'] = [
-    'target', function (n) { return n.target; },
-    'iter', function (n) { return n.iter; },
-    'body', function (n) { return n.body; },
-    'orelse', function (n) { return n.orelse; }
+    'target',
+    function (n) { return n.target; },
+    'iter',
+    function (n) { return n.iter; },
+    'body',
+    function (n) { return n.body; },
+    'orelse',
+    function (n) { return n.orelse; }
 ];
 WhileStatement.prototype['_astname'] = 'WhileStatement';
 WhileStatement.prototype['_fields'] = [
-    'test', function (n) { return n.test; },
-    'body', function (n) { return n.body; },
-    'orelse', function (n) { return n.orelse; }
+    'test',
+    function (n) { return n.test; },
+    'body',
+    function (n) { return n.body; },
+    'orelse',
+    function (n) { return n.orelse; }
 ];
 IfStatement.prototype['_astname'] = 'IfStatement';
 IfStatement.prototype['_fields'] = [
-    'test', function (n) { return n.test; },
-    'consequent', function (n) { return n.consequent; },
-    'alternate', function (n) { return n.alternate; }
+    'test',
+    function (n) { return n.test; },
+    'consequent',
+    function (n) { return n.consequent; },
+    'alternate',
+    function (n) { return n.alternate; }
 ];
 WithStatement.prototype['_astname'] = 'WithStatement';
 WithStatement.prototype['_fields'] = [
-    'context_expr', function (n) { return n.context_expr; },
-    'optional_vars', function (n) { return n.optional_vars; },
-    'body', function (n) { return n.body; }
+    'context_expr',
+    function (n) { return n.context_expr; },
+    'optional_vars',
+    function (n) { return n.optional_vars; },
+    'body',
+    function (n) { return n.body; }
 ];
 Raise.prototype['_astname'] = 'Raise';
 Raise.prototype['_fields'] = [
-    'type', function (n) { return n.type; },
-    'inst', function (n) { return n.inst; },
-    'tback', function (n) { return n.tback; }
+    'type',
+    function (n) { return n.type; },
+    'inst',
+    function (n) { return n.inst; },
+    'tback',
+    function (n) { return n.tback; }
 ];
 TryExcept.prototype['_astname'] = 'TryExcept';
 TryExcept.prototype['_fields'] = [
-    'body', function (n) { return n.body; },
-    'handlers', function (n) { return n.handlers; },
-    'orelse', function (n) { return n.orelse; }
+    'body',
+    function (n) { return n.body; },
+    'handlers',
+    function (n) { return n.handlers; },
+    'orelse',
+    function (n) { return n.orelse; }
 ];
 TryFinally.prototype['_astname'] = 'TryFinally';
 TryFinally.prototype['_fields'] = [
-    'body', function (n) { return n.body; },
-    'finalbody', function (n) { return n.finalbody; }
+    'body',
+    function (n) { return n.body; },
+    'finalbody',
+    function (n) { return n.finalbody; }
 ];
 Assert.prototype['_astname'] = 'Assert';
 Assert.prototype['_fields'] = [
-    'test', function (n) { return n.test; },
-    'msg', function (n) { return n.msg; }
+    'test',
+    function (n) { return n.test; },
+    'msg',
+    function (n) { return n.msg; }
 ];
 ImportStatement.prototype['_astname'] = 'Import';
 ImportStatement.prototype['_fields'] = [
-    'names', function (n) { return n.names; }
+    'names',
+    function (n) { return n.names; }
 ];
 ImportFrom.prototype['_astname'] = 'ImportFrom';
 ImportFrom.prototype['_fields'] = [
-    'module', function (n) { return n.module.value; },
-    'names', function (n) { return n.names; },
-    'level', function (n) { return n.level; }
+    'module',
+    function (n) { return n.module.value; },
+    'names',
+    function (n) { return n.names; },
+    'level',
+    function (n) { return n.level; }
 ];
 Exec.prototype['_astname'] = 'Exec';
 Exec.prototype['_fields'] = [
-    'body', function (n) { return n.body; },
-    'globals', function (n) { return n.globals; },
-    'locals', function (n) { return n.locals; }
+    'body',
+    function (n) { return n.body; },
+    'globals',
+    function (n) { return n.globals; },
+    'locals',
+    function (n) { return n.locals; }
 ];
 Global.prototype['_astname'] = 'Global';
 Global.prototype['_fields'] = [
-    'names', function (n) { return n.names; }
+    'names',
+    function (n) { return n.names; }
 ];
 NonLocal.prototype['_astname'] = 'NonLocal';
 NonLocal.prototype['_fields'] = [
-    'names', function (n) { return n.names; }
+    'names',
+    function (n) { return n.names; }
 ];
 ExpressionStatement.prototype['_astname'] = 'ExpressionStatement';
 ExpressionStatement.prototype['_fields'] = [
-    'value', function (n) { return n.value; }
+    'value',
+    function (n) { return n.value; }
 ];
 Pass.prototype['_astname'] = 'Pass';
 Pass.prototype['_fields'] = [];
@@ -1142,98 +1200,139 @@ ContinueStatement.prototype['_astname'] = 'ContinueStatement';
 ContinueStatement.prototype['_fields'] = [];
 BoolOp.prototype['_astname'] = 'BoolOp';
 BoolOp.prototype['_fields'] = [
-    'op', function (n) { return n.op; },
-    'values', function (n) { return n.values; }
+    'op',
+    function (n) { return n.op; },
+    'values',
+    function (n) { return n.values; }
 ];
 BinOp.prototype['_astname'] = 'BinOp';
 BinOp.prototype['_fields'] = [
-    'lhs', function (n) { return n.lhs; },
-    'op', function (n) { return n.op; },
-    'rhs', function (n) { return n.rhs; }
+    'lhs',
+    function (n) { return n.lhs; },
+    'op',
+    function (n) { return n.op; },
+    'rhs',
+    function (n) { return n.rhs; }
 ];
 UnaryOp.prototype['_astname'] = 'UnaryOp';
 UnaryOp.prototype['_fields'] = [
-    'op', function (n) { return n.op; },
-    'operand', function (n) { return n.operand; }
+    'op',
+    function (n) { return n.op; },
+    'operand',
+    function (n) { return n.operand; }
 ];
 Lambda.prototype['_astname'] = 'Lambda';
 Lambda.prototype['_fields'] = [
-    'args', function (n) { return n.args; },
-    'body', function (n) { return n.body; }
+    'args',
+    function (n) { return n.args; },
+    'body',
+    function (n) { return n.body; }
 ];
 IfExp.prototype['_astname'] = 'IfExp';
 IfExp.prototype['_fields'] = [
-    'test', function (n) { return n.test; },
-    'body', function (n) { return n.body; },
-    'orelse', function (n) { return n.orelse; }
+    'test',
+    function (n) { return n.test; },
+    'body',
+    function (n) { return n.body; },
+    'orelse',
+    function (n) { return n.orelse; }
 ];
 Dict.prototype['_astname'] = 'Dict';
 Dict.prototype['_fields'] = [
-    'keys', function (n) { return n.keys; },
-    'values', function (n) { return n.values; }
+    'keys',
+    function (n) { return n.keys; },
+    'values',
+    function (n) { return n.values; }
 ];
 ListComp.prototype['_astname'] = 'ListComp';
 ListComp.prototype['_fields'] = [
-    'elt', function (n) { return n.elt; },
-    'generators', function (n) { return n.generators; }
+    'elt',
+    function (n) { return n.elt; },
+    'generators',
+    function (n) { return n.generators; }
 ];
 GeneratorExp.prototype['_astname'] = 'GeneratorExp';
 GeneratorExp.prototype['_fields'] = [
-    'elt', function (n) { return n.elt; },
-    'generators', function (n) { return n.generators; }
+    'elt',
+    function (n) { return n.elt; },
+    'generators',
+    function (n) { return n.generators; }
 ];
 Yield.prototype['_astname'] = 'Yield';
 Yield.prototype['_fields'] = [
-    'value', function (n) { return n.value; }
+    'value',
+    function (n) { return n.value; }
 ];
 Compare.prototype['_astname'] = 'Compare';
 Compare.prototype['_fields'] = [
-    'left', function (n) { return n.left; },
-    'ops', function (n) { return n.ops; },
-    'comparators', function (n) { return n.comparators; }
+    'left',
+    function (n) { return n.left; },
+    'ops',
+    function (n) { return n.ops; },
+    'comparators',
+    function (n) { return n.comparators; }
 ];
 Call.prototype['_astname'] = 'Call';
 Call.prototype['_fields'] = [
-    'func', function (n) { return n.func; },
-    'args', function (n) { return n.args; },
-    'keywords', function (n) { return n.keywords; },
-    'starargs', function (n) { return n.starargs; },
-    'kwargs', function (n) { return n.kwargs; }
+    'func',
+    function (n) { return n.func; },
+    'args',
+    function (n) { return n.args; },
+    'keywords',
+    function (n) { return n.keywords; },
+    'starargs',
+    function (n) { return n.starargs; },
+    'kwargs',
+    function (n) { return n.kwargs; }
 ];
 Num.prototype['_astname'] = 'Num';
 Num.prototype['_fields'] = [
-    'n', function (n) { return n.n.value; }
+    'n',
+    function (n) { return n.n.value; }
 ];
 Str.prototype['_astname'] = 'Str';
 Str.prototype['_fields'] = [
-    's', function (n) { return n.s.value; }
+    's',
+    function (n) { return n.s.value; }
 ];
 Attribute.prototype['_astname'] = 'Attribute';
 Attribute.prototype['_fields'] = [
-    'value', function (n) { return n.value; },
-    'attr', function (n) { return n.attr.value; },
-    'ctx', function (n) { return n.ctx; }
+    'value',
+    function (n) { return n.value; },
+    'attr',
+    function (n) { return n.attr.value; },
+    'ctx',
+    function (n) { return n.ctx; }
 ];
 Subscript.prototype['_astname'] = 'Subscript';
 Subscript.prototype['_fields'] = [
-    'value', function (n) { return n.value; },
-    'slice', function (n) { return n.slice; },
-    'ctx', function (n) { return n.ctx; }
+    'value',
+    function (n) { return n.value; },
+    'slice',
+    function (n) { return n.slice; },
+    'ctx',
+    function (n) { return n.ctx; }
 ];
 Name.prototype['_astname'] = 'Name';
 Name.prototype['_fields'] = [
-    'id', function (n) { return n.id.value; },
-    'ctx', function (n) { return n.ctx; }
+    'id',
+    function (n) { return n.id.value; },
+    'ctx',
+    function (n) { return n.ctx; }
 ];
 List.prototype['_astname'] = 'List';
 List.prototype['_fields'] = [
-    'elts', function (n) { return n.elts; },
-    'ctx', function (n) { return n.ctx; }
+    'elts',
+    function (n) { return n.elts; },
+    'ctx',
+    function (n) { return n.ctx; }
 ];
 Tuple.prototype['_astname'] = 'Tuple';
 Tuple.prototype['_fields'] = [
-    'elts', function (n) { return n.elts; },
-    'ctx', function (n) { return n.ctx; }
+    'elts',
+    function (n) { return n.elts; },
+    'ctx',
+    function (n) { return n.ctx; }
 ];
 Load.prototype['_astname'] = 'Load';
 Load.prototype['_isenum'] = true;
@@ -1251,17 +1350,22 @@ Ellipsis.prototype['_astname'] = 'Ellipsis';
 Ellipsis.prototype['_fields'] = [];
 Slice.prototype['_astname'] = 'Slice';
 Slice.prototype['_fields'] = [
-    'lower', function (n) { return n.lower; },
-    'upper', function (n) { return n.upper; },
-    'step', function (n) { return n.step; }
+    'lower',
+    function (n) { return n.lower; },
+    'upper',
+    function (n) { return n.upper; },
+    'step',
+    function (n) { return n.step; }
 ];
 ExtSlice.prototype['_astname'] = 'ExtSlice';
 ExtSlice.prototype['_fields'] = [
-    'dims', function (n) { return n.dims; }
+    'dims',
+    function (n) { return n.dims; }
 ];
 Index.prototype['_astname'] = 'Index';
 Index.prototype['_fields'] = [
-    'value', function (n) { return n.value; }
+    'value',
+    function (n) { return n.value; }
 ];
 And.prototype['_astname'] = 'And';
 And.prototype['_isenum'] = true;
@@ -1321,35 +1425,51 @@ NotIn.prototype['_astname'] = 'NotIn';
 NotIn.prototype['_isenum'] = true;
 Comprehension.prototype['_astname'] = 'Comprehension';
 Comprehension.prototype['_fields'] = [
-    'target', function (n) { return n.target; },
-    'iter', function (n) { return n.iter; },
-    'ifs', function (n) { return n.ifs; }
+    'target',
+    function (n) { return n.target; },
+    'iter',
+    function (n) { return n.iter; },
+    'ifs',
+    function (n) { return n.ifs; }
 ];
 ExceptHandler.prototype['_astname'] = 'ExceptHandler';
 ExceptHandler.prototype['_fields'] = [
-    'type', function (n) { return n.type; },
-    'name', function (n) { return n.name; },
-    'body', function (n) { return n.body; }
+    'type',
+    function (n) { return n.type; },
+    'name',
+    function (n) { return n.name; },
+    'body',
+    function (n) { return n.body; }
 ];
 Arguments.prototype['_astname'] = 'Arguments';
 Arguments.prototype['_fields'] = [
-    'args', function (n) { return n.args; },
-    'vararg', function (n) { return n.vararg; },
-    'kwarg', function (n) { return n.kwarg; },
-    'defaults', function (n) { return n.defaults; }
+    'args',
+    function (n) { return n.args; },
+    'vararg',
+    function (n) { return n.vararg; },
+    'kwarg',
+    function (n) { return n.kwarg; },
+    'defaults',
+    function (n) { return n.defaults; }
 ];
 Keyword.prototype['_astname'] = 'Keyword';
 Keyword.prototype['_fields'] = [
-    'arg', function (n) { return n.arg.value; },
-    'value', function (n) { return n.value; }
+    'arg',
+    function (n) { return n.arg.value; },
+    'value',
+    function (n) { return n.value; }
 ];
 FunctionParamDef.prototype['_astname'] = 'FunctionParamDef';
 FunctionParamDef.prototype['_fields'] = [
-    'name', function (n) { return n.name; },
-    'type', function (n) { return n.type; }
+    'name',
+    function (n) { return n.name; },
+    'type',
+    function (n) { return n.type; }
 ];
 Alias.prototype['_astname'] = 'Alias';
 Alias.prototype['_fields'] = [
-    'name', function (n) { return n.name.value; },
-    'asname', function (n) { return n.asname; }
+    'name',
+    function (n) { return n.name.value; },
+    'asname',
+    function (n) { return n.asname; }
 ];

@@ -43,7 +43,6 @@ export declare class SymbolTableScope {
     varkeywords: boolean;
     returnsValue: boolean;
     range: Range;
-    private table;
     private symbols;
     private _classMethods;
     private _funcParams;
@@ -71,7 +70,7 @@ export declare class SymbolTableScope {
     /**
      * Looks in the bindings for this scope and returns the names of the nodes that match the mask filter.
      */
-    private _identsMatching(filter);
+    private _identsMatching;
     /**
      * Returns the names of parameters (DEF_PARAM) for function scopes.
      */

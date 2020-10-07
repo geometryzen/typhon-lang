@@ -74,7 +74,7 @@ import { SCOPE_OFF } from './SymbolConstants';
 /**
  * Migrate to using this class to providing the implementation for the SymbolTable.
  */
-var SemanticVisitor = (function () {
+var SemanticVisitor = /** @class */ (function () {
     function SemanticVisitor(st) {
         this.st = st;
         // Do nothing.
@@ -191,7 +191,7 @@ export { SemanticVisitor };
 /**
  * The symbol table uses the abstract synntax tree (not the parse tree).
  */
-var SymbolTable = (function () {
+var SymbolTable = /** @class */ (function () {
     /**
      *
      */

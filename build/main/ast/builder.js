@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.astDump = exports.astFromParse = exports.astFromExpression = void 0;
 var asserts_1 = require("../common/asserts");
 var tree_1 = require("../common/tree");
 var types_1 = require("./types");
@@ -123,7 +124,7 @@ function syntaxError(message, range) {
     e['lineNumber'] = range.begin.line;
     return e;
 }
-var Compiling = (function () {
+var Compiling = /** @class */ (function () {
     function Compiling(encoding) {
         this.c_encoding = encoding;
     }
@@ -466,9 +467,9 @@ function astForDecorator(c, n) {
     REQ(tree_1.CHILD(n, 0), Tokens_1.Tokens.T_AT);
     REQ(tree_1.CHILD(n, tree_1.NCH(n) - 1), Tokens_1.Tokens.T_NEWLINE);
     var nameExpr = astForDottedName(c, tree_1.CHILD(n, 1));
-    if (tree_1.NCH(n) === 3)
+    if (tree_1.NCH(n) === 3) // no args
         return nameExpr;
-    else if (tree_1.NCH(n) === 5)
+    else if (tree_1.NCH(n) === 5) // call with no args
         return new types_18.Call(nameExpr, [], [], null, null);
     else
         return astForCall(c, tree_1.CHILD(n, 3), nameExpr);
@@ -946,10 +947,13 @@ function astForCall(c, n, func) {
                 args[nargs++] = astForGenexp(c, ch);
             else {
                 var e = astForExpr(c, tree_1.CHILD(ch, 0));
-                if (e.constructor === types_51.Lambda)
+                if (e.constructor === types_51.Lambda) {
                     throw syntaxError("lambda cannot contain assignment", n.range);
-                else if (e.constructor !== types_61.Name)
+                }
+                else if (e.constructor !== types_61.Name) {
                     throw syntaxError("keyword can't be an expression", n.range);
+                }
+                // TODO: Why does TypeScript think that the type is never?
                 var key = e.id;
                 forbiddenCheck(c, tree_1.CHILD(ch, 0), key.value, n.range);
                 for (var k = 0; k < nkeywords; ++k) {
@@ -1082,7 +1086,7 @@ function astForArguments(c, n) {
     var vararg = null;
     var kwarg = null;
     if (n.type === SYM.parameters) {
-        if (tree_1.NCH(n) === 2)
+        if (tree_1.NCH(n) === 2) // () as arglist
             return new types_3.Arguments([], null, null, []);
         n = tree_1.CHILD(n, 1); // n is a varargslist here on out
     }
@@ -1205,14 +1209,17 @@ function astForFuncdef(c, n, decoratorSeq) {
         body = astForSuite(c, tree_1.CHILD(n, 4));
         returnType = null;
     }
+    // Only Export exists
     else if (numberOfChildren === 6) {
         body = astForSuite(c, tree_1.CHILD(n, 5));
         returnType = null;
     }
+    // Only FuncType exists
     else if (numberOfChildren === 7) {
         returnType = astForExpr(c, tree_1.CHILD(n, 4));
         body = astForSuite(c, tree_1.CHILD(n, 6));
     }
+    // Export AND FuncType exist
     else if (numberOfChildren === 8) {
         returnType = astForExpr(c, tree_1.CHILD(n, 5));
         body = astForSuite(c, tree_1.CHILD(n, 7));
@@ -1579,7 +1586,7 @@ function parsestr(c, s) {
                     ret += '"';
                 else if (c_1 === '\'')
                     ret += '\'';
-                else if (c_1 === '\n') { }
+                else if (c_1 === '\n') /* escaped newline, join lines */ { /* Do nothing */ }
                 else if (c_1 === 'x') {
                     var d0 = s.charAt(++i);
                     var d1 = s.charAt(++i);
@@ -1778,7 +1785,7 @@ function astForAtomExpr(c, n) {
         case Tokens_1.Tokens.T_NUMBER: {
             return new types_65.Num(new types_72.RangeAnnotated(parsenumber(c, c0.value, c0.range), n.range));
         }
-        case Tokens_1.Tokens.T_LPAR: {
+        case Tokens_1.Tokens.T_LPAR: { // various uses for parens
             var c1 = tree_1.CHILD(n, 1);
             if (c1.type === Tokens_1.Tokens.T_RPAR) {
                 return new types_82.Tuple([], types_54.Load, n.range);
@@ -1791,7 +1798,7 @@ function astForAtomExpr(c, n) {
             }
             return astForTestlistGexp(c, c1);
         }
-        case Tokens_1.Tokens.T_LSQB: {
+        case Tokens_1.Tokens.T_LSQB: { // list or listcomp
             var c1 = tree_1.CHILD(n, 1);
             if (c1.type === Tokens_1.Tokens.T_RSQB)
                 return new types_52.List([], types_54.Load, n.range);

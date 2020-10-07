@@ -38,7 +38,7 @@ export declare enum SourceKind {
     /**
      * Suitable for a REPL.
      */
-    Single = 2,
+    Single = 2
 }
 export declare function parse(sourceText: string, sourceKind?: SourceKind): boolean | PyNode;
 /**

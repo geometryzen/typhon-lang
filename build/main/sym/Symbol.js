@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Symbol = void 0;
 var SymbolConstants_1 = require("./SymbolConstants");
 var SymbolConstants_2 = require("./SymbolConstants");
 var SymbolConstants_3 = require("./SymbolConstants");
@@ -10,7 +11,7 @@ var SymbolConstants_7 = require("./SymbolConstants");
 var SymbolConstants_8 = require("./SymbolConstants");
 var SymbolConstants_9 = require("./SymbolConstants");
 var SymbolConstants_10 = require("./SymbolConstants");
-var Symbol = (function () {
+var Symbol = /** @class */ (function () {
     /**
      * @param name
      * @param flags

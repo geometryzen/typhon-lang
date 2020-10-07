@@ -62,5 +62,5 @@ export declare enum Tokens {
     T_ASYNC = 57,
     T_ERRORTOKEN = 58,
     T_N_TOKENS = 59,
-    T_NT_OFFSET = 256,
+    T_NT_OFFSET = 256
 }

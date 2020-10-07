@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.splitSourceTextIntoLines = void 0;
 var tree_1 = require("../common/tree");
 /**
  * Prepare the source text into lines to feed to the `generateTokens` method of the tokenizer.

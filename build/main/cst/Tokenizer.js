@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Tokenizer = exports.Failed = exports.Done = void 0;
 var asserts_1 = require("../common/asserts");
 var TokenError_1 = require("../common/TokenError");
 var Tokens_1 = require("./Tokens");
@@ -134,7 +135,7 @@ exports.Failed = 'failed';
  *
  * callback can return true to abort.
  */
-var Tokenizer = (function () {
+var Tokenizer = /** @class */ (function () {
     /**
      *
      */

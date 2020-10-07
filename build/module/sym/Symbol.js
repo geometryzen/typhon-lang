@@ -8,7 +8,7 @@ import { GLOBAL_IMPLICIT } from './SymbolConstants';
 import { SCOPE_MASK } from './SymbolConstants';
 import { SCOPE_OFF } from './SymbolConstants';
 import { USE } from './SymbolConstants';
-var Symbol = (function () {
+var Symbol = /** @class */ (function () {
     /**
      * @param name
      * @param flags

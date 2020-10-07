@@ -1,5 +1,5 @@
 import { assert } from './asserts';
-var Range = (function () {
+var Range = /** @class */ (function () {
     /**
      *
      */

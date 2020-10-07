@@ -199,7 +199,7 @@ class Parser {
             ilabel = tokenToSymbol[type];
         }
         if (!ilabel) {
-            console.log(`ilabel = ${ilabel}, type = ${type}, value = ${value}, begin = ${JSON.stringify(begin)}, end = ${JSON.stringify(end)}`);
+            // console.lg(`ilabel = ${ilabel}, type = ${type}, value = ${value}, begin = ${JSON.stringify(begin)}, end = ${JSON.stringify(end)}`);
             throw parseError("bad token", begin, end);
         }
         return ilabel;
@@ -255,7 +255,7 @@ class Parser {
         const newnode: PyNode = { type, value: null, range: new Range(beginPos, endPos), children: [] };
 
         // TODO: Is there a symbolic constant for the zero state?
-        stack.push({ dfa, beginTokens,  stateId: 0, node: newnode });
+        stack.push({ dfa, beginTokens, stateId: 0, node: newnode });
     }
 
     /**
@@ -344,18 +344,15 @@ function makeParser(sourceKind: SourceKind): (line: string) => PyNode | boolean 
     }
     let lineno = 1;
     let column = 0;
-    let prefix = "";
+    // let prefix = "";
     const tokenizer = new Tokenizer(sourceKind === SourceKind.Single, function tokenizerCallback(type: Tokens, value: string, start: [number, number], end: [number, number], line: string): boolean | undefined {
-        // var s_lineno = start[0];
-        // var s_column = start[1];
-        /*
-        if (s_lineno !== lineno && s_column !== column)
-        {
+        const s_lineno = start[0];
+        const s_column = start[1];
+        if (s_lineno !== lineno && s_column !== column) {
             // todo; update prefix and line/col
         }
-        */
         if (type === T_COMMENT || type === T_NL) {
-            prefix += value;
+            // prefix += value;
             lineno = end[0];
             column = end[1];
             if (value[value.length - 1] === "\n") {

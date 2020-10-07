@@ -54,7 +54,7 @@ export class SymbolTableScope {
     varkeywords: boolean;
     returnsValue: boolean;
     range: Range;
-    private table: SymbolTable;
+    // private table: SymbolTable;
     private symbols: { [name: string]: Symbol };
     private _classMethods: string[];
     private _funcParams: string[];
@@ -69,7 +69,7 @@ export class SymbolTableScope {
      * @param range
      */
     constructor(table: SymbolTable, name: string, blockType: BlockType, astNode: { scopeId: number }, range: Range) {
-        this.table = table;
+        // this.table = table;
         this.name = name;
         this.blockType = blockType;
 

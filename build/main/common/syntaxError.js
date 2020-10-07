@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseError = exports.ParseError = exports.syntaxError = void 0;
 var tslib_1 = require("tslib");
 var asserts_1 = require("./asserts");
 var base_1 = require("./base");
@@ -22,7 +23,7 @@ function syntaxError(message, range) {
     return e;
 }
 exports.syntaxError = syntaxError;
-var ParseError = (function (_super) {
+var ParseError = /** @class */ (function (_super) {
     tslib_1.__extends(ParseError, _super);
     function ParseError(message) {
         var _this = _super.call(this, message) || this;

@@ -1,6 +1,7 @@
 "use strict";
 /* Flags for def-use information */
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ClassBlock = exports.FunctionBlock = exports.ModuleBlock = exports.GENERATOR_EXPRESSION = exports.GENERATOR = exports.OPT_TOPLEVEL = exports.OPT_BARE_EXEC = exports.OPT_EXEC = exports.OPT_IMPORT_STAR = exports.CELL = exports.FREE = exports.GLOBAL_IMPLICIT = exports.GLOBAL_EXPLICIT = exports.LOCAL = exports.SCOPE_MASK = exports.SCOPE_OFF = exports.DEF_BOUND = exports.DEF_IMPORT = exports.DEF_FREE_CLASS = exports.DEF_FREE_GLOBAL = exports.DEF_FREE = exports.DEF_INTUPLE = exports.DEF_DOUBLESTAR = exports.DEF_STAR = exports.USE = exports.DEF_PARAM = exports.DEF_LOCAL = exports.DEF_GLOBAL = void 0;
 exports.DEF_GLOBAL = 1 << 0; /* global stmt */
 exports.DEF_LOCAL = 2 << 0; /* assignment in code block */
 exports.DEF_PARAM = 2 << 1; /* formal parameter */

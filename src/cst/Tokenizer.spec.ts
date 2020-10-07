@@ -37,7 +37,7 @@ describe("Tokenizer", function () {
     }
     it("...", function () {
         expect(tokens.length).toBe(3);
-        console.log(JSON.stringify(tokens, null, 2));
+        // console.lg(JSON.stringify(tokens, null, 2));
         // expect(tokens[0].type).toBe(Tokens.T_NUMBER);
         // expect(tokens[1].type).toBe(Tokens.T_NEWLINE);
         // expect(tokens[2].type).toBe(Tokens.T_ENDMARKER);

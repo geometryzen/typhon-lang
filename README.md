@@ -9,23 +9,24 @@ http://pages.cpsc.ucalgary.ca/~aycock/spark/
 ## Installation
 
 ```
-yarn install
+npm install
+npm update
 ```
 
 ## Build
 
 ```
-yarn build
+npm run build
 ```
 
 ## Text
 
 ```
-yarn test
+npm run test
 ```
 
 ## Development
 
 ```
-yarn watch
+npm run watch
 ```
