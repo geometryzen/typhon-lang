@@ -2,6 +2,8 @@
 .vscode
 
 coverage/
+build/
+docs/
 
 # Ignore tools dependencies
 node_modules/
