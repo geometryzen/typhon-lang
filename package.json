@@ -1,6 +1,6 @@
 {
     "name": "typhon-lang",
-    "version": "0.12.10",
+    "version": "0.12.11",
     "description": "Typhon = Python + Types + ECMAScript 2015 modules",
     "author": {
         "name": "David Geo Holmes",
@@ -9,7 +9,7 @@
     "browser": "./build/browser/index.js",
     "main": "./build/main/index.js",
     "module": "./build/module/index.js",
-    "types": "./build/main/index.d.ts",
+    "types": "./build/index.d.ts",
     "license": "MIT",
     "licenses": [
         {

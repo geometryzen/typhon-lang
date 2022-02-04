@@ -39,7 +39,7 @@ export default [
     },
     {
         input: 'build/module/types/src/index.d.ts',
-        output: [{ file: 'build/module/index.d.ts', format: "esm" }],
+        output: [{ file: pkg.types, format: "esm" }],
         external: [/\.css$/],
         plugins: [dts()],
     }
