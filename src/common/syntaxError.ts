@@ -1,5 +1,6 @@
 import { assert } from './asserts';
 import { isDef, isNumber, isString } from './base';
+import { Position } from './Position';
 import { Range } from './Range';
 /**
  * @param message
@@ -20,12 +21,13 @@ export function syntaxError(message: string, range?: Range) {
 
     return e;
 }
-export type LineColumn = [number, number];
-
+export type LineColumn = [line: number, column: number];
+/*
 export interface Position {
     row: number;
     column: number;
 }
+*/
 
 export class ParseError extends SyntaxError {
     constructor(message: string) {
@@ -47,10 +49,10 @@ export function parseError(message: string, begin?: LineColumn, end?: LineColumn
     // Notice that the Line is 1-based, but that row is 0-based.
     // Both column and Column are 0-based.
     if (Array.isArray(begin)) {
-        e.begin = { row: begin[0] - 1, column: begin[1] };
+        e.begin = new Position(begin[0], begin[1]);
     }
     if (Array.isArray(end)) {
-        e.end = { row: end[0] - 1, column: end[1] };
+        e.end = new Position(end[0], end[1]);
     }
     return e;
 }

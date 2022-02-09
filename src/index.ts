@@ -60,3 +60,32 @@ export { semanticsOfModule } from './sym/symtable';
 export { SymbolFlags } from './sym/SymbolConstants';
 export { SymbolTable } from './sym/SymbolTable';
 export { SymbolTableScope } from './sym/SymbolTableScope';
+//
+// Added to complete typedoc documentation...
+//
+export { Alias } from './ast/types';
+export { Arguments } from './ast/types';
+export { BlockType } from './sym/SymbolTableScope';
+export { CompareOperator } from './ast/types';
+export { Comprehension } from './ast/types';
+export { Decorator } from './ast/types';
+export { DictionaryKind } from './sym/SymbolConstants';
+export { Ellipsis } from './ast/types';
+export { ExtSlice } from './ast/types';
+export { ExceptHandler } from './ast/types';
+export { FunctionParamDef } from './ast/types';
+export { GeneratorExp } from './ast/types';
+export { HasAstName } from './ast/types';
+export { Index } from './ast/types';
+export { INumericLiteral } from './ast/types';
+export { Keyword } from './ast/types';
+export { Load } from './ast/types';
+export { Operator } from './ast/types';
+// This conflicts with Position from ./common/Position;
+// export { Position } from './common/syntaxError';
+export { Slice } from './ast/types';
+export { Statement } from './ast/types';
+export { Symbol } from './sym/Symbol';
+export { Target } from './ast/types';
+export { Tokens } from './cst/Tokens';
+export { Tuple } from './ast/types';

@@ -14,6 +14,12 @@ export class Position {
         this.line = line;
         this.column = column;
     }
+    /**
+     * 0-based row number.
+     */
+    get row(): number {
+        return this.line - 1;
+    }
     toString(): string {
         return `[${this.line}, ${this.column}]`;
     }
