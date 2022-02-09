@@ -1,7 +1,7 @@
 {
     "name": "typhon-lang",
-    "version": "0.12.11",
-    "description": "Typhon = Python + Types + ECMAScript 2015 modules",
+    "version": "1.0.1",
+    "description": "Typhon = Python + Types + ECMAScript modules",
     "author": {
         "name": "David Geo Holmes",
         "email": "david.geo.holmes@gmail.com"

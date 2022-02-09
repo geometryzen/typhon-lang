@@ -101,7 +101,7 @@ import { ParseTables } from '../cst/tables';
 import { Tokens as TOK } from '../cst/Tokens';
 import { floatAST, intAST, longAST } from './numericLiteral';
 import { INumericLiteral } from './types';
-import { PyNode } from '../cst/parser';
+import { cstDump, PyNode } from '../cst/parser';
 import { Range } from '../common/Range';
 // import { cstDump } from './parser';
 import { grammarName } from '../cst/grammarName';
@@ -2045,7 +2045,8 @@ function astForExpr(c: Compiling, n: PyNode): Expression {
             case SYM.PowerExpr:
                 return astForPowerExpr(c, n);
             default: {
-                throw new Error("unhandled expr"/*, "n.type: %d", n.type*/);
+                // TODO: Opportunity for structured Error here.
+                throw new Error(`unhandled expr: n.type: ${n.type}, n.value: ${n.value}, n.range= ${n.range}, dump=${cstDump(n)}`);
             }
         }
     }
@@ -2119,6 +2120,11 @@ export function astFromExpression(n: PyNode): Expression {
     return astForExpr(c, n);
 }
 
+/**
+ * TODO: Documentation
+ * @param n 
+ * @returns 
+ */
 export function astFromParse(n: PyNode): Statement[] {
     const c = new Compiling("utf-8");
 
@@ -2158,6 +2164,11 @@ export function astFromParse(n: PyNode): Statement[] {
     */
 }
 
+/**
+ * TODO; Documentation
+ * @param node 
+ * @returns 
+ */
 export function astDump(node: Expression | Statement): string {
     const _format = function (node: Expression | Statement | boolean | any[]): string {
         if (node === null) {

@@ -29,6 +29,10 @@ export interface Position {
 }
 */
 
+/**
+ * 
+ */
+// TODO: SyntaxError is an interface that extends Error. So is ParseError really an Error?
 export class ParseError extends SyntaxError {
     constructor(message: string) {
         super(message);
@@ -36,6 +40,28 @@ export class ParseError extends SyntaxError {
     }
     begin?: Position;
     end?: Position;
+}
+
+/**
+ * 
+ */
+export class UnexpectedTokenError extends ParseError {
+    /**
+     * 
+     * @param message 
+     * @param begin 
+     * @param end 
+     */
+    constructor(message: string, begin: LineColumn, end: LineColumn) {
+        super(message);
+        this.name = 'UnexpectedTokenError';
+        if (Array.isArray(begin)) {
+            this.begin = new Position(begin[0], begin[1]);
+        }
+        if (Array.isArray(end)) {
+            this.end = new Position(end[0], end[1]);
+        }
+    }
 }
 
 /**

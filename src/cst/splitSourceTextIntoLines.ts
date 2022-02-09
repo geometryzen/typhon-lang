@@ -2,6 +2,9 @@ import { IDXLAST } from '../common/tree';
 
 /**
  * Prepare the source text into lines to feed to the `generateTokens` method of the tokenizer.
+ * The source text is split using the newline, '\n', character.
+ * @param sourceText The source text.
+ * @returns The source text split into lines with the newline character retained. 
  */
 export function splitSourceTextIntoLines(sourceText: string): string[] {
     const lines: string[] = [];

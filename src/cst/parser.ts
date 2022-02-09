@@ -5,7 +5,7 @@ import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
 import { tokenNames } from './tokenNames';
 import { grammarName } from './grammarName';
-import { parseError } from '../common/syntaxError';
+import { parseError, UnexpectedTokenError } from '../common/syntaxError';
 import { Position } from '../common/Position';
 import { Range } from '../common/Range';
 import { splitSourceTextIntoLines } from './splitSourceTextIntoLines';
@@ -48,10 +48,11 @@ interface StackElement {
     node: PyNode;
 }
 
-// low level parser to a concrete syntax tree, derived from cpython's lib2to3
-
 // TODO: The parser does not report whitespace nodes.
 // It would be nice if there were an ignoreWhitespace option.
+/**
+ * Low level parser to a concrete syntax tree, derived from cpython's lib2to3.
+ */
 class Parser {
     private readonly grammar: Grammar;
     private readonly stack: StackElement[] = [];
@@ -64,6 +65,10 @@ class Parser {
         this.grammar = grammar;
     }
 
+    /**
+     * Pushes an element onto the stack of the type specified in the start parameter.
+     * @param start Usually ParseTables.sym.file_input or eval_input or single_input. Default is the grammar.start passed in the constructor.
+     */
     setup(start?: Tokens): void {
         start = start || this.grammar.start;
 
@@ -167,8 +172,9 @@ class Parser {
             }
             else {
                 const found = grammarName(stackTop.stateId);
-                // FIXME:
-                throw parseError(`Unexpected ${found} at ${JSON.stringify([begin[0], begin[1] + 1])}`, begin, end);
+                throw new UnexpectedTokenError(`Unexpected ${found} at ${JSON.stringify([begin[0], begin[1] + 1])}`, begin, end);
+                // FIXME: We are reporting the column here as 1-based.
+                // throw parseError(`Unexpected ${found} at ${JSON.stringify([begin[0], begin[1] + 1])}`, begin, end);
             }
         }
     }
@@ -313,17 +319,16 @@ function existsTransition(arcs: Arc[], obj: Arc): boolean {
 }
 
 /**
- * parser for interactive input. returns a function that should be called with
- * lines of input as they are entered. the function will return false
- * until the input is complete, when it will return the rootnode of the parse.
+ * Constructs a Parser for interactive input.
+ * Returns a function that should be called with a single line as input as they are entered.
+ * The function will return false until the input is complete, when it will return the rootnode of the parse.
  *
  * @param style root of parse tree (optional)
  */
 function makeParser(sourceKind: SourceKind): (line: string) => PyNode | boolean {
     if (sourceKind === undefined) sourceKind = SourceKind.File;
 
-    // FIXME: Would be nice to get this typing locked down. Why does Grammar not match ParseTables?
-    const p = new Parser(ParseTables as any);
+    const p = new Parser(ParseTables);
     // TODO: Can we do this over the symbolic constants?
     switch (sourceKind) {
         case SourceKind.File: {
@@ -401,6 +406,12 @@ export enum SourceKind {
     Single = 2
 }
 
+/**
+ * Parses the sourceText into a Concrete Syntax Tree (the Parse Tree representation).
+ * @param sourceText The source text
+ * @param sourceKind The source kind (Default is File).
+ * @returns 
+ */
 export function parse(sourceText: string, sourceKind: SourceKind = SourceKind.File): boolean | PyNode {
     const parser = makeParser(sourceKind);
     const lines = splitSourceTextIntoLines(sourceText);

@@ -10,23 +10,28 @@ http://pages.cpsc.ucalgary.ca/~aycock/spark/
 
 ```
 npm install
-npm update
 ```
 
-## Build
+## Building
 
 ```
 npm run build
 ```
 
-## Text
+## Linting
+
+```
+npm run lint
+```
+
+## Testing
 
 ```
 npm run test
 ```
 
-## Development
+## Documentation
 
 ```
-npm run watch
+npm run docs
 ```

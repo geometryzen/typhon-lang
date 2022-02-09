@@ -81,7 +81,7 @@ npm publish
 
 To see what will be published...
 ```
-npx npm_packlist
+npx npm-packlist
 ```
 
 ## References

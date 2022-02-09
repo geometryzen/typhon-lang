@@ -47,6 +47,11 @@ export function CHILDREN<T extends Tree>(n: T): T[] {
     }
 }
 
+/**
+ * Convenience function to return the index of the last element in an array.
+ * @param xs The array.
+ * @returns The length of the array minus 1.
+ */
 export function IDXLAST<T>(xs: ArrayLike<T>): number {
     return xs.length - 1;
 }
