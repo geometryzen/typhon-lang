@@ -171,10 +171,8 @@ class Parser {
                 }
             }
             else {
-                const found = grammarName(stackTop.stateId);
-                throw new UnexpectedTokenError(`Unexpected ${found} at ${JSON.stringify([begin[0], begin[1] + 1])}`, begin, end);
-                // FIXME: We are reporting the column here as 1-based.
-                // throw parseError(`Unexpected ${found} at ${JSON.stringify([begin[0], begin[1] + 1])}`, begin, end);
+                const tokenName = grammarName(stackTop.stateId);
+                throw new UnexpectedTokenError(tokenName, begin, end);
             }
         }
     }

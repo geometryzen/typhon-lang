@@ -5,6 +5,7 @@ export { astDump, astFromExpression, astFromParse } from './ast/builder';
 export {
     Add,
     Alias,
+    And,
     AnnAssign,
     Arguments,
     Assign,
@@ -56,7 +57,9 @@ export {
     NotIn,
     Num,
     Operator,
+    Or,
     Param,
+    Pow,
     Print,
     RangeAnnotated,
     ReturnStatement,

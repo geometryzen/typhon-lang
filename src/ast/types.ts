@@ -63,24 +63,52 @@ export class Del { }
 export class AugLoad { }
 export class AugStore { }
 export class Param { }
-
+/**
+ * Logical AND (&&)
+ */
 export class And { }
+/**
+ * Logical OR (||)
+ */
 export class Or { }
-
+/**
+ * Addition (+)
+ */
 export class Add implements HasAstName {
 }
+/**
+ * Subtraction (-)
+ */
 export class Sub implements HasAstName {
 }
+/**
+ * Multiplication (*)
+ */
 export class Mult implements HasAstName {
 }
+/**
+ * Division (/)
+ */
 export class Div implements HasAstName {
 }
+/**
+ * Remainder (%)
+ */
 export class Mod implements HasAstName {
 }
+/**
+ * Exponentiation '**'
+ */
 export class Pow implements HasAstName {
 }
+/**
+ * Bitwise Left Shift (<<)
+ */
 export class LShift implements HasAstName {
 }
+/**
+ * Bitwise Right Shift (>>)
+ */
 export class RShift implements HasAstName {
 }
 export class BitOr implements HasAstName {
@@ -285,7 +313,7 @@ export class AugAssign extends Statement {
 export class AnnAssign extends Statement {
     value: Expression;
     target: Expression;
-    constructor (type: Expression, target: Expression, public readonly range?: Range) {
+    constructor(type: Expression, target: Expression, public readonly range?: Range) {
         super();
         this.value = type;
         this.target = target;
