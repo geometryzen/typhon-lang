@@ -1,22 +1,18 @@
 import { assert } from './asserts';
-import { isNumber, isString } from './base';
+import { isNumber } from './base';
 
 /**
- *
+ * A token error is exclusively used to indicate EOF situations.
  */
-export class TokenError {
-    name: string;
-    message: string;
-    lineNumber: number;
-    columnNumber: number;
-    constructor(message: string, lineNumber: number, columnNumber: number) {
-        assert(isString(message), "message must be a string");
+export class TokenError extends Error {
+    /**
+     * @param message 
+     * @param lineNumber 
+     * @param columnNumber 
+     */
+    constructor(message: string, public readonly lineNumber: number, public readonly columnNumber: number) {
+        super(message)
         assert(isNumber(lineNumber), "lineNumber must be a number");
         assert(isNumber(columnNumber), "columnNumber must be a number");
-
-        this.name = "TokenError";
-        this.message = message;
-        this.lineNumber = lineNumber;
-        this.columnNumber = columnNumber;
     }
 }

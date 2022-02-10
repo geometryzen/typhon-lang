@@ -76,6 +76,7 @@ export {
 export { Position } from './common/Position';
 export { Range } from './common/Range';
 export { LineColumn, ParseError, UnexpectedTokenError } from './common/syntaxError';
+export { TokenError } from './common/TokenError';
 export { cstDump, parse, PyNode, SourceKind } from './cst/parser';
 export { Tokens } from './cst/Tokens';
 export { Symbol } from './sym/Symbol';

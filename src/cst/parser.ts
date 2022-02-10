@@ -374,7 +374,7 @@ function makeParser(sourceKind: SourceKind): (line: string) => PyNode | boolean 
         }
         return undefined;
     });
-    return function parseFunc(line: string): PyNode | boolean {
+    return function (line: string): PyNode | boolean {
         const ret = tokenizer.generateTokens(line);
         if (ret) {
             if (ret !== "done") {

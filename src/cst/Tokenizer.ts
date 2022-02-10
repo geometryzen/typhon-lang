@@ -120,13 +120,6 @@ const NAMECHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
 const NUMCHARS = '0123456789';
 
 /**
- * For performance, let V8 know the size of an array.
- * The first element is the line number.
- * The line number is 1-based. This is intuitive because it maps to the way we think about line numbers.
- * The second element is the column.
- * The column is 0-based. This works well because it is the standard index for accessing strings.
- */
-/**
  * The index of the line in the LineColumn array.
  */
 const LINE = 0;
@@ -134,7 +127,13 @@ const LINE = 0;
  * The index of the column in the LineColumn array.
  */
 const COLUMN = 1;
-export type LineColumn = [number, number];
+/**
+ * The first element is the line number.
+ * The line number is 1-based. This is intuitive because it maps to the way we think about line numbers.
+ * The second element is the column.
+ * The column is 0-based. This works well because it is the standard index for accessing strings.
+ */
+export type LineColumn = [line: number, column: number];
 
 /**
  * The function called by the tokenizer for each token in a line.
