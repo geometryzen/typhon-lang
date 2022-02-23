@@ -1,6 +1,6 @@
 {
     "name": "typhon-lang",
-    "version": "1.0.6",
+    "version": "1.0.9",
     "description": "Typhon = Python + Types + ECMAScript modules",
     "author": {
         "name": "David Geo Holmes",
@@ -44,7 +44,7 @@
         "mocha": "^9.2.0",
         "nyc": "^15.1.0",
         "open-cli": "^7.0.1",
-        "rollup": "^2.67.1",
+        "rollup": "^2.67.2",
         "rollup-plugin-dts": "^4.1.0",
         "rollup-plugin-terser": "^7.0.2",
         "trash-cli": "^5.0.0",

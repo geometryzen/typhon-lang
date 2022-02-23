@@ -41,6 +41,7 @@ export {
     In,
     Index,
     INumericLiteral,
+    Invert,
     Is,
     IsNot,
     Keyword,
@@ -53,6 +54,7 @@ export {
     Module,
     Mult,
     Name,
+    Not,
     NotEq,
     NotIn,
     Num,
@@ -70,6 +72,10 @@ export {
     Sub,
     Target,
     Tuple,
+    UAdd,
+    UnaryOp,
+    UnaryOperator,
+    USub,
     Visitable,
     Visitor
 } from './ast/types';

@@ -292,24 +292,47 @@ function setContext(c: Compiling, e: Expression, ctx: Store, n: PyNode): void {
     }
 }
 
+/**
+ * Contains a map from a token identifier to an operator class.
+ * Missing: JavaScript Bitwise Unsigned Right Shift (>>>)
+ * Missing: "Relational" operators... Less Than, LessThan Or Equal WHY?
+ * Missing: "Equality" Operators. WHY?
+ */
 const operatorMap: { [token: number]: Operator } = {};
 (function () {
-    operatorMap[TOK.T_VBAR] = BitOr;
-    assert(operatorMap[TOK.T_VBAR] !== undefined, `${TOK.T_VBAR}`);
-    // assert(operatorMap[TOK.T_VBAR] === BitOr, `${TOK.T_VBAR}`);
-    operatorMap[TOK.T_VBAR] = BitOr;
-    operatorMap[TOK.T_CIRCUMFLEX] = BitXor;
-    operatorMap[TOK.T_AMPER] = BitAnd;
-    operatorMap[TOK.T_LEFTSHIFT] = LShift;
-    operatorMap[TOK.T_RIGHTSHIFT] = RShift;
-    operatorMap[TOK.T_PLUS] = Add;
-    operatorMap[TOK.T_MINUS] = Sub;
+    // Exponentiation
+    operatorMap[TOK.T_DOUBLESTAR] = Pow;
+    // Multiplication
     operatorMap[TOK.T_STAR] = Mult;
+    // Division
     operatorMap[TOK.T_SLASH] = Div;
-    operatorMap[TOK.T_DOUBLESLASH] = FloorDiv;
+    // Remainder
     operatorMap[TOK.T_PERCENT] = Mod;
+    // Addition
+    operatorMap[TOK.T_PLUS] = Add;
+    // Subtraction
+    operatorMap[TOK.T_MINUS] = Sub;
+    // Bitwise Left Shift
+    operatorMap[TOK.T_LEFTSHIFT] = LShift;
+    // Bitwise Right Shift
+    operatorMap[TOK.T_RIGHTSHIFT] = RShift;
+    // Bitwise AND (&)
+    operatorMap[TOK.T_AMPER] = BitAnd;
+    // Bitwise XOR (^)
+    operatorMap[TOK.T_CIRCUMFLEX] = BitXor;
+    // Bitwise OR (|)
+    operatorMap[TOK.T_VBAR] = BitOr;
+    // Python FloorDiv
+    operatorMap[TOK.T_DOUBLESLASH] = FloorDiv;
 }());
 
+/**
+ * Creates the structure for describing an operator and its range.
+ * Looks up the operator class in the operatorMap.
+ * Use the range from the concrete syntax tree node.
+ * 
+ * @param n The node in the concrete syntax tree.
+ */
 function getOperator(n: PyNode): { op: Operator; range: Range } {
     assert(operatorMap[n.type] !== undefined, `${n.type}`);
     return { op: operatorMap[n.type], range: n.range };
@@ -1948,27 +1971,30 @@ function astForAtomExpr(c: Compiling, n: PyNode): Name | Expression {
         }
     }
 }
-
+/**
+ * PowerExpr: AtomExpr trailer* ['**' UnaryExpr]
+ */
 function astForPowerExpr(c: Compiling, node: PyNode): Expression {
     const n = node;
     REQ(n, SYM.PowerExpr);
     const N = NCH(n);
     const NminusOne = N - 1;
-    let e: Expression = astForAtomExpr(c, CHILD(n, 0));
-    if (N === 1) return e;
+    let lhs: Expression = astForAtomExpr(c, CHILD(n, 0));
+    // If there is only one child then we have an AtomExpr with no trailer.
+    if (N === 1) return lhs;
     for (let i = 1; i < N; ++i) {
         const ch = CHILD(n, i);
         if (ch.type !== SYM.trailer) {
             break;
         }
-        e = astForTrailer(c, ch, e);
+        lhs = astForTrailer(c, ch, lhs);
     }
     if (CHILD(n, NminusOne).type === SYM.UnaryExpr) {
-        const f = astForExpr(c, CHILD(n, NminusOne));
-        return new BinOp(e, { op: Pow, range: null }, f, n.range);
+        const rhs = astForExpr(c, CHILD(n, NminusOne));
+        return new BinOp(lhs, getOperator(CHILD(n, N - 2)), rhs, n.range);
     }
     else {
-        return e;
+        return lhs;
     }
 }
 

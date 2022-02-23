@@ -198,6 +198,9 @@ export class SemanticVisitor implements Visitor {
     str(str: Str): void {
         // Do nothing, unless we are doing type inference.
     }
+    unaryOp(op: UnaryOp): void {
+        op.operand.accept(this);
+    }
 }
 
 /**

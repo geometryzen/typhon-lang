@@ -2,8 +2,8 @@
 // This module is at the bottom.
 // It should only import modules that don't introduce circularity.
 //
-import { assert } from '../common/asserts';
 import { Range } from '../common//Range';
+import { assert } from '../common/asserts';
 
 /**
  * A numeric literal used in parsing.
@@ -38,6 +38,7 @@ export interface Visitor {
     print(print: Print): void;
     returnStatement(rs: ReturnStatement): void;
     str(str: Str): void;
+    unaryOp(unaryExpr: UnaryOp): void;
     forStatement(fs: ForStatement): void;
 }
 
@@ -111,23 +112,44 @@ export class LShift implements HasAstName {
  */
 export class RShift implements HasAstName {
 }
+/**
+ * Bitwise OR (|)
+ */
 export class BitOr implements HasAstName {
 }
+/**
+ * Bitwise XOR (^)
+ */
 export class BitXor implements HasAstName {
 }
+/**
+ * Bitwise AND (&)
+ */
 export class BitAnd implements HasAstName {
 }
+/**
+ * (//)
+ */
 export class FloorDiv implements HasAstName {
 }
-
+/**
+ * Bitwise NOT (~)
+ */
 export class Invert implements HasAstName {
 }
-
+/**
+ * Logical NOT (not)
+ */
 export class Not {
 }
-
+/**
+ * Unary Plus (+)
+ */
 export class UAdd implements HasAstName {
 }
+/**
+ * Unary Minus (-)
+ */
 export class USub implements HasAstName {
 }
 
@@ -155,7 +177,7 @@ export abstract class Expression implements Visitable {
     }
     accept(visitor: Visitor): void {
         // accept must be implemented by derived classes.
-        throw new Error(`"Expression.accept" is not implemented.`);
+        throw new Error(`"Expression.accept" is not implemented. this=${JSON.stringify(this)}`);
     }
 }
 
@@ -552,12 +574,13 @@ export class BinOp extends Expression {
 export type UnaryOperator = UAdd | USub | Invert | Not;
 
 export class UnaryOp extends Expression {
-    op: UnaryOperator;
-    operand: Expression;
-    constructor(op: UnaryOperator, operand: Expression, public readonly range?: Range) {
+    constructor(public readonly op: UnaryOperator, public readonly operand: Expression, public readonly range?: Range) {
         super();
-        this.op = op;
-        this.operand = operand;
+        assert(op === UAdd || op === USub || op === Invert || op === Not, "op must be defined.");
+        assert(!!operand, "operand must be defined");
+    }
+    accept(visitor: Visitor): void {
+        visitor.unaryOp(this);
     }
 }
 

@@ -35,6 +35,9 @@ export enum Tokens {
     T_LESSEQUAL = 30,
     T_GREATEREQUAL = 31,
     T_TILDE = 32,
+    /**
+     * '^'
+     */
     T_CIRCUMFLEX = 33,
     T_LEFTSHIFT = 34,
     T_RIGHTSHIFT = 35,
