@@ -26,7 +26,9 @@
         ],
         "declaration": true,
         "declarationDir": "types",
-        "emitDeclarationOnly": true
+        "emitDeclarationOnly": true,
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true
     },
     "include": [
         "./**/*.ts"
