@@ -3,7 +3,10 @@
         "src/index.ts"
     ],
     "out": "docs",
-    "exclude": "src/**/*.spec.ts",
+    "exclude": [
+        "src/**/*.spec.ts",
+        "../node_modules/@types/jest/index.d.ts"
+    ],
     "excludePrivate": true,
     "theme": "default"
 }

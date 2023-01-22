@@ -28,7 +28,7 @@
         "test": "nyc ./node_modules/.bin/_mocha 'test/**/*.ts'",
         "docs": "npm run docs:typedoc && open-cli docs/index.html",
         "docs:typedoc": "rm -rf docs && typedoc --options typedoc.json",
-        "prepublishOnly": "node check_publish_env.js && npm run build && npm run lint && npm test && npm run docs",
+        "prepublishOnly": "npm run build && npm run lint && npm test",
         "release": "release-it"
     },
     "devDependencies": {
