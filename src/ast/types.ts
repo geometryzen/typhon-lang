@@ -38,6 +38,7 @@ export interface Visitor {
     print(print: Print): void;
     returnStatement(rs: ReturnStatement): void;
     str(str: Str): void;
+    subscript(se: Subscript): void;
     unaryOp(unaryExpr: UnaryOp): void;
     forStatement(fs: ForStatement): void;
 }
@@ -177,7 +178,7 @@ export abstract class Expression implements Visitable {
     }
     accept(visitor: Visitor): void {
         // accept must be implemented by derived classes.
-        throw new Error(`"Expression.accept" is not implemented. this=${JSON.stringify(this)}`);
+        throw new Error(`"Expression.accept" is not implemented. this=${JSON.stringify(this, null, 2)}`);
     }
 }
 
@@ -773,6 +774,9 @@ export class Subscript extends Expression {
         this.value = value;
         this.slice = slice;
         this.ctx = ctx;
+    }
+    accept(visitor: Visitor): void {
+        visitor.subscript(this);
     }
 }
 
