@@ -842,8 +842,8 @@ export class ExtSlice {
 }
 
 export class Index {
-    value: Tuple;
-    constructor(value: Tuple) {
+    value: Num | Tuple | Expression;
+    constructor(value: Num | Tuple | Expression) {
         this.value = value;
     }
 }

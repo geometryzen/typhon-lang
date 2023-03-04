@@ -1,110 +1,16 @@
 import { assert, fail } from '../common/asserts';
-import { NCH, CHILD, FIND } from '../common/tree';
-
-import { Add } from './types';
-// TODO: Conventions
-import { Alias } from './types';
-import { Arguments } from './types';
-import { And } from './types';
-import { AnnAssign } from './types';
-import { Assert } from './types';
-import { Assign } from './types';
-import { Attribute } from './types';
-import { AugAssign } from './types';
-import { AugLoad } from './types';
-import { AugStore } from './types';
-import { BinOp } from './types';
-import { BitAnd } from './types';
-import { BitOr } from './types';
-import { BitXor } from './types';
-import { BoolOp } from './types';
-import { BreakStatement } from './types';
-import { Call } from './types';
-import { ClassDef } from './types';
-import { Compare } from './types';
-import { Comprehension } from './types';
-import { ContinueStatement } from './types';
-import { Del } from './types';
-import { DeleteStatement } from './types';
-import { Dict } from './types';
-import { Div } from './types';
-import { Ellipsis } from './types';
-import { Eq } from './types';
-import { ExceptHandler } from './types';
-import { Exec } from './types';
-import { Expression } from './types';
-import { ExpressionStatement } from './types';
-import { ExtSlice } from './types';
-import { FloorDiv } from './types';
-import { FunctionParamDef } from './types';
-import { ForStatement } from './types';
-import { FunctionDef } from './types';
-import { GeneratorExp } from './types';
-import { Global } from './types';
-import { Gt } from './types';
-import { GtE } from './types';
-// FIXME: Convention
-import { Keyword } from './types';
-import { IfStatement } from './types';
-import { IfExp } from './types';
-import { ImportStatement } from './types';
-import { ImportFrom } from './types';
-import { Index } from './types';
-import { In } from './types';
-import { Invert } from './types';
-import { Is } from './types';
-import { IsNot } from './types';
-import { Lambda } from './types';
-import { List } from './types';
-import { ListComp } from './types';
-import { Load } from './types';
-import { LShift } from './types';
-import { Lt } from './types';
-import { LtE } from './types';
-import { Mod } from './types';
-// import { Module } from './types';
-import { Mult } from './types';
-import { NonLocal } from './types';
-import { Name } from './types';
-import { Not } from './types';
-import { NotEq } from './types';
-import { NotIn } from './types';
-import { Num } from './types';
-import { Operator } from './types';
-import { Or } from './types';
-import { Param } from './types';
-import { Pass } from './types';
-import { Pow } from './types';
-import { Print } from './types';
-import { Raise } from './types';
-import { RangeAnnotated } from './types';
-import { ReturnStatement } from './types';
-import { RShift } from './types';
-import { Slice } from './types';
-import { Statement } from './types';
-import { Store } from './types';
-import { Str } from './types';
-import { Sub } from './types';
-import { Subscript } from './types';
-import { TryExcept } from './types';
-import { TryFinally } from './types';
-import { Tuple } from './types';
-import { UAdd } from './types';
-import { UnaryOp } from './types';
-import { USub } from './types';
-import { WhileStatement } from './types';
-import { WithStatement } from './types';
-import { Yield } from './types';
-
 import { isNumber, isString } from '../common/base';
+import { Range } from '../common/Range';
+import { CHILD, FIND, NCH } from '../common/tree';
+// import { cstDump } from './parser';
+import { grammarName } from '../cst/grammarName';
+import { cstDump, PyNode } from '../cst/parser';
 import { ParseTables } from '../cst/tables';
 import { Tokens as TOK } from '../cst/Tokens';
 import { floatAST, intAST, longAST } from './numericLiteral';
-import { INumericLiteral } from './types';
-import { cstDump, PyNode } from '../cst/parser';
-import { Range } from '../common/Range';
-// import { cstDump } from './parser';
-import { grammarName } from '../cst/grammarName';
+import { Add, Alias, And, AnnAssign, Arguments, Assert, Assign, Attribute, AugAssign, AugLoad, AugStore, BinOp, BitAnd, BitOr, BitXor, BoolOp, BreakStatement, Call, ClassDef, Compare, Comprehension, ContinueStatement, Del, DeleteStatement, Dict, Div, Ellipsis, Eq, ExceptHandler, Exec, Expression, ExpressionStatement, ExtSlice, FloorDiv, ForStatement, FunctionDef, FunctionParamDef, GeneratorExp, Global, Gt, GtE, IfExp, IfStatement, ImportFrom, ImportStatement, In, Index, INumericLiteral, Invert, Is, IsNot, Keyword, Lambda, List, ListComp, Load, LShift, Lt, LtE, Mod, Mult, Name, NonLocal, Not, NotEq, NotIn, Num, Operator, Or, Param, Pass, Pow, Print, Raise, RangeAnnotated, ReturnStatement, RShift, Slice, Statement, Store, Str, Sub, Subscript, TryExcept, TryFinally, Tuple, UAdd, UnaryOp, USub, WhileStatement, WithStatement, Yield } from './types';
+
+
 
 //
 // This is pretty much a straight port of ast.c from CPython 2.6.5.
@@ -1123,7 +1029,7 @@ function astForTrailer(c: Compiling, node: PyNode, leftExpr: Expression): Attrib
             if (!simple) {
                 return new Subscript(leftExpr, new ExtSlice(slices), Load, n.range);
             }
-            const elts: Tuple[] = [];
+            const elts: Expression[] = [];
             for (let j = 0; j < slices.length; ++j) {
                 let slc = slices[j];
                 if (slc instanceof Index) {
@@ -1134,8 +1040,8 @@ function astForTrailer(c: Compiling, node: PyNode, leftExpr: Expression): Attrib
                     assert(slc instanceof Index);
                 }
             }
-            const e = new Tuple(elts, Load, n.range);
-            return new Subscript(leftExpr, new Index(e), Load, n.range);
+            const tuple = new Tuple(elts, Load, n.range);
+            return new Subscript(leftExpr, new Index(tuple), Load, n.range);
         }
     }
 }
@@ -1880,7 +1786,8 @@ function astForSlice(c: Compiling, node: PyNode): Ellipsis | Index | Name | Slic
         return new Ellipsis();
     }
     if (NCH(n) === 1 && ch.type === SYM.IfExpr) {
-        return new Index(astForExpr(c, ch) as Tuple);
+        const value = astForExpr(c, ch);
+        return new Index(value);
     }
     if (ch.type === SYM.IfExpr) {
         lower = astForExpr(c, ch);
