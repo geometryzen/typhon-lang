@@ -5,6 +5,7 @@
         "moduleResolution": "node",
         "module": "esnext",
         "importHelpers": true,
+        "ignoreDeprecations": "5.0",
         "inlineSourceMap": false,
         "listFiles": false,
         "traceResolution": false,
